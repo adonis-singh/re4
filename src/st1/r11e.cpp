@@ -87,7 +87,7 @@ static void r11e_str_check();
 static void r11e_checkDoor102KeyUse();
 static void r11e_checkDoor();
 
-// Room init: giant (0x2B) pre-read; area 1 = the locked door until door_unlock[0] 0x00080000 (with the
+// Room init: giant (0x2B) pre-read; area 1 = the locked door until Key_flg[0] 0x00080000 (with the
 // key-use watcher); the hut/fence collapse watcher; collision and attribute pieces for huts A/B and
 // fences A/B; the pieces already destroyed per Room_flg bits 0..3 are removed; the boulders on the
 // props, the giant's appearance area and the battle stream.
@@ -99,7 +99,7 @@ void R11eInit()
     r11e_work = (R11eWork*) MEM_CALLOC(sizeof(R11eWork), 1, 0xd);
 
     EmReadSearch(0x2B, 0, 0);
-    if (!(pG->door_unlock[0] & 0x00080000)) {
+    if (!(pG->Key_flg[0] & 0x00080000)) {
         SceAtDataSet_exec(1, SCE_LEVEL10, 0, (TaskFunc) r11e_checkDoor, 0, 1);
         SceExec(0x12, (TaskFunc) r11e_checkDoor102KeyUse, 0, 0, SCE_PRIO_DEF_2, 0);
     }
@@ -510,7 +510,7 @@ static void r11e_checkDoor102KeyUse()
     ItemMgr.dump(0x8B);
     SndCall(6, 5, 0, 0, 0, 0);
     SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-    pG->door_unlock[0] |= 0x00080000;
+    pG->Key_flg[0] |= 0x00080000;
     SceAtDataReset(1);
 }
 

@@ -220,9 +220,6 @@ static u8 em2d_tex_flag = 0xF;
 #define ARC(no) PL_ARC_PTR(em->subArc, no)
 #define PL_ARC(no) PL_ARC_PTR(pl->subArc, no)
 
-// The enemy a player damage callback belongs to (pl_sub SetPlDamage's first argument).
-#define PL_EM(pl) ((cEm2d*) (pl)->dmgType)
-
 // Struct-member views of the player pointer / pG: a load through them is not hoisted above the
 // preceding stores through the work pointer (cam_ctrl.cpp PlayerPtr).
 struct PlayerPtr {
@@ -230,8 +227,6 @@ struct PlayerPtr {
 };
 #define pPLS (((PlayerPtr*) &pPL)->p)
 
-// Routine test on the cModel status word (xFC / xFD as the upper half of `stat`).
-#define EM_RTN(em, fc, fd) (((em)->stat & 0xFFFF0000) == (u32) (((fc) << 24) | ((fd) << 16)))
 
 // Routine bytes written through an int inline (player.cpp PlRoutineSet).
 static inline void EmRoutineSet(cEm* em, int r0, int r1, int r2, int r3)
@@ -436,7 +431,7 @@ void em2dDmCk(cEm2d* em)
         return;
     }
     em->dmg.m_Flag = 0;
-    BitOn(pG->Status_flg[1], 0x20000000);
+    StaFlagOn(pG, STA_SE_BURST);
     pGS->bell_pos = em->pos;
     pGS->bell_stat = 0;
     em->dmg.m_Timer = 1;
@@ -1308,7 +1303,7 @@ static void em2d_R1_Walk(cEm2d* em)
         f32 dy = fabsf(em->pos.y - pPL->pos.y);
         if ((w->flags & 1) && dy < 500.0f) {
             if (em->plDist2 < 4000000.0f && w->routeAngAbs < 0.785398185f) {
-                if (pG->Game_level <= 1 && !EM_RTN(em, 1, 1) && Rnd() % 10 > 4) {
+                if (pG->Game_level <= 1 && (em->r_no_0 != 1 || em->r_no_1 != 1) && Rnd() % 10 > 4) {
                     w->atkWait = 30;
                     EmRoutineSet(em, 1, 1, 0, 0);
                     return;
@@ -1738,7 +1733,7 @@ static void em2d_R1_CriticalAtk(cEm2d* em)
 // Player damage routine of the critical bite: the head comes off (em2dPlHeadLost), routine held.
 static void plem2d_CriticalHit(cPlayer* pl)
 {
-    pG->Status_flg[1] |= 0x8000;
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
     switch (pl->r_no_2) {
     case 0:
@@ -1776,9 +1771,9 @@ static void em2d_R1_br_JumpAtk(cEm2d* em)
 {
     if (em->hp > 0 && (em->seFlags28B & 2) && em2dCatchCk(em)) {
         if ((Rnd() & 1) || (s16) pG->pl_life > 300) {
-            em->stat = 0x010C0000;
+            EmRoutineSetW(em, 1, 0xC, 0, 0);
         } else {
-            em->stat = 0x010B0000;
+            EmRoutineSetW(em, 1, 0xB, 0, 0);
         }
     }
 }
@@ -1993,9 +1988,9 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
 {
     int fe;
 
-    pG->Status_flg[1] |= 0x8000;
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     fe = pl->r_no_2;
     switch (fe) {
     case 0:
@@ -2014,7 +2009,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
         } else {
             MotionMoveF(pl, 0);
         }
-        if (em2dCamMove(PL_EM(pl), pl->r_no_3, 0.3f) == 0) {
+        if (em2dCamMove((cEm2d*)pl->pEmCatch, pl->r_no_3, 0.3f) == 0) {
             if (pl->r_no_3 == 0) {
                 pl->r_no_3 = 2;
             }
@@ -2028,7 +2023,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
                 pl->r_no_3 = 7;
             }
         }
-        if (!EM_RTN(PL_EM(pPL), 1, 0xB)) {
+        if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 0xB) {
             EndPlDamage();
             pl->dmg.set(0, 30);
             break;
@@ -2036,7 +2031,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
         if (pl->frame > 64.6999969f && pl->frame < 65.3000031f) {
             VibSetData((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc), 7, 1);
         }
-        pl->r_no_2 = PL_EM(pl)->r_no_2;
+        pl->r_no_2 = pl->pEmCatch->r_no_2;
         break;
     case 2:
     case 4:
@@ -2045,7 +2040,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
         pl->r_no_2++;
     case 3:
     case 5:
-        if (em2dCamMove(PL_EM(pl), pl->r_no_3, 0.3f) == 0) {
+        if (em2dCamMove((cEm2d*)pl->pEmCatch, pl->r_no_3, 0.3f) == 0) {
             if (pl->r_no_3 == 0) {
                 pl->r_no_3 = 2;
             }
@@ -2064,7 +2059,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
             pl->dmg.set(0, 30);
         }
         if (pl->frame > 14.6999998f && pl->frame < 15.3000002f) {
-            SndCall(8, 0x35, &pl->pos, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x35, &pl->pos, pl->pEmCatch->id, 0, pl);
         }
         break;
     case 6:
@@ -2072,7 +2067,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
         EstSet((int) pl, -1, 0, 0, 0x25, 0x14, 0, 0, (u32) pl, 0);
         pl->r_no_2++;
     case 7:
-        if (em2dCamMove(PL_EM(pl), pl->r_no_3, 0.3f) == 0) {
+        if (em2dCamMove((cEm2d*)pl->pEmCatch, pl->r_no_3, 0.3f) == 0) {
             if (pl->r_no_3 == 0) {
                 pl->r_no_3 = 2;
             }
@@ -2090,14 +2085,14 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
             VibSetData((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc), 7, 1);
         }
         MotionMoveF(pl, 0);
-        pl->r_no_2 = PL_EM(pl)->r_no_2;
+        pl->r_no_2 = pl->pEmCatch->r_no_2;
         break;
     case 8:
         MotionSetCore(pl, &pl->Motion, PL_ARC(0x62), 0, 5, 1, 0);
         EstSet((int) pl, -1, 0, 0, 0x25, 0x16, 0, 0, (u32) pl, 0);
         pl->r_no_2++;
     case 9:
-        if (em2dCamMove(PL_EM(pl), pl->r_no_3, 0.3f) == 0) {
+        if (em2dCamMove((cEm2d*)pl->pEmCatch, pl->r_no_3, 0.3f) == 0) {
             if (pl->r_no_3 == 0) {
                 pl->r_no_3 = 2;
             }
@@ -2112,7 +2107,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
             }
         }
         if (pl->frame > 14.6999998f && pl->frame < 15.3000002f) {
-            SndCall(8, 0x35, &pl->pos, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x35, &pl->pos, pl->pEmCatch->id, 0, pl);
         }
         if (MotionMoveF(pl, 0)) {
             EndPlDamage();
@@ -2125,7 +2120,7 @@ static void plem2d_JumpAtkHit(cPlayer* pl)
         em2dPlHeadMelt(pl);
         pl->r_no_2++;
     case 11:
-        em2dDieCamMove(PL_EM(pl));
+        em2dDieCamMove((cEm2d*)pl->pEmCatch);
         MotionMoveF(pl, 0);
         break;
     }
@@ -2240,9 +2235,9 @@ static void plem2d_JumpKickHit(cPlayer* pl)
 {
     int t;
 
-    pG->Status_flg[1] |= 0x8000;
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, PL_ARC(0x66), 0, 5, 1, 0);
@@ -2345,7 +2340,7 @@ void em2dActEvtSetKick(cEm2d* em, int side)
 // JumpAtkCounter (0xD), critical scored, damage held 30 frames.
 static void em2dKickAction(cEm2d* em)
 {
-    SetPlDamage((int) em, plem2dKick);
+    SetPlDamage(em, plem2dKick);
     pPL->dmg.set(0, 30);
     if (pSUB && pSUB->plDist2 < 9000000.0f) {
         cDmgInfo* d = &pSUB->dmg;  // &pSUB->dmg is computed before the dead test
@@ -2364,9 +2359,9 @@ static void plem2dKick(cPlayer* pl)
 {
     Vec pos;
 
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.set(0, 30);
-    pG->Status_flg[2] |= 0x40000000;
+    StaFlagOn(pG, STA_PL_EM_ACTION);
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, PL_ARC(0x60), 0, 6, 1, 5);
@@ -3100,9 +3095,9 @@ static void em2d_R1_W_Fall(cEm2d* em)
             if (em2dFallCatchCk(em)) {
                 em->pos.y = pPL->pos.y;
                 if ((Rnd() & 1) != 0 || (s16) pG->pl_life <= 299) {
-                    em->stat = 0x010B0000;
+                    EmRoutineSetW(em, 1, 0xB, 0, 0);
                 } else {
-                    em->stat = 0x010C0000;
+                    EmRoutineSetW(em, 1, 0xC, 0, 0);
                 }
             }
         }
@@ -3118,9 +3113,9 @@ static void em2d_R1_W_Fall(cEm2d* em)
             if (em2dFallCatchCk(em)) {
                 em->pos.y = pPL->pos.y;
                 if ((Rnd() & 1) != 0 || (s16) pG->pl_life <= 299) {
-                    em->stat = 0x010B0000;
+                    EmRoutineSetW(em, 1, 0xB, 0, 0);
                 } else {
-                    em->stat = 0x010C0000;
+                    EmRoutineSetW(em, 1, 0xC, 0, 0);
                 }
             }
         }
@@ -3619,9 +3614,9 @@ static void em2d_R1_br_A_Catch(cEm2d* em)
 {
     if (em->hp > 0 && em2dAirCatchCk(em)) {
         if (Rnd() & 1) {
-            em->stat = 0x01250000;
+            EmRoutineSetW(em, 1, 0x25, 0, 0);
         } else {
-            em->stat = 0x01260000;
+            EmRoutineSetW(em, 1, 0x26, 0, 0);
         }
     }
 }
@@ -3827,9 +3822,9 @@ static void plem2d_A_CatchHit(cPlayer* pl)
 {
     int fe;
 
-    pG->Status_flg[1] |= 0x8000;
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     fe = pl->r_no_2;
     switch (fe) {
     case 0:
@@ -3848,8 +3843,8 @@ static void plem2d_A_CatchHit(cPlayer* pl)
         } else {
             MotionMoveF(pl, 0);
         }
-        em2dCatchCamMove(PL_EM(pl), pl);
-        if (!EM_RTN(PL_EM(pPL), 1, 0x26)) {
+        em2dCatchCamMove((cEm2d*)pl->pEmCatch, pl);
+        if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 0x26) {
             EndPlDamage();
             pl->dmg.set(0, 30);
             break;
@@ -3857,7 +3852,7 @@ static void plem2d_A_CatchHit(cPlayer* pl)
         if (pl->frame > 64.6999969f && pl->frame < 65.3000031f) {
             VibSetData((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc), 7, 1);
         }
-        pl->r_no_2 = PL_EM(pl)->r_no_2;
+        pl->r_no_2 = pl->pEmCatch->r_no_2;
         break;
     case 2:
     case 4:
@@ -3866,13 +3861,13 @@ static void plem2d_A_CatchHit(cPlayer* pl)
         pl->r_no_2++;
     case 3:
     case 5:
-        em2dCatchCamMove(PL_EM(pl), pl);
+        em2dCatchCamMove((cEm2d*)pl->pEmCatch, pl);
         if (MotionMoveF(pl, 0)) {
             EndPlDamage();
             pl->dmg.set(0, 30);
         }
         if (pl->frame > 14.6999998f && pl->frame < 15.3000002f) {
-            SndCall(8, 0x35, &pl->pos, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x35, &pl->pos, pl->pEmCatch->id, 0, pl);
         }
         break;
     case 6:
@@ -3880,21 +3875,21 @@ static void plem2d_A_CatchHit(cPlayer* pl)
         EstSet((int) pl, -1, 0, 0, 0x25, 0x14, 0, 0, (u32) pl, 0);
         pl->r_no_2++;
     case 7:
-        em2dCatchCamMove(PL_EM(pl), pl);
+        em2dCatchCamMove((cEm2d*)pl->pEmCatch, pl);
         if (pl->frame > 27.7000008f && pl->frame < 28.2999992f) {
             VibSetData((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc), 7, 1);
         }
         MotionMoveF(pl, 0);
-        pl->r_no_2 = PL_EM(pl)->r_no_2;
+        pl->r_no_2 = pl->pEmCatch->r_no_2;
         break;
     case 8:
         MotionSetCore(pl, &pl->Motion, PL_ARC(0x62), 0, 5, 1, 0);
         EstSet((int) pl, -1, 0, 0, 0x25, 0x16, 0, 0, (u32) pl, 0);
         pl->r_no_2++;
     case 9:
-        em2dCatchCamMove(PL_EM(pl), pl);
+        em2dCatchCamMove((cEm2d*)pl->pEmCatch, pl);
         if (pl->frame > 14.6999998f && pl->frame < 15.3000002f) {
-            SndCall(8, 0x35, &pl->pos, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x35, &pl->pos, pl->pEmCatch->id, 0, pl);
         }
         if (MotionMoveF(pl, 0)) {
             EndPlDamage();
@@ -3907,7 +3902,7 @@ static void plem2d_A_CatchHit(cPlayer* pl)
         em2dPlHeadMelt(pl);
         pl->r_no_2++;
     case 11:
-        em2dDieCamMove(PL_EM(pl));
+        em2dDieCamMove((cEm2d*)pl->pEmCatch);
         MotionMoveF(pl, 0);
         break;
     }
@@ -4007,9 +4002,9 @@ static void em2d_R1_C_Fall(cEm2d* em)
         if (em2dFallCatchCk(em)) {
             em->pos.y = pPL->pos.y;
             if ((Rnd() & 1) || (s16) pG->pl_life <= 299) {
-                em->stat = 0x010B0000;
+                EmRoutineSetW(em, 1, 0xB, 0, 0);
             } else {
-                em->stat = 0x010C0000;
+                EmRoutineSetW(em, 1, 0xC, 0, 0);
             }
         }
         break;
@@ -4777,7 +4772,7 @@ void em2dRouteCk(cEm2d* em)
             w->targetAngAbs = 0.0f;
         }
     }
-    if (pG->Debug_flg[0] & 0x4000) {
+    if (DbgFlagChk(pG, DBG_RTP_DISP)) {
         a = em->pos;
         a.y += 250.0f;
         Draw_line3d(&a, &w->targetPos, 0xFFFFFF40, 0);
@@ -4867,7 +4862,7 @@ int em2dAtkCk(cEm2d* em, int no, int parts)
             memcpy((u8*) pPL + 0x328, &em->pos, sizeof(Vec));  // byte-pointer destination: pPL is reloaded for EstSet
             EstSet((int) pPL, -1, 0, 0, 0x25, 0x26, 0, 0, (u32) pPL, 0);
             pG->pl_life = 0;
-            SetPlDamage((int) em, plem2d_CriticalHit);
+            SetPlDamage(em, plem2d_CriticalHit);
             break;
         }
         w->atkHit = 1;
@@ -5208,7 +5203,7 @@ void em2dCamouflageMove(cEm2d* em)
         }
     }
     em->Refract_pow = em2d_tex_flag;
-    if (pG->Status_flg[1] & 0x04000000) {
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
         w->x4D0 = 0;
         em->Refract_ratio = 0xFF;
     }
@@ -5324,7 +5319,7 @@ int em2dCatchCk(cEm2d* em)
     if (!(w->flags & 1)) {
         return 0;
     }
-    if (pG->Status_flg[1] & 0x8000) {
+    if (StaFlagChk(pG, STA_PL_CATCHED)) {
         return 0;
     }
     PSMTXInverse(em->mat, inv);
@@ -5360,7 +5355,7 @@ int em2dAirCatchCk(cEm2d* em)
     if (!(w->flags & 1)) {
         return 0;
     }
-    if (pG->Status_flg[1] & 0x8000) {
+    if (StaFlagChk(pG, STA_PL_CATCHED)) {
         return 0;
     }
     PSMTXInverse(em->mat, inv);
@@ -5398,7 +5393,7 @@ int em2dFallCatchCk(cEm2d* em)
     if (!(w->flags & 1)) {
         return 0;
     }
-    if (pG->Status_flg[1] & 0x8000) {
+    if (StaFlagChk(pG, STA_PL_CATCHED)) {
         return 0;
     }
     if (em->plDist2 > 2250000.0f) {
@@ -5614,7 +5609,7 @@ void em2dPlHeadLost()
     cObj* obj;
     int zero;
 
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         PlSetDamageSe(0xD);
         EstSet((int) pPL, -1, 0, 0, 0x25, 0x2C, 0, 0, (u32) pPL, 0);
         return;
@@ -5646,7 +5641,7 @@ void em2dPlHeadLost()
 // Swaps the player's head for the acid-melted skull (player archive 0x6D / 0x6E) after the face grab kill.
 void em2dPlHeadMelt(cPlayer* pl)
 {
-    if (pSys->region) {
+    if (pSys->eff_country) {
         pPL->setHead(PL_ARC(0x6D), PL_ARC(0x6E));
     }
 }
@@ -6325,7 +6320,7 @@ int em2dFindCk(cEm2d* em)
         return 1;
     }
     if (!(em->plDist2 < 9000000.0f)) {
-        if (pG->Status_flg[1] & 0x20000000) {
+        if (StaFlagChk(pG, STA_SE_BURST)) {
             f32 r;
 
             switch (pG->bell_stat) {
@@ -6352,7 +6347,7 @@ int em2dFindCk(cEm2d* em)
                 }
             }
         }
-        if (!(pG->Status_flg[0] & 0x00800000) || !(w->plDist < 25000.0f)) {
+        if (!StaFlagChk(pG, STA_PL_FIRE) || !(w->plDist < 25000.0f)) {
             if (em2dDeadCk(em) == 0 && em2dSomebodyFindCk(em) == 0) {
                 return 0;
             }

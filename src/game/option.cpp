@@ -1,6 +1,6 @@
 // game/option: the option menu (pause menu in game, and from the title) — OptionScreen drives the
 // top menu (retry / load, controller, brightness, audio) and its sub menus on the option id
-// archive (pG->pOption), writing the settings into pSys->flags / brightness / sound_mode; also
+// archive (pG->pOption), writing the settings into pSys->Config_flg / brightness / sound_mode; also
 // the GameResult (game clear / omake) and ChapterEnd result screens on the result id data.
 // (D:/Bio4/Prog/option.cpp)
 #include "types.h"
@@ -151,7 +151,7 @@ void OptionScreen::init(int title)
     _rno1 = 0;
     _rno2 = 0;
     _rno3 = 0;
-    if (pG->Status_flg[2] & 0x8000) {
+    if (StaFlagChk(pG, STA_TITLE)) {
         _rno1 = 1;
     }
     SndCall(0, 0x33, 0, 0, 0, 0);
@@ -257,22 +257,22 @@ int top_menu(OptionScreen* o)
         if (o->_rno1 == 2) {
             IdSys.unitPtr(0, ID_OPT_BG)->rev_flag |= 0xF;
         }
-        if (pSys->flags & 0x80000000) {
+        if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
             o->m_reverse = 1;
         } else {
             o->m_reverse = 0;
         }
-        if (pSys->flags & 0x08000000) {
+        if (CfgFlagChk(pSys, CFG_VIBRATION)) {
             o->m_vibration = 1;
         } else {
             o->m_vibration = 0;
         }
-        if (pSys->flags & 0x04000000) {
+        if (CfgFlagChk(pSys, CFG_KNIFE_MODE)) {
             o->m_knife_key = 1;
         } else {
             o->m_knife_key = 0;
         }
-        switch (pSys->sound_mode) {
+        switch (pSys->SndMode) {
         case 0:
             o->sound = 1;
             break;
@@ -301,7 +301,7 @@ int top_menu(OptionScreen* o)
             o->_rno1++;
         }
         o->_rno1 = o->_rno1 < 0 ? 0 : (o->_rno1 > 4 ? 4 : o->_rno1);
-        if ((pG->Status_flg[2] & 0x8000) && o->_rno1 == 0 && (Key.trg & KEY_UP)) {
+        if (StaFlagChk(pG, STA_TITLE) && o->_rno1 == 0 && (Key.trg & KEY_UP)) {
             o->_rno1 = 1;
         }
         if (old != o->_rno1) {
@@ -319,7 +319,7 @@ int top_menu(OptionScreen* o)
         } else {
             u->col0[3] = u->col0[2] = u->col0[1] = u->col0[0] = 0xFF;
         }
-        if ((pG->Status_flg[2] & 0x8000) && i == 0) {
+        if (StaFlagChk(pG, STA_TITLE) && i == 0) {
             u->col0[0] = 0x40;
             u->col0[1] = 0x40;
             u->col0[2] = 0x40;
@@ -403,7 +403,7 @@ int retry_load_menu(OptionScreen* o)
                 o->_rno2++;
             }
             o->_rno2 = o->_rno2 < 0 ? 0 : (o->_rno2 > 3 ? 3 : o->_rno2);
-            if ((s32) pG->System_flg < 0 || (pG->System_flg & 0x40000000)) {
+            if ((s32) pG->System_flg < 0 || (SysFlagChk(pG, SYS_OMAKE_ETC_GAME))) {
                 if (o->_rno2 == 1) {
                     if (Key.trg & KEY_UP) {
                         o->_rno2 = 0;
@@ -428,7 +428,7 @@ int retry_load_menu(OptionScreen* o)
             } else {
                 u->col0[3] = u->col0[2] = u->col0[1] = u->col0[0] = 0xFF;
             }
-            if (((s32) pG->System_flg < 0 || (pG->System_flg & 0x40000000)) && i == 1) {
+            if (((s32) pG->System_flg < 0 || (SysFlagChk(pG, SYS_OMAKE_ETC_GAME))) && i == 1) {
                 u->col0[0] = 0x40;
                 u->col0[1] = 0x40;
                 u->col0[2] = 0x40;
@@ -508,15 +508,15 @@ int retry_load_menu(OptionScreen* o)
         break;
     case 3:
         if (SndEndCheck(snd_id)) {
-            pG->System_flg |= 0x04000000;
+            SysFlagOn(pG, SYS_SOFT_RESET);
         }
         break;
     }
     return 0;
 }
 
-// Controller sub menu: entries reverse camera (pSys->flags bit31), vibration (0x08000000, with a
-// test rumble), knife key (0x04000000), back; left/right toggle, A applies to pSys->flags.
+// Controller sub menu: entries reverse camera (pSys->Config_flg bit31), vibration (0x08000000, with a
+// test rumble), knife key (0x04000000), back; left/right toggle, A applies to pSys->Config_flg.
 int controller_menu(OptionScreen* o)
 {
     static int vib_time = 10;
@@ -541,24 +541,24 @@ int controller_menu(OptionScreen* o)
         switch (old) {
         case 0:
             if (o->m_reverse) {
-                pSys->flags |= 0x80000000;
+                CfgFlagOn(pSys, CFG_AIM_REVERSE);
             } else {
-                pSys->flags &= ~0x80000000;
+                CfgFlagOff(pSys, CFG_AIM_REVERSE);
             }
             break;
         case 1:
             if (o->m_vibration) {
-                BitOn(pSys->flags, 0x08000000);
+                CfgFlagOn(pSys, CFG_VIBRATION);
                 VibSet(vib_time, vib_level, 0, 4);
             } else {
-                pSys->flags &= ~0x08000000;
+                CfgFlagOff(pSys, CFG_VIBRATION);
             }
             break;
         case 2:
             if (o->m_knife_key) {
-                pSys->flags |= 0x04000000;
+                CfgFlagOn(pSys, CFG_KNIFE_MODE);
             } else {
-                pSys->flags &= ~0x04000000;
+                CfgFlagOff(pSys, CFG_KNIFE_MODE);
             }
             break;
         case 3:
@@ -707,21 +707,21 @@ int controller_menu(OptionScreen* o)
         uns->col0[3] = off->col0[3];
     }
     asm("" : : "r"(sel));  // COMPILER-DIFF: candidate (global.c allocno order: sel 29/338 must outrank o 42/600 for r31)
-    if ((s32) pSys->flags < 0) {
+    if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
         IdSys.unitPtr(0xA, ID_OPT)->be_flag |= 8;
         IdSys.unitPtr(0xB, ID_OPT)->be_flag &= ~8;
     } else {
         IdSys.unitPtr(0xA, ID_OPT)->be_flag &= ~8;
         IdSys.unitPtr(0xB, ID_OPT)->be_flag |= 8;
     }
-    if (pSys->flags & 0x08000000) {
+    if (CfgFlagChk(pSys, CFG_VIBRATION)) {
         IdSys.unitPtr(0xC, ID_OPT)->be_flag |= 8;
         IdSys.unitPtr(0xD, ID_OPT)->be_flag &= ~8;
     } else {
         IdSys.unitPtr(0xC, ID_OPT)->be_flag &= ~8;
         IdSys.unitPtr(0xD, ID_OPT)->be_flag |= 8;
     }
-    if (pSys->flags & 0x04000000) {
+    if (CfgFlagChk(pSys, CFG_KNIFE_MODE)) {
         IdSys.unitPtr(0x14, ID_OPT)->be_flag &= ~8;
         IdSys.unitPtr(0x15, ID_OPT)->be_flag |= 8;
     } else {
@@ -736,7 +736,7 @@ int controller_menu(OptionScreen* o)
     return 0;
 }
 
-// Brightness sub menu: left/right change pSys->brightness (and pRK->brightness) around DEFAULT
+// Brightness sub menu: left/right change pSys->brightness (and pRK->base_brightness) around DEFAULT
 // within MIN_OFS..MAX_OFS, shows the signed level as digits and slides the marker; cursor 1 = back.
 int brightness_menu(OptionScreen* o)
 {
@@ -788,7 +788,7 @@ int brightness_menu(OptionScreen* o)
             {
                 // COMPILER-DIFF: candidate (global alloc order): pSys must be allocated after DEFAULT
                 // (target r10/r11; ours has pSys 4 refs/18 = 0.444 > DEFAULT 3/9 = 0.333).
-                register SystemWork* s asm("r10") = pSys;
+                register SYSTEM_SAVE_WORK* s asm("r10") = pSys;
 
                 if (s->brightness < DEFAULT + MIN_OFS) {
                     // COMPILER-DIFF: candidate (local-alloc qty order): the byte-narrowed DEFAULT must take
@@ -803,7 +803,7 @@ int brightness_menu(OptionScreen* o)
                     s->brightness = n;
                 }
             }
-            pRK->brightness = pSys->brightness;
+            pRK->base_brightness = pSys->brightness;
             if (bright != pSys->brightness) {
                 SndCall(0, 0x3B, 0, 0, 0, 0);
             }
@@ -888,7 +888,7 @@ int brightness_menu(OptionScreen* o)
     return 0;
 }
 
-// Audio sub menu: mono / stereo / surround, A applies SndSetOutputMode (pSys->sound_mode) and
+// Audio sub menu: mono / stereo / surround, A applies SndSetOutputMode (pSys->SndMode) and
 // keeps `sound` as the checked entry; cursor 3 = back.
 int audio_menu(OptionScreen* o)
 {
@@ -963,7 +963,7 @@ int audio_menu(OptionScreen* o)
     IdSys.unitPtr(0xA, ID_OPT)->be_flag &= ~8;
     IdSys.unitPtr(0xB, ID_OPT)->be_flag &= ~8;
     IdSys.unitPtr(0xC, ID_OPT)->be_flag &= ~8;
-    switch (pSys->sound_mode) {
+    switch (pSys->SndMode) {
     case 1:
         u = IdSys.unitPtr(0xA, ID_OPT);
         break;

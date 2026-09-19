@@ -35,10 +35,11 @@ struct Em21Work {
     Vec barkPos;          // 0x188 (0x568)  em21GetBarkPos
 };
 
-#define EM21_WK(em) ((Em21Work*) &(em)->x3E0)
+#define EM21_WK(em) ((Em21Work*) (((cEm21*) (em))->free))
 
 class cEm21 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM21_WK)
     virtual void move();
 };
 

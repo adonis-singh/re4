@@ -76,14 +76,14 @@ void PlSelect(int no)
 // is when the save system flags (System_flg bit31 / 0x40000000) are set. Returns the costume.
 int PlSetCostume()
 {
-    if ((s32) pG->System_flg < 0 || (pG->System_flg & 0x40000000)) {
+    if (FlagChkSignW(pG->System_flg, SYS_OMAKE_ADA_GAME) || FlagChkSignW(pG->System_flg, SYS_OMAKE_ETC_GAME)) {
         return pG->pl_costume;
     }
     if (pG->pl_type == 0) {
         if (pG->game_costume != 1) {
             if (ItemMgr.num(0xFE, 0)) {
                 U8Set(pG->pl_costume, 2);
-            } else if (pG->Item_find_flg & 0x200000) {
+            } else if (ScfFlagChk(pG, SCF_R106_EVENT)) {
                 U8Set(pG->pl_costume, 1);
             } else {
                 U8Set(pG->pl_costume, 0);
@@ -121,39 +121,39 @@ void PlChangeData()
     pl->r_no_1 = 0;
     pl->r_no_2 = 0;
     pl->r_no_3 = 1;
-    pl->x4FD = 0;
-    pl->x4FC = 0;
+    pl->m_Hokan = 0;
+    pl->m_Frame = 0;
     pl->initCloth();
 }
 
-// Starts a button-mash count (gachaCnt = 0).
+// Starts a button-mash count (m_GachaCtr = 0).
 void PlGachaInit()
 {
-    pPL->gachaCnt = 0;
+    pPL->m_GachaCtr = 0;
 }
 
 // One frame of a button mash: shows the mash action icon and counts every direction / A / B / C
-// trigger into gachaCnt.
+// trigger into m_GachaCtr.
 void PlGachaMove()
 {
     cPlayer* pl = pPL;
 
     ActBtn.set(0x2B, 5, 0, 0, 2, 0xB, 0, 0);
     if (Key.trg & 0xF) {
-        pl->gachaCnt++;
+        pl->m_GachaCtr++;
     }
     if (Key.trg & 0xC0000000) {
-        pl->gachaCnt++;
+        pl->m_GachaCtr++;
     }
     if (Key.trg & 0x0C000000) {
-        pl->gachaCnt++;
+        pl->m_GachaCtr++;
     }
 }
 
 // Mash presses so far, 1.5x on the easy levels (Game_level <= 2).
 int PlGachaGet()
 {
-    int n = pPL->gachaCnt;
+    int n = pPL->m_GachaCtr;
 
     if (pG->Game_level <= 2) {
         n += n / 2;
@@ -260,7 +260,7 @@ u32 PlGetStatus()
         st |= 0x80000000;
         break;
     }
-    if (pl->flags_420 & 2) {
+    if (pl->stat & 2) {
         st |= 0x20000;
     }
     return st;
@@ -297,8 +297,8 @@ void SubCharSetHand(int no)
 }
 
 // Custom damage routine: `func` becomes routine 0 == 4 and runs each frame until EndPlDamage;
-// `type` is kept in dmgType (often the attacking object). 10 invulnerable frames.
-void SetPlDamage(int type, void (*func)(cPlayer*))
+// `type` is kept in pEmCatch (often the attacking object). 10 invulnerable frames.
+void SetPlDamage(cEm* em, void (*func)(cPlayer*))
 {
     cPlayer* pl = pPL;
 
@@ -306,7 +306,7 @@ void SetPlDamage(int type, void (*func)(cPlayer*))
     Pl_func_tbl[4] = func;
     PlSetRoutine(4, 0, 0, 0);
     pl->dmg.set(0, 10);
-    pl->dmgType = type;
+    pl->pEmCatch = em;
 }
 
 // Ends a custom damage routine: back to routine 0/0, damage state restored, collision on again
@@ -360,8 +360,8 @@ void SetSubBulldozer(int a, int b)
 }
 
 // Partner damage routine (r_no_0 4): Ashley (id 3) runs the em damage function; the other partners
-// play `mot` (subFlags58C 0x40). dmgType = type.
-void SetSubDamage(int type, void* mot)
+// play `mot` (subFlags58C 0x40). pEmCatch = type.
+void SetSubDamage(cEm* em, void* mot)
 {
     cSubChar* sub = pSUB;
 
@@ -375,7 +375,7 @@ void SetSubDamage(int type, void* mot)
         sub->r_no_2 = 0;
         sub->r_no_3 = 0;
         sub->dmg.set(0, 10);
-        sub->dmgType = type;
+        sub->pEmCatch = em;
     } else {
         sub->subMot0 = mot;
         sub->subFlags58C |= 0x40;
@@ -384,7 +384,7 @@ void SetSubDamage(int type, void* mot)
         sub->r_no_2 = 0;
         sub->r_no_3 = 0;
         sub->dmg.set(0, 10);
-        sub->dmgType = type;
+        sub->pEmCatch = em;
     }
 }
 
@@ -526,7 +526,7 @@ void SubCharCtrl(int mode, int flag)
     } else {
         BitOff16(sub->subFlags, 0x80);
     }
-    if ((sub->stat & 0xFFFF0000) != 0x000F0000) {
+    if (sub->r_no_0 != 0 || sub->r_no_1 != 0xF) {
         sub->subAux0 = 0;
     }
     sub->subAux1 = 0;
@@ -690,40 +690,40 @@ void PlRegistMotion(void* m0, void* m1, void* m2, void* m3, void* m4, void* m5, 
         return;
     }
     if (m0) {
-        pl->pRegistMot[0] = m0;
+        pl->m_MotTbl2[0] = m0;
     }
     if (m1) {
-        pl->pRegistMot[1] = m1;
+        pl->m_MotTbl2[1] = m1;
     }
     if (m2) {
-        pl->pRegistMot[2] = m2;
+        pl->m_MotTbl2[2] = m2;
     }
     if (m3) {
-        pl->pRegistMot[3] = m3;
+        pl->m_MotTbl2[3] = m3;
     }
     if (m4) {
-        pl->pRegistMot[4] = m4;
+        pl->m_MotTbl2[4] = m4;
     }
     if (m5) {
-        pl->pRegistMot[5] = m5;
+        pl->m_MotTbl2[5] = m5;
     }
     if (m6) {
-        pl->pRegistMot[6] = m6;
+        pl->m_MotTbl2[6] = m6;
     }
     if (m7) {
-        pl->pRegistMot[7] = m7;
+        pl->m_MotTbl2[7] = m7;
     }
     if (m8) {
-        pl->pRegistMot[8] = m8;
+        pl->m_MotTbl2[8] = m8;
     }
     if (m9) {
-        pl->pRegistMot[9] = m9;
+        pl->m_MotTbl2[9] = m9;
     }
     if (m10) {
-        pl->pRegistMot[10] = m10;
+        pl->m_MotTbl2[10] = m10;
     }
     if (m11) {
-        pl->pRegistMot[11] = m11;
+        pl->m_MotTbl2[11] = m11;
     }
 }
 
@@ -771,9 +771,9 @@ void PlReloadBullet()
 int joyFireOn()
 {
     if (Key.on & 0x80) {
-        if ((pG->Status_flg[0] & 0x200000) || (pG->Status_flg[2] & 0x80000000)) {
-            BitOn(pG->Status_flg[0], 0x4000);
-            if ((G_ROOM_ID32 & 0xFFFF0000) == 0x011C0000 && (pG->Status_flg[2] & 0x80000000)) {
+        if (StaFlagChk(pG, STA_ACT_DONT_FIRE) || (StaFlagChk(pG, STA_PL_DONT_FIRE))) {
+            StaFlagOn(pG, STA_PL_ACTION);
+            if (pG->stage_no == 1 && pG->room_no == 0x1C && (StaFlagChk(pG, STA_PL_DONT_FIRE))) {
                 BitOn(pG->Room_flg[0], 0x20000000);
             }
             return 0;
@@ -787,8 +787,8 @@ int joyFireOn()
 int joyFireTrg()
 {
     if (Key.trg & 0x80) {
-        if ((pG->Status_flg[0] & 0x200000) || (pG->Status_flg[2] & 0x80000000)) {
-            pG->Status_flg[0] |= 0x4000;
+        if (StaFlagChk(pG, STA_ACT_DONT_FIRE) || (StaFlagChk(pG, STA_PL_DONT_FIRE))) {
+            StaFlagOn(pG, STA_PL_ACTION);
             return 0;
         }
         return 1;
@@ -796,15 +796,15 @@ int joyFireTrg()
     return 0;
 }
 
-// Aim key held for the gun: with the knife-key option off (pSys->flags 0x04000000 clear) only
+// Aim key held for the gun: with the knife-key option off (pSys->Config_flg 0x04000000 clear) only
 // Leon / Krauser, and not while the L trigger (knife) is held; the weapon's own keyKamae decides.
-// With the option on all gun characters, unless flags_420 0x1000 (knife key mode).
+// With the option on all gun characters, unless stat 0x1000 (knife key mode).
 int joyKamae()
 {
     cPlayer* pl = pPL;
     cPlWep* wep;
 
-    if ((pSys->flags & 0x04000000) == 0) {
+    if (CfgFlagChk(pSys, CFG_KNIFE_MODE) == 0) {
         switch (pG->pl_type) {
         case 0:
         case 4:
@@ -846,7 +846,7 @@ int joyKamae()
             pLog->err(0, 0, "joyKamae() PTR ERR");
             return 0;
         }
-        if (pl->flags_420 & 0x1000) {
+        if (pl->stat & 0x1000) {
             return 0;
         }
         if (wep->m_pWep->keyKamae()) {
@@ -858,12 +858,12 @@ ng:
 }
 
 // Knife stance key: Key 0x800 for Leon / Krauser (knife-key option off), or the aim key while
-// flags_420 0x1000 with the option on.
+// stat 0x1000 with the option on.
 int joyLKamae()
 {
     cPlayer* pl = pPL;
 
-    if ((pSys->flags & 0x04000000) == 0) {
+    if (CfgFlagChk(pSys, CFG_KNIFE_MODE) == 0) {
         if (pG->pl_type == 0 || pG->pl_type == 4) {
             if (Key.on & 0x800) {
                 return 1;
@@ -871,7 +871,7 @@ int joyLKamae()
         }
     } else {
         if (pG->pl_type == 0 || pG->pl_type == 4) {
-            if (pl->flags_420 & 0x1000) {
+            if (pl->stat & 0x1000) {
                 if (Key.on & 0x10) {
                     return 1;
                 }
@@ -896,7 +896,7 @@ void PlWaterProc(cPlayer* pl)
     static Vec m_PosOldWater;
     f32 dist;
 
-    if (pG->Status_flg[1] & 0x200000) {
+    if (StaFlagChk(pG, STA_PL_BOAT)) {
         return;
     }
     if (pl->m_pEffRoom == 0) {
@@ -941,8 +941,8 @@ void PlMotionReset()
     if (pl->r_no_1 == 0x11) {
         return;
     }
-    pl->x4FC = 0;
-    pl->x4FD = 0;
+    pl->m_Frame = 0;
+    pl->m_Hokan = 0;
     pl->r_no_0 = 0;
     pl->r_no_1 = 0;
     pl->r_no_3 = 1;
@@ -1009,7 +1009,7 @@ int SubCharMotionReset()
 // Eye control mode (0 wander, 1 from the motion).
 void PlSetEyeMode(u8 mode)
 {
-    pPL->eyeMode = mode;
+    pPL->m_EyeMode = mode;
 }
 
 // The player's facing yaw including the waist twist (aim direction).
@@ -1028,7 +1028,7 @@ void PlRegistBoss(void* a, void* b)
 // Leon wears the armor (costume 2 / 3) — no damage; off with System_flg 0x20.
 int PlIsArmor()
 {
-    if (pG->System_flg & 0x20) {
+    if (SysFlagChk(pG, SYS_HARD_MODE)) {
         return 0;
     }
     if (pG->pl_type != 0) {
@@ -1046,10 +1046,10 @@ int PlSetWhistle()
     if (!(Key.trg & 0x200)) {
         return 0;
     }
-    if (pG->Status_flg[0] & 0x400) {
+    if (StaFlagChk(pG, STA_BINOCULAR)) {
         return 0;
     }
-    if (!(pG->Status_flg[1] & 4)) {
+    if (!StaFlagChk(pG, STA_SUBCHAR_CTRL)) {
         return 0;
     }
     pl = pPL;
@@ -1078,7 +1078,7 @@ int PlGetWeaponNo()
 {
     cPlayer* pl = pPL;
 
-    if (((pl->stat & 0xFFFF0000) == 0x000B0000 && pl->r_no_2 != 3) || joyLKamae()) {
+    if (((pl->r_no_0 == 0 && pl->r_no_1 == 0xB) && pl->r_no_2 != 3) || joyLKamae()) {
         return 0x10;
     }
     return pG->weapon_no;

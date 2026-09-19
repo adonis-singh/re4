@@ -127,7 +127,7 @@ static void wep14_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -152,8 +152,8 @@ static void wep14_r2_ready(cPlayer* pl)
         pl->r_no_2 = 4;
         pl->r_no_3 = 0;
         pl->m_Work0 = 1;
-    } else if (pl->pLockEm) {
-        CamCtrlShoulderSetAim(&pl->pLockEm->pos);
+    } else if (pl->m_pEm) {
+        CamCtrlShoulderSetAim(&pl->m_pEm->pos);
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
         Vec hit;
@@ -321,7 +321,7 @@ static void wep14_r2_set(cPlayer* pl)
         pl->setLaserSight(0, 0);
     }
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -366,7 +366,7 @@ static void wep14_r2_set(cPlayer* pl)
     }
 }
 
-// set step 0: the scope type switches the camera to the scope (flags_420 bit4); start the
+// set step 0: the scope type switches the camera to the scope (stat bit4); start the
 // three-way aim idle (0x13/0x17/0x19 on the pitch), step 1.
 static void wep14_r3_set00(cPlayer* pl)
 {
@@ -375,7 +375,7 @@ static void wep14_r3_set00(cPlayer* pl)
     if (pG->weapon_type & 1) {
         CamCtrl.startScope(0, 0);
         CameraMove();
-        pl->flags_420 |= 0x10;
+        pl->stat |= 0x10;
     }
     arc = (PlArc*) pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x13), PL_ARC_PTR(arc, 0x17), PL_ARC_PTR(arc, 0x19), 0, 3, 0, 4, 0);
@@ -430,7 +430,7 @@ static void wep14_r2_fire(cPlayer* pl)
 
 // fire step 0: trigger() spends the dart and the launcher object (mode 2, cObjMine::moveFire)
 // launches it, so there is no hit line here; the fire motions 0x14/0x18/0x1A start, PlWepLockRand
-// kicks the aim, flags_420 bit5 (hand swap) is cleared. Step 1.
+// kicks the aim, stat bit5 (hand swap) is cleared. Step 1.
 static void wep14_r3_fire00(cPlayer* pl)
 {
     PlArc* arc;
@@ -452,20 +452,20 @@ static void wep14_r3_fire00(cPlayer* pl)
         m3r[0] = pitch;
     }
     pl->r_no_3 = 1;
-    pl->flags_420 &= ~0x20;
+    pl->stat &= ~0x20;
 }
 
 // fire step 1: the fire motion plays; the left hand model is swapped to 5 (holding the next dart,
-// flags_420 bit5) from frame 23 (SE 2/4) to frame 30; motion end -> set state.
+// stat bit5) from frame 23 (SE 2/4) to frame 30; motion end -> set state.
 static void wep14_r3_fire10(cPlayer* pl)
 {
     if (MotionCheckCrossFrame(&pl->Motion, 23.0f)) {
         SndCall(2, 4, &pl->getPartsPtr(4)->world, 0, 0, 0);
-        pl->flags_420 |= 0x20;
+        pl->stat |= 0x20;
         pl->setLeftHand(5);
     }
     if (MotionCheckCrossFrame(&pl->Motion, 30.0f)) {
-        pl->flags_420 &= ~0x20;
+        pl->stat &= ~0x20;
         pl->setLeftHand(4);
     }
     if (pl->motionMove()) {
@@ -478,7 +478,7 @@ static void wep14_r3_fire10(cPlayer* pl)
 
 // r_no_2 == 3: the down (holster) state, one frame: the scope type ends the scope camera; the
 // holster motion 0x15 into footwork sub-routine 2 when a motion may be set, else the idle with
-// x4FD = 0xF; launcher object mode 3, its enemy collision (atari 0x200) cleared, the carrying
+// m_Hokan = 0xF; launcher object mode 3, its enemy collision (atari 0x200) cleared, the carrying
 // right hand 0x9, the waist twist unwound into ang.y.
 static void wep14_r2_down(cPlayer* pl)
 {
@@ -487,18 +487,18 @@ static void wep14_r2_down(cPlayer* pl)
     if (pG->weapon_type & 1) {
         CamCtrl.endScope();
         CameraMove();
-        pl->flags_420 &= ~0x10;
+        pl->stat &= ~0x10;
     }
     if (dmMotCk()) {
         pl->motionSet(WEP_ARC_PTR(0x15), 7, 0, 1, 0);
         PlRoutineSet(pl, 0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
     {
@@ -546,7 +546,7 @@ static void wep14_r2_reload(cPlayer* pl)
             if (pG->weapon_type & 1) {
                 CamCtrl.startScope(0, 0);
                 CameraMove();
-                pl->flags_420 |= 0x10;
+                pl->stat |= 0x10;
             }
             pl->r_no_0 = 0;
             pl->r_no_1 = 6;
@@ -558,13 +558,13 @@ static void wep14_r2_reload(cPlayer* pl)
 }
 
 // r_no_2 == 5: the next-target state (Key.trg bit5 in the lock control): the turn motion 0x12
-// while turning towards the locked enemy pLockEm (0.314 rad per frame beyond 200 units) for 10
+// while turning towards the locked enemy m_pEm (0.314 rad per frame beyond 200 units) for 10
 // frames (m_Work0), then -> set state. Another press cycles lockNext() (new target restarts, none
 // -> set); aim released -> set state (or crouch 0x11).
 static void wep14_r2_next(cPlayer* pl)
 {
     u8 step = pl->r_no_3;
-    cModel* em = pl->pLockEm;
+    cModel* em = pl->m_pEm;
 
     switch (step) {
     case 0:
@@ -599,7 +599,7 @@ static void wep14_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;

@@ -641,21 +641,21 @@ int getGreetMsg(int* num, int* tbl)
     SUB_SCREEN* wk = &SubScreenWk;
     int ret = 1;
 
-    if (g->Scenario_flg[0] & 0x01000000) {
+    if (ScfFlagChk(g, SCF_ST1_NIGHT)) {
         goto NG;
     }
-    if (!(g->Scenario_flg[0] & 0x00400000)) {
-        BitOn(g->Scenario_flg[0], 0x00400000);
-        BitOn(pG->Status_flg[2], 0x40000);
+    if (!ScfFlagChk(g, SCF_CONTACT_MERCHANT)) {
+        ScfFlagOn(g, SCF_CONTACT_MERCHANT);
+        StaFlagOn(pG, STA_INTO_SHOP);
         *num = 0;
         tbl[(*num)++] = 0;
         tbl[(*num)++] = 2;
         return ret;
     }
-    if (g->Status_flg[2] & 0x40000) {
+    if (StaFlagChk(g, STA_INTO_SHOP)) {
         goto NG;
     }
-    g->Status_flg[2] |= 0x40000;
+    StaFlagOn(g, STA_INTO_SHOP);
     *num = 0;
     if (wk->merchant->stockNew() || wk->merchant->levelNew()) {
         tbl[(*num)++] = 1;
@@ -664,11 +664,11 @@ int getGreetMsg(int* num, int* tbl)
     }
     g = pG;
     if (g->stage_no == 1) {
-        if (!(g->Item_find_flg & 0x40000)) {
-            if (!(g->Scenario_flg[0] & 0x01000000) && g->game_cnt == 0) {
+        if (!ScfFlagChk(g, SCF_ST1_SUB_MISSION)) {
+            if (!ScfFlagChk(g, SCF_ST1_NIGHT) && g->game_cnt == 0) {
                 tbl[(*num)++] = 3;
             }
-        } else if (!(g->item_flags[0] & 0x10000000)) {
+        } else if (!ItfFlagChk(g, ITF_FN57)) {
             tbl[(*num)++] = 4;
         }
     }
@@ -1610,7 +1610,7 @@ void BuyItemNum::move(SUB_SCREEN* wk)
                     msg = 0xE;
                     break;
                 case 0x21:
-                    if ((pG->Item_find_flg & 0x40000) && !(pG->item_flags[0] & 0x10000000)) {
+                    if (ScfFlagChk(pG, SCF_ST1_SUB_MISSION) && !ItfFlagChk(pG, ITF_FN57)) {
                         msg = 0x10;
                     } else {
                         msg = 0xF;
@@ -2700,7 +2700,7 @@ void weaponLevelDisp(ItemWork* item, u16 id, int sw, int level)
                 switch (type) {
                 case 0:
                     lv = 1;
-                    if (pG->Scenario_flg[0] & 0x8000) {
+                    if (ScfFlagChk(pG, SCF_ST1_SUB_PERFECT)) {
                         lv = 2;
                     }
                     break;

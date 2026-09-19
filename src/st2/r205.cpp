@@ -131,7 +131,7 @@ void R205Init()
     R205Work** wp;
     u32 i;
 
-    pG->Status_flg[1] |= 0x400;
+    StaFlagOn(pG, STA_ROOM_RAIN);
     wp = &r205_work.p;
 #line 103 "D:/Bio4/Prog/r205.cpp"
     *wp = (R205Work*) MEM_CALLOC(sizeof(R205Work), 1, 0xd);
@@ -274,7 +274,7 @@ void r205_Em105AppearCheck()
 void r205_Em106AppearCheck()
 {
     if (RsfCheck(G_ROOM_ID, 3) == 0) {
-        if ((int) pG->Room_flg[2] < 0) {
+        if (pG->Room_flg[2] & 0x80000000) {
             if (r205_work.p->ems[0].dead == 1 && r205_work.p->ems[7].dead == 1) {
                 RsfSet(G_ROOM_ID, 3);
                 r205_work.p->ems[2].em.setEm(0x6A, -1, 1, 1, 1);
@@ -319,7 +319,7 @@ void r205_Em111AppearCheck()
 {
     if (RsfCheck(G_ROOM_ID, 7) == 0) {
         SceAtSetEnable(0x21, 1);
-        if ((int) pG->Room_flg[0] < 0) {
+        if (pG->Room_flg[0] & 0x80000000) {
             if (RsfCheck(G_ROOM_ID, 0)) {
                 if (r205_work.p->ems[6].dead == 1) {
                     Vec pos;
@@ -441,14 +441,14 @@ static void r205_ExecDieDemo(R205Pend* p)
     int mot = 1;
     int i;
 
-    if (pG->Debug_flg[2] & 0x00800000) {
+    if (DbgFlagChk(pG, DBG_NO_DEATH)) {
         SceExit();
     }
     if (pG->Room_flg[0] & 0x40000000) {
         SceExit();
     }
     BitOn(pG->Room_flg[0], 0x40000000);
-    BitOn(pG->System_flg, 0x40);
+    SysFlagOn(pG, SYS_START_EVT_SKIP);
     BEGIN_EVENT(pPL, 0);
     d = p->rot - p->rotPrev;
     if (pPL->ang.y >= -1.5707964f && pPL->ang.y <= 1.5707964f) {
@@ -611,8 +611,8 @@ static void r205_EnemyAppear()
     zero = NULL;
     RsfSet(G_ROOM_ID, 9);
     SceEventStart(0);
-    BitOff(pG->Stop_flg, 0x10000000);
-    BitOff(pG->Disp_flg, 0x40000000);
+    SpfFlagOff(pG, SPF_PL);
+    DpfFlagOff(pG, DPF_PL);
     pPL->setNoSuspend(1);
     EstSet(0, -1, 0, 0, 1, 6, 1, 3, (u32) zero, zero);
     CamCtrl.CutCall(9);

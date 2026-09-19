@@ -2,7 +2,7 @@
 // entries (id, type, set, flag, hp, position in 10 unit steps, rotation in 1/16384 turns, stage /
 // room); EmSetFromList creates every entry of the current room at room start and event code
 // creates single entries with EmSetFromList2. Killed list enemies are recorded per list in the
-// pG->em_dead bit tables so they stay dead when the room is re-entered.
+// pG->Em_flg bit tables so they stay dead when the room is re-entered.
 
 #include "atari.h"
 #include "light.h"
@@ -16,7 +16,7 @@ cEm* errEm = 0;
 static int emSetDummy = 0;
 
 // Death bit of list entry `no` in the current enemy list (0 when no list is loaded).
-// Death bit table of the current enemy list (pG->em_dead[pG->emlist_no]); the original computes
+// Death bit table of the current enemy list (pG->Em_flg[pG->emlist_no]); the original computes
 // it with byte arithmetic: the row offset is added to pG before the table offset.
 #define EM_DEAD_TBL() ((u32*) (pG->em_list_no * 0x20 + (u32) pG + 0x501C))
 
@@ -49,7 +49,7 @@ static inline void EmSetDieOn(u32 no)
 static inline void CntInc(u32& c) { c++; }
 
 // While flags_68 bit21 is set only the enemies 3 and 4 may be created.
-#define EM_SET_ID_NG(id) ((pG->Debug_flg[2] & 0x00200000) && ((id) != 3 && (id) != 4))
+#define EM_SET_ID_NG(id) (DbgFlagChk(pG, DBG_NO_ENEMY) && ((id) != 3 && (id) != 4))
 
 // Pulls an enemy work for `id`: the partner (0xF) and the parasite (0x25) are created at the back
 // of the pool so they move after the others.
@@ -344,13 +344,13 @@ void EmListSetAlive(int no, int on)
 // except in stage 4 rooms and under the debug flags that keep enemies respawning.
 void EmSetDie(cEm* em)
 {
-    if (pG->Debug_flg[2] & 0x04000000) {
+    if (DbgFlagChk(pG, DBG_NO_SCE_EXE)) {
         return;
     }
-    if ((pG->room_id32 & 0xFFFF0000) == 0x00040000) {
+    if (pG->stage_no == 0 && pG->room_no == 4) {
         return;
     }
-    if (pG->Debug_flg[3] & 0x00080000) {
+    if (DbgFlagChk(pG, DBG_EM_NO_DIE_FLAG)) {
         return;
     }
     if (EmSetDieCk(em->emset_no)) {

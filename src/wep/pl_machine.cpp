@@ -75,7 +75,7 @@ static void foo22(cPlayer* pl)
 }
 
 // r_no_2 == 0: the ready (draw) state. Aim key released -> footwork (r_no_1 0, or 0x11 crouch
-// with flags_420 bit6); reload key with rounds -> reload (m_Flag bit0, m_Work0 = 1); else the
+// with stat bit6); reload key with rounds -> reload (m_Flag bit0, m_Work0 = 1); else the
 // shoulder camera aims at the forward scenery hit.
 static void wep11_r2_ready(cPlayer* pl)
 {
@@ -90,7 +90,7 @@ static void wep11_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -215,7 +215,7 @@ static void wep11_r2_set(cPlayer* pl)
     PlWepLockCtrl(pl);
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -376,7 +376,7 @@ static void wep11_r3_fire10(cPlayer* pl)
                 PlRoutineSet(pl, 0, 6, 1, 0);
             }
 
-        } else if (pl->flags_420 & 0x40) {
+        } else if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -391,7 +391,7 @@ static void wep11_r3_fire10(cPlayer* pl)
 
 
 // r_no_2 == 3: the down (holster) state, one frame: footwork routine (r_no_1 0) sub-routine 2 with
-// the weapon-down motion 0x1D when a motion may be set (dmMotCk), else the idle with x4FD = 0xF.
+// the weapon-down motion 0x1D when a motion may be set (dmMotCk), else the idle with m_Hokan = 0xF.
 static void wep11_r2_down(cPlayer* pl)
 {
     if (dmMotCk()) {
@@ -399,11 +399,11 @@ static void wep11_r2_down(cPlayer* pl)
         PlRoutineSet(pl, 0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
 }
@@ -441,7 +441,7 @@ static void wep11_r2_reload(cPlayer* pl)
     }
     case 1:
         if (MotionCheckCrossFrame(&pl->Motion, PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) && joyKamae() == 0) {
-            if (pl->flags_420 & 0x40) {
+            if (pl->stat & 0x40) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;

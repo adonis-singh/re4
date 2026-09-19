@@ -130,7 +130,7 @@ void R10cInit()
     }
     EstSet((int) pPL, -1, 0, 0, 3, 2, 0x800, 0, 0, 0);
     EstSet((int) pPL, -1, 0, 0, 1, 3, 0x800, 0, 0, 0);
-    pG->Status_flg[1] |= 0x400;
+    StaFlagOn(pG, STA_ROOM_RAIN);
     SceExec(0x12, (TaskFunc) r10c_ThunderMove, 0, 0, SCE_PRIO_DEF_2, 0);
     SceExec(0x12, (TaskFunc) moveWheel, 0, 2, SCE_PRIO_DEF_2, 0);
     setTexRender();
@@ -222,13 +222,13 @@ void R10cInit()
     }
 }
 
-// Per frame: counts frames, mirrors item_flags[0] 0x00400000 (the key taken) into Item_find_flg 0x100,
+// Per frame: counts frames, mirrors Item_flg[0] 0x00400000 (the key taken) into Scenario_flg[0] 0x100,
 // and keeps the three crate collision pieces on their swinging scroll objects 0x61..0x63.
 void R10cMain()
 {
     U32Set(r10c_work.p->cnt, r10c_work.p->cnt + 1);
-    if (pG->item_flags[0] & 0x00400000) {
-        pG->Item_find_flg |= 0x100;
+    if (ItfFlagChk(pG, ITF_R11C_ITEM)) {
+        ScfFlagOn(pG, SCF_R10C_GET_CREST);
     }
     r10c_work.p->crate[0]->setCoord(&SmdGetObjPtr(0x61)->pos, &SmdGetObjPtr(0x61)->ang);
     r10c_work.p->crate[1]->setCoord(&SmdGetObjPtr(0x62)->pos, &SmdGetObjPtr(0x62)->ang);
@@ -250,7 +250,7 @@ static void r10c_TestPosMove(int side)
 
     KeyStop(0xEFCF0000ULL);
     U32Set(pG->Stop_flg, 0xFFFFFFFF);
-    pG->Stop_flg &= ~0x00800000;
+    SpfFlagOff(pG, SPF_SCE);
     FadeSetW(2, 10, 0, 0);
     SceSleep(10);
     SmdSetTrans(0x5C, 0);
@@ -375,7 +375,7 @@ static void r10c_EmEvent_exit()
     EffectEfmDelete(1, 2, 0);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    BitOff(pG->Status_flg[2], 0x02000000);
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     {
         EmListData* l = EM_LIST(3);
 
@@ -413,7 +413,7 @@ static void r10c_EmEvent()
         MotionSetCore(em, &em->Motion, ROOM_ARC_PTR(pG->pRoom, 0x26), 0, 0, 1, 0);
         SndStrReq(1, 0x23, 0x80000003, 0, 0, 0.0f);
         SceEventStart(0);
-        pG->Status_flg[2] |= 0x02000000;
+        StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
         SceSetEventCancel(1, (TaskFunc) r10c_EmEvent_exit, 0, -1, 1);
         CamCtrl.CutCall(0x11);
         while (CamCtrl.IsMotionEnd() == 0) {
@@ -482,7 +482,7 @@ static void r10c_ThunderMove()
     }
     for (;;) {
         if (cnt == 0) {
-            if (!(pG->Status_flg[1] & 0x02000000)) {
+            if (!StaFlagChk(pG, STA_CAMERA_IN_ROOM)) {
                 EstSet(0, -1, 0, 0, 1, 2, 1, 0, 0, 0);
                 {
                     u8 r = Rnd() % 30;
@@ -583,7 +583,7 @@ static void chkSwitchA_exit()
     SceAtDataSet_exec(8, SCE_LEVEL10, 0, (TaskFunc) r10c_EmSet, 0, 1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    pG->Status_flg[2] &= ~0x10000;
+    StaFlagOff(pG, STA_EFFAREA_USE_CAM);
     EffectEspDelete(0x2001, 6, 0, 0);
     EffectEspgenDelete(0x2001, 6, 0);
     EffectEfmDelete(0x2001, 6, 0);
@@ -631,7 +631,7 @@ static void chkSwitchA()
         f32 spd;
 
         SceAtSetEnable(5, 0);
-        pG->Status_flg[2] |= 0x10000;
+        StaFlagOn(pG, STA_EFFAREA_USE_CAM);
         SndCall(6, 3, 0, 0, 0, 0);
         pG->Room_flg[0] |= 0x04000000;
         CamCtrl.CutCall(0x14);
@@ -702,7 +702,7 @@ static void chkSwitchA()
     } else {
         CamCtrl.Comeback(0);
         SceEventEnd(0);
-        pG->Status_flg[2] &= ~0x10000;
+        StaFlagOff(pG, STA_EFFAREA_USE_CAM);
     }
 }
 
@@ -1279,7 +1279,7 @@ static void r10c_ItemGet()
     SndCall(6, 6, 0, 0, 0, 0);
     SceAtSetEnable(7, 0);
     RsfSet(G_ROOM_ID, 8);
-    pG->door_flags_51CC |= 1;
+    ScfFlagOn(pG, SCF_9f);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }

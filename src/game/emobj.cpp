@@ -22,7 +22,7 @@ void cEmObj::EmObjInit()
 {
     EmObjWork* w = EMOBJ_WK(this);
 
-    m_Work0 = 0;
+    w->flags = 0;
     w->pSat = 0;
     w->pEat = 0;
     w->eff = 0xFF;
@@ -30,7 +30,7 @@ void cEmObj::EmObjInit()
 }
 
 // Shared per-frame step of the object classes: rebuilds mat from ang / pos / scale, advances the
-// motion (m_Work0 bit0) or just recomputes the parts matrices, then updates the world parts and
+// motion (EMOBJ_WK(this)->flags bit0) or just recomputes the parts matrices, then updates the world parts and
 // re-seats the registered scenario (bit1) / effect (bit2) collision quads at the new coordinate.
 void cEmObj::EmObjMove()
 {
@@ -39,7 +39,7 @@ void cEmObj::EmObjMove()
     RotMatrix(mat, &ang);
     TransMatrix(mat, &pos);
     ScaleMatrix(mat, &scale);
-    if (m_Work0 & 1) {
+    if (EMOBJ_WK(this)->flags & 1) {
         MotionMove(this, 0);
     } else {
         partsMatCalc();
@@ -55,7 +55,7 @@ void cEmObj::EmObjMove()
 }
 
 // Registers a scenario (walkable / blocking) collision quad of half size sx / sz and height sy at
-// model-space `pos` (kept when NULL) with cSatMgr::create attribute `n` and `flag`; m_Work0 bit1
+// model-space `pos` (kept when NULL) with cSatMgr::create attribute `n` and `flag`; EMOBJ_WK(this)->flags bit1
 // keeps it following the object.
 void cEmObj::setSat(Vec* pos, int n, int flag, int cube, f32 sx, f32 sy, f32 sz)
 {
@@ -69,7 +69,7 @@ void cEmObj::setSat(Vec* pos, int n, int flag, int cube, f32 sx, f32 sy, f32 sz)
     w->satSize.z = sz;
     w->satN = n;
     w->satFlag = flag;
-    m_Work0 |= 2;
+    EMOBJ_WK(this)->flags |= 2;
     setSatMain();
 }
 
@@ -111,11 +111,11 @@ void cEmObj::clrSat()
     if (w->pSat) {
         w->pSat->m_Flag &= ~4;
     }
-    m_Work0 &= ~2;
+    EMOBJ_WK(this)->flags &= ~2;
 }
 
 // Registers an effect collision quad (EatMgr: bullets, effects, thrown objects) like setSat;
-// m_Work0 bit2 keeps it following the object.
+// EMOBJ_WK(this)->flags bit2 keeps it following the object.
 void cEmObj::setEat(Vec* pos, int n, int flag, int cube, f32 sx, f32 sy, f32 sz)
 {
     EmObjWork* w = EMOBJ_WK(this);
@@ -128,7 +128,7 @@ void cEmObj::setEat(Vec* pos, int n, int flag, int cube, f32 sx, f32 sy, f32 sz)
     w->eatSize.z = sz;
     w->eatN = n;
     w->eatFlag = flag;
-    m_Work0 |= 4;
+    EMOBJ_WK(this)->flags |= 4;
     setEatMain();
 }
 
@@ -169,7 +169,7 @@ void cEmObj::clrEat()
     if (w->pEat) {
         w->pEat->m_Flag &= ~4;
     }
-    m_Work0 &= ~4;
+    EMOBJ_WK(this)->flags &= ~4;
 }
 
 // Adds hit box `no` to the object: a cylinder (cube == 0: YarareInitCube with radius `rad`) or a

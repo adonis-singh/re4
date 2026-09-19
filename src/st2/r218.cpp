@@ -20,7 +20,7 @@
 #include "snd.h"
 
 // Room 2-18 (D:/Bio4/Prog/r218.cpp): the castle room where the two caged chainsaw sisters drop from
-// the ceiling (area 3, r218_appearClawMan); the exit stays barred (door_flags_51C8 0x20) until both are
+// the ceiling (area 3, r218_appearClawMan); the exit stays barred (Scenario_flg[3] 0x20) until both are
 // dead, then the cages rise again (r218_checkClawManDead) and a Ganado wave follows (area 4). The two
 // bells (cObjBell) are hit targets whose destruction is saved in Room_flg bits 1 / 2.
 
@@ -173,7 +173,7 @@ static void r218_checkClawManDead_end()
     o28 = SmdGetObjPtr(0x28);
     o29 = SmdGetObjPtr(0x29);
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         if (r218_work.p->snd) {
             SndStop(r218_work.p->snd, 0);
         }
@@ -200,7 +200,7 @@ static void r218_checkClawManDead_end()
     }
 }
 
-// Task: waits until both sisters (list 0/1) are gone, sets Room_flg bit 0 and door_flags_51C8 0x20 (the
+// Task: waits until both sisters (list 0/1) are gone, sets Room_flg bit 0 and Scenario_flg[3] 0x20 (the
 // exit opens), area 0 on / 2 off, then camera cut 1 while cage 0x29 rises (SE 6/0); player-cancellable.
 static void r218_checkClawManDead()
 {
@@ -216,7 +216,7 @@ static void r218_checkClawManDead()
         SceSleep(1);
     }
     RsfSet(G_ROOM_ID, 0);
-    pG->door_flags_51C8 |= 0x20;
+    ScfFlagOn(pG, SCF_7a);
     SceAtSetEnable(0, 1);
     SceAtSetEnable(2, 0);
     snd = 0;
@@ -247,10 +247,10 @@ static void r218_checkClawManDead()
 }
 
 // End of the cage-drop cutscene (cancel path snaps both cages to their rest heights and stops the SE):
-// camera back, SceEventEnd, start the death watcher, door_flags_51C8 0x20 off (exit barred).
+// camera back, SceEventEnd, start the death watcher, Scenario_flg[3] 0x20 off (exit barred).
 static void r218_appearClawMan_end()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         cObj* o28;
         cObj* o29;
 
@@ -269,7 +269,7 @@ static void r218_appearClawMan_end()
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     SceExec(0x12, (TaskFunc) r218_checkClawManDead, 0, 0, SCE_PRIO_DEF_2, 0);
-    pG->door_flags_51C8 &= ~0x20;
+    ScfFlagOff(pG, SCF_7a);
 }
 
 // The two cages drop when the player enters area 3.

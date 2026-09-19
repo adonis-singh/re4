@@ -195,7 +195,7 @@ section	offset	size	unit	scope	name	demangled
 .text	0x00016244	0x60	t_movie/snd_test.cpp	global	aram_blk_no_select__FP11SndTestWork	aram_blk_no_select
 .text	0x000162A4	0xC4	t_movie/snd_test.cpp	global	blk_enable_ck__FP11SndTestWorki	blk_enable_ck
 .text	0x00016368	0x7C	t_movie/snd_test.cpp	global	aram_dump_dma__FP11SndTestWork	aram_dump_dma
-.text	0x000163E4	0x14	t_movie/snd_test.cpp	local	cb_dma_end	cb_dma_end
+.text	0x000163E4	0x14	t_movie/snd_test.cpp	local	cb_dma_end__FUl	cb_dma_end
 .text	0x000163F8	0x164	t_movie/snd_test.cpp	global	aram_dump_disp__FP11SndTestWork	aram_dump_disp
 .text	0x0001655C	0xB0	t_movie/t_movie.cpp	global	_prolog	_prolog
 .text	0x0001660C	0x60	t_movie/t_movie.cpp	global	_epilog	_epilog

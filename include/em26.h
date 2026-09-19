@@ -23,10 +23,11 @@ struct Em26Work {
     u8 atkHit;            // 0x198 (0x578)  the attack already hit the player (em26AtkCk)
 };
 
-#define EM26_WK(em) ((Em26Work*) &(em)->x3E0)
+#define EM26_WK(em) ((Em26Work*) (((cEm26*) (em))->free))
 
 class cEm26 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM26_WK)
     virtual void move();
 };
 

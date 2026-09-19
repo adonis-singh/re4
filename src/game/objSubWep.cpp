@@ -629,9 +629,9 @@ void cObjGrenade::explode()
         EstSet(0, -1, &pos, 0, no, prm, 0, 0, 0, 0);
         SndCall(1, 0x14, &pos, 0, 0, 0);
     }
-    BitOn(pG->Status_flg[0], 0x800000);
+    StaFlagOn(pG, STA_PL_FIRE);
     PlWepHitCheck2(0, &pos, &pos, 0x13, 0, 6000.0f);
-    BitOn(pG->Status_flg[1], 0x20000000);
+    StaFlagOn(pG, STA_SE_BURST);
     memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
     pG->bell_stat = 1;
 }
@@ -639,10 +639,10 @@ void cObjGrenade::explode()
 // Under-water blast: the same 6000-radius damage, water SE and bell noise, no effect.
 void cObjGrenade::waterExplode()
 {
-    BitOn(pG->Status_flg[0], 0x800000);
+    StaFlagOn(pG, STA_PL_FIRE);
     PlWepHitCheck2(0, &pos, &pos, 0x13, 0, 6000.0f);
     SndCall(1, 0x17, &pos, 0, 0, 0);
-    BitOn(pG->Status_flg[1], 0x20000000);
+    StaFlagOn(pG, STA_SE_BURST);
     memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
     pG->bell_stat = 1;
 }
@@ -699,8 +699,8 @@ void cObjGreFire::explode()
         SndCall(1, 0x22, &pos, 0, 0, 0);
         dmgSet(1);
     }
-    BitOn(pG->Status_flg[0], 0x800000);
-    BitOn(pG->Status_flg[1], 0x20000000);
+    StaFlagOn(pG, STA_PL_FIRE);
+    StaFlagOn(pG, STA_SE_BURST);
     memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
     pG->bell_stat = 1;
 }
@@ -744,9 +744,9 @@ void cObjGreLight::explode()
         EstSet(0, -1, &pos, 0, no, prm, 0, 0, 0, 0);
         SndCall(1, 0x13, &pos, 0, 0, 0);
     }
-    BitOn(pG->Status_flg[0], 0x800000);
+    StaFlagOn(pG, STA_PL_FIRE);
     PlWepHitCheck2(0, &pos, &pos, 0x17, 0, 15000.0f);
-    BitOn(pG->Status_flg[1], 0x20000000);
+    StaFlagOn(pG, STA_SE_BURST);
     memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
     pG->bell_stat = 1;
 }
@@ -778,9 +778,9 @@ void cObjEgg::explode()
         }
         SndCall(1, 6, &pos, 0, 0, 0);
     }
-    BitOn(pG->Status_flg[0], 0x800000);
+    StaFlagOn(pG, STA_PL_FIRE);
     PlWepHitCheck2(0, &pos, &pos, 0x19, 0, 2000.0f);
-    BitOn(pG->Status_flg[1], 0x20000000);
+    StaFlagOn(pG, STA_SE_BURST);
     memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
     pG->bell_stat = 1;
 }

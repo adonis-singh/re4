@@ -75,10 +75,11 @@ struct Em35Work {
     u8 espKind;           // 0x950 (0xD30)  EspPullCoreKind at creation
 };
 
-#define EM35_WK(em) ((Em35Work*) &(em)->x3E0)
+#define EM35_WK(em) ((Em35Work*) (((cEm35*) (em))->free))
 
 class cEm35 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM35_WK)
     virtual void move();
     virtual void setDiePose();
     virtual void setUpperStart();

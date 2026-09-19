@@ -62,9 +62,9 @@ static inline void r306_setEmPos(int no, EmListData* l, f32& ry)
     r306_work->em[0].setAng(&ang);
 }
 
-// Room init: doors 0x14/0x15 paired; area 4 = the locked 308 door until door_unlock[0] 0x2000 (else
+// Room init: doors 0x14/0x15 paired; area 4 = the locked 308 door until Key_flg[0] 0x2000 (else
 // area 6 off) with its key-use watcher; area 5 = the 30B door until 0x100; the room effect by item flag
-// 0x20. After Scenario_flg[0] 0x1000 the two Ganados 0x30/0x31 (list 6) are set, placed at their r30B
+// 0x20. After Scenario_flg[1] 0x1000 the two Ganados 0x30/0x31 (list 6) are set, placed at their r30B
 // list positions when the player came from there, the battle BGM table and stream watcher; else the
 // plain stream. Case / shelf item events.
 void R306Init()
@@ -74,23 +74,23 @@ void R306Init()
     if (getRoomEtcDoor(0x14, &r306_work->door1, 1) && getRoomEtcDoor(0x15, &r306_work->door2, 1)) {
         ((cEmDoor*) r306_work->door1)->setDoor((cEmDoor*) r306_work->door2);
     }
-    if (!(pG->door_unlock[0] & 0x2000)) {
+    if (!(pG->Key_flg[0] & 0x2000)) {
         SceAtDataSet_exec(4, 0x12, 0, (TaskFunc) r306_checkDoor308, 0, 1);
     } else {
         SceAtSetEnable(6, 0);
     }
     SceExec(0x12, (TaskFunc) r306_checkDoor308KeyUse, 0, 0, 2, 0);
     void* zero = 0;
-    if (!(pG->door_unlock[0] & 0x100)) {
+    if (!(pG->Key_flg[0] & 0x100)) {
         SceAtDataSet_exec(5, 0x12, 0, (TaskFunc) r306_checkDoor30b, 0, 1);
         SceExec(0x12, (TaskFunc) r306_checkDoor30bKeyUse, 0, 0, 2, 0);
     }
-    if (pG->item_flags[0] & 0x20) {
+    if (ItfFlagChk(pG, ITF_R308_THERMO_RIFLE)) {
         EstSet(0, -1, 0, 0, 1, 1, 1, 0, (u32) zero, zero);
     } else {
         EstSet(0, -1, 0, 0, 1, 0, 1, 0, (u32) zero, zero);
     }
-    if (pG->Scenario_flg[0] & 0x1000) {
+    if (ScfFlagChk(pG, SCF_R307_REGENERATER_APPEAR)) {
         r306_work->em[0].setEm(0x30, 6, 0, 1, 1);
         r306_work->em[1].setEm(0x31, 6, 0, 1, 1);
         if (pG->room_id_prev == 0x30B) {
@@ -180,10 +180,10 @@ static void r306_checkDoor308KeyUse()
         while (ItemMgr.check(0x84) != 1) {
             SceSleep(1);
         }
-        if ((int) pG->Room_flg[2] < 0) {
+        if (pG->Room_flg[2] & 0x80000000) {
             SndCall(6, 4, 0, 0, 0, 0);
             SceMesSet(4, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
-            pG->door_unlock[0] |= 0x2000;
+            pG->Key_flg[0] |= 0x2000;
             SceAtDataReset(4);
             SceAtSetEnable(6, 0);
         } else {
@@ -211,7 +211,7 @@ static void r306_checkDoor30bKeyUse()
     ItemMgr.dump(0x92);
     SndCall(6, 4, 0, 0, 0, 0);
     SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-    pG->door_unlock[0] |= 0x100;
+    pG->Key_flg[0] |= 0x100;
     SceAtDataReset(5);
 }
 

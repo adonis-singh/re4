@@ -68,7 +68,7 @@ struct Pl0fWork {
     cPl0f* pSelf;     // 0x548  testSearchEm2f
 };
 
-#define PL0F_WK(em) ((Pl0fWork*) &(em)->x3E0)
+#define PL0F_WK(em) ((Pl0fWork*) (((cPl0f*) (em))->free))
 
 // game/obj1b.cpp `cObjSpear` (SetSpear in obj1c.cpp): the thrown harpoon.
 class cObjSpear : public cObj {
@@ -88,6 +88,7 @@ cObj* SetSpear(void* bin, void* tpl, Vec* pos, Vec* rot);   // game/obj1c.cpp
 
 class cPl0f : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (PL0F_WK)
     // constructor / destructor implicit (Pl0fInit: new (em) cPl0f())
     virtual void move();
     virtual void setPos(Vec* pos, f32 ang);

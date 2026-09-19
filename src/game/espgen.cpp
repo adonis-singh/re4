@@ -393,7 +393,7 @@ int EspgenMove()
     u32 i;
     u32 max;
 
-    if (pG->Status_flg[1] & 2) {
+    if (StaFlagChk(pG, STA_ITEM_GET)) {
         pause = 1;
     }
     cnt = 0;
@@ -419,7 +419,7 @@ int EspgenMove()
             }
         }
     }
-    if (pG->Debug_flg[3] & 0x8000) {
+    if (DbgFlagChk(pG, DBG_EFF_NUM_DISP)) {
         eprintf(472, 216, 0, 0, "%d", cnt);
     } else {
         eprintf(472, 216, 0, 14, "%d", cnt);

@@ -295,7 +295,7 @@ section	offset	size	unit	scope	name	demangled
 .text	0x0003B1E0	0x30	em13/em10.cpp	global	ckBowgunFire__5cEm10	cEm10::ckBowgunFire
 .text	0x0003B210	0x8	em13/em10.cpp	global	ckGoto__5cEm10	cEm10::ckGoto
 .text	0x0003B218	0xF0	em13/em10.cpp	global	setGoto__5cEm10P3Veci	cEm10::setGoto
-.text	0x0003B308	0x138	em13/em10.cpp	global	setGotoSwitch__5cEm10P3VecfPv	cEm10::setGotoSwitch
+.text	0x0003B308	0x138	em13/em10.cpp	global	setGotoSwitch__5cEm10P6cModeliP3Vec	cEm10::setGotoSwitch
 .text	0x0003B440	0x8	em13/em10.cpp	global	setSwitch__5cEm10P6cModel	cEm10::setSwitch
 .text	0x0003B448	0x478	em13/em10.cpp	global	em10ActEvtSetKick	em10ActEvtSetKick
 .text	0x0003B8C0	0x120	em13/em10.cpp	local	em10KickAction__FP5cEm10	em10KickAction

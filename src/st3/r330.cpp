@@ -178,7 +178,7 @@ void R330EventS00Main()
 }
 
 // End of the s00 event (also its cancel path): both barred doors closed, Leon and Ashley out of event
-// mode and placed at the far side facing -1.66 rad, camera back, SceEventEnd, Scenario_flg[1] 0x800,
+// mode and placed at the far side facing -1.66 rad, camera back, SceEventEnd, Scenario_flg[2] 0x800,
 // chapter 5-4 ends (SceSetChapterEnd(0x11)).
 void R330EventS00End()
 {
@@ -217,7 +217,7 @@ void R330EventS00End()
     }
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    pG->Scenario_flg[1] |= 0x800;
+    ScfFlagOn(pG, SCF_R330_END_OPE);
     SceSetChapterEnd(0x11, -1);
     SeAtSndCall(0);
 }
@@ -303,13 +303,13 @@ extern "C" void Evt_R330S00_Func(Event* e)
                 IdR330.init(no);
                 pG->Room_flg[0] |= 0x80000000;
             }
-            if ((int) pG->Room_flg[0] < 0) {
+            if (pG->Room_flg[0] & 0x80000000) {
                 IdR330.move();
             }
             break;
         default:
             if (e->NowFrame == 0) {
-                if ((int) pG->Room_flg[0] < 0) {
+                if (pG->Room_flg[0] & 0x80000000) {
                     pG->Room_flg[0] &= ~0x80000000;
                     IdR330.quit();
                 }

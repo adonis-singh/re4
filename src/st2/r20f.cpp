@@ -102,7 +102,7 @@ void R20fInit()
     PSet(r20f_work.p->sat[2], SatMgr.create(ROOM_ARC_PTR(pG->pRoom, 5), 0, &pos, &rot, 3));
     PSet(r20f_work.p->eat[1], EatMgr.create(ROOM_ARC_PTR(pG->pRoom, 0x12), 0, &pos, &rot, 2));
     PSet(r20f_work.p->eat[2], EatMgr.create(ROOM_ARC_PTR(pG->pRoom, 0x12), 0, &pos, &rot, 1));
-    if (checkEmListNo(G_ROOM_ID) == 4 && (pG->em_dead[3][6] & 0x10)) {
+    if (checkEmListNo(G_ROOM_ID) == 4 && (pG->Em_flg[3][6] & 0x10)) {
         EmListSetAlive(0xF, 0);
     }
     getRoomEtcDoor(0xF, &door, 1);
@@ -156,7 +156,7 @@ void R20fInit()
         obj0->matUpdate();
         obj1->matUpdate();
     }
-    if (checkEmListNo(G_ROOM_ID) == 3 && (pG->Status_flg[3] & 0x04000000) == 0) {
+    if (checkEmListNo(G_ROOM_ID) == 3 && StaFlagChk(pG, STA_SUB_ASHLEY) == 0) {
         int id = GetEmIdFromList(0xED);
 
         EmReadSearch((u8) id, 0, 0);
@@ -341,11 +341,11 @@ static void R20fEmSetMain()
                 RsfSet(G_ROOM_ID, 2);
                 R20fEmResetA0();
             }
-            if (RsfCheck(G_ROOM_ID, 3) == 0 && (int) pG->Room_flg[2] < 0) {
+            if (RsfCheck(G_ROOM_ID, 3) == 0 && (pG->Room_flg[2] & 0x80000000)) {
                 RsfSet(G_ROOM_ID, 3);
                 R20fEmResetB0();
             }
-            if (RsfCheck(G_ROOM_ID, 4) == 0 && (int) pG->Room_flg[2] < 0) {
+            if (RsfCheck(G_ROOM_ID, 4) == 0 && (pG->Room_flg[2] & 0x80000000)) {
                 int dead = r20f_work.p->em[2].isActive() == 0;
 
                 if (r20f_work.p->em[3].isActive() == 0) {

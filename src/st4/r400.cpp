@@ -318,9 +318,9 @@ void R400Main()
     SceDebugDisp("");
     SceDebugDisp("");
     SceDebugDisp("");
-    if (!(pG->Status_flg[0] & 0x1000)) {
+    if (!StaFlagChk(pG, STA_EVENT)) {
         r400_work.p->cnt = SceCountEmAlive(0x10, 0x20);
-        if (r400_work.p->timer == 1 && (int) pG->Room_flg[0] >= 0) {
+        if (r400_work.p->timer == 1 && !(pG->Room_flg[0] & 0x80000000)) {
             U32Set(r400_work.p->base, r400_work.p->cnt);
             pG->Room_flg[0] |= 0x80000000;
         }
@@ -336,7 +336,7 @@ void R400Main()
         }
         if (pG->Room_flg[0] & 0x40000000) {
             SceDebugDisp("EM_NUM[%d/%d]", r400_work.p->cnt, r400_work.p->base);
-            if ((int) pG->Room_flg[2] < 0) {
+            if (pG->Room_flg[2] & 0x80000000) {
                 reset_40();
             }
             if (pG->Room_flg[2] & 0x40000000) {
@@ -448,7 +448,7 @@ void emset_boss(int no, int dir)
     EM_LIST_V(no).be_flag &= ~2;
     list = pG->em_list_no;
     if (list >= 0) {
-        u32* tbl = (u32*) (list * 0x20 + (u32) pG + 0x501C);  // pG->em_dead[list], em_set.cpp style
+        u32* tbl = (u32*) (list * 0x20 + (u32) pG + 0x501C);  // pG->Em_flg[list], em_set.cpp style
 
         tbl[(u32) no >> 5] &= ~(0x80000000 >> (no & 31));
     }
@@ -468,7 +468,7 @@ void emset_boss(int no, int dir)
         } else {
             l = EM_LIST(0x12);
         }
-    } else if ((int) pG->Room_flg[3] < 0) {
+    } else if (pG->Room_flg[3] & 0x80000000) {
         if (dir == 0) {
             l = EM_LIST(0x61);
         } else {

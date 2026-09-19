@@ -67,6 +67,7 @@ static f32 r119_lightAng2 = 1.0471976f;
 // The giant (enemy 0x28) by vtable slot.
 class cEmGolem : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMGOLEM_WK)
     virtual void setDogPos(Vec* pos, f32 ang);   // 0x50
     virtual void setDie();        // 0x58
     virtual int ckEvent();        // 0x60
@@ -260,7 +261,7 @@ static void r119_EventGolemAppear()
     cObj* obj;
 
     RsfSet(G_ROOM_ID, 0);
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     EvtMgr.EvtReadExec("event/evd/r119s00.evd", 0, 0);
     EvtMgr.EvtReadAram("event/evd/r119s10.evd", 0, 0, 0, 0);
     EvtMgr.EvtReadAram("event/evd/r119s20.evd", 0, 0, 0, 0);
@@ -268,7 +269,7 @@ static void r119_EventGolemAppear()
     r119_work->golem = EmSetFromList2(0x28, 0);
     GamePointBossReset();
     Cckpt.m_LifeMeter.flags = (u32) r119_work->golem;
-    BitOff(pG->Status_flg[1], 0x800);
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
     {
         Vec v;
 
@@ -277,10 +278,10 @@ static void r119_EventGolemAppear()
         v.z = 0.0f;
         pPL->setAng(&v);
     }
-    BitOff(pG->door_flags_51CC, 0x80);
-    BitOff(pG->door_flags_51CC, 4);
-    BitOff(pG->door_flags_51D0, 0x10000000);
-    BitOff(pG->door_flags_51D0, 0x10000000);
+    ScfFlagOff(pG, SCF_98);
+    ScfFlagOff(pG, SCF_9d);
+    ScfFlagOff(pG, SCF_a3);
+    ScfFlagOff(pG, SCF_a3);
     if ((obj = SmdGetObjPtr(0x21)) != 0) {
         Vec ang = {0.0f, -1.51458f, 0.0f};
 
@@ -303,20 +304,20 @@ static void r119_EventGolemAppear()
         if (stat == 0) {
             RsfSet(G_ROOM_ID, 7);
             SndRoomStrStop(3);
-            pG->Status_flg[1] |= 0x800;
+            StaFlagOn(pG, STA_CAMERA_SET_ROOM);
             EvtMgr.EvtReadExec("event/evd/r119s20.evd", 0x2B, 0);
             SceAtSetEnable(3, 0);
             SceAtSetEnable(4, 0);
-            BitOff(pG->Status_flg[1], 0x800);
+            StaFlagOff(pG, STA_CAMERA_SET_ROOM);
             ((cEmGolem*) r119_work->golem)->setDie();
             EstSet((int) r119_work->golem, -1, 0, 0, 1, 0xF, 0, 0, (u32) r119_work->golem, (void*) stat);
             if (r119_work->dog != 0) {
                 EmMgr.destroy(r119_work->dog);
             }
-            BitOn(pG->door_flags_51CC, 0x80);
-            BitOn(pG->door_flags_51CC, 4);
-            BitOn(pG->door_flags_51D0, 0x10000000);
-            BitOn(pG->door_flags_51D0, 0x10000000);
+            ScfFlagOn(pG, SCF_98);
+            ScfFlagOn(pG, SCF_9d);
+            ScfFlagOn(pG, SCF_a3);
+            ScfFlagOn(pG, SCF_a3);
             if ((obj = SmdGetObjPtr(0x21)) != 0) {
                 Vec ang = {-0.21598449f, -1.4628042f, -2.1205752f};
 
@@ -331,7 +332,7 @@ static void r119_EventGolemAppear()
         }
         cnt++;
         pl = pPL;
-        if ((pG->Item_find_flg & 0x00080000) && !(pG->Room_flg[0] & 0x02000000)) {
+        if (ScfFlagChk(pG, SCF_R100_DOG_RUN) && !(pG->Room_flg[0] & 0x02000000)) {
             SceDebugDisp("CNT[%d/%d]", cnt, 900);
             if (pl->checkEvent() == 1) {
                 SceDebugDisp("PL[OK]");
@@ -368,9 +369,9 @@ static void r119_EventGolemAppear()
 // The parasite bursts out of the giant: event r119s30 (slot 0x2B) with Status_flg[1] 0x800 held during it.
 static void r119_EventParasiet()
 {
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     EvtMgr.EvtReadExec("event/evd/r119s30.evd", 0x2B, 0xA0);
-    pG->Status_flg[1] &= ~0x800;
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
 }
 
 // The dog comes to help: its event, then Leon and the dog are placed.
@@ -379,9 +380,9 @@ static void r119_EventDogAppear()
     Vec pos;
     Vec ang;
 
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     EvtMgr.EvtReadExec("event/evd/r119s10.evd", 0x2B, 0);
-    pG->Status_flg[1] &= ~0x800;
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
     PSet(r119_work->dog, EmSetFromList2(0x29, 0));
     pos.x = 116292.0f;
     pos.y = 2298.0f;
@@ -763,7 +764,7 @@ extern "C" void Evt_R119S00_Func(Event* e)
             }
             break;
         default:
-            if ((int) pG->Debug_flg[0] >= 0 && e->NowFrame == 0) {
+            if (!DbgFlagChk(pG, DBG_TEST_MODE) && e->NowFrame == 0) {
                 r119_evtBridgeOn();
             }
             break;
@@ -773,7 +774,7 @@ extern "C" void Evt_R119S00_Func(Event* e)
         SmdSetTrans(0x2C, 1);
         SmdSetTrans(0x24, 0);
         SmdSetTrans(0x25, 0);
-        if ((int) pG->Debug_flg[0] >= 0) {
+        if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
             r119_evtBridgeOn();
         }
         w = SmdGetWorkPtr(0x21);

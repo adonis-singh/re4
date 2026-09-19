@@ -33,7 +33,7 @@ void SetTvMode(GXRenderModeObj* rmode)
     switch (VIGetTvFormat()) {
     case 0:
     case 2:
-        if (pRK->progressive == 0) {
+        if (pRK->tv_mode == 0) {
             rmode->viTVmode = 0;
             rmode->xFBmode = 1;
         } else {
@@ -76,7 +76,7 @@ void tvModeCheckTask()
 // B held or progressive already on opens the menu; else straight to exit. Marks the check done.
 void tvModeTrigger(TvModeWork* tv)
 {
-    if (VIGetDTVStatus() != 0 && pRK->tv_mode_done == 0) {
+    if (VIGetDTVStatus() != 0 && pRK->tv_mode_select == 0) {
         if (Joy[0].err == -3 || Joy[0].err == -2) {
             tv_mode_cnt++;
             if (tv_mode_cnt <= 29) {
@@ -92,7 +92,7 @@ void tvModeTrigger(TvModeWork* tv)
     } else {
         tv->state = 2;
     }
-    pRK->tv_mode_done = 1;
+    pRK->tv_mode_select = 1;
 }
 
 // State 1: the yes / no message (system layout, message 0; the cursor's choice after 300 idle
@@ -127,16 +127,16 @@ void tvModeMenu_progressive(TvModeWork* tv)
                 TaskSleep(1);
             } while ((sel = w->m_sel) == 0);
         }
-        old = pRK->progressive;
+        old = pRK->tv_mode;
         if (sel == 1) {
-            pRK->progressive = 1;
+            pRK->tv_mode = 1;
             OSSetProgressiveMode(1);
         } else {
-            pRK->progressive = 0;
+            pRK->tv_mode = 0;
             OSSetProgressiveMode(0);
         }
-        if (pRK->progressive != old) {
-            if (pRK->progressive == 1) {
+        if (pRK->tv_mode != old) {
+            if (pRK->tv_mode == 1) {
                 tv->rmode->viTVmode = 2;
                 tv->rmode->xFBmode = 0;
             } else {

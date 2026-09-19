@@ -70,6 +70,7 @@ static const AtEffInfo r224_eff_info = {
 // The Novistador (em2b) by vtable slot: only the virtual the room calls.
 class cEm2b : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2B_WK)
     virtual void v50();
     virtual void v58();
     virtual void v60();
@@ -219,14 +220,14 @@ static void r224_cam_task()
     }
 }
 
-// End of the Novistador entrance: door_flags_51CC 0x00400000 (exit) off, SEs stopped, the door 0x16
+// End of the Novistador entrance: Scenario_flg[4] 0x00400000 (exit) off, SEs stopped, the door 0x16
 // snapped shut, both Novistadors made solid (atari 0x300) and placed on the floor alerted, Room_flg[0]
 // 0x04000000, area 0 = the shut-door message, the death watcher, boss points reset.
 static void r224_em_set_exit()
 {
     Vec v;
 
-    pG->door_flags_51CC &= ~0x00400000;
+    ScfFlagOff(pG, SCF_89);
     SndStop(r224_work.p->se0, 0);
     SndStop(r224_work.p->se1, 0);
     SmdGetObjPtr(0x16)->pos.y = 7838.0f;
@@ -644,7 +645,7 @@ static void reva_move()
         cPlayer* pl = pPL;
 
         ((cUnitEventView*) pl)->endEvent(0);
-        pl->x4FD = 0xC;
+        pl->m_Hokan = 0xC;
     }
 }
 
@@ -657,7 +658,7 @@ static void em_die_ck()
     RsfSet(G_ROOM_ID, 1);
     SceSleep(270);
     door_open(0);
-    pG->door_flags_51CC |= 0x00400000;
+    ScfFlagOn(pG, SCF_89);
 }
 
 // The exit door 0x16 (and, with no == 0, the grille 0x12 at double speed) rise 100 units a frame under

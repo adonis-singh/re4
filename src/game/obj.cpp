@@ -347,19 +347,19 @@ void objMove(cObj* p)
     if (!(p->be_flag & 0x20)) {
         return;
     }
-    if ((pG->Status_flg[1] & 0x10000000) && !(p->be_flag & 0x800)) {
+    if (StaFlagChk(pG, STA_SUSPEND) && !(p->be_flag & 0x800)) {
         return;
     }
     p->move();
     ShapeMove(p->pModelInfo);
     p->updateOldPos();
-    if (pG->Debug_flg[2] & 0x10000000) {
+    if (DbgFlagChk(pG, DBG_OBA_VIEW)) {
         DrawOba(p);
     }
-    if (pG->Debug_flg[1] & 0x08000000) {
+    if (DbgFlagChk(pG, DBG_OBJ_SKELETON)) {
         p->debugSkeletonDisp();
     }
-    if ((int) p->be_flag < 0) {
+    if (p->be_flag & 0x80000000) {
         p->drawAllBoundingBox(p->pModelInfo);
     }
 }

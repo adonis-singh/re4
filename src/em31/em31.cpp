@@ -245,9 +245,6 @@ static f32 em31ClothMax3[18] = {
 #define ARC(no) PL_ARC_PTR(em->subArc, no)
 #define PL_ARC(no) PL_ARC_PTR(pl->subArc, no)
 
-// The enemy a player damage callback belongs to (pl_sub SetPlDamage's first argument).
-#define PL_EM(pl) ((cEm31*) (pl)->dmgType)
-
 #define VIB_TBL ((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc))
 
 // Struct-member views of the player pointer / pG: a load through them is not hoisted above the
@@ -1561,7 +1558,7 @@ static void em31_R1_Stamp(cEm31* em)
 static void em31ActEscape(cEm31* em)
 {
     EM31_WK(em)->Act_ck = 1;
-    SetPlDamage((int) em, plemEscape);
+    SetPlDamage(em, plemEscape);
 }
 
 // Player damage callback of the stamp dodge (dmType 2: no hit damage): the dive to the side
@@ -1569,7 +1566,7 @@ static void em31ActEscape(cEm31* em)
 // with the motion.
 static void plemEscape(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.m_Timer = 2;
     switch (pl->r_no_2) {
     case 0:
@@ -1584,9 +1581,9 @@ static void plemEscape(cPlayer* pl)
         pl->m_Work1 = 15;
         pl->r_no_2++;
     case 1:
-        em31EscapeCamMove(PL_EM(pl));
+        em31EscapeCamMove((cEm31*)pl->pEmCatch);
         if (pl->m_Work1) {
-            pl->ang.y += Muku(&pl->pos, &PL_EM(pl)->pos, pl->ang.y, 0.19634955f);
+            pl->ang.y += Muku(&pl->pos, &pl->pEmCatch->pos, pl->ang.y, 0.19634955f);
             pl->ang.y = LIMIT_ANGLE(pl->ang.y);
         }
         MotionMoveF(pl, 0);
@@ -1817,7 +1814,7 @@ static void em31_R1_CatchHit(cEm31* em)
         em->atari.throughOn();
         em31CatchPosSet(em, 0);
         MotionSetCore(em, MOTION(em), ARC(0x1A), (int) ARC(0x1B), 0, 1, 0);
-        SetPlDamage((int) em, plem31_CatchHit);
+        SetPlDamage(em, plem31_CatchHit);
         if (w->pTen) {
             w->pTen->setCatchHit();
         }
@@ -1840,16 +1837,16 @@ static void em31_R1_CatchHit(cEm31* em)
 // The player's catch-hit routine shared by the normal and the step catch (a macro: the `pl`
 // parameter copy of an inline would pin the pos store order).
 #define PLEM31_CATCH_HIT_SUB(mot, est)                                                                  \
-    BitOn(pG->Status_flg[1], 0x8000);                                                                  \
+    StaFlagOn(pG, STA_PL_CATCHED);                                                                  \
     pl->dmg.set(0, 10);                                                                             \
-    pl->subArc = PL_EM(pl)->subArc;                                                                 \
+    pl->subArc = pl->pEmCatch->subArc;                                                                 \
     switch (pl->r_no_2) {                                                                              \
     case 0:                                                                                         \
         pl->pos.x = 0.0f;                                                                           \
         pl->pos.z = 4500.0f;                                                                        \
         pl->pos.y = 0.0f;                                                                           \
-        PSMTXMultVec(PL_EM(pl)->mat, &pl->pos, &pl->pos);                                           \
-        pl->ang.y = PL_EM(pl)->ang.y + PI;                                                          \
+        PSMTXMultVec(pl->pEmCatch->mat, &pl->pos, &pl->pos);                                           \
+        pl->ang.y = pl->pEmCatch->ang.y + PI;                                                          \
         pl->ang.y = LIMIT_ANGLE(pl->ang.y);                                                         \
         MotionSetCore(pl, MOTION(pl), PL_ARC_PTR(pl->subArc, mot)   , 0, 0, 1, 0);                     \
         PlSetFace(1);                                                                               \
@@ -1863,7 +1860,7 @@ static void em31_R1_CatchHit(cEm31* em)
             break;                                                                                  \
         }                                                                                           \
         if (pl->frame > 85.7f && pl->frame < 86.3f) {                                               \
-            SndCall(8, 0x2E, &pl->pos, PL_EM(pl)->id, 0, pl);                                       \
+            SndCall(8, 0x2E, &pl->pos, pl->pEmCatch->id, 0, pl);                                       \
             VibSetData(VIB_TBL, 0xB, 1);                                                            \
             LifeDownSet(pPL, 900, 0);                                                               \
             if ((s16) pG->pl_life > 0) {                                                            \
@@ -1949,7 +1946,7 @@ static void em31_R1_StepCatchHit(cEm31* em)
         em->atari.throughOn();
         em31CatchPosSet(em, 0);
         MotionSetCore(em, MOTION(em), ARC(0x1A), (int) ARC(0x1B), 0, 1, 0);
-        SetPlDamage((int) em, plem31_StepCatchHit);
+        SetPlDamage(em, plem31_StepCatchHit);
         if (w->pTen) {
             w->pTen->setStepCatchHit();
         }
@@ -3014,7 +3011,7 @@ static void em31_R1_Dm_Climb(cEm31* em)
         em->atari.throughOn();
         em31CatchPosSet(em, 1);
         MotionSetCore(em, MOTION(em), ARC(0x2F), 0, 0, 1, 0);
-        SetPlDamage((int) em, plem31_Climb);
+        SetPlDamage(em, plem31_Climb);
         if (w->pTen) {
             w->pTen->setClimb();
         }
@@ -3050,14 +3047,14 @@ static void plem31_Climb(cPlayer* pl)
     cModel* p = pl->getPartsPtr(4);
 
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         pl->pos.x = 0.0f;
         pl->pos.y = 0.0f;
         pl->pos.z = -7000.0f;
-        PSMTXMultVec(PL_EM(pl)->mat, &pl->pos, &pl->pos);
-        pl->ang.y = PL_EM(pl)->ang.y;
+        PSMTXMultVec(pl->pEmCatch->mat, &pl->pos, &pl->pos);
+        pl->ang.y = pl->pEmCatch->ang.y;
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x82), 0, 0, 0x201, 0);
         EstSet((int) pl, -1, 0, 0, 0x29, 0x34, 0, 0, (u32) pl, 0);
         pl->atari.throughOn();
@@ -3068,15 +3065,15 @@ static void plem31_Climb(cPlayer* pl)
             break;
         }
         if (pl->frame > 15.7f && pl->frame < 16.3f) {
-            SndCall(8, 0x39, &p->world, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x39, &p->world, pl->pEmCatch->id, 0, pl);
         }
         break;
     case 2:
         pl->pos.x = 0.0f;
         pl->pos.y = 0.0f;
         pl->pos.z = 0.0f;
-        PSMTXMultVec(PL_EM(pl)->mat, &pl->pos, &pl->pos);
-        pl->ang.y = PL_EM(pl)->ang.y;
+        PSMTXMultVec(pl->pEmCatch->mat, &pl->pos, &pl->pos);
+        pl->ang.y = pl->pEmCatch->ang.y;
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x83), 0, 0, 0x201, 0);
         em31CatchObj.p = ObjMgr.create(0xB);
         if (em31CatchObj.p) {
@@ -3101,10 +3098,10 @@ static void plem31_Climb(cPlayer* pl)
             }
         }
         if (pl->frame > 13.7f && pl->frame < 14.3f) {
-            SndCall(8, 0x3A, &p->world, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x3A, &p->world, pl->pEmCatch->id, 0, pl);
         }
         if (pl->frame > 68.7f && pl->frame < 69.3f) {
-            SndCall(8, 0x3B, &p->world, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x3B, &p->world, pl->pEmCatch->id, 0, pl);
         }
         break;
     case 4:
@@ -3116,8 +3113,8 @@ static void plem31_Climb(cPlayer* pl)
         pl->pos.x = 0.0f;
         pl->pos.y = 0.0f;
         pl->pos.z = 4500.0f;
-        PSMTXMultVec(PL_EM(pl)->mat, &pl->pos, &pl->pos);
-        pl->ang.y = PL_EM(pl)->ang.y;
+        PSMTXMultVec(pl->pEmCatch->mat, &pl->pos, &pl->pos);
+        pl->ang.y = pl->pEmCatch->ang.y;
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x84), 0, 0, 0x201, 0);
         EstSet((int) pl, -1, 0, 0, 0x29, 0x33, 0, 0, (u32) pl, 0);
         pl->r_no_2++;
@@ -3129,10 +3126,10 @@ static void plem31_Climb(cPlayer* pl)
             break;
         }
         if (pl->frame > 10.7f && pl->frame < 11.3f) {
-            SndCall(8, 0x3C, &p->world, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x3C, &p->world, pl->pEmCatch->id, 0, pl);
         }
         if (pl->frame > 33.7f && pl->frame < 34.3f) {
-            SndCall(8, 0x3D, &p->world, PL_EM(pl)->id, 0, pl);
+            SndCall(8, 0x3D, &p->world, pl->pEmCatch->id, 0, pl);
         }
         break;
     }
@@ -3503,18 +3500,18 @@ int em31AtkCk(cEm31* em, Vec* pos, Vec* oldPos, int no)
                 SndCall(8, 0x2A, &pPL->pos, em->id, 0, pPL);
                 FSet(pPL->pos.x, pos->x);
                 pPL->pos.z = pos->z;
-                SetPlDamage((int) em, plem31_dm_Stamp);
+                SetPlDamage(em, plem31_dm_Stamp);
                 break;
             case 1:
                 SndCall(8, 0x2A, &pPL->pos, em->id, 0, pPL);
                 FSet(pPL->pos.x, pos->x);
                 pPL->pos.z = pos->z;
-                SetPlDamage((int) em, plem31_dm_Stamp);
+                SetPlDamage(em, plem31_dm_Stamp);
                 pPL->r_no_3 = 1;
                 break;
             case 4:
                 SndCall(8, 0x2A, &pPL->pos, em->id, 0, pPL);
-                SetPlDamage((int) em, plem31_dm_Stamp);
+                SetPlDamage(em, plem31_dm_Stamp);
                 pPL->r_no_3 = 2;
                 break;
             case 5:
@@ -3548,7 +3545,7 @@ int em31AtkCk(cEm31* em, Vec* pos, Vec* oldPos, int no)
 // (routine 1/0 step 0xA) at frame 50 or the end.
 static void plem31_dm_Stamp(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x6B), 0, 3, 1, 0);
@@ -3572,7 +3569,7 @@ static void plem31_dm_Stamp(cPlayer* pl)
         }
         pl->r_no_2++;
     case 1:
-        em31StampCamMove(PL_EM(pl));
+        em31StampCamMove((cEm31*)pl->pEmCatch);
         if (MotionMoveF(pl, 0) || (pl->frame > 49.7f && pl->frame < 50.3f)) {
             if ((s16) pG->pl_life > 0) {
                 pl->atari.throughOff();
@@ -5138,7 +5135,7 @@ void em31PlHeadLost()
     cModel* p;
     cObj* obj;
 
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         PlSetDamageSe(0xD);
         EstSet((int) pPL, -1, 0, 0, 0x29, 0x29, 0, 0, (u32) pPL, 0);
         return;
@@ -5229,7 +5226,7 @@ void em31WeakMove(cEm31* em)
             EYELID_WK* e = &w->Eyelid[i];
 
             if (e->pObj) {
-                if ((pGS->Status_flg[1] & 0x04000000) && e->Hp > 0 && em->hp > 0 && e->Flag == 0) {
+                if (StaFlagChk(pGS, STA_THERMO_GRAPH) && e->Hp > 0 && em->hp > 0 && e->Flag == 0) {
                     e->pObj->be_flag |= 2;
                 } else {
                     e->pObj->be_flag &= ~2;
@@ -5239,7 +5236,7 @@ void em31WeakMove(cEm31* em)
         break;
     case 1:
         if (w->pWeak) {
-            if ((pG->Status_flg[1] & 0x04000000) && em->hp > 0 && (em->hitInfo.flags & 1)) {
+            if (StaFlagChk(pG, STA_THERMO_GRAPH) && em->hp > 0 && (em->hitInfo.flags & 1)) {
                 w->pWeak->be_flag |= 2;
             } else {
                 w->pWeak->be_flag &= ~2;

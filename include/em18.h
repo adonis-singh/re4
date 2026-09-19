@@ -24,10 +24,11 @@ struct Em18Work {
     u32 sndId;            // 0x2D0 (0x6B0)  SndCall handle of the current voice
 };
 
-#define EM18_WK(em) ((Em18Work*) &(em)->x3E0)
+#define EM18_WK(em) ((Em18Work*) (((cEm18*) (em))->free))
 
 class cEm18 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM18_WK)
     virtual void move();
 };
 

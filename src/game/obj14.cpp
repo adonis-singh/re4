@@ -121,7 +121,7 @@ void obj14_R1_Set(cObjBell* obj)
         p.z = 250.0f;
         PSMTXMultVec(obj->mat, &p, &p);
         p.y = SatMgr.getFloor(&p, 600.0f, 100000.0f, 0, 0);
-        BitOn(pG->Status_flg[1], 0x20000000);
+        StaFlagOn(pG, STA_SE_BURST);
         // A byte-pointer destination: the copy is then a plain (non-struct) store and the
         // original reloads pG for the following store, as the target shows.
         memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &p, sizeof(Vec));
@@ -271,13 +271,13 @@ void cObjBell::setBreak()
 // 1 when the room flagged the bell as breakable (stat high half 0x0100).
 int cObjBell::ckBreakEnable()
 {
-    return (stat & 0xFFFF0000) == 0x01000000;
+    return (r_no_0 == 1 && r_no_1 == 0);
 }
 
 // 1 when the bell is broken (stat high half 0x0101).
 int cObjBell::ckBreak()
 {
-    return (stat & 0xFFFF0000) == 0x01010000;
+    return (r_no_0 == 1 && r_no_1 == 1);
 }
 
 // Pendulum set-up: parts 1 -> 2 chain with max swing 45 / 25 degrees, gravity 15.

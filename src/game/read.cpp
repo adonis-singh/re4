@@ -187,8 +187,8 @@ void ReadAreaData()
     u32 decodeTime;
 
     sprintf(name, "st%x/r%03x.das", pG->stage_no, pG->room_id);
-    if (pG->System_flg & 0x02000000) {
-        pG->System_flg &= ~0x02000000;
+    if (SysFlagChk(pG, SYS_DATA_READ)) {
+        SysFlagOff(pG, SYS_DATA_READ);
     } else {
         StopwatchStart();
 #line 147 "D:/Bio4/Prog/read.cpp"
@@ -285,7 +285,7 @@ static void* readEm(int id, void* addr, u32 size)
     ReadModule* m;
 
     BitSet(pG->Disp_flg, 0xFFFFFFFF);
-    BitOff(pG->Disp_flg, 0x800);
+    DpfFlagOff(pG, DPF_MESSAGE);
     m = pullEmModule();
     if (m == NULL) {
         return NULL;

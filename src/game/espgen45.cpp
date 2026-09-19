@@ -177,7 +177,7 @@ void Espgen45_Move00(EspgenWork* w)
     d3.x = 0.0f;
     d3.z = -1.0f;
     frame = pG->Frame_cnt % 60;
-    BitOn(pG->Status_flg[0], 0x200);
+    StaFlagOn(pG, STA_WATER_ALIVE);
     if (g_bTargetCamera == 1) {
         FSet(g_Target_x, pG->Cam.param.at.x);
         FSet(g_Target_z, pG->Cam.param.at.z);
@@ -234,7 +234,7 @@ void Espgen45_Move00(EspgenWork* w)
         mode = g_Free.Type;
     }
     if (mode != 1) {
-        if ((pG->Debug_flg[1] & 0x00800000) && (Joy[0].on & 0x100)) {
+        if (DbgFlagChk(pG, DBG_IN_ESP_TOOL) && (Joy[0].on & 0x100)) {
             // The index is the loop variable `k` (target `lwz r31` = k's register, base+index `lfsx f0,hB,k4`).
             k = (int) ((f32) (int) (p->nx * p->ny) * 0.5f);
             // Byte offset in a variable: inside an address `p->hB[k]` expands to `(plus (mult k 4) hB)` (expr.c
@@ -409,7 +409,7 @@ void Espgen45_Move(EspgenWork* w)
 {
     static void (*Espgen45MoveTbl[])(EspgenWork*) = {Espgen45_Move00};
 
-    if (pG->Stop_flg & 0x40000) {
+    if (SpfFlagChk(pG, SPF_WATER)) {
         return;
     }
     Espgen45MoveTbl[w->step](w);
@@ -422,7 +422,7 @@ void Espgen45_Trans(EspgenWork* w)
     if ((w->flag & 1) && !(w->flag & 2)) {
         AddOtDirect(0x10, w, (void (*)()) Espgen45_TransSub, 1, 0x80, NULL, 0.0f);
     }
-    pG->Status_flg[1] &= ~0x20;
+    StaFlagOff(pG, STA_ESPGEN45_SET);
 }
 
 // Loads indirect texture matrix 1 for the bump stage: S scale indS*0.001+0.01, T scale
@@ -1147,21 +1147,21 @@ void Estgen45SetTargetPos(f32 x, f32 z)
 {
     FSet(g_Target_x, x);
     FSet(g_Target_z, z);
-    pG->Status_flg[1] |= 0x20;
+    StaFlagOn(pG, STA_ESPGEN45_SET);
 }
 
 // Sets the override water height.
 void Estgen45SetHeight(f32 h)
 {
     FSet(g_Target_y, h);
-    pG->Status_flg[1] |= 0x20;
+    StaFlagOn(pG, STA_ESPGEN45_SET);
 }
 
 // Sets the override cell size.
 void Estgen45SetSize(f32 size)
 {
     FSet(g_Size, size);
-    pG->Status_flg[1] |= 0x20;
+    StaFlagOn(pG, STA_ESPGEN45_SET);
 }
 
 // Sets the override tev colour (r,g,b,a) and ambient/scale factors (rs..as, 0..1).
@@ -1175,14 +1175,14 @@ void Estgen45SetColor(u8 r, u8 g, u8 b, u8 a, f32 rs, f32 gs, f32 bs, f32 as)
     FSet(g_sg, gs);
     FSet(g_sb, bs);
     FSet(g_sa, as);
-    pG->Status_flg[1] |= 0x20;
+    StaFlagOn(pG, STA_ESPGEN45_SET);
 }
 
 // Copies the esp4c parameter block used when the parameter override is on.
 void Estgen45SetParam(Esp4cWork* w)
 {
     g_Free = *w;
-    pG->Status_flg[1] |= 0x20;
+    StaFlagOn(pG, STA_ESPGEN45_SET);
 }
 
 asm(".section .sdata; .balign 8");

@@ -246,7 +246,7 @@ DB_EM dbModSlotSub[SLOT_NUM];
 struct DbModStatePtr { DbModState* p; };
 struct MotTblPtr { MotTbl* p; };
 DbModStatePtr pDbModState;
-MotTblPtr pMotTbl;
+MotTblPtr m_MotTbl;
 
 struct VoidPtr { void* p; };
 static VoidPtr dbmodMotTblImage = {0};
@@ -423,12 +423,12 @@ void dbModelInit()
     pDbModState.p->scale = 1.0f;
     pDbModState.p->type = 0;
     pDbModState.p->lightMode = 0;
-    pMotTbl.p = (MotTbl*) Debug_alloc(sizeof(MotTbl), 1);
-    pMotTbl.p->data = (char*) dbmodMotTblImage.p;
-    pMotTbl.p->end = (char*) dbmodMotTblImage.p + (size - 1);
-    pMotTbl.p->cur = pMotTbl.p->data;
-    mottblInit(pMotTbl.p);
-    if (pMotTbl.p->unitNum[0]) {
+    m_MotTbl.p = (MotTbl*) Debug_alloc(sizeof(MotTbl), 1);
+    m_MotTbl.p->data = (char*) dbmodMotTblImage.p;
+    m_MotTbl.p->end = (char*) dbmodMotTblImage.p + (size - 1);
+    m_MotTbl.p->cur = m_MotTbl.p->data;
+    mottblInit(m_MotTbl.p);
+    if (m_MotTbl.p->unitNum[0]) {
         pDbModState.p->curSetNo = -1;
         dbmodGetSet();
     }
@@ -452,9 +452,9 @@ void dbModelQuit()
         Debug_free(dbmodMotTblImage.p);
         dbmodMotTblImage.p = 0;
     }
-    if (pMotTbl.p) {
-        Debug_free(pMotTbl.p);
-        pMotTbl.p = 0;
+    if (m_MotTbl.p) {
+        Debug_free(m_MotTbl.p);
+        m_MotTbl.p = 0;
     }
     if (pDbModState.p) {
         Debug_free(pDbModState.p);
@@ -467,7 +467,7 @@ void dbmodGetLabel(int no, char* dst)
 {
     char line[0x100];
 
-    mottblGetLine(line, 0x100, mottblUnitPtr(pMotTbl.p->unit[0], no));
+    mottblGetLine(line, 0x100, mottblUnitPtr(m_MotTbl.p->unit[0], no));
     sscanf(line, "%s", dst);
 }
 
@@ -489,19 +489,19 @@ void dbmodGetSet()
         return;
     }
     em->setNo = pDbModState.p->setNo;
-    p = mottblUnitPtr(pMotTbl.p->unit[0], pDbModState.p->setNo);
+    p = mottblUnitPtr(m_MotTbl.p->unit[0], pDbModState.p->setNo);
     p = mottblGetLine(line, 0x100, p);
-    sscanf(line, "%s", pMotTbl.p->name[0]);
-    strcpy(pDbModState.p->setName, pMotTbl.p->name[0]);
+    sscanf(line, "%s", m_MotTbl.p->name[0]);
+    strcpy(pDbModState.p->setName, m_MotTbl.p->name[0]);
     p = mottblUnitPtr(p, 0);
     p = mottblGetLine(line, 0x100, p);
-    pMotTbl.p->name[1][0] = 0;
-    pMotTbl.p->name[2][0] = 0;
-    pMotTbl.p->name[3][0] = 0;
-    pMotTbl.p->name[4][0] = 0;
-    sscanf(line, "%s%s%s%s", pMotTbl.p->name[1], pMotTbl.p->name[2], pMotTbl.p->name[3], pMotTbl.p->name[4]);
+    m_MotTbl.p->name[1][0] = 0;
+    m_MotTbl.p->name[2][0] = 0;
+    m_MotTbl.p->name[3][0] = 0;
+    m_MotTbl.p->name[4][0] = 0;
+    sscanf(line, "%s%s%s%s", m_MotTbl.p->name[1], m_MotTbl.p->name[2], m_MotTbl.p->name[3], m_MotTbl.p->name[4]);
     for (i = 1; i <= 4; i++) {
-        c = strchr(pMotTbl.p->name[i], ',');
+        c = strchr(m_MotTbl.p->name[i], ',');
         if (c) {
             *c = 0;
         }
@@ -523,14 +523,14 @@ void dbmodGetSet()
         case 3:
             t = 4;
             pNo = &pDbModState.p->locNo;
-            if (strlen(pMotTbl.p->name[4]) == 0) {
+            if (strlen(m_MotTbl.p->name[4]) == 0) {
                 pDbModState.p->locNo = -1;
                 pNo = &dummy;
             }
             break;
         }
         if (i == 2) {
-            if (strncmp(pMotTbl.p->name[t], "null", 4) == 0 || strncmp(pMotTbl.p->name[t], "NULL", 4) == 0) {
+            if (strncmp(m_MotTbl.p->name[t], "null", 4) == 0 || strncmp(m_MotTbl.p->name[t], "NULL", 4) == 0) {
                 pDbModState.p->motNo[0] = -1;
                 pDbModState.p->motSub[0] = 0;
                 pDbModState.p->motNum[0] = -1;
@@ -541,8 +541,8 @@ void dbmodGetSet()
             pDbModState.p->motNum[0] = 0;
             pDbModState.p->motFileNum = 1;
         }
-        *pNo = mottblUnitNum(pMotTbl.p->unit[t], pMotTbl.p->name[t]);
-        mottblNextLine(mottblUnitPtr(pMotTbl.p->unit[t], *pNo));
+        *pNo = mottblUnitNum(m_MotTbl.p->unit[t], m_MotTbl.p->name[t]);
+        mottblNextLine(mottblUnitPtr(m_MotTbl.p->unit[t], *pNo));
     }
     for (i = 1; i < FILE_NUM; i++) {
         pDbModState.p->motNo[i] = pDbModState.p->motNo[0];
@@ -722,11 +722,11 @@ void dbmodGetFilenames()
             dir = pDbModState.p->texDir;
             break;
         }
-        p = mottblUnitPtr(pMotTbl.p->unit[t], *pNo);
+        p = mottblUnitPtr(m_MotTbl.p->unit[t], *pNo);
         sscanf(p, "%s", dir);
         p = mottblNextLine(p);
-        pMotTbl.p->count[t] = mottblUnitCount(p);
-        *pNum = pMotTbl.p->count[t];
+        m_MotTbl.p->count[t] = mottblUnitCount(p);
+        *pNum = m_MotTbl.p->count[t];
         for (k = 0; k < *pNum; k++) {
             q = mottblUnitPtr(p, k);
             mottblGetLine(line, 0x100, q);
@@ -739,10 +739,10 @@ void dbmodGetFilenames()
         if (pDbModState.p->motNo[i] == -1) {
             pDbModState.p->motName[i][0] = 0;
         } else {
-            p = mottblUnitPtr(pMotTbl.p->unit[3], pDbModState.p->motNo[i]);
+            p = mottblUnitPtr(m_MotTbl.p->unit[3], pDbModState.p->motNo[i]);
             sscanf(p, "%s", pDbModState.p->motDir[i]);
             p = mottblNextLine(p);
-            pMotTbl.p->count[3] = mottblUnitCount(p);
+            m_MotTbl.p->count[3] = mottblUnitCount(p);
             q = mottblUnitPtr(p, pDbModState.p->motSub[i]);
             mottblGetLine(line, 0x100, q);
             skip = strspn(line, "\t ");
@@ -776,7 +776,7 @@ void dbmodGetFilenames()
         pDbModState.p->motFileNum++;
     }
     if (pDbModState.p->locNo != -1) {
-        q = mottblUnitPtr(pMotTbl.p->unit[4], pDbModState.p->locNo);
+        q = mottblUnitPtr(m_MotTbl.p->unit[4], pDbModState.p->locNo);
         q = mottblNextLine(q);
         q = mottblGetLine(line, 0x100, q);
         sscanf(line, "%s", name[0]);
@@ -793,8 +793,8 @@ void dbmodGetFilenames()
         pDbModState.p->locRot.x *= DEG2RAD;
         pDbModState.p->locRot.y *= DEG2RAD;
         pDbModState.p->locRot.z *= DEG2RAD;
-        no = mottblUnitNum(pMotTbl.p->unit[0], name[0]);
-        q = mottblUnitPtr(pMotTbl.p->unit[0], no);
+        no = mottblUnitNum(m_MotTbl.p->unit[0], name[0]);
+        q = mottblUnitPtr(m_MotTbl.p->unit[0], no);
         q = mottblUnitPtr(mottblGetLine(line, 0x100, q), 0);
         mottblGetLine(line, 0x100, q);
         sscanf(line, "%s%s%s", name[1], name[2], name[3]);
@@ -815,8 +815,8 @@ void dbmodGetFilenames()
                 pNum = &pDbModState.p->locTexNum;
                 break;
             }
-            no = mottblUnitNum(pMotTbl.p->unit[t], name[t]);
-            p = mottblUnitPtr(pMotTbl.p->unit[t], no);
+            no = mottblUnitNum(m_MotTbl.p->unit[t], name[t]);
+            p = mottblUnitPtr(m_MotTbl.p->unit[t], no);
             p = mottblNextLine(p);
             *pNum = mottblUnitCount(p);
             for (k = 0; k < *pNum; k++) {
@@ -945,10 +945,10 @@ int dbModel(int mode)
                         dbmodMotTblImage.p = 0;
                     }
                     size = HDReadDebugAlloc("Room/Em/mot_tbl.txt", &dbmodMotTblImage.p, 1);
-                    pMotTbl.p->data = (char*) dbmodMotTblImage.p;
-                    pMotTbl.p->end = (char*) dbmodMotTblImage.p + (size - 1);
-                    pMotTbl.p->cur = pMotTbl.p->data;
-                    mottblInit(pMotTbl.p);
+                    m_MotTbl.p->data = (char*) dbmodMotTblImage.p;
+                    m_MotTbl.p->end = (char*) dbmodMotTblImage.p + (size - 1);
+                    m_MotTbl.p->cur = m_MotTbl.p->data;
+                    mottblInit(m_MotTbl.p);
                 }
                 pDbModState.p->mode = 0;
             }
@@ -1115,7 +1115,7 @@ static int dbmod_model()
                 pDbModState.p->setNo = -1;
                 do {
                     pDbModState.p->setNo++;
-                    pDbModState.p->setNo = LOOP(pDbModState.p->setNo, 0, pMotTbl.p->unitNum[0] - 1);
+                    pDbModState.p->setNo = LOOP(pDbModState.p->setNo, 0, m_MotTbl.p->unitNum[0] - 1);
                     dbmodGetLabel(pDbModState.p->setNo, label);
                 } while (strncmp(label, dbmodTypeName[pDbModState.p->type], len) != 0);
             }
@@ -1125,7 +1125,7 @@ static int dbmod_model()
             if ((joy->rep & 0x2) || (joy->on & 0x20000)) {
                 pDbModState.p->setNo++;
             }
-            pDbModState.p->setNo = LOOP(pDbModState.p->setNo, 0, pMotTbl.p->unitNum[0] - 1);
+            pDbModState.p->setNo = LOOP(pDbModState.p->setNo, 0, m_MotTbl.p->unitNum[0] - 1);
             dbmodGetSet();
             break;
         case 1:
@@ -1141,7 +1141,7 @@ static int dbmod_model()
                 if (joy->trg & 0x00040004) {
                     pDbModState.p->motSub[0]--;
                 }
-                pDbModState.p->motSub[0] = LOOP(pDbModState.p->motSub[0], 0, pMotTbl.p->count[3] - 1);
+                pDbModState.p->motSub[0] = LOOP(pDbModState.p->motSub[0], 0, m_MotTbl.p->count[3] - 1);
                 if (old != pDbModState.p->motSub[0]) {
                     pDbModState.p->motNum[0] = 0;
                     pDbModState.p->digit = 0;
@@ -1442,7 +1442,7 @@ static int dbmod_motion()
                 if (joy->trg & 0x00040004) {
                     pDbModState.p->motSub[k]--;
                 }
-                pDbModState.p->motSub[k] = LOOP(pDbModState.p->motSub[k], 0, pMotTbl.p->count[3] - 1);
+                pDbModState.p->motSub[k] = LOOP(pDbModState.p->motSub[k], 0, m_MotTbl.p->count[3] - 1);
                 if (oldSub != pDbModState.p->motSub[k]) {
                     pDbModState.p->motNum[k] = 0;
                     pDbModState.p->digit = 0;
@@ -3054,7 +3054,7 @@ void dbModMotionMove()
                 }
             }
         }
-        if (noMotion == 0 && !(pG->Stop_flg & 0x04000000)) {
+        if (noMotion == 0 && !SpfFlagChk(pG, SPF_OBJ)) {
             model->Motion.Mot_attr = em->mot[0].flags;
             dbmodMotionMove(model, 0);
             if (model->Motion.blend == 0 && em->mot_num > 1 && model->Motion.Mot_state != 0) {
@@ -3255,7 +3255,7 @@ char* mottblGetLine(char* dst, int max, char* src)
         dst[i] = src[0];
     }
     dst[i] = 0;
-    if (src > pMotTbl.p->end) {
+    if (src > m_MotTbl.p->end) {
         return 0;
     }
     return src;
@@ -3274,7 +3274,7 @@ char* mottblNextLine(char* p)
             skip = 1;
         }
     } while (skip);
-    if (p > pMotTbl.p->end) {
+    if (p > m_MotTbl.p->end) {
         return 0;
     }
     return p;
@@ -3818,8 +3818,8 @@ int GetSlctSetNo(char* name)
     char* p;
     int i;
 
-    for (i = 0; i < pMotTbl.p->unitNum[0]; i++) {
-        mottblGetLine(line, 0x100, mottblUnitPtr(pMotTbl.p->unit[0], i));
+    for (i = 0; i < m_MotTbl.p->unitNum[0]; i++) {
+        mottblGetLine(line, 0x100, mottblUnitPtr(m_MotTbl.p->unit[0], i));
         for (p = line; *p != ' ' && *p != '{'; p++) {
         }
         *p = 0;

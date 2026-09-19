@@ -59,12 +59,13 @@ struct EmRockWork {
     class cSat* pSat;     // 0x1FC (0x5DC)  scenario piece of the room 11E rock (emRockSatSet)
 };
 
-#define EMROCK_WK(em) ((EmRockWork*) &(em)->x3E0)
+#define EMROCK_WK(em) ((EmRockWork*) (((cEmRock*) (em))->free))
 
 // Rolling rock enemy (game/emrock.cpp): the boulders that chase the player, hang on a parent
 // model, fall, get thrown by El Gigante or drop on the player.
 class cEmRock : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMROCK_WK)
     virtual void beginEvent();
     virtual void move();
 

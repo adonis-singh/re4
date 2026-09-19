@@ -14,42 +14,6 @@
 
 class cSubLuis;
 
-// The original cEm is 0x3FC bytes; em.h's cEm folds the player / partner fields in (0xDE0), so the
-// Luis members (from 0x3FC) sit on a copy of the 0x3FC-byte view. The constructor and the enemy
-// virtuals are cEm's own (asm-labelled): this class emits nothing.
-class cEmLuisBase : public cModel {
-public:
-    s16 hp;               // 0x320
-    s16 hpMax;            // 0x322
-    cDmgInfo dmg; // 0x324
-    YARARE_INFO hitInfo;    // 0x33C .. 0x370
-    f32 plDist2;          // 0x370
-    f32 l_sub;             // 0x374  (cEm::l_sub)
-    PlArc* subArc;        // 0x378  motion archive the routines index
-    PlArc* subArc2;       // 0x37C
-    Vec lockOfs;          // 0x380
-    u8 lockParts;         // 0x38C
-    u8 set;              // 0x38D  scenario floor: 1 = ground floor, 2 = upstairs (cAction::chasePlAreaCheck)  cEm::set; Luis: scenario floor
-    u8 pad_38E[2];
-    void (*pScenario)(cEm*);  // 0x390
-    u8 pad_394[4];
-    u8 emsetNo;           // 0x398
-    u8 pad_399[0x3B8 - 0x399];
-    int dmgType;          // 0x3B8  the enemy that damaged him (pl_sub SetSubDamage first argument)
-    u8 pad_3BC[0x3C4 - 0x3BC];
-    u32 status;           // 0x3C4
-    u8 pad_3C8[0x3E0 - 0x3C8];
-
-    cEmLuisBase() asm("__3cEm");
-    virtual ~cEmLuisBase() {}
-    virtual void move();
-    virtual void setItem(u16 a, u16 b, u16 c, u16 d, u8 e) asm("setItem__3cEmUsUsUsUsUc");
-    virtual void setNoItem() asm("setNoItem__3cEm");
-    virtual int checkThrow() asm("checkThrow__3cEm");
-    void setStatus(int bit) asm("setStatus__3cEmi");
-    int checkStatus(int stat) asm("checkStatus__3cEmi");
-};
-
 // Spoken line: the sound and the subtitle it shows.
 class cVoice {
 public:
@@ -161,7 +125,7 @@ public:
 
 class cObjLuisItem;
 
-class cSubLuis : public cEmLuisBase {
+class cSubLuis : public cEm {
 public:
     cSubLuis* subSelf;    // 0x3E0  the model the routines animate (itself)
     float dist;           // 0x3E4

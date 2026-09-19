@@ -165,26 +165,26 @@ void cObjBow::setDispAllow(int on)
 // hand (7), the right hand stays bare until an arrow is taken.
 void cObjBow::setMotion(cPlayer* pl)
 {
-    PSet(pl->pMotTbl[0x00], WEP_ARC_PTR(0x0A));
-    PSet(pl->pMotTbl[0x02], WEP_ARC_PTR(0x0B));
-    PSet(pl->pMotTbl[0x03], WEP_ARC_PTR(0x11));
-    PSet(pl->pMotTbl[0x06], WEP_ARC_PTR(0x0D));
-    PSet(pl->pMotTbl[0x07], WEP_ARC_PTR(0x13));
-    PSet(pl->pMotTbl[0x08], WEP_ARC_PTR(0x0C));
-    PSet(pl->pMotTbl[0x09], WEP_ARC_PTR(0x12));
-    PSet(pl->pMotTbl[0x0B], WEP_ARC_PTR(0x0E));
-    PSet(pl->pMotTbl[0x0C], WEP_ARC_PTR(0x14));
-    PSet(pl->pMotTbl[0x0D], WEP_ARC_PTR(0x0F));
-    PSet(pl->pMotTbl[0x0E], WEP_ARC_PTR(0x15));
-    PSet(pl->pMotTbl[0x0F], WEP_ARC_PTR(0x10));
-    PSet(pl->pMotTbl[0x10], WEP_ARC_PTR(0x16));
-    PSet(pl->pMotTbl[0x39], WEP_ARC_PTR(0x19));
-    PSet(pl->pMotTbl[0x3A], WEP_ARC_PTR(0x1A));
-    PSet(pl->pMotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
-    PSet(pl->pMotTbl[0x41], WEP_ARC_PTR(0x1B));
-    PSet(pl->pMotTbl[0x42], WEP_ARC_PTR(0x1C));
-    PSet(pl->pMotTbl[0x3F], WEP_ARC_PTR(0x17));
-    PSet(pl->pMotTbl[0x40], WEP_ARC_PTR(0x18));
+    PSet(pl->m_MotTbl[0x00], WEP_ARC_PTR(0x0A));
+    PSet(pl->m_MotTbl[0x02], WEP_ARC_PTR(0x0B));
+    PSet(pl->m_MotTbl[0x03], WEP_ARC_PTR(0x11));
+    PSet(pl->m_MotTbl[0x06], WEP_ARC_PTR(0x0D));
+    PSet(pl->m_MotTbl[0x07], WEP_ARC_PTR(0x13));
+    PSet(pl->m_MotTbl[0x08], WEP_ARC_PTR(0x0C));
+    PSet(pl->m_MotTbl[0x09], WEP_ARC_PTR(0x12));
+    PSet(pl->m_MotTbl[0x0B], WEP_ARC_PTR(0x0E));
+    PSet(pl->m_MotTbl[0x0C], WEP_ARC_PTR(0x14));
+    PSet(pl->m_MotTbl[0x0D], WEP_ARC_PTR(0x0F));
+    PSet(pl->m_MotTbl[0x0E], WEP_ARC_PTR(0x15));
+    PSet(pl->m_MotTbl[0x0F], WEP_ARC_PTR(0x10));
+    PSet(pl->m_MotTbl[0x10], WEP_ARC_PTR(0x16));
+    PSet(pl->m_MotTbl[0x39], WEP_ARC_PTR(0x19));
+    PSet(pl->m_MotTbl[0x3A], WEP_ARC_PTR(0x1A));
+    PSet(pl->m_MotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
+    PSet(pl->m_MotTbl[0x41], WEP_ARC_PTR(0x1B));
+    PSet(pl->m_MotTbl[0x42], WEP_ARC_PTR(0x1C));
+    PSet(pl->m_MotTbl[0x3F], WEP_ARC_PTR(0x17));
+    PSet(pl->m_MotTbl[0x40], WEP_ARC_PTR(0x18));
     pl->Body->initWepHand((u32) WEP_ARC_PTR(0x7));
     pl->setRightHand(0);
     pl->setLeftHand(7);
@@ -214,7 +214,7 @@ void cObjBow::setAllow()
 // unless Status_flg[3] bit23 (an event / debug override) lets it through regardless.
 int cObjBow::keyKamae()
 {
-    if (pG->Status_flg[3] & 0x00800000) {
+    if (StaFlagChk(pG, STA_KLAUSER_TRANSFORM)) {
         return (Key.on >> 4) & 1;
     }
     if ((Key.on & 0x10) && ItemMgr.bulletNum()) {

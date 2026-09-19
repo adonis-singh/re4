@@ -17,10 +17,11 @@ struct EmBarWork {
     u8 Etc_no;            // 0x122 (0x502)  etc flag that remembers the broken bar
 };
 
-#define EMBAR_WK(em) ((EmBarWork*) &(em)->x3E0)
+#define EMBAR_WK(em) ((EmBarWork*) (((cEmBar*) (em))->free))
 
 class cEmBar : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMBAR_WK)
     virtual void move();
 
     void setEff(u8 no);

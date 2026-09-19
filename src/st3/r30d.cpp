@@ -74,7 +74,7 @@ static R30dWorkPtr r30d_work;
 #define R30D_SAVE_FLAGS (*(u32*) (RoomData.getRoomSavePtr(pG->room_id) + 4))
 // The door lock words are addressed by offset the same way (cast-then-deref, the rooms' flag word
 // idiom): scalar accesses that keep the following pSUB / pG loads below the stores.
-#define DOOR_UNLOCK(i) (*(u32*) ((u32) &pG->door_unlock[0] + (i) * 4))
+#define DOOR_UNLOCK(i) (*(u32*) ((u32) &pG->Key_flg[0] + (i) * 4))
 
 // The room build's EstSet prototype takes the effect number as a byte (the digit table is read with lbz).
 void EstSetB(int a, int b, Vec* pos, Vec* rot, int c, u8 d, int e, int f, u32 g, void* h) asm("EstSet");
@@ -114,10 +114,10 @@ static void funcAshleySwitch(cEm* p);
 static void funcAshleyShutter(cEm* p);
 static void SceBgmCheck();
 
-// Room init: Scenario_flg[0] 0x400; the two coop switches (etc 8/9) linked to each other and to the
+// Room init: Scenario_flg[1] 0x400; the two coop switches (etc 8/9) linked to each other and to the
 // barred gate 0xC; the power shutter (area 0x14) and the front shutter Ashley crawls under (area 0x18)
 // per the save record's bits 0x10000000 / 0x08000000; the coop gate (areas 0x10/0x11 with area 1 = the
-// door check) until door_unlock[0] 0x400; three treasure item events; two Ganados (0x5E/0x5C) per flags;
+// door check) until Key_flg[0] 0x400; three treasure item events; two Ganados (0x5E/0x5C) per flags;
 // the battle stream.
 void R30dInit()
 {
@@ -133,7 +133,7 @@ void R30dInit()
     R30dWork*& wp = r30d_work.p;   // reference: the following `lwz pG` stays below the store (r227 idiom)
 #line 57 "D:/Bio4/Prog/r30d.cpp"
     wp = (R30dWork*) MEM_CALLOC(sizeof(R30dWork), 1, 0xd);
-    pG->Scenario_flg[0] |= 0x400;
+    ScfFlagOn(pG, SCF_R30D_ENTER);
     getRoomEtcSwitch(8, (cEm**) &sw0, 1);
     getRoomEtcSwitch(9, (cEm**) &sw1, 1);
     getRoomEtcBarred(0xC, (cEm**) &bar, 1);
@@ -183,7 +183,7 @@ void R30dInit()
             b2->setPos(&v);
         }
     }
-    if (!(pG->door_unlock[0] & 0x400)) {
+    if (!(pG->Key_flg[0] & 0x400)) {
         SceAtDataSet_exec(1, 0x12, 0, (TaskFunc) R30dDoorCheck, 0, 1);
         SceAtDataSet_exec(0x10, 0x12, 0, (TaskFunc) R30dCoopSwitch, 0, 1);
         SceAtDataSet_exec(0x11, 0x12, 0, (TaskFunc) R30dCoopSwitch, 0, 1);
@@ -250,7 +250,7 @@ void R30dMain()
         if (sw[n]) {
             if (sw[n]->ckOpen() == 0) {
                 if (r30d_work.p->cnt[n] <= 0 && n == 0) {
-                    if (((int) pG->Room_flg[2] >= 0 && sceAtFlag(0x10000000)) ||
+                    if ((!(pG->Room_flg[2] & 0x80000000) && sceAtFlag(0x10000000)) ||
                         (!sceAtFlag(0x40000000) && sceAtFlag(0x08000000))) {
                         sw[n]->setOpen();
                     }
@@ -402,7 +402,7 @@ static void R30dShutterFrontEvent()
     }
     SceAtSetEnable(0x18, 0);
     R30D_SAVE_FLAGS |= 0x08000000;
-    BitOn(pG->door_unlock[1], 0x40000000);
+    BitOn(pG->Key_flg[1], 0x40000000);
     pSUB->dmg.m_Timer = 0x80;
     SubCharMoveToF(2670.0f, 0.0f, 15200.0f, 0.0f, 0);
     while ((SubCharGetStatus() & 0x00800000) == 0) {
@@ -450,10 +450,10 @@ static void R30dShutterFrontEvent()
     SubCharCtrl(1, 0);
 }
 
-// Area 1, the coop gate: up-cut 0/2 while locked (door_unlock[0] 0x400 clear), else run the door area.
+// Area 1, the coop gate: up-cut 0/2 while locked (Key_flg[0] 0x400 clear), else run the door area.
 static void R30dDoorCheck()
 {
-    if (!(pG->door_unlock[0] & 0x400)) {
+    if (!(pG->Key_flg[0] & 0x400)) {
         SceUpCut(0, -1, 2, 0);
     } else {
         SceAtExecute(1);
@@ -653,8 +653,8 @@ static void R30dCoopSwitch()
                         if (!(pG->Room_flg[0] & 0x10000000)) {
                             SndCall(6, 9, 0, 0, 0, 0);
                         }
-                        BitOn(pG->door_unlock[0], 0x400);
-                        BitOn(pG->door_unlock[1], 0x20000000);
+                        BitOn(pG->Key_flg[0], 0x400);
+                        BitOn(pG->Key_flg[1], 0x20000000);
                         SceUpCut(3, 6, 4, 0);
                         COOP_ACTIVE(c) = zero;
                         break;

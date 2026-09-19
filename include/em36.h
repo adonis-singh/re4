@@ -78,10 +78,11 @@ struct Em36Work {
     u8 atkHit;            // 0x7E3 (0xBC3)  the attack hit the player
 };
 
-#define EM36_WK(em) ((Em36Work*) &(em)->x3E0)
+#define EM36_WK(em) ((Em36Work*) (((cEm36*) (em))->free))
 
 class cEm36 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM36_WK)
     virtual void move();
     virtual void setR307Appear();
     virtual int ckFindPL();

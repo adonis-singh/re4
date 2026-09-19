@@ -23,7 +23,7 @@ extern "C" {
 int MotionMove(cModel* m, int a);
 void EtcSetAddAmb(cModel* m, int kind);                 // EtcModel.cpp
 int PlBombHitCk(Vec* pos, f32 r);                    // em_sub.cpp
-void SetPlDamage(int type, void (*func)(cPlayer*));  // pl_sub.cpp
+void SetPlDamage(cEm* em, void (*func)(cPlayer*));  // pl_sub.cpp
 void EndPlDamage();
 void plemEscape(cPlayer* pl);
 }
@@ -305,7 +305,7 @@ void emBar_R1_Set(cEmBar* em)
 void emBarActEscape(cEmBar* em)
 {
     EMBAR_WK(em)->Act_ck = 1;
-    SetPlDamage((int) em, plemEscape);
+    SetPlDamage(em, plemEscape);
 }
 
 // Player damage routine while passing the bar: plays the bar's `motion` on the player (with the
@@ -313,10 +313,10 @@ void emBarActEscape(cEmBar* em)
 void plemEscape(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cEmBar* bar = (cEmBar*) em->dmgType;
+    cEmBar* bar = (cEmBar*) em->pEmCatch;
     EmBarWork* w = EMBAR_WK(bar);
 
-    em->subArc = ((cEm*) pPL->dmgType)->subArc;
+    em->subArc = pPL->pEmCatch->subArc;
     em->dmg.set(0, 0xF);
     switch (em->r_no_2) {
     case 0:

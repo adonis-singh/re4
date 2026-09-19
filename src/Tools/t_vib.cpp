@@ -139,7 +139,7 @@ void tvibInit()
     TaskSleep(1);
     TutilInitDefault();
     TOOL_FLAG(OFS_STOP_FLG) |= 0x800000;
-    pSys->flags |= 0x08000000;
+    CfgFlagOn(pSys, CFG_VIBRATION);
     wp = (TvibWork*) Debug_alloc(sizeof(TvibWork), 1);
     if (wp == NULL) {
         u32 i;

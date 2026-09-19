@@ -86,7 +86,7 @@ static void sndCallErr(int blk, int no)
 {
     u32* p;
 
-    if (pG->Debug_flg[2] & 0x4) {
+    if (DbgFlagChk(pG, DBG_SE_ERR_ALL)) {
         pLog->err(0, 0, "SndCall : blk %d No.%d Illegal SE No.", blk, no);
         return;
     }
@@ -166,7 +166,7 @@ void SndInit()
     SndMem.sub_end = SndMem.sub_adr + len;
 
     SndDriverInit();
-    pSys->sound_mode = Snd_get_sound_mode();
+    pSys->SndMode = Snd_get_sound_mode();
 }
 
 // Game start: clears the sound work, sets the MRAM / ARAM allocation tops for enemy blocks and BGM,
@@ -820,7 +820,7 @@ u32 SndCall(u16 blk, u16 no, Vec* pos, int id, int vol, cUnit* obj)
     pan = Snd_iss_get_sit_pan(blk, no);
     span = Snd_iss_get_sit_span(blk, no);
 
-    if (sit->srd_type == 1 || (pG->Status_flg[0] & 0x40000)) {
+    if (sit->srd_type == 1 || (StaFlagChk(pG, STA_SUB_SCRN))) {
         vol_calc = 0;
         curve_ok = 0;
         pan_calc = 0;
@@ -873,7 +873,7 @@ u32 SndCall(u16 blk, u16 no, Vec* pos, int id, int vol, cUnit* obj)
         if (curve_ok == 1) {
             int m = 1;
             int f;
-            if (pSys->sound_mode == 2) {
+            if (pSys->SndMode == 2) {
                 m = 0;
             }
             vol_ofs = cs[1];
@@ -906,7 +906,7 @@ u32 SndCall(u16 blk, u16 no, Vec* pos, int id, int vol, cUnit* obj)
         c->ovr_flag |= 0x20;
         if (pSnd->hdr != NULL) {
             SndEfxParam* p = &pSnd->hdr->efx[0];
-            if (pSys->sound_mode != 2) {
+            if (pSys->SndMode != 2) {
                 p = &pSnd->hdr->efx[1];
             }
             switch (blk) {
@@ -1161,7 +1161,7 @@ u32 SndStrReq(int blk, int no, int req, int time, int vol, f32 pos)
     SndPlayWork* w;
     u32 smp = 0;
 
-    if (pG->Debug_flg[2] & 0x100000) {
+    if (DbgFlagChk(pG, DBG_BGM_STOP)) {
         return 0;
     }
     if (str_flag == 0) {
@@ -1255,7 +1255,7 @@ int SndStrReq(u32 id, int req, int time, int vol)
 {
     SndPlayWork* w;
 
-    if (pG->Debug_flg[2] & 0x100000) {
+    if (DbgFlagChk(pG, DBG_BGM_STOP)) {
         return 0;
     }
     w = getStrWork(id);
@@ -1404,10 +1404,10 @@ void SndWatcher()
     FlrAt* at;
     SndFlrAtBgm* b;
 
-    if (pG->Status_flg[0] & 0x10000000) {
+    if (StaFlagChk(pG, STA_MOVIE_ON)) {
         return;
     }
-    if (!(pG->Stop_flg & 0x800)) {
+    if (!SpfFlagChk(pG, SPF_SE_CALC)) {
         sndSurroundCalc();
         SeAtCheck();
     }
@@ -1463,7 +1463,7 @@ void SndWatcher()
         }
     }
 
-    if (!(pG->Status_flg[0] & 0x40000) && !(pG->System_flg & 0x1000) && pSndRaw->room_ok != 0) {
+    if (!StaFlagChk(pG, STA_SUB_SCRN) && !SysFlagChk(pG, SYS_TYPEWRITER) && pSndRaw->room_ok != 0) {
         at = FlrAtCheck(2, &pPL->pos, 0xFF);
         if (at != NULL) {
             b = (SndFlrAtBgm*) &at->x44;
@@ -1516,7 +1516,7 @@ static void nextRoomStreamCheck()
         } else {
             u16 s = (u16) rs->str[0];
             if (w->used != 0) {
-                if ((pG->System_flg & 0x100) || ((pG->System_flg >> 19) & 1)) { // two tests, not merged into one mask
+                if (SysFlagChk(pG, SYS_LOAD_GAME) || ((pG->System_flg >> 19) & 1)) { // two tests, not merged into one mask
                     stop = 1;
                 } else {
                     SND_STR_WORK* sw = Snd_search_str_work_snd_id(w->id);
@@ -1562,7 +1562,7 @@ static void nextRoomBgmCheck()
                     }
                 }
             }
-            if ((pG->System_flg & 0x100) || ((pG->System_flg >> 19) & 1)) { // two tests, not merged into one mask
+            if (SysFlagChk(pG, SYS_LOAD_GAME) || ((pG->System_flg >> 19) & 1)) { // two tests, not merged into one mask
                 flag = 1;
             }
             if (flag == 1) {
@@ -1786,7 +1786,7 @@ void SndRoomBgmStartCheck(int reset)
     }
     for (i = 0; i < 2; i++) {
         u16 b;
-        if ((pG->System_flg & 0x100) || reset != 0) {
+        if (SysFlagChk(pG, SYS_LOAD_GAME) || reset != 0) {
             b = (u16) (pSnd->room_bgm_tbl[pG->snd_tbl_no + 1] >> (i * 16));
         } else {
             b = (u16) (pSnd->room_bgm_tbl[0] >> (i * 16));
@@ -1917,7 +1917,7 @@ void SndRoomStrStartCheck()
 {
     u32 s;
 
-    if (pG->System_flg & 0x100) {
+    if (SysFlagChk(pG, SYS_LOAD_GAME)) {
         s = pSnd->room_str_tbl[pG->snd_tbl_no + 1];
     } else {
         s = pSnd->room_str_tbl[0];
@@ -2092,12 +2092,12 @@ void SndSetOutputMode(int mode, int init)
     int efx = Snd_efx_get_status(0) == 1;
 
     if (init != 0) {
-        pSys->sound_mode = Snd_sound_mode_init_load(mode);
+        pSys->SndMode = Snd_sound_mode_init_load(mode);
     } else {
         if (efx == 1) {
             Snd_efx_req(0, 0);
         }
-        pSys->sound_mode = mode;
+        pSys->SndMode = mode;
         Snd_set_sound_mode(mode);
         if (efx == 1) {
             SndSetReverb();
@@ -2105,7 +2105,7 @@ void SndSetOutputMode(int mode, int init)
         Snd_reset_pan_all();
         Snd_reset_vol_all();
     }
-    if (pSys->sound_mode == 0) {
+    if (pSys->SndMode == 0) {
         ADXT_SetOutputMono(1);
     } else {
         ADXT_SetOutputMono(0);
@@ -2255,7 +2255,7 @@ static void sndSurroundCalc()
             getCam2SndAngle(&pan, 0, &dist, &w->pos);
             vol = sndVolCalc(Snd_iss_get_sit_vol(w->blk, w->no), w->vol_ofs, dist);
             svol = sndVolCalc(Snd_iss_get_sit_svol(w->blk, w->no), w->svol_ofs, dist);
-            if (pSys->sound_mode == 2) {
+            if (pSys->SndMode == 2) {
                 Snd_seq_req(w->id, 1, 10, svol);
             } else {
                 Snd_seq_req(w->id, 1, 10, vol);
@@ -2469,7 +2469,7 @@ void SndBgmTblSetDisable(int type, int save)
 // Sub screen opened: SEs paused, BGM (TV) volume halved, Stop_flg 0x800 (no positional update).
 void SndSubScreenInit()
 {
-    pG->Stop_flg |= 0x800;
+    SpfFlagOn(pG, SPF_SE_CALC);
     SndSetMasterVol(0x10002, 0x3F);
     SndSePauseAll(1);
 }
@@ -2479,7 +2479,7 @@ void SndSubScreenExit()
 {
     SndSetMasterVol(0x10002, 0x7F);
     SndSePauseAll(0);
-    pG->Stop_flg &= ~0x800;
+    SpfFlagOff(pG, SPF_SE_CALC);
 }
 
 // Stops the event streams (block 1), faded over `time` seconds.
@@ -2502,7 +2502,7 @@ void SndEventStrStop(int time)
 // Event start: SEs faded out (400) and paused, BGM ducked, Stop_flg 0x800.
 void SndEventInit()
 {
-    pG->Stop_flg |= 0x800;
+    SpfFlagOn(pG, SPF_SE_CALC);
     Snd_se_fade_out_all(400);
     SndSePauseAll(1);
     SndRoomBgmMuteAll(1, 2);
@@ -2514,7 +2514,7 @@ void SndEventEnd()
 {
     int i;
 
-    pG->Stop_flg &= ~0x800;
+    SpfFlagOff(pG, SPF_SE_CALC);
     SndSePauseAll(0);
     for (i = 0; i < 2; i++) {
         u8 no = i;
@@ -2613,7 +2613,7 @@ void SndSetReverb()
     SND_EFX_WORK* w = &Snd_efx_work[0];
     SndEfxParam* p;
 
-    if (pSys->sound_mode == 2) {
+    if (pSys->SndMode == 2) {
         p = &pSnd->hdr->efx[0];
         w->fx.dpl2.tempDisableFX = 0;
         w->fx.dpl2.preDelay = p->Delay;
@@ -2644,10 +2644,10 @@ static void debug_mute_check()
     u32 off;
     u32 on;
 
-    if (pG->Debug_flg[2] & 0x80000) {
+    if (DbgFlagChk(pG, DBG_SE_STOP)) {
         f = 1;
     }
-    if (pG->Debug_flg[2] & 0x100000) {
+    if (DbgFlagChk(pG, DBG_BGM_STOP)) {
         f |= 0x2;
     }
     {
@@ -2816,7 +2816,7 @@ static void debugDisp()
 
     if (0) {
         eprintf2(7, 0xE, 0x20, 0x10, 6, 0xA, "SOUND MODE");
-        eprintf2(7, 0xE, 0x20, 0x1E, 0, 0xA, "%s", mode_tbl[pSys->sound_mode]);
+        eprintf2(7, 0xE, 0x20, 0x1E, 0, 0xA, "%s", mode_tbl[pSys->SndMode]);
         eprintf2(7, 0xE, 0x20, 0x2C, 6, 0xA, "REVERB TYPE");
         eprintf2(7, 0xE, 0x20, 0x3A, 0, 0xA, "%s", rev_tbl[Snd_efx_work[0].type]);
         eprintf2(7, 0xE, 0x20, 0x48, 6, 0xA, "REVERB SETTINGS");

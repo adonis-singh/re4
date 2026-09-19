@@ -23,12 +23,13 @@ struct Em2aWork {
     Camera cam;           // 0x268 (0x648)  bear trap bite camera (em2aTrap1CamMove)
 };
 
-#define EM2A_WK(em) ((Em2aWork*) &(em)->x3E0)
+#define EM2A_WK(em) ((Em2aWork*) (((cEm2a*) (em))->free))
 
 // The traps: type 0 is the bear trap (bites the player or the partner), types 1 and 2 are the
 // tripwire bombs.
 class cEm2a : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2A_WK)
     virtual void move();
 };
 

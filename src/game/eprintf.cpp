@@ -25,11 +25,7 @@ int vsprintf(char* buf, const char* fmt, va_list ap);
         *(volatile u32*) 0x11111111 = 0;                          \
     }
 
-// System work (game/main.cpp `pSys`); only the flag word is known.
-struct SystemWork {
-    u32 flags;  // 0x00  bit 30 = progressive/60Hz screen scaling
-};
-extern SystemWork* pSys;
+extern SYSTEM_SAVE_WORK* pSys;
 
 // Current text environment
 struct MojiWork {
@@ -311,7 +307,7 @@ void EprintfDrawing()
         s16 h = p[6];
         s16 x0 = x;
         p += 7;
-        if (pSys->flags & 0x40000000) {
+        if (CfgFlagChk(pSys, CFG_WIDE_MODE)) {
             h = (f32) h / 1.33333333f;
             y = (f32) y / 1.33333333f + 56.0f;
         }

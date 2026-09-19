@@ -303,7 +303,7 @@ static void em26_R0_Init(cEm26* em)
     em->lockOfs.x = 0.0f;
     em->lockOfs.y = 0.0f;
     em->lockOfs.z = 0.0f;
-    if ((pGS->room_id32 & 0xFFFF0000) == 0x00040000) {
+    if (pGS->stage_no == 0 && pGS->room_no == 4) {
         if (em->hp < 0) {
             em->hp = 1000;
         }

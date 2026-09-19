@@ -85,7 +85,7 @@ void PlGrenadeMove(cPlayer* pl)
 
 // r_no_2 == 0: the ready (draw) state. r_no_3 == 100 is the re-entry marker (m_Work0 = 1). The
 // stick picks knifeStance (up 0, down 2, else 1; the throw arc). Aim key released before the lock
-// turn (step 3) -> footwork (r_no_1 0, or 0x11 crouch with flags_420 bit6). The shoulder camera
+// turn (step 3) -> footwork (r_no_1 0, or 0x11 crouch with stat bit6). The shoulder camera
 // aims at the locked enemy or the forward scenery hit.
 static void wep19_r2_ready(cPlayer* pl)
 {
@@ -116,7 +116,7 @@ static void wep19_r2_ready(cPlayer* pl)
     }
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -128,8 +128,8 @@ static void wep19_r2_ready(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     }
-    if (pl->pLockEm) {
-        CamCtrlShoulderSetAim(&pl->pLockEm->pos);
+    if (pl->m_pEm) {
+        CamCtrlShoulderSetAim(&pl->m_pEm->pos);
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
         Vec hit;
@@ -287,7 +287,7 @@ static void wep19_r2_set(cPlayer* pl)
         lockCtr--;
     }
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -465,7 +465,7 @@ static void wep19_r3_fire10(cPlayer* pl)
     } else {
         if (pl->frame >= 15.0f) {
             pl->setRightHand(1);
-            if (pl->flags_420 & 0x40) {
+            if (pl->stat & 0x40) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -481,7 +481,7 @@ static void wep19_r3_fire10(cPlayer* pl)
 }
 
 // r_no_2 == 3: the down (holster) state, one frame: footwork sub-routine 2 with the put-away
-// motion 0x10 when a motion may be set, else the idle with x4FD = 0xF; the waist twist is
+// motion 0x10 when a motion may be set, else the idle with m_Hokan = 0xF; the waist twist is
 // unwound into ang.y.
 static void wepDown(cPlayer* pl)
 {
@@ -493,23 +493,23 @@ static void wepDown(cPlayer* pl)
         pl->r_no_3 = 0;
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
     FSet(pl->ang.y, pl->ang.y - pl->Waist->set(0.0f, 0.4f));
 }
 
 // r_no_2 == 5: the next-target state (Key.trg bit5 in the lock control): turn towards the locked
-// enemy pLockEm (PI/10 per frame beyond 200 units) with the waist straightened for 10 frames
+// enemy m_pEm (PI/10 per frame beyond 200 units) with the waist straightened for 10 frames
 // (m_Work0), then back to the set state. Another press cycles lockNext() (a new target restarts,
 // none -> set); aim released -> set state (or crouch 0x11).
 static void wep19_r2_next(cPlayer* pl)
 {
-    cModel* em = pl->pLockEm;
+    cModel* em = pl->m_pEm;
     int n;
 
     switch (pl->r_no_3) {
@@ -548,7 +548,7 @@ static void wep19_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -569,7 +569,7 @@ static void wep19_r2_next(cPlayer* pl)
 void readyWeapon(cPlayer* pl)
 {
     pl->Wep->pObj2->setDisp(1, 1);
-    if (!(pG->Debug_flg[2] & 0x00400000) && ItemMgr.bulletNum() == 1) {
+    if (!DbgFlagChk(pG, DBG_INF_BULLET) && ItemMgr.bulletNum() == 1) {
         pl->Wep->m_pWep->setDisp(0, 0);
     }
 }

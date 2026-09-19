@@ -197,7 +197,7 @@ void Esp45_HideCheck(cEsp* esp0)
     m23 = -(ZFAR * ZNEAR) * inv;
     zv = (m23 + m22 * nz) * Zscale;
     zi = (u32) ((inv2 * zv + Zoffset) * 16777215.0f);
-    if (pG->System_flg & 0x800) {
+    if (SysFlagChk(pG, SYS_SCISSOR_ON)) {
         margin = 56.0f;
     } else {
         margin = 0.0f;

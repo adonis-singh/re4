@@ -396,15 +396,12 @@ public:
         cParts* pList;  // 0xF4 the same pointer typed as the parts (model.cpp)
     };
     u32 serial;      // 0xF8  identity check for parent links (obj04: parent->serial == work.parentSerial)
-    union {
-        u32 stat;    // 0xFC  the four status bytes as one word (obj14 ckBreak: word compares)
-        struct {
-            u8 r_no_0;  // 0xFC  routine / state
-            u8 r_no_1;  // 0xFD  routine index (move table)
-            u8 r_no_2;  // 0xFE  step
-            u8 r_no_3;  // 0xFF  (t_option clears FC..FF after a weapon change)
-        };
-    };
+
+    u8 r_no_0;  // 0xFC  routine / state
+    u8 r_no_1;  // 0xFD  routine index (move table)
+    u8 r_no_2;  // 0xFE  step
+    u8 r_no_3;  // 0xFF  (t_option clears FC..FF after a weapon change)
+
     u8 id;           // 0x100
     u8 type;         // 0x101 per-object sub type
     u8 nParts;       // 0x102
@@ -488,7 +485,7 @@ public:
             u8 pad_29E[6];
             void* p2A4;                // 0x2A4  Motion.pAttachCam: AttachCamera / 0x98-byte EmWork2A4 (player.cpp mem_alloc; cam_ctrl reads its byte 5; objRobo SetObjRobo)
             union {
-                MotionWorkSub* blendMot;   // 0x2A8  Motion.blend: second motion blended in (pl_class: &neckMot / cMot3::work)
+                MotionWorkSub* blendMot;   // 0x2A8  Motion.blend: second motion blended in (pl_class: &m_SubMot / cMot3::work)
                 MotionWork* motBlend;      // 0x2A8  (objGondola setVib: the sub motion work)
             };
             u16* pXFlip;              // 0x2AC  Motion.flip: parts index remap of flipped motions (emdoor: emDoor_xflip_tbl)

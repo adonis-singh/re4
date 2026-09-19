@@ -24,12 +24,6 @@ struct R220Work {
 
 static R220Work* r220_work;
 
-// Two tests of one flag word stay separate `andi.`/`andis.` (fold-const merges `(f & A) == 0 && (f & B) == 0`).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
-
 void r220_moveElevatoDoor(int open, int init);
 static void r220_moveElevator(int dir);
 static void r220_operateElevator();
@@ -38,7 +32,7 @@ void r220_initElevator();
 // Room init: clears System_flg 0x400 (room changes allowed again) and sets the elevator up.
 void R220Init()
 {
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
 #line 36 "D:/Bio4/Prog/r220.cpp"
     r220_work = (R220Work*) MEM_CALLOC(sizeof(R220Work), 1, 0xd);
     r220_initElevator();
@@ -175,8 +169,8 @@ static void r220_operateElevator()
 // closed and ride down (dir 1); otherwise the doors open. Area 3 becomes the elevator control (action colour).
 void r220_initElevator()
 {
-    if ((pG->room_id_prev == 0x221 || pG->room_id_prev == 0x22B) && flagBit(pG->System_flg, 0x100) == 0
-        && flagBit(pG->System_flg, 0x80000) == 0) {
+    if ((pG->room_id_prev == 0x221 || pG->room_id_prev == 0x22B) && FlagChkSignW(pG->System_flg, SYS_LOAD_GAME) == 0
+        && FlagChkSignW(pG->System_flg, SYS_CONTINUE) == 0) {
         r220_moveElevatoDoor(0, 1);
         SceExec(0x12, (TaskFunc) r220_moveElevator, 1, 0, SCE_PRIO_DEF_2, 0);
     } else {

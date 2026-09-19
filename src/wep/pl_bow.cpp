@@ -78,7 +78,7 @@ static void wep28_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -132,7 +132,7 @@ static void wep28_r3_ready00(cPlayer* pl)
     obj->wep.mode = 1;
     obj->wep.step = 0;
     hokan = 4;
-    if (!(pl->flags_420 & 0x40)) {
+    if (!(pl->stat & 0x40)) {
         hokan = 5;
     }
     mot = WEP_ARC_PTR(0x1F);
@@ -194,7 +194,7 @@ static void wep28_r2_set(cPlayer* pl)
     pl->setLaserSight(1, 0);
     PlWepLockCtrl(pl);
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -336,7 +336,7 @@ static void wep28_r3_fire10(cPlayer* pl)
 
 // r_no_2 == 3: the down (holster) state, one frame: hand arrow removed, bow object mode 3, the
 // holster motion 0x20 (blended in from frame r_no_3) into footwork sub-routine 2 when a motion may
-// be set, else the idle with x4FD = 0xF.
+// be set, else the idle with m_Hokan = 0xF.
 static void wepDown(cPlayer* pl)
 {
     cObjWep* obj;
@@ -351,11 +351,11 @@ static void wepDown(cPlayer* pl)
         PlRoutineSet(pl, 0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
 }

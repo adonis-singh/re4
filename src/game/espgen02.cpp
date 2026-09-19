@@ -306,7 +306,7 @@ void espgen02_Update(EspgenWork* w)
                     m3[1][3] += pos.y;
                     m3[2][3] += pos.z;
                 } else if (p->mode & 2) {
-                    if (pG->Debug_flg[3] & 0x100) {
+                    if (DbgFlagChk(pG, DBG_ESP_CHK)) {
                         pLog->warn(0, 0, "ESP : USE CTRL_PATH TYPE=2");
                     }
                     d += 1.0f;

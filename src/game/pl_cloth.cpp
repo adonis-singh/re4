@@ -562,7 +562,7 @@ void testSkirtSetGirl(cModel* pl, PlCloth* pCloth, int evt)
 // Skirt: Move3, stiffer while Status_flg[1] 0x200000 (Ashley carried / on the ladder).
 void testSkirtMoveGirl(cModel* pl, PlCloth* pCloth)
 {
-    if (pG->Status_flg[1] & 0x200000) {
+    if (StaFlagChk(pG, STA_PL_BOAT)) {
         pCloth->Move_rate = 0.9f;
     } else {
         pCloth->Move_rate = 0.5f;

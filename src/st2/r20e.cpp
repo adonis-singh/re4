@@ -579,9 +579,9 @@ static void r20e_moveCrestDoor(int open, int init)
     if (obj) {
         obj->be_flag |= 0x20;
         if (open == 1) {
-            pG->door_flags_51C8 |= 8;
+            ScfFlagOn(pG, SCF_7c);
         } else {
-            pG->door_flags_51C8 &= ~8;
+            ScfFlagOff(pG, SCF_7c);
         }
         if (init == 1) {
             r20e_work->crestDoorY = obj->pos.y;
@@ -741,7 +741,7 @@ void r20e_startArmor()
 // SE, snap the armor statues 0x23/0x24 turned (PI) and the crest door up; camera back, SceEventEnd.
 static void r20d_getSalazarCrest_end()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         cObj* o23;
         cObj* o24;
         cObj* obj;
@@ -817,7 +817,7 @@ static void r20d_getSalazarCrest()
 // 0x16 snapped up 3000; camera back, SceEventEnd.
 static void r20e_checkFinalPieceUse_end()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         cObj* obj;
 
         EffectEspDelete(0, (u8) r20e_work->effKind, 0, 0);

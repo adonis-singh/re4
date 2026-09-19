@@ -146,8 +146,10 @@ void cObj04::move()
             f32 floor = EatMgr.getFloor(&pos, 600.0f, 100000.0f, &attr, 0);
             f32 ofs = w->groundOfs;
 
-            if ((s32) pG->Debug_flg[0] < 0 && !(pG->Debug_flg[0] & 0x10000)) {
-                floor = 0.0f;
+            if (DbgFlagChk(pG, DBG_TEST_MODE)) {
+                if (!DbgFlagChk(pG, DBG_ESPTOOL_ONSCR)) {
+                    floor = 0.0f;
+                }
             }
             if (pos.y - ofs < floor) {
                 FSet(speed.x, speed.x * w->bounceXZ);

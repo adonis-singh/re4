@@ -24,12 +24,13 @@ struct EmItemWork {
     u8 Etc_no;             // 0x262 (0x642)  etc flag index (type 1: taken flag)
 };
 
-#define EMITEM_WK(em) ((EmItemWork*) &(em)->x3E0)
+#define EMITEM_WK(em) ((EmItemWork*) (((cEmItem*) (em))->free))
 
 // Item enemy: a pick-up model that follows a parent's parts (setParent), swings like a medal
 // (setRotType) and breaks or drops when damaged.
 class cEmItem : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMITEM_WK)
     virtual void move();
 
     void setEff(u8 eff);

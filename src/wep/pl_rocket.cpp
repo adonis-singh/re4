@@ -8,7 +8,7 @@
 // grip()/gripBack() move the launcher between the back and the shoulder, launch happens in its
 // moveFire (mode 2) along launcher.from/to = the scope camera trajectory stored by the set state.
 // weapon_type 2 is the infinite launcher (kept after a shot, back to the scope or down); any other
-// type is the single-shot one, thrown away (r_no_2 6, wep.mode 5, flags_420 bit10 = tube gone).
+// type is the single-shot one, thrown away (r_no_2 6, wep.mode 5, stat bit10 = tube gone).
 // The knife routine (0xB) shares the launcher grip: down step 3 / ready step 2 use the player
 // motion table 0x55..0x58 for the launcher <-> knife transitions. Weapon archive slots: 0x18
 // shoulder, 0xF/0x12/0x14 aim idle, 0x11/0x13/0x15 fire, 0x16 throw away, 0x19 unshoulder,
@@ -101,7 +101,7 @@ void PlRocketMove(cPlayer* pl)
 }
 
 // r_no_2 == 0: the ready (shoulder) state. Aim key released before step 3 -> the launcher goes
-// back to the back (grip(0), motion reset) and footwork (r_no_1 0, or 0x11 crouch with flags_420
+// back to the back (grip(0), motion reset) and footwork (r_no_1 0, or 0x11 crouch with stat
 // bit6). The shoulder camera aims at the locked enemy or the forward scenery hit.
 static void wep13_r2_ready(cPlayer* pl)
 {
@@ -116,7 +116,7 @@ static void wep13_r2_ready(cPlayer* pl)
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
         LAUNCHER(pl)->grip(0);
         pl->Wep->m_pWep->resetMotion();
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -128,8 +128,8 @@ static void wep13_r2_ready(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     }
-    if (pl->pLockEm) {
-        CamCtrlShoulderSetAim(&pl->pLockEm->pos);
+    if (pl->m_pEm) {
+        CamCtrlShoulderSetAim(&pl->m_pEm->pos);
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
         Vec hit;
@@ -142,7 +142,7 @@ static void wep13_r2_ready(cPlayer* pl)
 
 // ready step 0: enter the aim: Wep->pitch from the camera pitch, aim yaw m_Fwork0 = 0, camera
 // direction saved in m_CamAdjY, neck / lock-on reset, shoulder motion 0x18, mot3 pitch zeroed,
-// lockCtr = 0. A launcher thrown away earlier (flags_420 bit10) is shown again and gets its
+// lockCtr = 0. A launcher thrown away earlier (stat bit10) is shown again and gets its
 // motions; the single-shot type is gripped back with its own motion 0x20.
 static void wep13_r3_ready00(cPlayer* pl)
 {
@@ -171,9 +171,9 @@ static void wep13_r3_ready00(cPlayer* pl)
     m3r[1] = 0.0f;
     m3r[2] = 0.0f;
     lockCtr = 0;
-    if (pl->flags_420 & 0x400) {
+    if (pl->stat & 0x400) {
         pl->Wep->m_pWep->setDisp(0, 1);
-        pl->flags_420 &= ~0x400;
+        pl->stat &= ~0x400;
         pl->Wep->m_pWep->setMotion(pl);
     }
     if (pG->weapon_type != 2) {
@@ -210,10 +210,10 @@ static void wep13_r3_ready10(cPlayer* pl)
 }
 
 // ready step 2 (entered from the knife routine when the aim key is pressed): the knife-to-launcher
-// transition motion pMotTbl[0x57]/[0x58]; step 3.
+// transition motion m_MotTbl[0x57]/[0x58]; step 3.
 static void wep13_r3_ready20(cPlayer* pl)
 {
-    pl->motionSet(pl->pMotTbl[0x57], 5, 0, 0, (int) pl->pMotTbl[0x58]);
+    pl->motionSet(pl->m_MotTbl[0x57], 5, 0, 0, (int) pl->m_MotTbl[0x58]);
     pl->motionMove();
     pl->r_no_3 = 3;
 }
@@ -263,7 +263,7 @@ static void wep13_r2_set(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     pl->setLaserSight(0, 0);
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -292,7 +292,7 @@ static void wep13_r2_set(cPlayer* pl)
 }
 
 // set step 0: start the aim idle (0xF/0x12/0x14 on the pitch), hide display type 1 of the
-// launcher (the part in front of the eye), scope-on SE 2/9 and the scope camera (flags_420 bit4
+// launcher (the part in front of the eye), scope-on SE 2/9 and the scope camera (stat bit4
 // once); step 1.
 static void wep13_r3_set00(cPlayer* pl)
 {
@@ -303,9 +303,9 @@ static void wep13_r3_set00(cPlayer* pl)
     pl->motionMove();
     pl->Wep->m_pWep->setDisp(1, 0);
     SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
-    if (!(pl->flags_420 & 0x10)) {
+    if (!(pl->stat & 0x10)) {
         CamCtrl.startScope(0, 0);
-        pl->flags_420 |= 0x10;
+        pl->stat |= 0x10;
     }
     pl->r_no_3 = 1;
 }
@@ -424,7 +424,7 @@ static void wep13_r3_fire10(cPlayer* pl)
         if (joyKamae()) {
             CamCtrl.startScope(0, 0);
             CameraMove();
-            pl->flags_420 |= 0x10;
+            pl->stat |= 0x10;
             pl->r_no_0 = 0;
             pl->r_no_1 = 6;
             pl->r_no_2 = 1;
@@ -452,28 +452,28 @@ static void wep13_r2_down(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     FSet(pl->ang.y, pl->ang.y - pl->Waist->set(0.0f, 0.4f));
-    BitOn(pG->Status_flg[0], 0x2000000);
+    StaFlagOn(pG, STA_SSCRN_ENABLE);
     pl->checkCtrl();
 }
 
-// down step 0: end the scope camera (flags_420 bit4 off), show the launcher fully; knife key held
-// -> the launcher-to-knife transition pMotTbl[0x55]/[0x56] and step 3, else the unshoulder
+// down step 0: end the scope camera (stat bit4 off), show the launcher fully; knife key held
+// -> the launcher-to-knife transition m_MotTbl[0x55]/[0x56] and step 3, else the unshoulder
 // motion 0x19 and step 1.
 static void wep13_r3_down00(cPlayer* pl)
 {
     CamCtrl.endScope();
     CameraMove();
-    pl->flags_420 &= ~0x10;
+    pl->stat &= ~0x10;
     pl->Wep->m_pWep->setDisp(1, 1);
     if (joyLKamae()) {
         // `li r9,3` before the stack-argument `stw r0,8(r1)`: the two tie in sched2 (equal
         // priority and dependents), so sched1's issue order decides. A constant in a local
         // makes the r9 argument a copy of a dying pseudo (weight 0) that sched1 issues before
         // the `mr r4,pl` copy (+1) and before the stack store, which waits for its
-        // anti-dependence on the pMotTbl loads; reload ties the pseudo to r9.
+        // anti-dependence on the m_MotTbl loads; reload ties the pseudo to r9.
         u8 hokan = 3;
-        void* mot0 = pl->pMotTbl[0x55];
-        void* mot1 = pl->pMotTbl[0x56];
+        void* mot0 = pl->m_MotTbl[0x55];
+        void* mot1 = pl->m_MotTbl[0x56];
 
         mot3.set(pl, mot0, mot0, mot0, (int) mot1, hokan, 0, 4, 0);
         mot3.move(m3r[0]);
@@ -502,11 +502,11 @@ static void wep13_r3_down10(cPlayer* pl)
 
     if (dmMotCk() == 0 && pl->frame >= 15.0f) {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     } else if (end) {
         SndCall(5, 2, &pl->getPartsPtr(0x14)->world, 0, 0, 0);
         pl->r_no_0 = 0;
@@ -540,11 +540,11 @@ static void wep13_r3_down10(cPlayer* pl)
     }
 }
 
-// down step 2: start the idle walk motion (pMotTbl[0]) and finish it in step 1 (an alternative
+// down step 2: start the idle walk motion (m_MotTbl[0]) and finish it in step 1 (an alternative
 // entry, unused by the transitions here).
 static void wep13_r3_down20(cPlayer* pl)
 {
-    MotionSetCore(pl, &pl->Motion, pl->pMotTbl[0], 0, 3, 5, 0);
+    MotionSetCore(pl, &pl->Motion, pl->m_MotTbl[0], 0, 3, 5, 0);
     pl->r_no_3 = 1;
 }
 
@@ -580,7 +580,7 @@ static void wep13_r3_down30(cPlayer* pl)
 }
 
 // r_no_2 == 6: throw the empty single-shot tube away: motion 0x16 with SE 2/2; at frame 18 the
-// launcher object drops (wep.mode 5, cObjLauncher::moveDrop), flags_420 bit10 marks it gone, the
+// launcher object drops (wep.mode 5, cObjLauncher::moveDrop), stat bit10 marks it gone, the
 // player's motion table gets the hand motions back (setMotion) and the routine leaves to footwork
 // sub-routine 2.
 static void wep13_r2_throw(cPlayer* pl)
@@ -594,7 +594,7 @@ static void wep13_r2_throw(cPlayer* pl)
         if (MotionCheckCrossFrame(&pl->Motion, 18.0f)) {
             cObjWep* obj;
 
-            pl->flags_420 |= 0x400;
+            pl->stat |= 0x400;
             obj = pl->Wep->m_pWep;
             obj->wep.mode = 5;
             obj->wep.step = 0;
@@ -607,12 +607,12 @@ static void wep13_r2_throw(cPlayer* pl)
 }
 
 // r_no_2 == 5: the next-target state (Key.trg bit5 in the lock control): turn towards the locked
-// enemy pLockEm (PI/10 per frame beyond 200 units) with the waist straightened for 10 frames
+// enemy m_pEm (PI/10 per frame beyond 200 units) with the waist straightened for 10 frames
 // (m_Work0), then back to the set state. Another press cycles lockNext() (new target restarts,
 // none -> set); aim released -> set state (or crouch 0x11).
 static void wep13_r2_next(cPlayer* pl)
 {
-    cModel* em = pl->pLockEm;
+    cModel* em = pl->m_pEm;
 
     switch (pl->r_no_3) {
     case 0:
@@ -649,7 +649,7 @@ static void wep13_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;

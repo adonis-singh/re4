@@ -64,7 +64,7 @@ void Filter07Trans()
     if (use_filter7 == 0) {
         return;
     }
-    if (!(pG->Status_flg[1] & 0x04000000)) {
+    if (!StaFlagChk(pG, STA_THERMO_GRAPH)) {
         if (filter07_noize != 1) {
             return;
         }

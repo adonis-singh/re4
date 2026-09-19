@@ -83,6 +83,11 @@ static inline void PSet(YARARE_INFO*& d, YARARE_INFO* v)
     d = v;
 }
 
+static inline void PSet(cEm*& d, cEm* v)
+{
+    d = v;
+}
+
 // Reference store helpers (see PSet above): keep the store after preceding loads in the target order.
 static inline void ISet(int& d, int v)
 {
@@ -1266,7 +1271,7 @@ u32 GetWepTargetList2(Vec* p0, Vec* p1, WepTarget* list, u32 max, Vec* hit, Vec*
         nrm->y = 0.0f;
         nrm->z = 0.0f;
     }
-    if (pG->Debug_flg[0] & 0x1000) {
+    if (DbgFlagChk(pG, DBG_YARARE_DISP)) {
         Draw_line3d(p0, hit, 0xFFFFFFFF, 0);
     }
     PSVECSubtract(p1, p0, &d);
@@ -1488,7 +1493,7 @@ int GetWepTargetListBomb(Vec* pos, f32 r, WepTarget* list, int max, int type, in
         PlBombHitCk(pos, r);
         break;
     }
-    if (pG->Debug_flg[0] & 0x1000) {
+    if (DbgFlagChk(pG, DBG_YARARE_DISP)) {
         Draw_sphere(pos, r, 0xFFFF00FF, 1, 1);
     }
     cnt = 0;
@@ -1656,7 +1661,7 @@ int PlBombHitCk(Vec* pos, f32 r)
     if (d2 > (r + 300.0f) * (r + 300.0f)) {
         return 0;
     }
-    if ((G_WEP_ID & 0xFFFF0000) == 0x0D020000) {
+    if (pG->weapon_no == 0xD && pG->weapon_type == 2) {
         lim = 1500.0f;
     } else {
         lim = 2500.0f;
@@ -1887,7 +1892,7 @@ void EmYarareDisp(cEm* em)
     cModel* parts;
     u32 color;
 
-    if (!(pG->Debug_flg[0] & 0x1000)) {
+    if (!DbgFlagChk(pG, DBG_YARARE_DISP)) {
         return;
     }
     for (p = &em->hitInfo; p != 0; p = p->next) {
@@ -2002,10 +2007,10 @@ int LifeDownSet2(cEm* em, int dmg, int rnd, int flag)
                 HSet(pG->pl_life, 0);
             }
         }
-        if (pG->Debug_flg[2] & 0x800000) {
+        if (DbgFlagChk(pG, DBG_NO_DEATH)) {
             HSet(pG->pl_life, pG->pl_life_max);
         }
-        if ((pG->Debug_flg[3] & 0x400) && (s16) pG->pl_life <= 1) {
+        if (DbgFlagChk(pG, DBG_NO_DEATH2) && (s16) pG->pl_life <= 1) {
             HSet(pG->pl_life, 2);
         }
         ret = (s16) pG->pl_life;
@@ -2034,15 +2039,15 @@ int LifeDownSet2(cEm* em, int dmg, int rnd, int flag)
                 HSet(pG->ashley_life, 0);
             }
         }
-        if (pG->Debug_flg[2] & 0x800000) {
+        if (DbgFlagChk(pG, DBG_NO_DEATH)) {
             HSet(pG->ashley_life, pG->ashley_life_max);
         }
-        if ((pG->Debug_flg[3] & 0x400) && (s16) pG->ashley_life <= 1) {
+        if (DbgFlagChk(pG, DBG_NO_DEATH2) && (s16) pG->ashley_life <= 1) {
             HSet(pG->ashley_life, 2);
         }
         ret = (s16) pG->ashley_life;
     } else {
-        if (pG->Debug_flg[2] & 0x20000) {
+        if (DbgFlagChk(pG, DBG_EM_NO_DEATH)) {
             return em->hp;
         }
         if (em->hp <= 0) {
@@ -2068,7 +2073,7 @@ int LifeDownSet2(cEm* em, int dmg, int rnd, int flag)
             }
             break;
         }
-        if (pG->Debug_flg[2] & 0x2000) {
+        if (DbgFlagChk(pG, DBG_EM_WEAK)) {
             dmg = em->hp;
         }
         if (em->hp < dmg) {
@@ -2099,7 +2104,7 @@ void PlSetDamage(int type, int dmg, int flag)
         if (type == 8) {
             type = 7;
         }
-        if (pG->Debug_flg[2] & 0x800000) {
+        if (DbgFlagChk(pG, DBG_NO_DEATH)) {
             HSet(pG->pl_life, pG->pl_life_max);
             if (type == 6) {
                 type = 2;
@@ -2109,7 +2114,7 @@ void PlSetDamage(int type, int dmg, int flag)
             }
         }
     }
-    if ((s16) pG->pl_life <= 1 && (pG->Debug_flg[3] & 0x400)) {
+    if ((s16) pG->pl_life <= 1 && (DbgFlagChk(pG, DBG_NO_DEATH2))) {
         HSet(pG->pl_life, 2);
         if (type == 6) {
             type = 2;
@@ -2183,7 +2188,7 @@ int EmAtkHitCk2(EmAtkInfo* info, Vec* pPos, Vec* pPosOld)
     int ret;
     f32 dy;
 
-    if (pG->Debug_flg[0] & 0x1000) {
+    if (DbgFlagChk(pG, DBG_YARARE_DISP)) {
         Draw_sphere(pPos, info->range, 0xFFFF00FF, 1, 1);
     }
     if ((s16) pG->pl_life <= 0) {
@@ -2403,7 +2408,7 @@ YARARE_INFO* EmAtkHitSubCk2(EmAtkInfo* info, Vec* pPos, Vec* pPosOld)
     cModel* parts;
     YARARE_INFO* part;
 
-    if (pG->Debug_flg[0] & 0x1000) {
+    if (DbgFlagChk(pG, DBG_YARARE_DISP)) {
         Draw_sphere(pPos, info->range, 0xFFFF00FF, 1, 1);
     }
     if (pSUB == 0) {
@@ -2474,10 +2479,10 @@ void EmCatchPLSet(cEm* em, f32 ang, u32 type, int a, f32 x, f32 y, f32 z)
     }
     em->x3A8 = em->pos;
     pPL->x3A8 = pPL->pos;
-    ISet(em->dmgType, (int) pPLS);
-    ISet(pPL->dmgType, (int) em);
+    PSet(em->pEmCatch, pPLS);
+    PSet(pPL->pEmCatch, em);
     pPL->subArc = em->subArc;
-    SetPlDamage((int) em, (void (*)(cPlayer*)) a);
+    SetPlDamage(em, (void (*)(cPlayer*)) a);
 }
 
 // Never called (dead-stripped by the original linker; only its PI pool entry survives).
@@ -2533,10 +2538,10 @@ static void EmCatchSubSet(cEm* em, cEm* sub, u32 type, int a, f32 ang, f32 x, f3
     }
     em->x3A8 = em->pos;
     sub->x3A8 = sub->pos;
-    em->dmgType = (int) sub;
-    sub->dmgType = (int) em;
+    em->pEmCatch = sub;
+    sub->pEmCatch = em;
     sub->subArc = em->subArc;
-    SetSubDamage((int) em, (void*) a);
+    SetSubDamage(em, (void*) a);
 }
 
 // Per-frame motion of a caught model: follow the catcher's movement, close the catch offset by
@@ -2546,7 +2551,7 @@ static void EmCatchSubSet(cEm* em, cEm* sub, u32 type, int a, f32 ang, f32 x, f3
 // is tied into ry / rate by local-alloc; rate then ranks below rate2 (f29 / f30).
 int EmCatchMotionMove(cEm* em, f32 rate, f32 rate2)
 {
-    cEm* target = (cEm*) em->dmgType;
+    cEm* target = em->pEmCatch;
     Vec d;
     f32 ry;
     f32 tmp;
@@ -2595,7 +2600,7 @@ int EmRackCk(cEm* em, Vec* pos, f32 ang)
     Mtx m;
     u32 i;
     cEm* e;
-    EmRackWork* w;
+    FREE_EMRACK* w;
     f32 hx;
     f32 hz;
     u32 off;
@@ -2623,8 +2628,8 @@ int EmRackCk(cEm* em, Vec* pos, f32 ang)
             continue;
         }
         w = EMRACK_WK(e);
-        hx = w->size.x + 50.0f;
-        hz = w->size.z + 50.0f;
+        hx = w->Size_x + 50.0f;
+        hz = w->Size_z + 50.0f;
         v.x = hx;
         v.y = 0.0f;
         v.z = hz;
@@ -2706,7 +2711,7 @@ void GetDropBullet(int* id, int* num)
 
     // The bit test as a variable: the `andis.` result stays (cse later reuses it as the zero stored
     // for `*num = 0` on the other path); a plain `flags & 0x80000000` folds to a signed compare.
-    f = pG->System_flg & 0x80000000;
+    f = SysFlagChk(pG, SYS_OMAKE_ADA_GAME);
     if (f) {
         r = Rnd() % 100;
         if (r <= 0x27) {
@@ -2742,7 +2747,7 @@ void GetDropBullet(int* id, int* num)
             *num = n;
             return;
         }
-    } else if (pG->System_flg & 0x40000000) {
+    } else if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
         r = Rnd() % 100;
         switch (pG->pl_type) {
         case 0:
@@ -3239,10 +3244,10 @@ int RandomItemCk(int id, int* outId, int* outNum, int flag)
     case 0x22:
     case 0x36:
         if (r <= 0x13) {
-            if ((s32) pG->System_flg < 0) {
+            if (SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
                 return 0;
             }
-            if (pG->System_flg & 0x40000000) {
+            if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
                 return 0;
             }
             switch (id) {

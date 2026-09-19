@@ -160,7 +160,7 @@ cEmBarrel* SetR227Barrel(Vec* pos, Vec* rot)
     EmBarrelWork* w;
     int zero;
 
-    if ((pGS->room_id32 & 0xFFFF0000) != 0x02270000) {
+    if (pGS->stage_no != 2 || pGS->room_no != 0x27) {
         return 0;
     }
     em = (cEmBarrel*) EmMgr.create(0x48);
@@ -513,7 +513,7 @@ void cEmBarrel::move()
             w->Bomb_wait--;
             if (w->Bomb_wait == 0) {
                 PlWepHitCheck2(0, &w->Bomb_pos, &w->Bomb_pos, 0x13, 3, w->Bomb_r);
-                pG->Status_flg[0] |= 0x00800000;
+                StaFlagOn(pG, STA_PL_FIRE);
             }
         }
     }

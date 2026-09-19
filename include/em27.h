@@ -35,11 +35,12 @@ struct Em27Work {
     cCtrl* pCtrlPlAvoid;       // 0x0BC (0x49C)  GetCtrlCtrl11()
 };
 
-#define EM27_WK(em) ((Em27Work*) &(em)->x3E0)
+#define EM27_WK(em) ((Em27Work*) (((cEm27*) (em))->free))
 
 // Enemy 0x27 (the lake fish, em27 module). The stage rooms call setWaterHeight.
 class cEm27 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM27_WK)
     virtual void move();
 
     void setWaterHeight(f32 h);   // setWaterHeight__5cEm27f

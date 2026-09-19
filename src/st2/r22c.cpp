@@ -444,12 +444,6 @@ void ScoreClear();
 void ScoreMove();
 }
 
-// One flag-word test kept as its own `and` (fold-const would merge two tests of one word).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
-
 #define MES_Y (0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1)
 
 // Room init (the shooting range): the result screen data file, the floating scores, the target enemy
@@ -627,7 +621,7 @@ static void r22c_AshleyCtrl()
 // Task: the exit door.
 static void r22c_checkExitDoor()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         SceAtSetEnable(2, 0);
         r22c_exitDoor();
         if (isWepmanAlive() == 0) {
@@ -664,7 +658,7 @@ static void r22c_talkWepMan()
 {
     SceAtSetEnable(1, 0);
     SndCall(8, 9, &r22c_work.p->wepMan->pos, r22c_work.p->wepMan->id, 0, 0);
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         SceMesSet(6, 0, 1, 0x64, MES_Y);
         switch (SceMesGetSelection()) {
         case 1:
@@ -822,7 +816,7 @@ int weaponSelect(int sel)
     wep = pG->weapon_no;
     switch (sel) {
     case 1:
-        if ((int) pG->Room_flg[0] >= 0) {
+        if (!(pG->Room_flg[0] & 0x80000000)) {
             itemSave();
         }
         ItemMgr.clear();
@@ -839,7 +833,7 @@ int weaponSelect(int sel)
         }
         break;
     case 2:
-        if ((int) pG->Room_flg[0] >= 0) {
+        if (!(pG->Room_flg[0] & 0x80000000)) {
             itemSave();
         }
         ItemMgr.clear();
@@ -882,14 +876,14 @@ void itemSave()
 
 // One set of six bottle caps complete: award the bonus item (`no`: message / scenario item flag).
 #define R22C_BONUS(bit, base, mes, flg)                                     \
-    if ((pG->Scenario_flg[0] & (bit)) == 0) {                                    \
+    if ((pG->Scenario_flg[1] & (bit)) == 0) {                                    \
         for (i = 0, n = 0; i < 6; i++) {                                    \
             if (ItemMgr.num((u16) (i + (base))) != 0) {                     \
                 n++;                                                        \
             }                                                               \
         }                                                                   \
         if (n == 6) {                                                       \
-            pG->Scenario_flg[0] |= (bit);                                        \
+            pG->Scenario_flg[1] |= (bit);                                        \
             SceMesSet((mes), 0, 1, 0x64, MES_Y);                            \
             SceAtExecute(flg);                                              \
             while (SceAtItemFlgCk(flg) == 0) {                              \
@@ -899,7 +893,7 @@ void itemSave()
     }
 
 // The set-completion bonuses: for each cap set (base 0xDC/0xE2/0xE8/0xEE) not yet rewarded
-// (Scenario_flg[0] bits 8/4/2/1) with all six caps owned, a message and the flag.
+// (Scenario_flg[1] bits 8/4/2/1) with all six caps owned, a message and the flag.
 void getBonus()
 {
     int n;
@@ -1259,7 +1253,7 @@ static void shootMain()
                 r22c_work.p->step = 3;
                 break;
             }
-            if (pG->Status_flg[2] & 0x01000000) {
+            if (StaFlagChk(pG, STA_PL_MISS_SHOT)) {
                 r22c_work.p->combo = 0;
             }
             if (r22c_work.p->combo == 5) {
@@ -1357,7 +1351,7 @@ static void shootEnd()
     SndStrReq(r22c_work.p->strId, 4, 0xC8, 0);
     LightMgr.onKind(1);
     LightMgr.offKind(2);
-    BitOff(pG->Stop_flg, 0x80000000);
+    SpfFlagOff(pG, SPF_KEY);
     BitOff(pG->Room_flg[0], 0x20000000);
     SceAtSetEnable(0, 1);
     SceExit();
@@ -1687,7 +1681,7 @@ void R22cHitEffect(int no)
         r22c_work.p->effFlags |= 4;
         break;
     case 5:
-        if (flagBit(r22c_work.p->effFlags, 1) && !(r22c_work.p->effFlags & 2)) {
+        if (FlagChkSignW(r22c_work.p->effFlags, 31) && !(r22c_work.p->effFlags & 2)) {
             r22c_work.p->effFlags |= 2;
             SceExec(0x12, (TaskFunc) r22c_FireWorks, 0, 0, SCE_PRIO_DEF_2, 0);
             r22c_work.p->effTimer = 0x4B0;

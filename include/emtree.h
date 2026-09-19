@@ -46,12 +46,13 @@ struct EmTreeWork {
     EmAtkInfo* pAtk;      // 0x078 (0x458)  attack info used against the player (emTreeAtk by default)
 };
 
-#define EMTREE_WK(em) ((EmTreeWork*) &(em)->x3E0)
+#define EMTREE_WK(em) ((EmTreeWork*) (((cEmTree*) (em))->free))
 
 // Tree enemy: a felled tree trunk that hangs on a parent's parts (setParent), falls as a rope of
 // three nodes (setFall) or is thrown / shot at the player.
 class cEmTree : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMTREE_WK)
     virtual void beginEvent();
     virtual void move();
 

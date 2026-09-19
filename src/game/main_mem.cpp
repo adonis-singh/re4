@@ -541,7 +541,7 @@ void* MemAlloc(u32 size, int flag)
 {
     void* p;
 
-    if (!(pG->Debug_flg[3] & 0x200000)) {
+    if (!DbgFlagChk(pG, DBG_APP_USE_DBMEM)) {
 #line 646
         p = MEM_ALLOC(size, 1, MEM_HEAP_CURRENT);
     } else {
@@ -553,7 +553,7 @@ void* MemAlloc(u32 size, int flag)
 // Counterpart of MemAlloc.
 void MemFree(void* p)
 {
-    if (pG->Debug_flg[3] & 0x200000) {
+    if (DbgFlagChk(pG, DBG_APP_USE_DBMEM)) {
         Debug_free(p);
     } else {
         Mem_free(p);
@@ -577,7 +577,7 @@ struct MemTile {
 };
 
 struct SysFlagsView {
-    u32 flags;  // 0x00  SystemWork::flags
+    u32 Config_flg;  // 0x00
 };
 extern SysFlagsView* pSysView asm("pSys");
 // Reference read: the load stays below the preceding tile stores (see mercenaries.cpp SysRef).
@@ -709,7 +709,7 @@ void MemCheckUsedHeap()
                 mt->b = 0x20;
             }
             mt->cd = 0xFF;
-            if (SysRef(pSysView)->flags & 0x40000000) {
+            if (CfgFlagChk(SysRef(pSysView), CFG_WIDE_MODE)) {
                 mt->y0 = (s16) ((f32) mt->y0 / 1.3333334f + 56.0f);
                 mt->h = (s16) ((f32) mt->h / 1.3333334f);
             }
@@ -739,7 +739,7 @@ void MemCheckUsedHeap()
             mt->b = 0x20;
         }
         mt->cd = 0xFF;
-        if (SysRef(pSysView)->flags & 0x40000000) {
+        if (CfgFlagChk(SysRef(pSysView), CFG_WIDE_MODE)) {
             mt->y0 = (s16) ((f32) mt->y0 / 1.3333334f + 56.0f);
             mt->h = (s16) ((f32) mt->h / 1.3333334f);
         }
@@ -849,7 +849,7 @@ void MemCheckUsedHeap()
         mt->h = 400;
         mt->b = mt->g = mt->r = 0x20;
         mt->cd = 0xFF;
-        if (SysRef(pSysView)->flags & 0x40000000) {
+        if (CfgFlagChk(SysRef(pSysView), CFG_WIDE_MODE)) {
             mt->y0 = 78;
             mt->h = 300;
         }

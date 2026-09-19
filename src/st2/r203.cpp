@@ -64,10 +64,10 @@ static void r203_ShelfOpened();
 static void r203_StreamCheck();
 extern "C" void Evt_R203S00_Func(Event* e);
 
-// Room init: once the key item was taken (Item_find_flg 0x00010000) two Ganados (0x27/0x29) plus three
+// Room init: once the key item was taken (Scenario_flg[0] 0x00010000) two Ganados (0x27/0x29) plus three
 // wanderers (0x34..0x36, list 2); otherwise the nine Ganados of the table (list 2), area 0x8A = the key
 // pickup wave and the key-carrier's escape. Area 1 = the locked door with the key-use watcher until
-// door_unlock[0] 0x00020000. Until Room_flg bit 3: Ashley initialised as follower, r203s00 pre-loaded,
+// Key_flg[0] 0x00020000. Until Room_flg bit 3: Ashley initialised as follower, r203s00 pre-loaded,
 // area 3 = the reunion event. Battle stream, one chest and one shelf item event.
 void R203Init()
 {
@@ -78,7 +78,7 @@ void R203Init()
 
 #line 69 "D:/Bio4/Prog/r203.cpp"
     r203_work.p = (R203Work*) MEM_CALLOC(sizeof(R203Work), 1, 0xd);
-    if (pG->Item_find_flg & 0x00010000) {
+    if (ScfFlagChk(pG, SCF_R201_EVENT00)) {
         setEm(0x27, -1, 0, 1, 0);
         setEm(0x29, -1, 0, 1, 0);
         if (r203_work.p->em[0].setEm(0x34, 2, 0, 1, 0) == 1) {
@@ -99,13 +99,13 @@ void R203Init()
         SceAtDataSet_exec(0x8A, SCE_LEVEL10, 0, (TaskFunc) r203_GetKeyItem, 0, 1);
         SceExec(0x12, (TaskFunc) r203_GanadoEscape, 0, 0, SCE_PRIO_DEF_2, 0);
     }
-    if ((pG->door_unlock[0] & 0x00020000) == 0) {
+    if ((pG->Key_flg[0] & 0x00020000) == 0) {
         SceAtDataSet_exec(1, SCE_LEVEL10, 0, (TaskFunc) r203_LockDoor, 0, 1);
         SceExec(0x12, (TaskFunc) r209_CheckUseKey, 0, 0, SCE_PRIO_DEF_2, 0);
     }
     if (RsfCheck(G_ROOM_ID, 3) == 0) {
-        if ((pG->Status_flg[3] & 0x04000000) == 0) {
-            BitOn(pG->Status_flg[3], 0x04000000);
+        if (StaFlagChk(pG, STA_SUB_ASHLEY) == 0) {
+            StaFlagOn(pG, STA_SUB_ASHLEY);
             SubCharInit(1, &pPL->pos, pPL->ang.y);
             SubCharCtrl(SCC_CHASE, 0);
         }
@@ -135,7 +135,7 @@ static void r203_LockDoor()
     }
 }
 
-// Task: waits for key item 0xA7 to be used, then unlocks the door (door_unlock[0] 0x00020000, area 1
+// Task: waits for key item 0xA7 to be used, then unlocks the door (Key_flg[0] 0x00020000, area 1
 // re-armed) with message up-cut 1/4. (Named after r209's copy.)
 static void r209_CheckUseKey()
 {
@@ -143,7 +143,7 @@ static void r209_CheckUseKey()
         SceSleep(1);
     }
     SceAtDataReset(1);
-    pG->door_unlock[0] |= 0x00020000;
+    pG->Key_flg[0] |= 0x00020000;
     SceUpCut(1, -1, 4, 0);
 }
 
@@ -165,7 +165,7 @@ static void r203_GanadoEscape()
     }
     r203_work.p->em[6].setGoto(&pos[1], 1);
     SceSleep(150);
-    if ((int) pG->Room_flg[2] >= 0) {
+    if (!(pG->Room_flg[2] & 0x80000000)) {
         r203_work.p->em[0].setGoto(&pPL->pos, 0xD);
         r203_work.p->em[1].setGoto(&pPL->pos, 0xD);
         r203_work.p->em[2].setGoto(&pPL->pos, 0xD);

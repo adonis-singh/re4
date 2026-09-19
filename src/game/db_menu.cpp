@@ -152,14 +152,14 @@ void MenuTask()
 void DbMenuExec()
 {
     struct test* t = &test;
-    BitOn(pG->Debug_flg[0], 0x80000000);
+    DbgFlagOn(pG, DBG_TEST_MODE);
     t->stop_bak = pG->Stop_flg;
     BitOn(pG->Stop_flg, ~0x4000);
     pG->debug_disp = pG->debug_mode;
     pG->debug_mode = 1;
-    if (pG->System_flg & 0x10000) {
-        if (!(pG->System_flg & 0x20000)) {
-            pG->System_flg |= 0x20000;
+    if (SysFlagChk(pG, SYS_SN_PC_READ_TOOL)) {
+        if (!SysFlagChk(pG, SYS_SN_PC_READ)) {
+            SysFlagOn(pG, SYS_SN_PC_READ);
             t->flag = 1;
         } else {
             t->flag = 0;
@@ -175,29 +175,29 @@ void DbMenuExec()
 void DbMenuExitAfterCheck()
 {
     struct test* t = &test;
-    if (!(pG->Debug_flg[2] & 0x200)) {
-        if ((s32) pG->Debug_flg[0] < 0) {
-            pG->Debug_flg[2] |= 0x200;
+    if (!DbgFlagChk(pG, DBG_TEST_MODE_CK)) {
+        if (DbgFlagChk(pG, DBG_TEST_MODE)) {
+            DbgFlagOn(pG, DBG_TEST_MODE_CK);
         }
         if (t->exit_wait > 0) {
             t->exit_wait--;
         }
         return;
     }
-    if ((s32) pG->Debug_flg[0] < 0) {
+    if (DbgFlagChk(pG, DBG_TEST_MODE)) {
         return;
     }
     if (!(pG->debug_disp & 0x80)) {
         pG->debug_mode = pG->debug_disp;
         pG->debug_disp = -1;
     }
-    if ((pG->System_flg & 0x10000) && t->flag == 1) {
-        pG->System_flg &= ~0x20000;
+    if (SysFlagChk(pG, SYS_SN_PC_READ_TOOL) && t->flag == 1) {
+        SysFlagOff(pG, SYS_SN_PC_READ);
     }
     DbmenuModuleInit();
     ResetDebugAlloc();
     t->exit_wait = 30;
-    pG->Debug_flg[2] &= ~0x200;
+    DbgFlagOff(pG, DBG_TEST_MODE_CK);
     if (t->exec_tool == 1) {
         DbMenuExec();
     }
@@ -226,7 +226,7 @@ void DbMenuRestoreStopFlag()
     struct test* t = &test;
     if (t->stop_saved == 1) {
         BitSet(pG->Stop_flg, t->stop_bak);
-        BitOff(pG->Stop_flg, 0x80000000);
+        SpfFlagOff(pG, SPF_KEY);
         t->stop_saved = 0;
     }
 }
@@ -267,7 +267,7 @@ void init(struct test* t)
 static void exit(struct test* t)
 {
     BitSet(pG->Stop_flg, t->stop_bak);
-    BitOff(pG->Debug_flg[0], 0x80000000);
+    DbgFlagOff(pG, DBG_TEST_MODE);
     TaskExit();
 }
 
@@ -327,7 +327,7 @@ void move(struct test* t)
     if ((joy->trg & 0x100) || t->exec_tool == 1) {
         t->stop_saved = 1;
         t->exec_tool = 0;
-        BitOff(pG->Stop_flg, 0x80000000);
+        SpfFlagOff(pG, SPF_KEY);
         if (menu[t->cursor].func == NULL && menu[t->cursor].rel_name == NULL) {
             exit(t);
         }

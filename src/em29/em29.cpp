@@ -57,9 +57,6 @@ static void plem29_BatRush(cPlayer* pl);
 #define ARC(no) PL_ARC_PTR(em->subArc, no)
 #define PL_ARC(no) PL_ARC_PTR(pl->subArc, no)
 
-// The enemy a player damage callback belongs to (pl_sub SetPlDamage's first argument).
-#define PL_EM(pl) ((cEm*) (pl)->dmgType)
-
 // Struct-member view of the player pointer: a load through it is not hoisted above the preceding
 // stores through the work pointer (cam_ctrl.cpp PlayerPtr).
 struct PlayerPtr {
@@ -1325,7 +1322,7 @@ int em29AtkCk(cEm29* em, int no)
             EmPlBloodSet(em, &p->world, 1, 0xFF, 0xFF);
             w->atkHit = 1;
             pPL->subArc = em->subArc;
-            SetPlDamage((int) em, plem29_BatRush);
+            SetPlDamage(em, plem29_BatRush);
         }
         if (hit & 2) {
             EmSubBloodSet(em, &p->world, 1, 0xFF, 0xFF);
@@ -1341,7 +1338,7 @@ int em29AtkCk(cEm29* em, int no)
 static void plem29_BatRush(cPlayer* pl)
 {
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pPL)->subArc;
+    pl->subArc = pPL->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x18), 0, 3, 5, 0);

@@ -22,10 +22,11 @@ struct Em3bWork {
     cEm* pDriver;         // 0x26C (0x64C)  the driver enemy (set by the room)
 };
 
-#define EM3B_WK(em) ((Em3bWork*) &(em)->x3E0)
+#define EM3B_WK(em) ((Em3bWork*) (((cEm3b*) (em))->free))
 
 class cEm3b : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM3B_WK)
     virtual void move();
     virtual int ckFire();
 };

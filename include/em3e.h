@@ -49,6 +49,7 @@ struct EmMarkView {
 
 class cEmMark : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMMARK_WK)
     cEmMark();
     virtual void move();
     void init(EmMarkData* p_data);

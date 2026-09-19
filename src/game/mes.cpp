@@ -578,7 +578,7 @@ void MessageControl::Trans()
     int act;
     int i;
 
-    if (pG->Disp_flg & 0x800) {
+    if (DpfFlagChk(pG, DPF_MESSAGE)) {
         return;
     }
     m = &mes[15];
@@ -656,7 +656,7 @@ void MessageControl::MesSet(int no, int x, int y, u32 attr, int slot, int col, i
         BitSet(m->stop_bak, pG->Stop_flg);
         if (!(attr & 0x10)) {
             BitSet(pG->Stop_flg, 0xFFFFFFFF);
-            BitOff(pG->Stop_flg, 0x40);
+            SpfFlagOff(pG, SPF_ID_SYSTEM);
             KeyStop(0xEFCF0000);
         }
     }
@@ -1228,7 +1228,7 @@ int Message::code01()
                 pG->Stop_flg = stop_bak;
             }
         }
-        if (IdSys.setCk(0x21) && !(pG->Status_flg[0] & 0x00040000)) {
+        if (IdSys.setCk(0x21) && !StaFlagChk(pG, STA_SUB_SCRN)) {
             Cckpt.lifeMeterDisp(1);
         }
         break;

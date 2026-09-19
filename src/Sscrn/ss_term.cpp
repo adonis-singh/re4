@@ -624,7 +624,7 @@ int SsTermMain::OpeSeqMove(TermSeq* s)
 // until OpeMesClear hides it (Disp_flg bit 11).
 void SsTermMain::OpeMesSet(int no, int wait)
 {
-    pG->Disp_flg &= ~0x800;
+    DpfFlagOff(pG, DPF_MESSAGE);
     if (no == -1) {
         cMes.WaitEnd(0);
     } else {
@@ -650,7 +650,7 @@ void SsTermMain::OpeMesClear()
         ope.mesWait--;
         if (ope.mesWait <= 0) {
             ope.mesWait = 0;
-            pG->Disp_flg |= 0x800;
+            DpfFlagOn(pG, DPF_MESSAGE);
         }
     }
     sub.count++;

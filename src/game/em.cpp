@@ -58,7 +58,7 @@ static u32 battleCheckFlag;
 
 // The character manager: a cManager<cEm> pool of 0xDE0 byte works (type 2), one serial (Guid)
 // counter for the works it hands out.
-cEmMgr::cEmMgr() : cManager<cEm>(sizeof(cEm), 2)
+cEmMgr::cEmMgr() : cManager<cEm>(EM_WORK_SIZE, 2)
 {
     setName("cEmMgr");
     Guid = 0;
@@ -230,7 +230,7 @@ void cEmMgr::move()
 
     dieCheck();
     RouteCk();
-    if (!(pG->Stop_flg & 0x20000000)) {
+    if (!SpfFlagChk(pG, SPF_EM)) {
         p = pAlive;
         func = emMove;
         while (p) {
@@ -239,7 +239,7 @@ void cEmMgr::move()
             p = (cEm*) p->pNext;
             func(cur);
         }
-    } else if (pSUB && !(pG->Stop_flg & 0x1000)) {
+    } else if (pSUB && !SpfFlagChk(pG, SPF_SUBCHAR)) {
         emMove(pSUB);
     }
 }
@@ -397,13 +397,13 @@ void emMove(cEm* em)
         EmMgr.destroy(em);
         return;
     }
-    if ((pG->Status_flg[1] & 0x10000000) && !(em->be_flag & 0x800)) {
+    if (StaFlagChk(pG, STA_SUSPEND) && !(em->be_flag & 0x800)) {
         return;
     }
     if (em == pPL) {
         return;
     }
-    if (em == pSUB && (pG->Stop_flg & 0x1000)) {
+    if (em == pSUB && (SpfFlagChk(pG, SPF_SUBCHAR))) {
         return;
     }
     dz = pPL->pos.z - em->pos.z;
@@ -426,7 +426,7 @@ void emMove(cEm* em)
     }
     em->updateOldPos();
     EmYarareDisp(em);
-    if (pG->Debug_flg[2] & 0x10000000) {
+    if (DbgFlagChk(pG, DBG_OBA_VIEW)) {
         DrawOba(em);
     }
     if (em->be_flag & 0x80000000) {

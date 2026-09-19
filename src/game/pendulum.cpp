@@ -354,7 +354,7 @@ void PenClothMove(cModel* m, PenCloth* c)
                     PSVECAdd(&w->pos, pv, &w->pos);
                 }
             }
-            if ((pG->Debug_flg[0] & 0x200) && !(c->Flag & 0x40) && c->pWindRate) {
+            if (DbgFlagChk(pG, DBG_WIND_ON) && !(c->Flag & 0x40) && c->pWindRate) {
                 ang = 0.0f;
                 if (c->pWindSin) {
                     ang = sinf(LIMIT_ANGLE(c->WindSin + c->pWindSin[i])) + 1.0f;
@@ -620,7 +620,7 @@ void PenClothMove2(cModel* m, PenCloth* c)
                 w->speed.y -= c->Gravity;
             }
             PSVECAdd(&w->pos, &w->speed, &w->pos);
-            if ((pG->Debug_flg[0] & 0x200) && !(c->Flag & 0x40) && c->pWindRate) {
+            if (DbgFlagChk(pG, DBG_WIND_ON) && !(c->Flag & 0x40) && c->pWindRate) {
                 ang = 0.0f;
                 if (c->pWindSin) {
                     ang = sinf(LIMIT_ANGLE(c->WindSin + c->pWindSin[i])) + 1.0f;
@@ -907,7 +907,7 @@ void PenClothMove3(cModel* m, PenCloth* c)
                 w->speed.y -= c->Gravity;
             }
             PSVECAdd(&w->pos, &w->speed, &w->pos);
-            if ((pG->Debug_flg[0] & 0x200) && !(c->Flag & 0x40) && c->pWindRate) {
+            if (DbgFlagChk(pG, DBG_WIND_ON) && !(c->Flag & 0x40) && c->pWindRate) {
                 ang = 0.0f;
                 if (c->pWindSin) {
                     ang = sinf(LIMIT_ANGLE(c->WindSin + c->pWindSin[i])) + 1.0f;
@@ -1199,7 +1199,7 @@ PenAtWork* penClothAtMake(cModel* m, CLOTH_AT_SET* at, int n)
             a->r = at->R;
             // struct view of pG: the fixed-scalar load would otherwise be hoisted between the
             // copy's word stores (and the copy issued 4, 0, 8 through the extra r9 anti-dependence).
-            if (pGS->Debug_flg[0] & 0x400) {
+            if (DbgFlagChk(pGS, DBG_CLOTH_AT_DISP)) {
                 Draw_sphere(&c, at->R, 0x80808080, 1, 1);
             }
             break;
@@ -1238,7 +1238,7 @@ PenAtWork* penClothAtMake(cModel* m, CLOTH_AT_SET* at, int n)
             a->mat[2][2] = up.z;
             TransMatrix(a->mat, &v0);
             PSMTXInverse(a->mat, a->inv);
-            if (pG->Debug_flg[0] & 0x400) {
+            if (DbgFlagChk(pG, DBG_CLOTH_AT_DISP)) {
                 zero.x = 0.0f;
                 zero.y = 0.0f;
                 zero.z = 0.0f;

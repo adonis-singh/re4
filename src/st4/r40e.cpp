@@ -211,7 +211,7 @@ static void r40e_moveElevator(u32 dir)
     case 1:
         do {
             if (r40e_work->elv.move() == 0) {
-                if ((int) pG->Room_flg[0] < 0) {
+                if (pG->Room_flg[0] & 0x80000000) {
                     break;
                 }
             }
@@ -224,7 +224,7 @@ static void r40e_moveElevator(u32 dir)
         r40e_work->elv.cnt = 90;
         do {
             if (r40e_work->elv.move() == 0) {
-                if ((int) pG->Room_flg[0] < 0) {
+                if (pG->Room_flg[0] & 0x80000000) {
                     break;
                 }
             }
@@ -272,7 +272,7 @@ void r40e_initElevator()
 static void r40e_execEmAppear_end()
 {
     SceEventEnd(0);
-    pG->Status_flg[2] &= ~0x02000000;
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     CamCtrl.Comeback(0);
     cEmWrap em;
     em.setPtr(0xDD, -1, 1);
@@ -292,7 +292,7 @@ static void r40e_execEmAppear()
     }
     SceSetEventCancel(1, (TaskFunc) r40e_execEmAppear_end, 0, -1, 1);
     SceEventStart(0);
-    pG->Status_flg[2] |= 0x02000000;
+    StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     cEmWrap em;
     Vec p;
     Vec* pp = &p;
@@ -379,23 +379,23 @@ static void gameResult()
 
     disp_bak = pG->Disp_flg;
     BitSet(pG->Disp_flg, 0xFFFFFFFF);
-    BitOff(pG->Disp_flg, 0x2000);
-    BitOff(pG->Disp_flg, 0x800);
-    BitOff(pG->Disp_flg, 0x10000);
+    DpfFlagOff(pG, DPF_ID_SYSTEM);
+    DpfFlagOff(pG, DPF_MESSAGE);
+    DpfFlagOff(pG, DPF_COCKPIT);
     stop_bak = pG->Stop_flg;
     BitSet(pG->Stop_flg, 0xFFFFFFFF);
-    BitOff(pG->Stop_flg, 0x00800000);
-    BitOff(pG->Stop_flg, 0x80000000);
-    BitOff(pG->Stop_flg, 0x40);
+    SpfFlagOff(pG, SPF_SCE);
+    SpfFlagOff(pG, SPF_KEY);
+    SpfFlagOff(pG, SPF_ID_SYSTEM);
     SceSleep(2);
     systemVISetBlack(1);
     FadeKill(FADE_NO_ROOM);
     ScreenReSize(0x200, 0x1C0);
-    if (!(pSys->unlock_flg & 0x00200000)) {
-        pSys->unlock_flg |= 0x00200000;
+    if (!ExtFlagChk(pSys, EXT_ASHLEY_ARMOR)) {
+        ExtFlagOn(pSys, EXT_ASHLEY_ARMOR);
         Sofdec.Initialize("movie/adaend_m.sfd", 0);
     } else {
-        pSys->unlock_flg &= ~0x00200000;
+        ExtFlagOff(pSys, EXT_ASHLEY_ARMOR);
         Sofdec.Initialize("movie/adaend_c.sfd", 0);
     }
     SceSleep(1);
@@ -411,8 +411,8 @@ static void gameResult()
     } while (0);
     FadeSetW(2, 0, 0, 0);
     SceSleep(1);
-    if (!(pSys->unlock_flg & 0x20000000)) {
-        pSys->unlock_flg |= 0x20000000;
+    if (!ExtFlagChk(pSys, EXT_GET_SW500)) {
+        ExtFlagOn(pSys, EXT_GET_SW500);
         SceEventStart(0);
         setLangExt3(data_name + 3);
         Dvd.FileExistCheck(data_name, &size);
@@ -437,7 +437,7 @@ static void gameResult()
         delete res;
         swap.SwapIn();
     }
-    pG->System_flg |= 0x04000000;
+    SysFlagOn(pG, SYS_SOFT_RESET);
 }
 
 // Event r40es00 callback (Assignment Ada's ending): far clip pushed out, Status_flg[1] 0x800; cut 0
@@ -450,7 +450,7 @@ extern "C" void Evt_R40ES00_Func(Event* e)
     switch (e->funcMode) {
     case 0:
         ZFAR = 100000000.0f;
-        BitOn(pG->Status_flg[1], 0x800);
+        StaFlagOn(pG, STA_CAMERA_SET_ROOM);
         break;
     case 1:
         if (e->NowCut == 0) {
@@ -509,7 +509,7 @@ extern "C" void Evt_R40ES00_Func(Event* e)
         }
         break;
     case 2:
-        pG->Status_flg[1] &= ~0x800;
+        StaFlagOff(pG, STA_CAMERA_SET_ROOM);
         break;
     }
 }

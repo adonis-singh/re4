@@ -499,14 +499,14 @@ void cSofdec::finishMovie()
     SetU32(pG->Disp_flg, m_disp_flg_bak);
     SetU32(pG->Stop_flg, save170);
     SetSystemVcnt(m_vcnt_save);
-    BitOff(pG->Status_flg[0], 0x10000000);
-    if (!(pG->Status_flg[2] & 0x8000)) {
+    StaFlagOff(pG, STA_MOVIE_ON);
+    if (!StaFlagChk(pG, STA_TITLE)) {
         MemDestroyHeap(11);
         Aram.DmaTransReq(1, 0x740000, heapStart, 0x500000, 1);
         MemSignalHeap(m_save_cur_heap);
         MemSetCurrentHeap(m_save_cur_heap);
     }
-    BitOff(pG->System_flg, 0x00100000);
+    SysFlagOff(pG, SYS_TRANS_STOP);
     if (!chkFlag(0x100)) {
         systemVISetBlack(0);
     }
@@ -529,7 +529,7 @@ int cSofdec::initWork(const char* fname)
     SetU32(pG->Stop_flg, 0xFFFFFFFF);
     SetU32(m_disp_flg_bak, pG->Disp_flg);
     SetU32(pG->Disp_flg, 0xFFFFFFFF);
-    if (!(pG->Status_flg[2] & 0x8000)) {
+    if (!StaFlagChk(pG, STA_TITLE)) {
         m_save_cur_heap = MemGetCurrentHeap();
         heapStart = MemGetHeapStartAddr(m_save_cur_heap);
         Aram.DmaTransReq(0, heapStart, 0x740000, 0x500000, 1);
@@ -537,7 +537,7 @@ int cSofdec::initWork(const char* fname)
         MemCreateHeap(11, heapStart, heapStart + 0x500000);
         MemSetCurrentHeap(11);
     }
-    pG->System_flg |= 0x00100000;
+    SysFlagOn(pG, SYS_TRANS_STOP);
     return 1;
 }
 
@@ -557,7 +557,7 @@ int cSofdec::Initialize(cString& fname, u32 flags)
 // in scheduler slot 1 (ThreadMove) with slot 0 suspended; all sounds stopped. Returns 1 if started.
 int cSofdec::initSub(const char* fname, u32 flags)
 {
-    if (pG->Status_flg[0] & 0x10000000) {
+    if (StaFlagChk(pG, STA_MOVIE_ON)) {
         return 0;
     }
     sprintf(path, "%s", fname);
@@ -570,7 +570,7 @@ int cSofdec::initSub(const char* fname, u32 flags)
         }
         initApp(path);
         startApp();
-        pG->Status_flg[0] |= 0x10000000;
+        StaFlagOn(pG, STA_MOVIE_ON);
         initSync();
         m_be_flag = flags | 1;
     }
@@ -600,7 +600,7 @@ void cSofdec::ThreadMove(cSofdec* s)
     if (r == 1) {
         s->initApp(s->path);
         s->startApp();
-        pG->Status_flg[0] |= 0x10000000;
+        StaFlagOn(pG, STA_MOVIE_ON);
         s->initSync();
         s->m_be_flag = 1;
         while (s->Move() == 0) {

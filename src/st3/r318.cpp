@@ -130,12 +130,6 @@ static inline void SetPosXYZ(cModel* m, f32 x, f32 y, f32 z)
     m->setPos(&v);
 }
 
-// Two tests of one flag word stay separate (fold-const merges `(f & A) && (f & B) == 0`) (r221).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
-
 // Drop effect (owner a, kind b) in all three effect systems.
 static inline void EffectDelete(int a, int b)
 {
@@ -741,7 +735,7 @@ static void R318EventLaserMgr()
             R318EventLaserEnd(1);
             SceExec(0x12, (TaskFunc) R318EventLaserMove, 2, 0, 2, 0);
         }
-        if ((pG->Room_flg[2] & 0x02000000) && flagBit(pG->Room_flg[0], 0x400) && flagBit(pG->Room_flg[0], 0x04000000) == 0) {
+        if ((pG->Room_flg[2] & 0x02000000) && FlagChkSign(pG->Room_flg, 21) && FlagChkSign(pG->Room_flg, 5) == 0) {
             pG->Room_flg[0] |= 0x04000000;
             SceExec(0x12, (TaskFunc) R318EventLaserMove, 3, 0, 2, 0);
         }

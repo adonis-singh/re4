@@ -10,7 +10,7 @@
 //    were cross-jumped only in jump2, after global alloc, so they counted 2 extra insns in both
 //    ranges. Still off:
 //  - DiscChange (matching): the `game[4]` template copy loads words 0,8,c,4 because the first
-//    `pSys->region` read goes through a reference (`SysRef`): a MEM without the scalar flag is not
+//    `pSys->eff_country` read goes through a reference (`SysRef`): a MEM without the scalar flag is not
 //    exempt from the preceding stack stores, so all four stores rank equally in sched2 and the
 //    copy keeps its template order (with a plain `pSys` only the word-4 store gated the load via
 //    the r9 anti-dependence and its load ranked first).
@@ -322,7 +322,7 @@ static inline s32 IRef(s32& v) { return v; }
 // Same for the first pSys read of DiscChange: without the scalar flag the `lwz r9,pSys` is not
 // exempt from the game[] template stores (fixed_scalar_and_varying_struct_p), so every store
 // ranks 7 in sched2 and the copy issues in template order (0, 8, c, 4) like the original.
-static inline SystemWork* SysRef(SystemWork*& p) { return p; }
+static inline SYSTEM_SAVE_WORK* SysRef(SYSTEM_SAVE_WORK*& p) { return p; }
 
 // Low memory globals (OSPhysicalToCached(0x00F8) = bus clock); a struct member so the
 // address splits into `lis 0x8000` + displacement.
@@ -857,19 +857,19 @@ int cDvdQueue::Read()
     int ret = 1;
     int pc = 1;
 
-    if ((pG->System_flg & 0x20000) == 0) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ) == 0) {
         pc = 0;
     }
     if (pcMode) {
-        pG->System_flg |= 0x20000;
+        SysFlagOn(pG, SYS_SN_PC_READ);
     } else {
-        pG->System_flg &= ~0x20000;
+        SysFlagOff(pG, SYS_SN_PC_READ);
     }
     (this->*func_tbl[m_Rno0])();
     if (pc) {
-        pG->System_flg |= 0x20000;
+        SysFlagOn(pG, SYS_SN_PC_READ);
     } else {
-        pG->System_flg &= ~0x20000;
+        SysFlagOff(pG, SYS_SN_PC_READ);
     }
     if (chk(0x400000)) {
         ret = 0;
@@ -896,7 +896,7 @@ void cDvdQueue::Initialize()
         entrynum = DVDConvertPathToEntrynum(w->name);
         sprintf(m_Name, "%s", w->name);
     }
-    if (pG->System_flg & 0x20000) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ)) {
         sprintf(buf, "d:\\bio4/data/%s", m_Name);
         sprintf(m_Name, "%s", buf);
     }
@@ -935,7 +935,7 @@ void cDvdQueue::Initialize()
     sprintf(reqfile, "%s", w->file);
     reqline = w->line;
     pc = 1;
-    if ((pGS->System_flg & 0x20000) == 0) {
+    if (SysFlagChk(pGS, SYS_SN_PC_READ) == 0) {
         pc = 0;
     }
     pcMode = pc;
@@ -1305,7 +1305,7 @@ int cDvd::FileExistCheck(const char* name, u32* pLength)
     DVDFileInfo fi;
     int ret;
 
-    if (pG->System_flg & 0x20000) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ)) {
         ret = -1;
     } else {
         ret = DVDConvertPathToEntrynum(name);
@@ -1633,17 +1633,17 @@ int cDvd::ErrCheck(int disc, int flag)
         // One shared body (goto) instead of two identical arms: the duplicated `li r30,-1;
         // li r27,0` that jump2 would cross-jump later still counts at global-alloc time and
         // puts pMes/pStr (3 refs each, live around the loop) into different priority buckets.
-        if (pG->System_flg & 0x8000) {
+        if (SysFlagChk(pG, SYS_HARD_RESET)) {
             goto stop;
-        } else if (pG->System_flg & 0x200) {
+        } else if (SysFlagChk(pG, SYS_CARD_ACCESS)) {
         stop:
             msg = -1;
             cont = 0;
         }
         if (msg != -1) {
-            BitOff(pG->System_flg, 0x400);
+            SysFlagOff(pG, SYS_SCREEN_STOP);
             if (shown == 0) {
-                if (pG->System_flg & 0x40000) {
+                if (SysFlagChk(pG, SYS_SET_BLACK)) {
                     paused = 1;
                 }
                 PADControlMotor(0, 2);
@@ -1725,7 +1725,7 @@ void MesSysMessage(int msg, int disc)
 {
     int f = 1;
 
-    if ((pG->Disp_flg & 0x800) == 0) {
+    if (DpfFlagChk(pG, DPF_MESSAGE) == 0) {
         f = 0;
     }
     u16* pos = mes_pos[pSys->language][0];
@@ -1739,11 +1739,11 @@ void MesSysMessage(int msg, int disc)
     }
     pos += no * 2;
     cMes.MesSet(mes_no[msg], pos[0], pos[1], 0x01020090, 0xF, 0, 1);
-    pG->Disp_flg &= ~0x800;
+    DpfFlagOff(pG, DPF_MESSAGE);
     cMes.Move();
     cMes.Trans();
     if (f == 1) {
-        pG->Disp_flg |= 0x800;
+        DpfFlagOn(pG, DPF_MESSAGE);
     }
 }
 
@@ -1954,7 +1954,7 @@ void RomFontMessage(u32 msg, int disc)
 // CALL_EXPRs (side effects) is never merged by fold and gives the five compares to one `li 1`.
 static inline int SysRegionIs(int r)
 {
-    return pSys->region == r;
+    return pSys->eff_country == r;
 }
 
 // 1 for the European regions.
@@ -1976,11 +1976,11 @@ int cDvd::DiscChange(int disc)
     char company[] = "08";
     const char* game[] = {"G4BJ", "G4BE", "G4BJ", "G4BJ"};
 
-    if (SysRef(pSys)->region == 1) {
+    if (SysRef(pSys)->eff_country == 1) {
         region = 1;
     } else if (SysIsEurope() == 1) {
         region = 2;
-    } else if (pSys->region == 7) {
+    } else if (pSys->eff_country == 7) {
         region = 3;
     }
     DVDGenerateDiskID(&id, game[region], company, (u8) disc, 0xFF);

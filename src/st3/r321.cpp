@@ -23,7 +23,7 @@
 #include "db_log.h"
 
 // Room 3-21 (D:/Bio4/Prog/r321.cpp): the yard where the support helicopter is shot down (event
-// r321s00 on area 2, Scenario_flg[1] bit 31): afterwards the wreck model with its smoke and a fire
+// r321s00 on area 2, Scenario_flg[2] bit 31): afterwards the wreck model with its smoke and a fire
 // render target, four Ganados and a typewriter.
 
 struct R321Work {
@@ -65,7 +65,7 @@ void break_heri_set();
 // the s00 callback.
 void R321Init()
 {
-    pG->Debug_flg[1] |= 0x00200000;
+    DbgFlagOn(pG, DBG_WARN_LEVEL_LOW);
 #line 45 "D:/Bio4/Prog/r321.cpp"
     r321_work = (R321Work*) MEM_CALLOC(sizeof(R321Work), 1, 0xd);
     setTexRender();
@@ -84,12 +84,12 @@ void R321Main()
 {
 }
 
-// Area 2: Room_flg bit 0, Scenario_flg[1] bit 31 (the helicopter is lost), event r321s00, Leon placed
+// Area 2: Room_flg bit 0, Scenario_flg[2] bit 31 (the helicopter is lost), event r321s00, Leon placed
 // at the crash site facing 1.663 rad, the typewriter 0x16, the wreck, four Ganados (0x67..0x6A).
 static void r321_heri_down()
 {
     RsfSet(G_ROOM_ID, 0);
-    pG->Scenario_flg[1] |= 0x80000000;
+    ScfFlagOn(pG, SCF_R321_HERI_DOWN);
     EvtMgr.EvtReadExec("event/evd/r321s00.evd", 0, 0);
     setPosXYZ(pPL, 38020.0f, 13688.0f, -39718.0f);
     setAngY(pPL, 1.663f);

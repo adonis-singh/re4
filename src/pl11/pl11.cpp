@@ -23,7 +23,7 @@ static void Pl11Init(cEm* em)
 
     sub->modelSet();
     sub->init();
-    pG->Status_flg[1] &= ~0x00020000;
+    StaFlagOff(pG, STA_CRITICAL);
 }
 
 // Constructor: hp from the saved ashley_life, the light area on, the players' foot shadow table,

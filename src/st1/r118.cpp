@@ -52,8 +52,8 @@ static void r118_ThunderMove();
 
 // Room init (storm): clears System_flg 0x800, hides the lit-window object 0,
 // thunder task, rain on the player, Status_flg[1] 0x400. Item area 0x80 is the door-117 key model,
-// disabled until door_unlock[0] 0x10000000 (area 4 = the locked door message, plus the key-use watcher).
-// With Item_find_flg 0x00100000 (Ashley rescued): drops ESL 0x82..0x84, spawns Ganados 0x79..0x7F and
+// disabled until Key_flg[0] 0x10000000 (area 4 = the locked door message, plus the key-use watcher).
+// With Scenario_flg[0] 0x00100000 (Ashley rescued): drops ESL 0x82..0x84, spawns Ganados 0x79..0x7F and
 // the dog 0x78, starts stream 1/5, the show-view event once (Room_flg bit 0), Ashley's call on area 9,
 // else the alternate layout (object 0x1B hidden, areas 8/2 off). Then the BGM task and r108's symbol
 // puzzle on dials 0x31/0x32/0x33 with message 2.
@@ -62,7 +62,7 @@ void R118Init()
     cModel* m;
     int zero = 0;
 
-    pG->System_flg &= ~0x800;
+    SysFlagOff(pG, SYS_SCISSOR_ON);
 #line 47 "D:/Bio4/Prog/r118.cpp"
     r118_work = (R118Work*) MEM_CALLOC(sizeof(R118Work), 1, 0xd);
 
@@ -71,18 +71,18 @@ void R118Init()
     SceExec(0x12, (TaskFunc) r118_ThunderMove, 0, 0, SCE_PRIO_DEF_2, 0);
     EstSet((int) pPL, -1, 0, 0, 3, 2, 0x800, 0, 0, 0);
     EstSet((int) pPL, -1, 0, 0, 1, 5, 0x800, 0, 0, 0);
-    pG->Status_flg[1] |= 0x400;
+    StaFlagOn(pG, STA_ROOM_RAIN);
     SceAtSetEnable(0x80, 1);
     if ((m = SceAtItemModelPtr(0x80)) != 0) {
         m->LightInfo.EnableMask = (m->LightInfo.EnableMask & ~0x20) | 0x10;
         m->setNoSuspend(1);
     }
-    if (!(pG->door_unlock[0] & 0x10000000)) {
+    if (!(pG->Key_flg[0] & 0x10000000)) {
         SceAtSetEnable(0x80, 0);
         SceAtDataSet_exec(4, SCE_LEVEL10, 0, (TaskFunc) r118_checkDoor117, 0, 1);
         SceExec(0x12, (TaskFunc) r118_checkDoor117KeyUse, 0, 0, SCE_PRIO_DEF_2, 0);
     }
-    if (pG->Item_find_flg & 0x00100000) {
+    if (ScfFlagChk(pG, SCF_R117_FIND_ASHLEY)) {
         EM_LIST(0x82)->be_flag &= ~1;
         EM_LIST(0x83)->be_flag &= ~1;
         EM_LIST(0x84)->be_flag &= ~1;
@@ -141,7 +141,7 @@ static void r118_execShowView()
     r118_work->strId = SndStrReq(1, 0xE0, 0x80000003, 0, 0, FCRef(vol));
     SceSetEventCancel(1, (TaskFunc) r118_execShowView_end, 0, -1, 1);
     SceEventStart(0);
-    pG->Status_flg[1] &= ~0x10000000;
+    StaFlagOff(pG, STA_SUSPEND);
     CamCtrl.CutCall(0xA);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
@@ -216,7 +216,7 @@ static void r118_checkDoor117KeyUse()
     SceAtSetEnable(0x80, 1);
     SndCall(6, 8, 0, 0, 0, 0);
     SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-    pG->door_unlock[0] |= 0x10000000;
+    pG->Key_flg[0] |= 0x10000000;
     SceAtDataReset(4);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
@@ -228,8 +228,8 @@ static void r118_checkDoor117()
     SceUpCut(0, 9, 7, UP_CUT_ATTR_CUT_FIX);
     if (ItemMgr.num(0x3C) == 0) {
         CamCtrl.Comeback(0);
-        if (!(pG->Scenario_flg[0] & 0x00080000)) {
-            pG->Scenario_flg[0] |= 0x00080000;
+        if (!ScfFlagChk(pG, SCF_R108_OPERATOR)) {
+            ScfFlagOn(pG, SCF_R108_OPERATOR);
             OpeSetOpenTerm(7, 22600.0f, 11775.0f, -26200.0f, 1.6f);
         }
     } else {

@@ -29,10 +29,10 @@ void cActionButton::init()
 
     ClearOTagR(m_ot, 16);
     m_num = 0;
-    BitOff(pG->Status_flg[0], 0x4000);
-    BitOff(pG->Status_flg[0], 0x200000);
+    StaFlagOff(pG, STA_PL_ACTION);
+    StaFlagOff(pG, STA_ACT_DONT_FIRE);
     stop = 1;
-    if (!(pG->Stop_flg & 0x100)) {
+    if (!SpfFlagChk(pG, SPF_ACTBTN)) {
         stop = 0;
     }
     this->m_stop_flag_old = stop;
@@ -49,7 +49,7 @@ void cActionButton::move()
 
     Cckpt.action.no = 0;
     m_active_flag = 0;
-    if ((pG->Stop_flg & 0x100) || (pG->Status_flg[0] & 0x100000) || m_stop_flag_old) {
+    if (SpfFlagChk(pG, SPF_ACTBTN) || (StaFlagChk(pG, STA_DIEDEMO)) || m_stop_flag_old) {
         init();
         return;
     }
@@ -65,7 +65,7 @@ void cActionButton::move()
             continue;
         }
         m_active_flag = 1;
-        if (!(pG->Disp_flg & 0x1000) && !(w->flags & 8)) {
+        if (!DpfFlagChk(pG, DPF_ACTBTN) && !(w->flags & 8)) {
             disp(w);
         }
         if (checkButton(w) == 1 && w->func != 0) {
@@ -181,7 +181,7 @@ int cActionButton::checkButton(ActBtnWork* w)
                     }
                     break;
                 }
-                if (pG->Status_flg[0] & 0x4000) {
+                if (StaFlagChk(pG, STA_PL_ACTION)) {
                     return 1;
                 }
                 break;
@@ -208,7 +208,7 @@ int cActionButton::checkButton(ActBtnWork* w)
                 }
                 return 1;
             }
-            if (!(pG->Status_flg[0] & 0x4000)) {
+            if (!StaFlagChk(pG, STA_PL_ACTION)) {
                 break;
             }
             key = trg;
@@ -319,7 +319,7 @@ int cActionButton::checkPLStatus(ActBtnWork* w)
             case 0xE:
                 if (PlGetStatus() & 0x10) {
                     if (w->flags & 1) {
-                        BitOn(pG->Status_flg[0], 0x200000);
+                        StaFlagOn(pG, STA_ACT_DONT_FIRE);
                         return 1;
                     }
                     return 0;
@@ -372,7 +372,7 @@ void cActionButton::set(int kind, int slot, int func, int arg, int flags, int bt
     case 4:
     case 0xE:
         if (w->flags & 1) {
-            BitOn(pG->Status_flg[0], 0x200000);
+            StaFlagOn(pG, STA_ACT_DONT_FIRE);
         }
         break;
     }

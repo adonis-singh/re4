@@ -114,7 +114,7 @@ void R311Init()
 #line 62 "D:/Bio4/Prog/r311.cpp"
     wp = (R311Work*) MEM_CALLOC(sizeof(R311Work), 1, 0xd);
     SubCharInit(1, &pPL->pos, pPL->ang.y);
-    pG->Status_flg[3] |= 0x04000000;
+    StaFlagOn(pG, STA_SUB_ASHLEY);
     EatMgr.registEffInfo(2, (AtEffInfo*) &r311_effInfo);
     SceExec(0x12, (TaskFunc) r311_checkEmReset, 0, 0, 2, 0);
     r311_initEmDoor();
@@ -407,7 +407,7 @@ static void r311_checkEmReset()
         r311_execEmAppear();
     }
     R311_SAVE_FLAGS |= 0x80000000;
-    while ((int) pG->Room_flg[0] >= 0) {
+    while (!(pG->Room_flg[0] & 0x80000000)) {
         SceSleep(1);
     }
     SceSleep(30);
@@ -617,7 +617,7 @@ static void r311_throwIronBall()
                 SceSleep(1);
             }
             R311_SAVE_FLAGS |= 0x40000000;
-            BitOn(pG->door_unlock[1], 0x80000000);
+            BitOn(pG->Key_flg[1], 0x80000000);
             r311_work->resetCnt = 0;
             SceAtSetEnable(2, 0);
             SceAtSetEnable(0, 1);
@@ -729,7 +729,7 @@ static void r311_checkIronBallTerminal()
         SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
         return;
     }
-    if (pSUB != NULL && RouteCkPosToPosDis(&pPL->pos, &pSUB->pos) < 4000.0f && !(pG->Status_flg[2] & 0x20000000)) {
+    if (pSUB != NULL && RouteCkPosToPosDis(&pPL->pos, &pSUB->pos) < 4000.0f && !StaFlagChk(pG, STA_SUB_CATCHED)) {
         SceUpCut(1, 9, -1, 0);
         switch (SceMesGetSelection()) {
         case 0:

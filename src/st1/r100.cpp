@@ -144,7 +144,7 @@ void R100Init()
     cModelInfo* info;
     u32 flag;
 
-    BitOff(pG->System_flg, 0x400);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     if (pG->JumpPoint == 1 || DebugTrg(1)) {
         RsfSet(G_ROOM_ID, 10);
         RsfSet(G_ROOM_ID, 3);
@@ -153,7 +153,7 @@ void R100Init()
 #line 207 "D:/Bio4/Prog/r100.cpp"
     W = (R100Work*) MEM_CALLOC(sizeof(R100Work), 1, 0xd);
     EmReadSearch(0x12, 0, 0);
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         SetSstDispFlag(0x12, 0);
         SceAtSetEnable(0x17, 0);
     } else {
@@ -395,7 +395,7 @@ void R100Main()
         }
     }
     if (RsfCheck(G_ROOM_ID, 12) == 0 && RsfCheck(G_ROOM_ID, 3) && !SceAtHitCheck(0xD) &&
-        !(pG->Status_flg[0] & 0x1000)) {
+        !StaFlagChk(pG, STA_EVENT)) {
         RsfSet(G_ROOM_ID, 12);
         SndStrReq(1, 4, 4, 400, 0, FCRef(vol));
         SndStrReq(1, 5, 4, 400, 0, FCRef(vol));
@@ -408,7 +408,7 @@ void R100Main()
                 MotionSetCore(W->cop[0], &W->cop[0]->Motion, ROOM_ARC_PTR(pG->pRoom, 0x2B), 0, 10, 5, 0);
                 MotionSetCore(W->cop[1], &W->cop[1]->Motion, ROOM_ARC_PTR(pG->pRoom, 0x2C), 0, 10, 5, 0);
             }
-        } else if ((int) pG->Status_flg[2] < 0 && (Key.trg & 0x80) && W->cop[0] && W->cop[1]) {
+        } else if (StaFlagChk(pG, STA_PL_DONT_FIRE) && (Key.trg & 0x80) && W->cop[0] && W->cop[1]) {
             if (pG->Room_flg[2] & 0x40000000) {
                 MotionSetCore(W->cop[0], &W->cop[0]->Motion, ROOM_ARC_PTR(pG->pRoom, 0x35), 0, 10, 5, 0);
                 W->se = SndCall(6, 6, &W->cop[0]->pos, 0, 0, 0);
@@ -576,16 +576,16 @@ static void r100_StartEvent()
     u32 flag;
 
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SceSleep(1);
     BitOff(SmdGetObjPtr(0x44)->be_flag, 2);
-    BitOn(pG->Status_flg[1], 0x800);
-    BitOn(pG->Disp_flg, 0x20000);
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
+    DpfFlagOn(pG, DPF_CLOTH);
     flag = pG->System_flg;
     if (flag & 0x40) {
         skip = 1;
     }
-    if (!(pG->System_flg & 0x40) && !(pG->Scenario_flg[0] & 0x10)) {
+    if (!FlagChk((u32) &pG->System_flg, SYS_START_EVT_SKIP) && !ScfFlagChk(pG, SCF_R120_EVENT_CANCEL)) {
         if (readEvent(9, 1, &evt)) {
             EvtMgr.SetEvt(evt, (u32*) 0);
             SceSleep(1);
@@ -596,11 +596,11 @@ static void r100_StartEvent()
             freeEvent(9, 1);
         }
     } else {
-        pG->System_flg &= ~0x400;
+        SysFlagOff(pG, SYS_SCREEN_STOP);
         freeEvent(9, 0);
     }
     BitOn(SmdGetObjPtr(0x44)->be_flag, 2);
-    BitOff(pG->Status_flg[1], 0x800);
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
     {
         Vec pos;
         Vec* pp = &pos;
@@ -620,8 +620,8 @@ static void r100_StartEvent()
         p->setAng(&ang);
     }
     SceEventEnd(0);
-    BitOff(pG->Disp_flg, 0x20000);
-    if (skip == 0 && !(pG->Scenario_flg[0] & 0x10)) {
+    DpfFlagOff(pG, DPF_CLOTH);
+    if (skip == 0 && !ScfFlagChk(pG, SCF_R120_EVENT_CANCEL)) {
         OpeSetOpenTerm(0, 0.0f, 0.0f, 0.0f, 0.0f);
     }
     OpeSetMdtNo(0);
@@ -649,11 +649,11 @@ static void r100_DoorCk()
     pG->Room_flg[0] &= ~0x80000000;
     found = 0;
     while (RsfCheck(G_ROOM_ID, 4) == 0) {
-        if ((int) pG->Room_flg[0] < 0) {
+        if (pG->Room_flg[0] & 0x80000000) {
             found = 1;
         }
         if (found == 1) {
-            if ((int) pG->Room_flg[2] < 0) {
+            if (pG->Room_flg[2] & 0x80000000) {
                 SndCall(6, 0x28, &door->pos, 0, 0, 0);
             }
             break;
@@ -730,7 +730,7 @@ static void r100_HouseEvent_exit()
 {
     pPL->setNoSuspend(0);
     EmMgr.destroy(W->emHouse);
-    pG->Status_flg[1] &= ~0x800;
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
 }
@@ -746,7 +746,7 @@ static void r100_HouseEvent()
     }
     RsfSet(G_ROOM_ID, 15);
     SceEventStart(0);
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     W->emHouse = EmSetFromList2(0x25, 1);
     W->emHouse->setNoSuspend(1);
     W->emHouse->be_flag |= 0x1000;
@@ -763,15 +763,15 @@ static void r100_HouseEvent()
     pos.y = 2.99f;
     pos.z = 0.0f;
     pPL->setAng(&pos);
-    BitOff(pG->Stop_flg, 0x10000000);
-    BitOff(pG->Disp_flg, 0x40000000);
+    SpfFlagOff(pG, SPF_PL);
+    DpfFlagOff(pG, DPF_PL);
     pPL->setNoSuspend(1);
     pPL->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x34), 10, 0, 1, 0);
     SndStrReq(1, 0x22, 0x80000003, 0, 0, 0.0f);
     CamCtrl.CutCall(0xA);
     SceSetEventCancel(1, (TaskFunc) r100_HouseEvent_exit, 0, -1, 1);
     while (CamCtrl.IsMotionEnd() == 0) {
-        pG->Status_flg[1] |= 0x02000000;
+        StaFlagOn(pG, STA_CAMERA_IN_ROOM);
         SceSleep(1);
     }
     SceSetEventCancel(0, 0, 0, -1, 1);
@@ -798,7 +798,7 @@ static void r100_StreanChk()
         cnt = r + 60;
     }
     while (RsfCheck(G_ROOM_ID, 3) == 0) {
-        if ((int) pG->Room_flg[2] < 0) {
+        if (pG->Room_flg[2] & 0x80000000) {
             cnt--;
             if (cnt <= 0) {
                 u8 r = Rnd() % 30;
@@ -879,7 +879,7 @@ static void r100_Sce_look()
     SceEventStart(0);
     SceAtSetEnable(0xA, 0);
     RsfSet(G_ROOM_ID, 3);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SceSleep(2);
     if (readEvent(0, 1, &evt)) {
         EvtMgr.SetEvt(evt, (u32*) 0);
@@ -888,7 +888,7 @@ static void r100_Sce_look()
         }
         freeEvent(0, 1);
     }
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SceSleep(2);
     em = W->em;
     if (em != 0 && em != errEm) {
@@ -912,7 +912,7 @@ static void r100_Sce_look()
     }
     pPL->cCoord::matUpdate();
     SceSleep(1);
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     SceEventEnd(0);
 }
 
@@ -949,7 +949,7 @@ static void r100_Sce_zombi_dead(cEm* em)
         freeEvent(3, 1);
     }
     zero = 0;
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     W->ems[0]->setNoSuspend(0);
     W->ems[1]->setNoSuspend(0);
     W->ems[2]->setNoSuspend(0);
@@ -988,8 +988,8 @@ static void r100_Sce_zombi_dead(cEm* em)
     SceAtSetEnable(0x1C, 1);
     SceAtSetEnable(0x1E, 0);
     RsfSet(G_ROOM_ID, 10);
-    BitOn(pG->Item_find_flg, 0x4000);
-    BitOff(pG->System_flg, 0x400);
+    ScfFlagOn(pG, SCF_R100_KILL_GANADE_1ST);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     DC.setAramSort(1);
     SceEventEnd(0);
     OpeSetOpenTerm(1, -81500.0f, 860.0f, -38900.0f, 1.6f);
@@ -1117,7 +1117,7 @@ static void r100_MesCar00()
     W->car->setNoSuspend(1);
     W->cop[0]->setNoSuspend(1);
     W->cop[1]->setNoSuspend(0);
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     if (W->se) {
         SndStop(W->se, 0);
     }
@@ -1132,7 +1132,7 @@ static void r100_MesCar00()
     W->cop[0]->setNoSuspend(0);
     W->car->setNoSuspend(0);
     W->carSub->setNoSuspend(0);
-    pG->Status_flg[1] &= ~0x800;
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
 }
 
 // The other officer talks (s42).
@@ -1146,7 +1146,7 @@ static void r100_MesCar01()
     W->car->setNoSuspend(1);
     W->cop[1]->setNoSuspend(1);
     W->cop[0]->setNoSuspend(0);
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     if (W->se) {
         SndStop(W->se, 0);
     }
@@ -1161,7 +1161,7 @@ static void r100_MesCar01()
     W->cop[0]->setNoSuspend(0);
     W->car->setNoSuspend(0);
     W->carSub->setNoSuspend(0);
-    pG->Status_flg[1] &= ~0x800;
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
 }
 
 // Area 0x18, the bridge: before the officers' death message 0xF; after it the ravine event once
@@ -1201,7 +1201,7 @@ static void r100_EventBrige()
     W->car->ot_type = 1;
     W->cop[0]->setNoSuspend(0);
     W->cop[1]->setNoSuspend(0);
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     if (readEvent(8, 1, &evt)) {
         EvtMgr.SetEvt(evt, (u32*) 0);
         while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
@@ -1213,7 +1213,7 @@ static void r100_EventBrige()
     W->cop[0]->setNoSuspend(0);
     W->car->setNoSuspend(0);
     W->carSub->setNoSuspend(0);
-    pG->Status_flg[1] &= ~0x800;
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
 }
 
 // TexRender blend setup of one water object.
@@ -1248,7 +1248,7 @@ extern "C" void setTexRender()
 }
 
 // Event r100s40 callback (the officers at the ravine / car): Status_flg[1] 0x02000000 during the event,
-// the car event models set up on the first frame (EventCarInit, r120's); funcMode 3 sets Scenario_flg[0]
+// the car event models set up on the first frame (EventCarInit, r120's); funcMode 3 sets Scenario_flg[1]
 // bit 0x10.
 extern "C" void Evt_R100S40_Func(Event* e)
 {
@@ -1256,7 +1256,7 @@ extern "C" void Evt_R100S40_Func(Event* e)
     case 0:
         break;
     case 1:
-        pG->Status_flg[1] |= 0x02000000;
+        StaFlagOn(pG, STA_CAMERA_IN_ROOM);
         if (e->NowCut == 0 && e->NowFrame == 0) {
             EventCarInit(e);
         }
@@ -1264,7 +1264,7 @@ extern "C" void Evt_R100S40_Func(Event* e)
     case 2:
         break;
     case 3:
-        pG->Scenario_flg[0] |= 0x10;
+        ScfFlagOn(pG, SCF_R120_EVENT_CANCEL);
         break;
     }
 }
@@ -1286,7 +1286,7 @@ extern "C" void Evt_R100S20_Func(Event* e)
             break;
         case 2:
             if (e->NowFrame == 0) {
-                if (!(pG->Debug_flg[0] & 0x02000000)) {
+                if (!DbgFlagChk(pG, DBG_EVENT_TOOL)) {
                     W->ems[1]->setNoSuspend(1);
                     W->ems[2]->setNoSuspend(1);
                 }

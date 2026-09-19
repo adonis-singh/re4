@@ -311,7 +311,7 @@ static inline void r300_setEmAng(cEmWrap* em, Vec* ang, f32 ry)
 }
 
 // Room init (the island landing): Debug_flg[1] 0x20000; JumpPoint skips the landing event; the s00
-// (and s99) callback; two door_unlock[1] bits; the water render targets; the player's room motions;
+// (and s99) callback; two Key_flg[1] bits; the water render targets; the player's room motions;
 // the searchlight objects and the dropping rock (until Room_flg bit 4); the landing event once (bit
 // 0); area 1 = Ashley carried through the gate (bit 3), area 0xF = the camera post (bit 2); the gate
 // already burnt open (bit 5) or the two mirrors (areas 6/7) and the laser start (area 0xB) / the laser
@@ -320,14 +320,14 @@ void R300Init()
 {
 #line 185 "D:/Bio4/Prog/r300.cpp"
     r300_work = (R300Work*) MEM_CALLOC(sizeof(R300Work), 1, 0xd);
-    BitOn(pGS->Debug_flg[1], 0x20000);
+    DbgFlagOn(pGS, DBG_EMW_ERR_NO_DISP);
     if (pG->JumpPoint != 0) {
         RsfSet(G_ROOM_ID, 0);
     }
     EvtMgr.SetFunc("evt_r300s00_func", (void*) Evt_R300S00_Func);
     EvtMgr.SetFunc("evt_r300s99_func", (void*) Evt_R300S00_Func);
-    BitOn(pG->door_unlock[1], 0x800000);
-    BitOn(pG->door_unlock[1], 0x8000);
+    BitOn(pG->Key_flg[1], 0x800000);
+    BitOn(pG->Key_flg[1], 0x8000);
     setTexRender();
     PlRegistMotion(ROOM_ARC_PTR(pG->pRoom, 0x1F), ROOM_ARC_PTR(pG->pRoom, 0x20), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     {
@@ -460,7 +460,7 @@ void R300Init()
     if (RsfCheck(G_ROOM_ID, 7)) {
         EstSet(0, -1, 0, 0, 1, 9, 1, 0, 0, 0);
     }
-    if ((pG->System_flg & 0x80000) && RsfCheck(G_ROOM_ID, 5) == 0) {
+    if (SysFlagChk(pG, SYS_CONTINUE) && RsfCheck(G_ROOM_ID, 5) == 0) {
         SndRoomStrStart(1, 0, 1);
     }
     {
@@ -558,7 +558,7 @@ void R300Main()
             PSVECScale(&v4, &v4, 0.5f);
             PSVECSubtract(&v3, &v4, &v3);
             PSVECAdd(&v0, &v3, &v0);
-        } else if ((int) pG->Room_flg[2] < 0) {
+        } else if (pG->Room_flg[2] & 0x80000000) {
             v0 = pPL->pos;
             v0.y += 0.0f;
         } else {
@@ -672,7 +672,7 @@ void R300Main()
                     r300_wk->mirbAng = r300_mirbAng[0];
                     r300_wk->cnt++;
                     if (r300_wk->cnt > 0x18) {
-                        if ((int) pG->Room_flg[0] >= 0) {
+                        if (!(pG->Room_flg[0] & 0x80000000)) {
                             pG->Room_flg[0] |= 0x80000000;
                         }
                     }
@@ -750,10 +750,10 @@ static void R300_Event()
     u32 zero = 0;
 
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SceSleep(1);
     EvtMgr.EvtReadAram("event/evd/r300s00.evd", 0x1D, 0, 0, 0);
-    pG->Status_flg[1] |= 0x800;
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
     SceSleep(1);
     SceSleep(1);
     EvtMgr.EvtReadExec("event/evd/r300s00.evd", 0x1D, 0);
@@ -765,7 +765,7 @@ static void R300_Event()
         FadeSet(0x80000002, &col.start, &col.end, 60, 0, 0);
     }
     SceEventEnd(0);
-    pG->Status_flg[1] &= ~0x800;
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
     {
         Vec pos = {28550.0f, -17000.0f, -40370.0f};
         Vec rot = {0.0f, -2.23f, 0.0f};
@@ -791,7 +791,7 @@ static void Evt_R300S00_Func(Event* e)
 
     switch (e->funcMode) {
     case 0:
-        pG->System_flg &= ~0x800;
+        SysFlagOff(pG, SYS_SCISSOR_ON);
         break;
     case 1:
         switch (e->NowCut) {
@@ -854,7 +854,7 @@ static void Evt_R300S00_Func(Event* e)
         }
         break;
     case 2:
-        pG->System_flg |= 0x800;
+        SysFlagOn(pG, SYS_SCISSOR_ON);
         break;
     }
 }
@@ -1013,7 +1013,7 @@ static void r300_asl_exit()
     SceAtSetEnable(8, 1);
     RsfSet(G_ROOM_ID, 3);
     pPL->setNoSuspend(0);
-    pG->Stop_flg &= ~0x10000000;
+    SpfFlagOff(pG, SPF_PL);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     GameSaveSave(&GameSave, pSaveData, -1);
@@ -1025,7 +1025,7 @@ static void r300_asl()
     SceEventStart(1);
     U32Set(r300_wk->strId, SndStrReq(0, 0x39, 0x80000003, 0, 0, 0.0f));
     pPL->setNoSuspend(1);
-    pG->Stop_flg |= 0x10000000;
+    SpfFlagOn(pG, SPF_PL);
     SmdGetObjPtr(0x42)->be_flag |= 0x20;
     r300_wk->doorY = SmdGetObjPtr(0x42)->pos.y;
     SmdGetObjPtr(0x42)->pos.y += 3000.0f;
@@ -1131,7 +1131,7 @@ static void r300_mira_exec()
         CameraControl* cc = &CamCtrl;
         while (1) {
             ActBtn.set(0x14, 5, 0, 0, 2, 0xB, 0, 0);
-            pG->Stop_flg &= ~0x100;
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (r300_wk->cnt == 0) {
                 if (Key.trg & 0x40000000) {
                     break;
@@ -1146,7 +1146,7 @@ static void r300_mira_exec()
             if (r300_wk->cnt == 1) {
                 SndCall(6, 0x12, &SmdGetObjPtr(0x42)->pos, 0, 0, 0);
             }
-            if ((int) pG->Room_flg[0] < 0) {
+            if (pG->Room_flg[0] & 0x80000000) {
                 SceExec(0x12, (TaskFunc) DoorOpen, 0, 0, 2, 0);
                 break;
             }
@@ -1217,7 +1217,7 @@ static void r300_mirb_exec()
         CameraControl* cc = &CamCtrl;
         while (1) {
             ActBtn.set(0x14, 5, 0, 0, 2, 0xB, 0, 0);
-            pG->Stop_flg &= ~0x100;
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (r300_wk->cnt == 0) {
                 if (Key.trg & 0x40000000) {
                     break;
@@ -1232,7 +1232,7 @@ static void r300_mirb_exec()
             if (r300_wk->cnt == 1) {
                 SndCall(6, 0x12, &SmdGetObjPtr(0x42)->pos, 0, 0, 0);
             }
-            if ((int) pG->Room_flg[0] < 0) {
+            if (pG->Room_flg[0] & 0x80000000) {
                 SceExec(0x12, (TaskFunc) DoorOpen, 0, 0, 2, 0);
                 break;
             }
@@ -1289,11 +1289,11 @@ static void r300_mirb_exec()
     SceEventEnd(0);
 }
 
-// End of the gate opening (also its cancel path): door_unlock[0] 0x80, the laser effects dropped, the
+// End of the gate opening (also its cancel path): Key_flg[0] 0x80, the laser effects dropped, the
 // gate 0x42 snapped down to y -8825, Room_flg bit 5, the mirror / laser / gate areas off, camera back.
 static void DoorOpen_exit()
 {
-    pG->door_unlock[0] |= 0x80;
+    pG->Key_flg[0] |= 0x80;
     EffectEspDelete(1, 4, 0, 0);
     EffectEspgenDelete(1, 4, 0);
     EffectEfmDelete(1, 4, 0);
@@ -1443,7 +1443,7 @@ static void r300_em_set_exit()
     RsfSet(G_ROOM_ID, 8);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    BitOff(pG->Status_flg[2], 0x02000000);
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     pPL->setPos(&r300_wk->plPos);
     SceExec(0x12, (TaskFunc) r300_em_reset_task, 0, 0, 2, 0);
 }
@@ -1462,7 +1462,7 @@ static void r300_em_set()
         SceExec(0x12, (TaskFunc) r300_StrCheck, 0, 0, 2, 0);
     }
     SceEventStart(1);
-    pG->Status_flg[2] |= 0x02000000;
+    StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     Vec pos = {-28500.0f, -14200.0f, -24783.0f};
     f32 ry = 1.32f;
     r300_wk->em[20].setEm(0x4B, -1, 1, 1, 1);

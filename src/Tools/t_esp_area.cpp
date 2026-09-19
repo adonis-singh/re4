@@ -192,7 +192,7 @@ void OptionExec()
     u32 rep;
 
     eprintf(0xAA, 0xA0, 4, 0, "FOG : ");
-    if (pG->Disp_flg & 0x4000) {
+    if (DpfFlagChk(pG, DPF_FOG)) {
         eprintf(0xAA, 0xA0, 0, 0, "       ON");
     } else {
         eprintf(0xAA, 0xA0, 0, 0, "       OFF");
@@ -216,10 +216,10 @@ void OptionExec()
     switch (cursor) {
     case 0:
         if ((rep & 0x30003) || (Joy[0].trg & 0x100)) {
-            if (pG->Disp_flg & 0x4000) {
-                pG->Disp_flg &= ~0x4000;
+            if (DpfFlagChk(pG, DPF_FOG)) {
+                DpfFlagOff(pG, DPF_FOG);
             } else {
-                pG->Disp_flg |= 0x4000;
+                DpfFlagOn(pG, DPF_FOG);
             }
         }
         break;
@@ -333,7 +333,7 @@ void ToolEspArea()
         }
         TaskSleep(1);
     }
-    BitOff(pG->Debug_flg[0], 0x10000000);
+    DbgFlagOff(pG, DBG_DBG_CAM);
     tEspAreaExit();
     TutilQuitDefault();
     TaskExit();
@@ -343,19 +343,19 @@ void ToolEspArea()
 // camera target type 4, all blocks visible.
 void tEspAreaInit()
 {
-    BitOn(pG->Stop_flg, 0x20000000);
-    BitOn(pG->Stop_flg, 0x10000000);
-    BitOn(pG->Stop_flg, 0x08000000);
-    BitOn(pG->Stop_flg, 0x00800000);
-    BitOn(pG->Stop_flg, 0x00400000);
-    BitOn(pG->Stop_flg, 0x00010000);
-    BitOn(pG->Stop_flg, 0x00002000);
-    BitOn(pG->Disp_flg, 0x20000000);
-    BitOn(pG->Disp_flg, 0x40000000);
-    BitOn(pG->Disp_flg, 0x04000000);
-    BitOn(pG->Disp_flg, 0x02000000);
-    BitOn(pG->Disp_flg, 0x00100000);
-    BitOn(pG->Debug_flg[0], 0x10000000);
+    SpfFlagOn(pG, SPF_EM);
+    SpfFlagOn(pG, SPF_PL);
+    SpfFlagOn(pG, SPF_ESP);
+    SpfFlagOn(pG, SPF_SCE);
+    SpfFlagOn(pG, SPF_SCE_AT);
+    SpfFlagOn(pG, SPF_EARTHQUAKE);
+    SpfFlagOn(pG, SPF_MIST);
+    DpfFlagOn(pG, DPF_SUBCHAR);
+    DpfFlagOn(pG, DPF_PL);
+    DpfFlagOn(pG, DPF_ESP);
+    DpfFlagOn(pG, DPF_SHADOW);
+    DpfFlagOn(pG, DPF_FILTER);
+    DbgFlagOn(pG, DBG_DBG_CAM);
     CamDbg.m_target_type = 4;
     Block.dispAllBlock(1);
 }
@@ -363,20 +363,20 @@ void tEspAreaInit()
 // Undoes tEspAreaInit (fog display off too).
 void tEspAreaExit()
 {
-    BitOff(pG->Stop_flg, 0x20000000);
-    BitOff(pG->Stop_flg, 0x10000000);
-    BitOff(pG->Stop_flg, 0x08000000);
-    BitOff(pG->Stop_flg, 0x00800000);
-    BitOff(pG->Stop_flg, 0x00400000);
-    BitOff(pG->Stop_flg, 0x00010000);
-    BitOff(pG->Stop_flg, 0x00002000);
-    BitOff(pG->Disp_flg, 0x20000000);
-    BitOff(pG->Disp_flg, 0x40000000);
-    BitOff(pG->Disp_flg, 0x04000000);
-    BitOff(pG->Disp_flg, 0x02000000);
-    BitOff(pG->Disp_flg, 0x00100000);
-    BitOff(pG->Disp_flg, 0x00004000);
-    BitOff(pG->Debug_flg[0], 0x10000000);
+    SpfFlagOff(pG, SPF_EM);
+    SpfFlagOff(pG, SPF_PL);
+    SpfFlagOff(pG, SPF_ESP);
+    SpfFlagOff(pG, SPF_SCE);
+    SpfFlagOff(pG, SPF_SCE_AT);
+    SpfFlagOff(pG, SPF_EARTHQUAKE);
+    SpfFlagOff(pG, SPF_MIST);
+    DpfFlagOff(pG, DPF_SUBCHAR);
+    DpfFlagOff(pG, DPF_PL);
+    DpfFlagOff(pG, DPF_ESP);
+    DpfFlagOff(pG, DPF_SHADOW);
+    DpfFlagOff(pG, DPF_FILTER);
+    DpfFlagOff(pG, DPF_FOG);
+    DbgFlagOff(pG, DBG_DBG_CAM);
     {
         // through a volatile pointer: the store keeps `&CamDbg` in a register (`stb 0xf(rX)`)
         volatile debugCamera* c = &CamDbg;

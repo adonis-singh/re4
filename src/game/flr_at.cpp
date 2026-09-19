@@ -56,7 +56,7 @@ FlrAt* FlrAtCheck(int type, Vec* pos, int flag)
     if (pG->Rno0 != 3) {
         return 0;
     }
-    if (pG->Status_flg[0] & 0x10000000) {
+    if (StaFlagChk(pG, STA_MOVIE_ON)) {
         return 0;
     }
     if (pFlrSys == 0) {

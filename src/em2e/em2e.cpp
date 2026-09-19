@@ -78,7 +78,7 @@ void em2eDmCk(cEm2e* em)
 {
     Em2eWork* w = EM2E_WK(em);
 
-    if (em->hp > 0 && (int) pG->Status_flg[1] < 0 && !(w->flags & 2)) {
+    if (em->hp > 0 && (StaFlagChk(pG, STA_PL_SE_FOOT)) && !(w->flags & 2)) {
         if ((pPL->pos.x - em->pos.x) * (pPL->pos.x - em->pos.x) + (pPL->pos.y - em->pos.y) * (pPL->pos.y - em->pos.y)
             + (pPL->pos.z - em->pos.z) * (pPL->pos.z - em->pos.z) < 160000.0f) {
             em->hp = 0;

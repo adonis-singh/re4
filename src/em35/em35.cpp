@@ -116,11 +116,6 @@ static void em35_R1_Die_Pose(cEm35* em);
 #define ARC(no) PL_ARC_PTR(em->subArc, no)
 #define PL_ARC(no) PL_ARC_PTR(pl->subArc, no)
 
-// The enemy a player damage callback belongs to (pl_sub SetPlDamage's first argument).
-#define PL_EM(pl) ((cEm35*) (pl)->dmgType)
-// The same through the global player pointer (the catch callbacks read it that way).
-#define PL_EM_G ((cEm35*) pPL->dmgType)
-
 #define VIB_TBL ((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc))
 
 // Struct-member view of the player pointer: a load through it is not hoisted above the preceding
@@ -1076,7 +1071,7 @@ static void em35_R1_Divide(cEm35* em)
 
     switch (em->r_no_2) {
     case 0:
-        if ((pG->room_id32 & 0xFFFF0000) == 0x011F0000) {
+        if (pG->stage_no == 1 && pG->room_no == 0x1F) {
             Vec v;
 
             em->ang.y = PI;
@@ -1125,7 +1120,7 @@ static void em35_R1_U_Divide(cEm35* em)
 
     switch (em->r_no_2) {
     case 0:
-        if ((pG->room_id32 & 0xFFFF0000) == 0x011F0000) {
+        if (pG->stage_no == 1 && pG->room_no == 0x1F) {
             Vec v;
 
             em->ang.y = PI;
@@ -1661,7 +1656,7 @@ static void em35_R1_BearHug(cEm35* em)
     case 0:
         em35CatchPosSet(em);
         MotionSetCore(em, MOTION(em), ARC(0x36), (int) ARC(0x37), 5, 1, 0);
-        SetPlDamage((int) em, plem35_BearHug);
+        SetPlDamage(em, plem35_BearHug);
         PlSetDamageSe(0);
         PlGachaInit();
         em->dmg.set(0, 0);
@@ -1701,8 +1696,6 @@ static void em35_R1_BearHug(cEm35* em)
     em->x3A8 = em->pos;
 }
 
-// Routine test on the cModel status word (em10.cpp EM_RTN).
-#define EM_RTN(em, fc, fd) (((em)->stat & 0xFFFF0000) == (u32) (((fc) << 24) | ((fd) << 16)))
 
 // Player damage callback of the bear hug (dmType 10). Step 0/1: placed 3.5 m in front of the enemy
 // facing it, the squeezed motion with the crush sounds / rumble at frames 73 and 158, its step
@@ -1710,8 +1703,8 @@ static void em35_R1_BearHug(cEm35* em)
 // the break-free motion at the enemy's feet with the relief voice.
 static void plem35_BearHug(cPlayer* pl)
 {
-    BitOn(pG->Status_flg[1], 0x8000);
-    pl->subArc = PL_EM_G->subArc;
+    StaFlagOn(pG, STA_PL_CATCHED);
+    pl->subArc = pPL->pEmCatch->subArc;
     pl->dmg.m_Timer = 10;
     switch (pl->r_no_2) {
     case 0: {
@@ -1723,11 +1716,11 @@ static void plem35_BearHug(cPlayer* pl)
         v.y = 0.0f;
         v.z = 3473.71f;
         pl->ang.x = 0.0f;
-        y = PL_EM(pl)->ang.y;
+        y = pl->pEmCatch->ang.y;
         pl->ang.z = 0.0f;
         pl->ang.y = y + PI;
         LIMIT_ANGLE(pl->ang.y);
-        PSMTXMultVec(PL_EM(pl)->mat, &v, &pl->pos);
+        PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x93), 0, 5, 1, 0);
         PlSetFace(1);
         pl->atari.set(10, 480.00003f, 400.0f);
@@ -1736,17 +1729,17 @@ static void plem35_BearHug(cPlayer* pl)
     }
     case 1:
         MotionMoveF(pl, 0);
-        pl->r_no_2 = PL_EM(pl)->r_no_2;
-        if (!EM_RTN(PL_EM_G, 1, 7)) {
+        pl->r_no_2 = pl->pEmCatch->r_no_2;
+        if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 7) {
             EndPlDamage();
             pl->dmg.set(0, 30);
         } else {
             if (pl->frame > 72.7f && pl->frame < 73.3f) {
-                U32Set(pl->m_Work0, SndCall(8, 0x4B, &pl->pos, PL_EM(pl)->id, 0, pl));
+                U32Set(pl->m_Work0, SndCall(8, 0x4B, &pl->pos, pl->pEmCatch->id, 0, pl));
                 VibSetData(VIB_TBL, 0xB, 1);
             }
             if (pl->frame > 157.7f && pl->frame < 158.3f) {
-                U32Set(pl->m_Work0, SndCall(8, 0x4D, &pl->pos, PL_EM(pl)->id, 0, pl));
+                U32Set(pl->m_Work0, SndCall(8, 0x4D, &pl->pos, pl->pEmCatch->id, 0, pl));
                 VibSetData(VIB_TBL, 0xB, 1);
             }
         }
@@ -1759,11 +1752,11 @@ static void plem35_BearHug(cPlayer* pl)
         v.y = 0.0f;
         v.z = 244.65f;
         pl->ang.x = 0.0f;
-        y = PL_EM(pl)->ang.y;
+        y = pl->pEmCatch->ang.y;
         pl->ang.z = 0.0f;
         pl->ang.y = y + PI;
         LIMIT_ANGLE(pl->ang.y);
-        PSMTXMultVec(PL_EM(pl)->mat, &v, &pl->pos);
+        PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x94), 0, 0, 1, 0);
         SndStop(pl->m_Work0, 0);
         SndCall(1, 0x3D, &pPL->pos, pPL->id, 0, pPL);
@@ -1773,7 +1766,7 @@ static void plem35_BearHug(cPlayer* pl)
         if (MotionMoveF(pl, 0)) {
             EndPlDamage();
             pl->dmg.set(0, 30);
-        } else if (!EM_RTN(PL_EM_G, 1, 7)) {
+        } else if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 7) {
             EndPlDamage();
             pl->dmg.set(0, 30);
         }
@@ -1790,7 +1783,7 @@ static void em35AtkEscapeAction(cEm35* em)
     Em35Work* w = EM35_WK(em);
 
     w->atkHit2 = 1;
-    SetPlDamage((int) em, plem35Sit);
+    SetPlDamage(em, plem35Sit);
     GameAddPoint(LVADD_CRITICALHIT);
 }
 
@@ -1798,7 +1791,7 @@ static void em35AtkEscapeAction(cEm35* em)
 // escape rank point; ends with the motion.
 static void plem35Sit(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x9A), 0, 3, 1, 0);
@@ -1923,7 +1916,7 @@ static void em35_R1_Atk2F(cEm35* em)
 // return to the standing routine 1/0 step 0xA when it lands.
 static void plem35DmFall2F(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.m_Timer = 10;
     switch (pl->r_no_2) {
     case 0:
@@ -2089,7 +2082,7 @@ static void em35_R1_Hook(cEm35* em)
 // sound; ends with the motion.
 static void plem35DmHook(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x91), 0, 3, 1, 0);
@@ -2204,7 +2197,7 @@ static void em35_R1_CriticalHit(cEm35* em)
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, MOTION(em), ARC(0x40), (int) ARC(0x41), 0, 1, 0);
-        SetPlDamage((int) em, plem35_CriticalHit);
+        SetPlDamage(em, plem35_CriticalHit);
         PlSetDamageSe(0xD);
         em->r_no_2++;
     case 1:
@@ -2221,9 +2214,9 @@ static void plem35_CriticalHit(cPlayer* pl)
 {
     f32 y;
 
-    pG->Status_flg[1] |= 0x8000;
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0: {
         Vec v;
@@ -2233,11 +2226,11 @@ static void plem35_CriticalHit(cPlayer* pl)
         v.y = 0.0f;
         v.z = 2621.64f;
         pl->ang.x = 0.0f;
-        y = PL_EM(pl)->ang.y;
+        y = pl->pEmCatch->ang.y;
         pl->ang.z = 0.0f;
         pl->ang.y = y + PI;
         LIMIT_ANGLE(pl->ang.y);
-        PSMTXMultVec(PL_EM(pl)->mat, &v, &pl->pos);
+        PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x90), 0, 0, 1, 0);
         PlSetFace(1);
         pl->m_Work0 = 100;
@@ -2262,7 +2255,7 @@ static void plem35_CriticalHit(cPlayer* pl)
 // gets a critical-hit rank point.
 static void em35DashEscapeAction(cEm35* em)
 {
-    SetPlDamage((int) em, plem35DashEscape);
+    SetPlDamage(em, plem35DashEscape);
     GameAddPoint(LVADD_CRITICALHIT);
 }
 
@@ -2271,11 +2264,11 @@ static void em35DashEscapeAction(cEm35* em)
 // (em35EscapeCamMove), with the roll effect / sounds at frame 12; ends after 50 frames.
 static void plem35DashEscape(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.m_Timer = 10;
     switch (pl->r_no_2) {
     case 0:
-        if (Muku(&pl->pos, &PL_EM(pl)->pos, pl->ang.y, PI) < 0.0f) {
+        if (Muku(&pl->pos, &pl->pEmCatch->pos, pl->ang.y, PI) < 0.0f) {
             MotionSetCore(pl, MOTION(pl), PL_ARC(0x98), (int) PL_ARC(0x99), 3, 1, 0);
         } else {
             MotionSetCore(pl, MOTION(pl), PL_ARC(0x98), (int) PL_ARC(0x99), 3, 0x41, 0);
@@ -2287,9 +2280,9 @@ static void plem35DashEscape(cPlayer* pl)
         pl->m_Work1 = 15;
         pl->r_no_2++;
     case 1:
-        em35EscapeCamMove(PL_EM(pl));
+        em35EscapeCamMove((cEm35*)pl->pEmCatch);
         if (pl->m_Work1) {
-            pl->ang.y += Muku(&pl->pos, &PL_EM(pl)->pos, pl->ang.y, 0.19634955f);
+            pl->ang.y += Muku(&pl->pos, &pl->pEmCatch->pos, pl->ang.y, 0.19634955f);
             pl->ang.y = LIMIT_ANGLE(pl->ang.y);
         }
         MotionMoveF(pl, 0);
@@ -2354,7 +2347,7 @@ void em35EscapeCamMove(cEm35* em)
 // effect under the stamp camera; when it ends a living player returns to the standing routine.
 static void plem35DmStamp(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.m_Timer = 10;
     switch (pl->r_no_2) {
     case 0:
@@ -2369,7 +2362,7 @@ static void plem35DmStamp(cPlayer* pl)
         EstSet((int) pl, -1, 0, 0, 0x2C, 0x11, 0, 0, (u32) pl, 0);
         pl->r_no_2++;
     case 1:
-        em35StampCamMove(PL_EM(pl));
+        em35StampCamMove((cEm35*)pl->pEmCatch);
         if (MotionMoveF(pl, 0)) {
             if ((s16) pG->pl_life > 0) {
                 EmRoutineSet(pPL, 1, 0, 0xA, 0);
@@ -2415,9 +2408,9 @@ static void em35_R1_br_Catch(cEm35* em)
     if (em->hp > 0 && (em->motEvent & 2) && em35CatchCk(em)) {
         VibSetData(VIB_TBL, 7, 1);
         if (em->motFlags & 0x40) {
-            em->stat = 0x010D0001;
+            EmRoutineSetW(em, 1, 0xD, 0, 1);
         } else {
-            em->stat = 0x010D0000;
+            EmRoutineSetW(em, 1, 0xD, 0, 0);
         }
     }
 }
@@ -2470,7 +2463,7 @@ static void em35_R1_CatchHit(cEm35* em)
         em->atari.clrFlag100();
         em35CatchPosSet(em);
         MotionSetCore(em, MOTION(em), ARC(0x34), (int) ARC(0x35), 5, 1, 0);
-        SetPlDamage((int) em, plem35_CatchHit);
+        SetPlDamage(em, plem35_CatchHit);
         PlSetDamageSe(0);
         w->timer = 15;
         w->timer2 = 40;
@@ -2536,8 +2529,8 @@ static void em35_R1_CatchHit(cEm35* em)
 // effect and impact sounds / rumble at frames 39 and 78, then (alive) the get-up in step 6.
 static void plem35_CatchHit(cPlayer* pl)
 {
-    BitOn(pG->Status_flg[1], 0x8000);
-    pl->subArc = PL_EM_G->subArc;
+    StaFlagOn(pG, STA_PL_CATCHED);
+    pl->subArc = pPL->pEmCatch->subArc;
     pl->dmg.m_Timer = 2;
     switch (pl->r_no_2) {
     case 0: {
@@ -2552,11 +2545,11 @@ static void plem35_CatchHit(cPlayer* pl)
         v.y = 0.0f;
         v.z = 1774.91f;
         pl->ang.x = 0.0f;
-        y = PL_EM(pl)->ang.y;
+        y = pl->pEmCatch->ang.y;
         pl->ang.z = 0.0f;
         pl->ang.y = y + PI;
         LIMIT_ANGLE(pl->ang.y);
-        PSMTXMultVec(PL_EM(pl)->mat, &v, &pl->pos);
+        PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x8C), 0, 5, 1, 0);
         PlSetFace(1);
         at->set(10, 480.00003f, 400.0f);
@@ -2565,8 +2558,8 @@ static void plem35_CatchHit(cPlayer* pl)
     }
     case 1:
         MotionMoveF(pl, 0);
-        pl->r_no_2 = PL_EM(pl)->r_no_2;
-        if (!EM_RTN(PL_EM_G, 1, 0xD)) {
+        pl->r_no_2 = pl->pEmCatch->r_no_2;
+        if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 0xD) {
             EndPlDamage();
             pl->dmg.set(0, 30);
         }
@@ -2579,11 +2572,11 @@ static void plem35_CatchHit(cPlayer* pl)
         v.y = 0.0f;
         v.z = 1014.0f;
         pl->ang.x = 0.0f;
-        y = PL_EM(pl)->ang.y;
+        y = pl->pEmCatch->ang.y;
         pl->ang.z = 0.0f;
         pl->ang.y = y + PI;
         LIMIT_ANGLE(pl->ang.y);
-        PSMTXMultVec(PL_EM(pl)->mat, &v, &pl->pos);
+        PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x8F), 0, 0, 1, 0);
         SndCall(1, 0x3D, &pPL->pos, pPL->id, 0, pPL);
         pl->r_no_2++;
@@ -2592,7 +2585,7 @@ static void plem35_CatchHit(cPlayer* pl)
         if (MotionMoveF(pl, 0)) {
             EndPlDamage();
             pl->dmg.set(0, 30);
-        } else if (!EM_RTN(PL_EM_G, 1, 0xD)) {
+        } else if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 0xD) {
             EndPlDamage();
             pl->dmg.set(0, 30);
         }
@@ -2605,11 +2598,11 @@ static void plem35_CatchHit(cPlayer* pl)
         v.y = 0.0f;
         v.z = 1014.0f;
         pl->ang.x = 0.0f;
-        y = PL_EM(pl)->ang.y;
+        y = pl->pEmCatch->ang.y;
         pl->ang.z = 0.0f;
         pl->ang.y = y + PI;
         LIMIT_ANGLE(pl->ang.y);
-        PSMTXMultVec(PL_EM(pl)->mat, &v, &pl->pos);
+        PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x8E), 0, 0, 1, 0);
         EstSet((int) pl, -1, 0, 0, 0x2C, 0xF, 0, 0, (u32) pl, 0);
         pl->r_no_2++;
@@ -2622,13 +2615,13 @@ static void plem35_CatchHit(cPlayer* pl)
             }
         } else {
             if (pl->frame > 38.7f && pl->frame < 39.3f) {
-                SndCall(8, 0x13, &pPL->pos, PL_EM(pl)->id, 0, pPL);
-                SndCall(8, 0x58, &pl->pos, PL_EM(pl)->id, 0, pl);
+                SndCall(8, 0x13, &pPL->pos, pl->pEmCatch->id, 0, pPL);
+                SndCall(8, 0x58, &pl->pos, pl->pEmCatch->id, 0, pl);
                 VibSetData(VIB_TBL, 0xB, 1);
             }
             if (pl->frame > 77.7f && pl->frame < 78.3f) {
-                SndCall(8, 0x14, &pPL->pos, PL_EM(pl)->id, 0, pPL);
-                SndCall(8, 0x59, &pl->pos, PL_EM(pl)->id, 0, pl);
+                SndCall(8, 0x14, &pPL->pos, pl->pEmCatch->id, 0, pPL);
+                SndCall(8, 0x59, &pl->pos, pl->pEmCatch->id, 0, pl);
                 VibSetData(VIB_TBL, 0xB, 1);
                 if ((s16) pG->pl_life <= 0) {
                     PlSetDamageSe(0xD);
@@ -4023,7 +4016,7 @@ int em35AtkCk(cEm35* em, u32 no, int parts)
                 SndCall(8, 0x11, &em->pos, em->id, 0, em);
                 break;
             case 2:
-                SetPlDamage((int) em, plem35DmStamp);
+                SetPlDamage(em, plem35DmStamp);
                 SndCall(8, 0x11, &em->pos, em->id, 0, em);
                 break;
             case 3:
@@ -4031,7 +4024,7 @@ int em35AtkCk(cEm35* em, u32 no, int parts)
                 break;
             case 4:
                 pPL->ang.y = GetXZAngle(&pPL->pos, &em->pos);
-                SetPlDamage((int) em, plem35DmHook);
+                SetPlDamage(em, plem35DmHook);
                 SndCall(8, 0x47, &em->pos, em->id, 0, em);
                 break;
             case 5:
@@ -4125,7 +4118,7 @@ int em35PlFallCk(cEm35* em)
         FSet(pPL->pos.x, d.x);
         pPL->pos.z = d.z;
         pPL->ang.y = atan2f(-nrm.x, -nrm.z);
-        SetPlDamage((int) em, plem35DmFall2F);
+        SetPlDamage(em, plem35DmFall2F);
         return 1;
     }
     return 0;
@@ -4175,7 +4168,7 @@ int em35CatchCk(cEm35* em)
     if (!(em->motEvent & 2)) {
         return 0;
     }
-    if (pG->Status_flg[1] & 0x8000) {
+    if (StaFlagChk(pG, STA_PL_CATCHED)) {
         return 0;
     }
     pos = pPL->pos;
@@ -4213,7 +4206,7 @@ void em35CatchPosSet(cEm35* em)
     };
     u8 kind[3] = { 0, 1, 2 };
 
-    if ((pG->room_id32 & 0xFFFF0000) == 0x011F0000) {
+    if (pG->stage_no == 1 && pG->room_no == 0x1F) {
         Vec pos;
         f32 best = 10000000000000000.0f;
         int no = 0;
@@ -5206,7 +5199,7 @@ void em35WeakMove(cEm35* em)
     }
     for (i = 0; i < 4; i++) {
         if (w->pWeak[i]) {
-            if ((pGS->Status_flg[1] & 0x04000000) && em->hp > 0) {
+            if (StaFlagChk(pGS, STA_THERMO_GRAPH) && em->hp > 0) {
                 w->pWeak[i]->be_flag |= 2;
             } else {
                 w->pWeak[i]->be_flag &= ~2;

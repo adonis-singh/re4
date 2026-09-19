@@ -18,11 +18,11 @@ u32 PlGetStatus();
 void PlSetCrouch();
 void PlSetHand(int type, int on);
 void SubCharSetHand(int no);
-void SetPlDamage(int type, void (*func)(cPlayer*));
+void SetPlDamage(cEm* em, void (*func)(cPlayer*));
 void EndPlDamage();
 void SetSubAux(int a, int b);
 void SetSubBulldozer(int a, int b);
-void SetSubDamage(int type, void* mot);
+void SetSubDamage(cEm* em, void* mot);
 void EndSubDamage();
 void SubCharInit(int type, Vec* pos, f32 ang);
 enum SCC_MODE {

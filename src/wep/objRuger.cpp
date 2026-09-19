@@ -97,7 +97,7 @@ void cObjRuger::moveFire()
             SndCall(2, 0, &pParts->world, 0, 0, 0);
             SndCall(2, 1, &pParts->world, 0, 0, 0);
             SndCall(2, 2, &pParts->world, 0, 0, 0);
-            pG->Status_flg[0] |= 0x00800000;
+            StaFlagOn(pG, STA_PL_FIRE);
         } else {
             SndCall(2, 0x18, &pParts->world, 0, 0, 0);
         }
@@ -205,31 +205,31 @@ void cObjRuger::setCartridge()
 // cPlayer::weaponInit / PlReloadBullet.
 void cObjRuger::setMotion(cPlayer* pl)
 {
-    PSet(pl->pMotTbl[0x00], WEP_ARC_PTR(0x0B));
-    PSet(pl->pMotTbl[0x01], WEP_ARC_PTR(0x0C));
-    PSet(pl->pMotTbl[0x02], WEP_ARC_PTR(0x11));
-    PSet(pl->pMotTbl[0x03], WEP_ARC_PTR(0x12));
-    PSet(pl->pMotTbl[0x06], WEP_ARC_PTR(0x15));
-    PSet(pl->pMotTbl[0x07], WEP_ARC_PTR(0x16));
-    PSet(pl->pMotTbl[0x08], WEP_ARC_PTR(0x13));
-    PSet(pl->pMotTbl[0x09], WEP_ARC_PTR(0x14));
-    PSet(pl->pMotTbl[0x0B], WEP_ARC_PTR(0x17));
-    PSet(pl->pMotTbl[0x0C], WEP_ARC_PTR(0x18));
-    PSet(pl->pMotTbl[0x0D], WEP_ARC_PTR(0x0D));
-    PSet(pl->pMotTbl[0x0E], WEP_ARC_PTR(0x0E));
-    PSet(pl->pMotTbl[0x0F], WEP_ARC_PTR(0x0F));
-    PSet(pl->pMotTbl[0x10], WEP_ARC_PTR(0x10));
-    PSet(pl->pMotTbl[0x5B], WEP_ARC_PTR(0x32));
-    PSet(pl->pMotTbl[0x57], WEP_ARC_PTR(0x33));
-    PSet(pl->pMotTbl[0x39], WEP_ARC_PTR(0x19));
-    PSet(pl->pMotTbl[0x3A], WEP_ARC_PTR(0x1A));
-    PSet(pl->pMotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
-    PSet(pl->pMotTbl[0x41], WEP_ARC_PTR(0x1B));
-    PSet(pl->pMotTbl[0x42], WEP_ARC_PTR(0x1C));
-    PSet(pl->pMotTbl[0x3F], WEP_ARC_PTR(0x1D));
-    PSet(pl->pMotTbl[0x40], WEP_ARC_PTR(0x1E));
-    PSet(pl->pMotTbl[0x5D], WEP_ARC_PTR(0x1F));
-    PSet(pl->pMotTbl[0x5E], WEP_ARC_PTR(0x20));
+    PSet(pl->m_MotTbl[0x00], WEP_ARC_PTR(0x0B));
+    PSet(pl->m_MotTbl[0x01], WEP_ARC_PTR(0x0C));
+    PSet(pl->m_MotTbl[0x02], WEP_ARC_PTR(0x11));
+    PSet(pl->m_MotTbl[0x03], WEP_ARC_PTR(0x12));
+    PSet(pl->m_MotTbl[0x06], WEP_ARC_PTR(0x15));
+    PSet(pl->m_MotTbl[0x07], WEP_ARC_PTR(0x16));
+    PSet(pl->m_MotTbl[0x08], WEP_ARC_PTR(0x13));
+    PSet(pl->m_MotTbl[0x09], WEP_ARC_PTR(0x14));
+    PSet(pl->m_MotTbl[0x0B], WEP_ARC_PTR(0x17));
+    PSet(pl->m_MotTbl[0x0C], WEP_ARC_PTR(0x18));
+    PSet(pl->m_MotTbl[0x0D], WEP_ARC_PTR(0x0D));
+    PSet(pl->m_MotTbl[0x0E], WEP_ARC_PTR(0x0E));
+    PSet(pl->m_MotTbl[0x0F], WEP_ARC_PTR(0x0F));
+    PSet(pl->m_MotTbl[0x10], WEP_ARC_PTR(0x10));
+    PSet(pl->m_MotTbl[0x5B], WEP_ARC_PTR(0x32));
+    PSet(pl->m_MotTbl[0x57], WEP_ARC_PTR(0x33));
+    PSet(pl->m_MotTbl[0x39], WEP_ARC_PTR(0x19));
+    PSet(pl->m_MotTbl[0x3A], WEP_ARC_PTR(0x1A));
+    PSet(pl->m_MotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
+    PSet(pl->m_MotTbl[0x41], WEP_ARC_PTR(0x1B));
+    PSet(pl->m_MotTbl[0x42], WEP_ARC_PTR(0x1C));
+    PSet(pl->m_MotTbl[0x3F], WEP_ARC_PTR(0x1D));
+    PSet(pl->m_MotTbl[0x40], WEP_ARC_PTR(0x1E));
+    PSet(pl->m_MotTbl[0x5D], WEP_ARC_PTR(0x1F));
+    PSet(pl->m_MotTbl[0x5E], WEP_ARC_PTR(0x20));
     pl->Body->initWepHand((u32) WEP_ARC_PTR(0xA));
     pl->setRightHand(1);
     pl->setLeftHand(4);

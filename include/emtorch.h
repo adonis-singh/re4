@@ -21,12 +21,13 @@ struct EmTorchWork {
     u8 Etc_no;             // 0x066 (0x446)  etc flag index (broken / taken flag)
 };
 
-#define EMTORCH_WK(em) ((EmTorchWork*) &(em)->x3E0)
+#define EMTORCH_WK(em) ((EmTorchWork*) (((cEmTorch*) (em))->free))
 
 // Torch enemy: a candle / brazier / lamp model that follows a parent's parts (setParent), burns
 // an effect (setEff) and breaks or falls when shot.
 class cEmTorch : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMTORCH_WK)
     virtual void move();
 
     void setBreak();

@@ -73,13 +73,13 @@ struct OSClock {
 
 void DebugControl()
 {
-    if ((pG->Debug_flg[2] & 0x40000000) && pG->debug_mode) {
+    if (DbgFlagChk(pG, DBG_PROC_BAR) && pG->debug_mode) {
         MemCheckUsedHeap();
         processBarDisp();
         PrimitiveBuffDisp();
         DC.dispDebug();
     }
-    if ((pG->Debug_flg[2] & 0x8000) && pG->debug_mode) {
+    if (DbgFlagChk(pG, DBG_PAD_INFO) && pG->debug_mode) {
         debugPadInfoDisp();
     }
     HALT(Joy[2].on == 0x1600);
@@ -117,7 +117,7 @@ void debugPadInfoDisp()
 #define PROG_Y(y) ((s16) ((f32) (s16) (y) / 1.3333334f + 56.0f))
 #define PROG_H(h) ((s16) ((f32) (s16) (h) / 1.3333334f))
 // Reference read of pSys: the load stays below the preceding tile stores.
-static inline SystemWork* SysRef(SystemWork*& p) { return p; }
+static inline SYSTEM_SAVE_WORK* SysRef(SYSTEM_SAVE_WORK*& p) { return p; }
 // Ticks -> 1/100 frame units (bus clock / 4 = tick rate, 60 frames per second)
 #define TICK_100F(t) ((f32) (t) * 60.0f / (f32) (clk->busClock >> 2) * 100.0f)
 #define TICK_1000F(t) ((f32) (t) * 60.0f / (f32) (clk->busClock >> 2) * 1000.0f)
@@ -164,7 +164,7 @@ void processBarDisp()
     t->c0.b = 0x20;
     t->c0.cd = 0xFF;
     t->h = x0;
-    if (SysRef(pSys)->flags & 0x40000000) {
+    if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
         t->y0 = PROG_Y(30);
         t->h = PROG_H(t->h);
     }
@@ -182,7 +182,7 @@ void processBarDisp()
     t->c0.b = 0x20;
     t->c0.cd = 0xFF;
     t->h = x1 - x0;
-    if (SysRef(pSys)->flags & 0x40000000) {
+    if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
         t->y0 = PROG_Y(t->y0);
         t->h = PROG_H(t->h);
     }
@@ -200,7 +200,7 @@ void processBarDisp()
     t->c0.b = 0x80;
     t->c0.cd = 0xFF;
     t->h = x2 - x0;
-    if (SysRef(pSys)->flags & 0x40000000) {
+    if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
         t->y0 = PROG_Y(t->y0);
         t->h = PROG_H(t->h);
     }
@@ -229,7 +229,7 @@ void processBarDisp()
     t->c0.b = 0x20;
     t->c0.cd = 0xFF;
     t->h = TICKX(proc_tick[3]) - x0;
-    if (SysRef(pSys)->flags & 0x40000000) {
+    if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
         t->y0 = PROG_Y(t->y0);
         t->h = PROG_H(t->h);
     }
@@ -246,7 +246,7 @@ void processBarDisp()
     t->c0.g = 8;
     t->c0.b = 0x20;
     t->c0.cd = 0xFF;
-    if (SysRef(pSys)->flags & 0x40000000) {
+    if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
         t->y0 = 78;
         t->h = 300;
     }
@@ -263,7 +263,7 @@ void processBarDisp()
     t->c0.g = 8;
     t->c0.b = 0x20;
     t->c0.cd = 0xFF;
-    if (SysRef(pSys)->flags & 0x40000000) {
+    if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
         t->y0 = 78;
         t->h = 300;
     }
@@ -346,7 +346,7 @@ void PrimitiveBuffDisp()
     if (pb->rate < rate) {
         pb->rate = rate;
     }
-    if (rate > 0.9f && !(pG->Debug_flg[1] & 0x00200000)) {
+    if (rate > 0.9f && !DbgFlagChk(pG, DBG_WARN_LEVEL_LOW)) {
         pLog->warn(0, 0, "PrimitiveBuff :  work remain under 1/10");
     }
 
@@ -364,7 +364,7 @@ void PrimitiveBuffDisp()
         t->c0.cd = 0xFF;
         t->z0 = 0;
         int z = 0;
-        if (SysRef(pSys)->flags & 0x40000000) {
+        if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
             t->y0 = 74;
             t->h = 3;
         }
@@ -381,7 +381,7 @@ void PrimitiveBuffDisp()
         t->c0.r = 0x14;
         t->c0.g = 0x14;
         t->c0.cd = 0xFF;
-        if (SysRef(pSys)->flags & 0x40000000) {
+        if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
             t->y0 = 74;
             t->h = 3;
         }
@@ -398,7 +398,7 @@ void PrimitiveBuffDisp()
         t->h = 4;
         t->c0.b = 0x14;
         t->c0.cd = 0xFF;
-        if (SysRef(pSys)->flags & 0x40000000) {
+        if (CfgFlagChk(SysRef(pSys), CFG_WIDE_MODE)) {
             t->y0 = 74;
             t->h = 3;
         }
@@ -423,9 +423,9 @@ void ConfigSet()
     int req;
     int ret;   // unused: the original's tests are plain `if (symbol_check(..))`; the line keeps __LINE__
 
-    BitOn(pG->Debug_flg[2], 0x40000000);
-    BitOn(pG->Debug_flg[2], 0x8000);
-    BitOff(pG->Debug_flg[3], 0x08000000);
+    DbgFlagOn(pG, DBG_PROC_BAR);
+    DbgFlagOn(pG, DBG_PAD_INFO);
+    DbgFlagOff(pG, DBG_SCISSOR_OFF);
     PlMode = 0;
     PlFormMode = 0;
     pG->JumpPoint = 0;
@@ -450,8 +450,8 @@ void ConfigSet()
                 p++;
             }
         } else if (symbol_check(&p, "BRIGHTNESS")) {
-            if (pRK->brightness == 0) {
-                pRK->brightness = num_get(&p);
+            if (pRK->base_brightness == 0) {
+                pRK->base_brightness = num_get(&p);
             }
         } else if (symbol_check(&p, "STAGE")) {
             pG->stage_no = num_get(&p);
@@ -466,53 +466,53 @@ void ConfigSet()
             pG->pl_type = num_get(&p);
         } else if (symbol_check(&p, "BGM")) {
             if (CFG_OFF3(p)) {
-                BitOn(pG->Debug_flg[2], 0x00100000);
+                DbgFlagOn(pG, DBG_BGM_STOP);
             } else {
-                BitOff(pG->Debug_flg[2], 0x00100000);
+                DbgFlagOff(pG, DBG_BGM_STOP);
             }
         } else if (symbol_check(&p, "SE")) {
             if (CFG_OFF3(p)) {
-                BitOn(pG->Debug_flg[2], 0x00080000);
+                DbgFlagOn(pG, DBG_SE_STOP);
             } else {
-                BitOff(pG->Debug_flg[2], 0x00080000);
+                DbgFlagOff(pG, DBG_SE_STOP);
             }
         } else if (symbol_check(&p, "SCENARIO")) {
             if (CFG_OFF3(p)) {
-                BitOn(pG->Debug_flg[2], 0x04000000);
+                DbgFlagOn(pG, DBG_NO_SCE_EXE);
             } else {
-                BitOff(pG->Debug_flg[2], 0x04000000);
+                DbgFlagOff(pG, DBG_NO_SCE_EXE);
             }
         } else if (symbol_check(&p, "NO_ENEMY")) {
             if (CFG_OFF3(p)) {
-                BitOff(pG->Debug_flg[2], 0x00200000);
+                DbgFlagOff(pG, DBG_NO_ENEMY);
             } else {
-                BitOn(pG->Debug_flg[2], 0x00200000);
+                DbgFlagOn(pG, DBG_NO_ENEMY);
             }
         } else if (symbol_check(&p, "ENEMY_SET")) {
             if (CFG_OFF3(p)) {
-                BitOn(pG->Debug_flg[2], 0x00200000);
+                DbgFlagOn(pG, DBG_NO_ENEMY);
             } else {
-                BitOff(pG->Debug_flg[2], 0x00200000);
+                DbgFlagOff(pG, DBG_NO_ENEMY);
             }
         } else if (symbol_check(&p, "ETC_SET")) {
             if (CFG_OFF3(p)) {
-                BitOn(pG->Debug_flg[3], 0x800);
+                DbgFlagOn(pG, DBG_NO_ETC_SET);
             } else {
-                BitOff(pG->Debug_flg[3], 0x800);
+                DbgFlagOff(pG, DBG_NO_ETC_SET);
             }
         } else if (symbol_check(&p, "PROCESS_BAR")) {
             if (CFG_OFF3(p)) {
-                BitOff(pG->Debug_flg[2], 0x40000000);
-                BitOff(pG->Debug_flg[2], 0x8000);
+                DbgFlagOff(pG, DBG_PROC_BAR);
+                DbgFlagOff(pG, DBG_PAD_INFO);
             } else {
-                BitOn(pG->Debug_flg[2], 0x40000000);
-                BitOn(pG->Debug_flg[2], 0x8000);
+                DbgFlagOn(pG, DBG_PROC_BAR);
+                DbgFlagOn(pG, DBG_PAD_INFO);
             }
         } else if (symbol_check(&p, "VIBRATION")) {
             if (symbol_check(&p, "OFF")) {
-                BitOff(pSys->flags, 0x08000000);
+                CfgFlagOff(pSys, CFG_VIBRATION);
             } else {
-                BitOn(pSys->flags, 0x08000000);
+                CfgFlagOn(pSys, CFG_VIBRATION);
             }
         } else if (symbol_check(&p, "BG_BLACK")) {
             if (symbol_check(&p, "ON")) {
@@ -528,7 +528,7 @@ void ConfigSet()
             }
         } else if (symbol_check(&p, "DBG_ESP_DISP")) {
             if (symbol_check(&p, "ON")) {
-                BitOn(pG->Debug_flg[3], 0x8000);
+                DbgFlagOn(pG, DBG_EFF_NUM_DISP);
             }
         } else if (symbol_check(&p, "GAME_MODE")) {
             if ((u32) ((u8) *p - '0') <= 9) {
@@ -566,40 +566,40 @@ void ConfigSet()
             if (symbol_check(&p, "DPL2")) {
                 mode = 2;
             }
-            if (mode != pSys->sound_mode) {
+            if (mode != pSys->SndMode) {
                 SndSetOutputMode(mode, 0);
             }
         } else if (symbol_check(&p, "WARNING_LOG")) {
             if (CFG_ON(p)) {
-                BitOff(pG->Debug_flg[3], 0x04000000);
+                DbgFlagOff(pG, DBG_LOG_OFF);
             } else {
-                BitOn(pG->Debug_flg[3], 0x04000000);
+                DbgFlagOn(pG, DBG_LOG_OFF);
             }
         } else if (symbol_check(&p, "PLAYER_MODE")) {
             PlMode = num_get(&p);
         } else if (symbol_check(&p, "SN_PC_READ")) {
             if (CFG_ON(p)) {
-                BitOn(pG->System_flg, 0x00020000);
+                SysFlagOn(pG, SYS_SN_PC_READ);
             } else {
-                BitOff(pG->System_flg, 0x00020000);
+                SysFlagOff(pG, SYS_SN_PC_READ);
             }
         } else if (symbol_check(&p, "SN_PC_READ_TOOL")) {
             if (CFG_ON(p)) {
-                BitOn(pG->System_flg, 0x00010000);
+                SysFlagOn(pG, SYS_SN_PC_READ_TOOL);
             } else {
-                BitOff(pG->System_flg, 0x00010000);
+                SysFlagOff(pG, SYS_SN_PC_READ_TOOL);
             }
         } else if (symbol_check(&p, "NO_DEATH")) {
             if (CFG_ON(p)) {
-                BitOn(pG->Debug_flg[2], 0x00800000);
+                DbgFlagOn(pG, DBG_NO_DEATH);
             } else {
-                BitOff(pG->Debug_flg[2], 0x00800000);
+                DbgFlagOff(pG, DBG_NO_DEATH);
             }
         } else if (symbol_check(&p, "OBJ_SERVER")) {
             if (CFG_ON(p)) {
-                BitOn(pG->Debug_flg[3], 0x01000000);
+                DbgFlagOn(pG, DBG_OBJ_SERVER);
             } else {
-                BitOff(pG->Debug_flg[3], 0x01000000);
+                DbgFlagOff(pG, DBG_OBJ_SERVER);
             }
         } else if (symbol_check(&p, "LANGUAGE")) {
             if (symbol_check(&p, "JPN")) {
@@ -628,51 +628,51 @@ void ConfigSet()
             }
         } else if (symbol_check(&p, "PUBLICITY_VER")) {
             if (CFG_ON(p)) {
-                BitOn(pG->System_flg, 8);
+                SysFlagOn(pG, SYS_PUBLICITY_VER);
             } else {
-                BitOff(pG->System_flg, 8);
+                SysFlagOff(pG, SYS_PUBLICITY_VER);
             }
         } else if (symbol_check(&p, "AIM_REVERSE")) {
             if (CFG_ON(p)) {
-                BitOn(pSys->flags, 0x80000000);
+                CfgFlagOn(pSys, CFG_AIM_REVERSE);
             } else {
-                BitOff(pSys->flags, 0x80000000);
+                CfgFlagOff(pSys, CFG_AIM_REVERSE);
             }
         } else if (symbol_check(&p, "WIDE_MODE")) {
             if (CFG_ON(p)) {
-                BitOn(pSys->flags, 0x40000000);
+                CfgFlagOn(pSys, CFG_WIDE_MODE);
             } else {
-                BitOff(pSys->flags, 0x40000000);
+                CfgFlagOff(pSys, CFG_WIDE_MODE);
             }
         } else if (symbol_check(&p, "AUTO_LOCK_ON")) {
             if (CFG_ON(p)) {
-                BitOn(pSys->flags, 0x20000000);
+                CfgFlagOn(pSys, CFG_LOCK_ON);
             } else {
-                BitOff(pSys->flags, 0x20000000);
+                CfgFlagOff(pSys, CFG_LOCK_ON);
             }
         } else if (symbol_check(&p, "SINGLE_DISK")) {
             if (CFG_ON(p)) {
-                BitOn(pG->Debug_flg[2], 0x02000000);
+                DbgFlagOn(pG, DBG_SINGLE_DISK);
             } else {
-                BitOff(pG->Debug_flg[2], 0x02000000);
+                DbgFlagOff(pG, DBG_SINGLE_DISK);
             }
         } else if (symbol_check(&p, "BUGCHECK_MODE")) {
             if (CFG_ON(p)) {
-                BitOn(pG->Debug_flg[2], 0x01000000);
+                DbgFlagOn(pG, DBG_BUGCHECK_MODE);
             } else {
-                BitOff(pG->Debug_flg[2], 0x01000000);
+                DbgFlagOff(pG, DBG_BUGCHECK_MODE);
             }
         } else if (symbol_check(&p, "LIGHT_CHECK")) {
             if (CFG_ON(p)) {
-                BitOn(pG->Debug_flg[2], 0x100);
+                DbgFlagOn(pG, DBG_LIGHT_ERR_CHECK);
             } else {
-                BitOff(pG->Debug_flg[2], 0x100);
+                DbgFlagOff(pG, DBG_LIGHT_ERR_CHECK);
             }
         } else if (symbol_check(&p, "TITLE_CHECK")) {
             if (CFG_ON(p)) {
-                BitOn(pG->Debug_flg[1], 0x00080000);
+                DbgFlagOn(pG, DBG_TITLE_CHECK);
             } else {
-                BitOff(pG->Debug_flg[1], 0x00080000);
+                DbgFlagOff(pG, DBG_TITLE_CHECK);
             }
         }
     }

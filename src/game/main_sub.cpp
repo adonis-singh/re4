@@ -213,7 +213,7 @@ void Render_done()
     }
     after_render_proc();
     Bg_brightness_set((f32) pSys->brightness);
-    if (pG->Debug_flg[2] & 0x08000000) {
+    if (DbgFlagChk(pG, DBG_SLOW_MODE)) {
         GXCopyDisp(pCurrent_buff, 0);
     } else {
         GXSetAlphaUpdate(1);
@@ -231,7 +231,7 @@ void Render_done()
 // Presents the current XFB (unless System_flg 0x400 holds the picture) and flips buffers.
 void Render_swap()
 {
-    if (!(pG->System_flg & 0x400)) {
+    if (!SysFlagChk(pG, SYS_SCREEN_STOP)) {
         VISetNextFrameBuffer(pCurrent_buff);
         if (pCurrent_buff == pFrame_buff[0]) {
             pCurrent_buff = pFrame_buff[1];
@@ -247,17 +247,17 @@ void Render_swap()
 void UpdateNearClipDist()
 {
     GlobalWork* g = pG;
-    if (!(g->Status_flg[1] & 0x1000)) {
+    if (!StaFlagChk(g, STA_NEARCLIP_TOUCH)) {
         FSet(ZNEAR, 100.0f);
     }
-    g->Status_flg[1] &= ~0x1000;
+    StaFlagOff(g, STA_NEARCLIP_TOUCH);
 }
 
 // Requests a different near clip distance for this frame (water/ filter copies).
 void SetNearClipDist(f32 dist)
 {
     FSet(ZNEAR, dist);
-    pG->Status_flg[1] |= 0x1000;
+    StaFlagOn(pG, STA_NEARCLIP_TOUCH);
 }
 
 // 1 in the game steps where post filters may run (Rno0 3 main loop, 4 door demo, 6 option).
@@ -275,7 +275,7 @@ void Render_DrawSyncCallback(u16 token)
 {
     if (token == 0xADEB) {
         ProcessTickGet(1, "RENDER END");
-        pG->System_flg |= 0x10000000;
+        SysFlagOn(pG, SYS_RENDER_END);
     }
 }
 
@@ -284,17 +284,17 @@ void systemVISetBlack(int black)
 {
     if (black == 1) {
         VISetBlack(1);
-        pG->System_flg |= 0x40000;
+        SysFlagOn(pG, SYS_SET_BLACK);
     } else {
         VISetBlack(0);
-        pG->System_flg &= ~0x40000;
+        SysFlagOff(pG, SYS_SET_BLACK);
     }
 }
 
 // Restores the normal scissor (full frame, or none when Status_flg[3] 0x10000000).
 void SetScissorState()
 {
-    if (pG->Status_flg[3] & 0x10000000) {
+    if (StaFlagChk(pG, STA_SCISSOR)) {
         GXSetScissor(0, 56, (u32) Screen.width, (u32) Screen.height - 111);
     } else {
         SetNoScissor();

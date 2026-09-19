@@ -84,20 +84,20 @@ void Wep17_init(cModel* m)
         pl->Wep->m_pWep = obj;
         obj->setMotion(pl);
         if (pG->weapon_no == 3) {
-            PSet(pl->pMotTbl[0x00], WEP_ARC_PTR(0x0A));
-            PSet(pl->pMotTbl[0x01], (void*) 0);
-            PSet(pl->pMotTbl[0x02], WEP_ARC_PTR(0x0D));
-            PSet(pl->pMotTbl[0x03], WEP_ARC_PTR(0x1D));
-            PSet(pl->pMotTbl[0x06], WEP_ARC_PTR(0x0F));
-            PSet(pl->pMotTbl[0x07], WEP_ARC_PTR(0x1F));
-            PSet(pl->pMotTbl[0x08], WEP_ARC_PTR(0x0E));
-            PSet(pl->pMotTbl[0x09], WEP_ARC_PTR(0x1E));
-            PSet(pl->pMotTbl[0x0B], WEP_ARC_PTR(0x10));
-            PSet(pl->pMotTbl[0x0C], WEP_ARC_PTR(0x20));
-            PSet(pl->pMotTbl[0x0D], WEP_ARC_PTR(0x0B));
-            PSet(pl->pMotTbl[0x0E], WEP_ARC_PTR(0x1B));
-            PSet(pl->pMotTbl[0x0F], WEP_ARC_PTR(0x0C));
-            PSet(pl->pMotTbl[0x10], WEP_ARC_PTR(0x1C));
+            PSet(pl->m_MotTbl[0x00], WEP_ARC_PTR(0x0A));
+            PSet(pl->m_MotTbl[0x01], (void*) 0);
+            PSet(pl->m_MotTbl[0x02], WEP_ARC_PTR(0x0D));
+            PSet(pl->m_MotTbl[0x03], WEP_ARC_PTR(0x1D));
+            PSet(pl->m_MotTbl[0x06], WEP_ARC_PTR(0x0F));
+            PSet(pl->m_MotTbl[0x07], WEP_ARC_PTR(0x1F));
+            PSet(pl->m_MotTbl[0x08], WEP_ARC_PTR(0x0E));
+            PSet(pl->m_MotTbl[0x09], WEP_ARC_PTR(0x1E));
+            PSet(pl->m_MotTbl[0x0B], WEP_ARC_PTR(0x10));
+            PSet(pl->m_MotTbl[0x0C], WEP_ARC_PTR(0x20));
+            PSet(pl->m_MotTbl[0x0D], WEP_ARC_PTR(0x0B));
+            PSet(pl->m_MotTbl[0x0E], WEP_ARC_PTR(0x1B));
+            PSet(pl->m_MotTbl[0x0F], WEP_ARC_PTR(0x0C));
+            PSet(pl->m_MotTbl[0x10], WEP_ARC_PTR(0x1C));
         }
         EspDataLoad((u32) WEP_ARC_PTR(0x4), 0x4B, 1);
         PlWepMot[0] = WEP_ARC_PTR(0x14);
@@ -158,7 +158,7 @@ static void wep17_r2_ready(cPlayer* pl)
     }
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -178,8 +178,8 @@ static void wep17_r2_ready(cPlayer* pl)
         pl->r_no_2 = 4;
         pl->r_no_3 = 0;
         pl->m_Work0 = 1;
-    } else if (pl->pLockEm) {
-        CamCtrlShoulderSetAim(&pl->pLockEm->pos);
+    } else if (pl->m_pEm) {
+        CamCtrlShoulderSetAim(&pl->m_pEm->pos);
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
         Vec hit;
@@ -256,7 +256,7 @@ static void wep17_r3_ready00(cPlayer* pl)
     obj->wep.mode = md;
     obj->wep.step = 0;
     AtariFlagsOr(WEP_ATARI(pl), 0x200);
-    if (pG->stage_no > 1 && pl->m_Work0 == 0 && (pG->Status_flg[3] & 0x08000000)) {
+    if (pG->stage_no > 1 && pl->m_Work0 == 0 && (StaFlagChk(pG, STA_SLOW))) {
         Vec nrm;
         Vec v0;
         Vec v1;
@@ -459,7 +459,7 @@ static void wep17_r2_set(cPlayer* pl)
     }
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if ((pl->flags_420 & 0x40) == 0) {
+        if ((pl->stat & 0x40) == 0) {
             wepDown(pl);
             return;
         }
@@ -660,7 +660,7 @@ static void wep17_r3_fire10(cPlayer* pl)
 }
 
 // Holster: footwork routine (r_no_1 0) sub-routine 2 with the weapon-down motion 0x15 when a
-// motion may be set (dmMotCk), else the idle with x4FD = 0xF; weapon object mode 3, its enemy
+// motion may be set (dmMotCk), else the idle with m_Hokan = 0xF; weapon object mode 3, its enemy
 // collision cleared, the waist twist unwound into ang.y.
 void wepDown(cPlayer* pl)
 {
@@ -674,11 +674,11 @@ void wepDown(cPlayer* pl)
         pl->r_no_3 = 0;
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
     obj = WEP_OBJ(pl);
@@ -732,7 +732,7 @@ static void wep17_r2_reload(cPlayer* pl)
                 pl->r_no_1 = 6;
                 pl->r_no_2 = 1;
                 pl->r_no_3 = 0;
-            } else if (pl->flags_420 & 0x40) {
+            } else if (pl->stat & 0x40) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -745,7 +745,7 @@ static void wep17_r2_reload(cPlayer* pl)
     }
 }
 
-// r_no_2 == 5: the next-target state (Key.trg bit5): turn to the lock target pLockEm. Step 0: a
+// r_no_2 == 5: the next-target state (Key.trg bit5): turn to the lock target m_pEm. Step 0: a
 // target within the waist limit is turned to by the waist alone (m_Fwork0, step 2 -> set state
 // step 1 when settled); farther round the body turns with a (missing, NULL) turn motion in step
 // 1 (0.314 rad per frame beyond 200 units, 10 frames on m_Work0) then -> set state. Another press
@@ -754,7 +754,7 @@ static void wep17_r2_reload(cPlayer* pl)
 static void wep17_r2_next(cPlayer* pl)
 {
     u8 step = pl->r_no_3;
-    cModel* em = pl->pLockEm;
+    cModel* em = pl->m_pEm;
     f32 ang;
 
     switch (step) {
@@ -812,9 +812,9 @@ static void wep17_r2_next(cPlayer* pl)
     if (Key.trg & 0x20) {
         Vec p = pl->getPartsPtr(3)->world;
 
-        em = SearchLockEm(&p, pl->pLockEm);
+        em = SearchLockEm(&p, pl->m_pEm);
         if (em) {
-            pl->pLockEm = em;
+            pl->m_pEm = em;
             pl->r_no_0 = 0;
             pl->r_no_1 = 6;
             pl->r_no_2 = 5;
@@ -826,7 +826,7 @@ static void wep17_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -909,7 +909,7 @@ static void wep17_r2_out(cPlayer* pl)
             int zero;
 
             zero = 0;
-            BitOn(pG->Status_flg[0], 0x00800000);
+            StaFlagOn(pG, STA_PL_FIRE);
             SndCall(2, 0, &pl->getPartsPtr(4)->world, 0, 0, 0);
             VibSetData((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc), 0, 1);
             EstSet((int) WEP_OBJ(pl), -1, 0, 0, 0x4B, 0, 0, 0xA, zero, 0);

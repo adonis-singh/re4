@@ -195,14 +195,14 @@ void Filter06Trans()
     if (flt06.num == 0) {
         return;
     }
-    if (pG->Status_flg[1] & 0x02000000) {
+    if (StaFlagChk(pG, STA_CAMERA_IN_ROOM)) {
         return;
     }
     PSVECSubtract(&pG->Cam.param.at, &pG->Cam.param.pos, &cam_vec_LR);
     PSVECCrossProduct(&cam_vec_LR, &pG->Cam.up, &cam_vec_LR);
 #line 246
     VECNormalize(&cam_vec_LR, &cam_vec_LR);
-    if (!(pG->Stop_flg & 0x08000000)) {
+    if (!SpfFlagChk(pG, SPF_ESP)) {
         for (i = 0; i < flt06.num; i++) {
             flt06.p[i].move();
         }

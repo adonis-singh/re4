@@ -284,8 +284,8 @@ void cObjRobo::R0WaitGondola(cObjRobo* robo)
         }
         MotionMove(robo, 0);
         robo->partsWorldCalc();
-        if (pl->flags_420 & 0x80) {
-            pl->setPos(&pl->evTarget2);
+        if (pl->stat & 0x80) {
+            pl->setPos(&pl->m_VecWork1);
         }
         for (i = 0; i < 2; i++) {
             robo->SatMove(robo, &ft[i], i);
@@ -731,7 +731,7 @@ static f32 roboDead2(f32 a)
 }
 
 // Moves the foot collision `side` (0 right / 1 left) to the foot position (2000 in -x) and carries
-// the player (unless flags_420 0x100; the camera quake offset follows) and the Ganados standing
+// the player (unless stat 0x100; the camera quake offset follows) and the Ganados standing
 // on it by the foot's displacement; also moves the hand-area dummy object.
 // Move the collision pieces of one side to the foot at `pos` and push the player / enemies
 // standing on it along.
@@ -757,7 +757,7 @@ void cObjRobo::SatMove(cObjRobo* robo, Vec* pos, int side)
     c.z = 0.0f;
     PSMTXMultVec(parts->mat, &c, &c);
     PSVECSubtract(&c, pos, &d);
-    if (!(pl->flags_420 & 0x100)) {
+    if (!(pl->stat & 0x100)) {
         if (SatMoveSub(pl, &a, &d) == 1) {
             pG->quake_ofs = d;
         }

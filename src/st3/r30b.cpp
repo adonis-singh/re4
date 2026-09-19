@@ -138,7 +138,7 @@ void R30bInit()
 #line 63 "D:/Bio4/Prog/r30b.cpp"
     r30b_work.p = (R30bWork*) MEM_CALLOC(sizeof(R30bWork), 1, 0xd);
     EvtMgr.SetFunc("evt_r30bs00_func", (void*) Evt_R30BS00_Func);
-    if (pG->Status_flg[3] & 0x04000000) {
+    if (StaFlagChk(pG, STA_SUB_ASHLEY)) {
         if (RsfCheck(G_ROOM_ID, 0) == 0) {
             SceAtDataSet_exec(3, 0x12, 0, (TaskFunc) R30bEventS00, 0, 1);
             EvtMgr.EvtReadAram("event/evd/r30bs00.evd", (u8) GetEmIdFromListI(0x56), 0, 0, 0);
@@ -149,7 +149,7 @@ void R30bInit()
         SceAtSetEnable(2, 1);
         SceAtSetEnable(3, 0);
     }
-    if ((pG->Status_flg[3] & 0x04000000) == 0 && RsfCheck(G_ROOM_ID, 2) == 0) {
+    if (StaFlagChk(pG, STA_SUB_ASHLEY) == 0 && RsfCheck(G_ROOM_ID, 2) == 0) {
         SceAtDataSet_exec(4, 0x12, 0, (TaskFunc) R30bCrane, 0, 1);
         SceAtDataSet_exec(0x10, 0x12, 0, (TaskFunc) R30bCraneEnd, 0, 1);
         SceAtSetEnable(6, 0);
@@ -211,7 +211,7 @@ void R30bInit()
     }
     r30b_work.p->tryLeft = 3;
     r30b_work.p->timer = 0;
-    if ((pGS->Status_flg[3] & 0x04000000) == 0) {
+    if (StaFlagChk(pGS, STA_SUB_ASHLEY) == 0) {
         r30b_work.p->em[0].setPtr(0x35, -1, 0);
         r30b_work.p->em[1].setPtr(0x36, -1, 0);
         r30b_work.p->em[2].setPtr(0x3F, -1, 0);
@@ -534,12 +534,14 @@ static void R30bCraneEnd()
     if (RsfCheck(G_ROOM_ID, 7) == 0) {
         RsfSet(G_ROOM_ID, 7);
         SceAtSetEnable(0x10, 0);
-        if ((int) pG->Room_flg[0] < 0 && (pG->Room_flg[0] & 0x40000000) == 0 && RsfCheck(G_ROOM_ID, 2) == 0) {
-            pG->Room_flg[0] |= 0x40000000;
-            SceExec(0x12, (TaskFunc) R30bEmGotoSet2, 0, 0, 2, 0);
-            RsfSet(G_ROOM_ID, 2);
-            SceAtSetEnable(4, 0);
-            SceAtSetEnable(6, 1);
+        if (pG->Room_flg[0] & 0x80000000) {
+            if ((pG->Room_flg[0] & 0x40000000) == 0 && RsfCheck(G_ROOM_ID, 2) == 0) {
+                pG->Room_flg[0] |= 0x40000000;
+                SceExec(0x12, (TaskFunc) R30bEmGotoSet2, 0, 0, 2, 0);
+                RsfSet(G_ROOM_ID, 2);
+                SceAtSetEnable(4, 0);
+                SceAtSetEnable(6, 1);
+            }
         }
     }
 }
@@ -603,7 +605,7 @@ static void R30bCrane()
             switch (c->step) {
             case 0:
                 ActBtn.set(0x14, 5, 0, 0, 2, 0xF, 0, 0);
-                pG->Stop_flg &= ~0x100;
+                SpfFlagOff(pG, SPF_ACTBTN);
                 if (Key.trg & 0x00040000) {
                     if (r30b_work.p->se) {
                         SndStop(r30b_work.p->se, 0);
@@ -705,7 +707,7 @@ static void R30bCrane()
                             }
                         }
                     }
-                    if ((int) pG->Room_flg[0] >= 0) {
+                    if (!(pG->Room_flg[0] & 0x80000000)) {
                         pG->Room_flg[0] |= 0x80000000;
                         SceExec(0x12, (TaskFunc) R30bEmSitDownSet, 0, 0, 2, 0);
                     }
@@ -908,7 +910,7 @@ static void R30bCrane()
                     EspDrawLaserLine2(&a, &b, 0xFF, 0, 0, 0x80);
                 }
             }
-            if ((int) pG->Room_flg[0] < 0) {
+            if (pG->Room_flg[0] & 0x80000000) {
                 r30b_work.p->timer++;
             }
             eprintf(0x40, 0x20, 0, 0, "TRY:[%2d:%2d] Timer:[%d/%d]", r30b_work.p->tryLeft, 3, r30b_work.p->timer, 700);
@@ -939,7 +941,7 @@ static void R30bEventS00()
         SceDestroyEm(0x10, 0x20);
         SceSleep(2);
         EvtMgr.EvtReadExec("event/evd/r30bs00.evd", (u8) GetEmIdFromListI(0x56), 0);
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         Vec pos = {-6200.0f, 0.0f, -26100.0f};
         Vec rot;
         r30b_memset(&rot, 0, sizeof(Vec));

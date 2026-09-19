@@ -34,10 +34,11 @@ struct Em23Work {
     cModelInfo* pWingInfo;   // 0x088 (0x468)  the wing model info (em23SetWing)
 };
 
-#define EM23_WK(em) ((Em23Work*) &(em)->x3E0)
+#define EM23_WK(em) ((Em23Work*) (((cEm23*) (em))->free))
 
 class cEm23 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM23_WK)
     virtual void move();
 };
 

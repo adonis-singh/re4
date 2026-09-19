@@ -51,7 +51,7 @@ static inline int r331_evtSkip(Event* e)
 }
 
 // Room init: the s00 / s10 callbacks; until Room_flg bit 0 area 3 = the s00 event (pre-loaded). With
-// Scenario_flg[0] 0x200 (the count-down phase): BGM table 0x331 set 2 and the s10 event task, the
+// Scenario_flg[1] 0x200 (the count-down phase): BGM table 0x331 set 2 and the s10 event task, the
 // count-down resumed; else BGM table 3 enabled.
 void R331Init()
 {
@@ -63,7 +63,7 @@ void R331Init()
         SceAtDataSet_exec(3, 0x12, 0, (TaskFunc) R331ExecEventS00, 0, 1);
         EvtMgr.EvtReadAram("event/evd/r331s00.evd", 0, 0, 0, 0);
     }
-    if (pG->Scenario_flg[0] & 0x200) {
+    if (ScfFlagChk(pG, SCF_R332_BOSS_DIE)) {
         SndBgmTblSetDisable(3, 0);
         SndBgmTblSet(0x331, 2);
         SceExec(0x12, (TaskFunc) R331ExecEventS10, 0, 2, 2, 0);
@@ -89,10 +89,10 @@ static void R331ExecEventS00()
         SceEventStart(0);
         EvtMgr.EvtReadExec("event/evd/r331s00.evd", 0, 0);
         SceEventEnd(0);
-        pG->Status_flg[3] |= 0x80000000;
+        StaFlagOn(pG, STA_SAVEDATA_NO_UPDATE);
         SubCharCtrl(2, 0);
-        BitOff(pG->Status_flg[3], 0x04000000);
-        pG->System_flg |= 0x400;
+        StaFlagOff(pG, STA_SUB_ASHLEY);
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         {
             Vec pos = {-42000.0f, 15800.0f, 46900.0f};
             Vec rot = {0.0f, 0.0f, 0.0f};
@@ -108,16 +108,16 @@ static void R331ExecEventS10()
 {
     if (RsfCheck(G_ROOM_ID, 1) == 0) {
         RsfSet(G_ROOM_ID, 1);
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         SceSleep(1);
         SceEventStart(0);
         EvtMgr.EvtReadExec("event/evd/r331s10.evd", 0, 0);
         SceEventEnd(0);
-        pG->Status_flg[3] |= 0x04000000;
+        StaFlagOn(pG, STA_SUB_ASHLEY);
         SndBgmTblSet(0x331, 1);
         SndRoomBgmStart(0, 0);
         SndRoomBgmStart(1, 0);
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         {
             Vec pos = {-646166.0f, -12718.0f, -588290.0f};
             Vec rot = {0.0f, -1.78f, 0.0f};
@@ -169,7 +169,7 @@ extern "C" void Evt_R331S00_Func(Event* e)
             obj->setPos(&w->pos);
             obj->setAng(&w->rot);
         }
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         break;
     }
 }
@@ -226,7 +226,7 @@ extern "C" void Evt_R331S10_Func(Event* e)
         }
         st3_setCountDownTimer(r331_work->timer - e->MaxTotalFrame);
         st3_startCountDown();
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         break;
     }
 }

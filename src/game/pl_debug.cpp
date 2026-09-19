@@ -28,30 +28,30 @@ u8 PlCapNum[25];
 // Cheat: no death (Debug_flg[2] 0x800000).
 void mahoMuteki()
 {
-    BitOn(pG->Debug_flg[2], 0x800000);
+    DbgFlagOn(pG, DBG_NO_DEATH);
     pLog->mes(0, 0, "NO DEATH ON");
 }
 
 // Cheat: infinite ammo (Debug_flg[2] 0x400000).
 void mahoInfBul()
 {
-    BitOn(pG->Debug_flg[2], 0x400000);
+    DbgFlagOn(pG, DBG_INF_BULLET);
     pLog->mes(0, 0, "INF BULLET ON");
 }
 
 // Cheat: collision skeleton display on (Debug_flg[0] / Disp_flg 0x8000000).
 void mahoSkelOn()
 {
-    BitOn(pG->Debug_flg[0], 0x8000000);
-    BitOn(pG->Disp_flg, 0x8000000);
+    DbgFlagOn(pG, DBG_SAT_DISP);
+    DpfFlagOn(pG, DPF_SCR);
     pLog->mes(0, 0, "SKELTON ON");
 }
 
 // Cheat: collision skeleton display off.
 void mahoSkelOff()
 {
-    BitOff(pG->Debug_flg[0], 0x8000000);
-    BitOff(pG->Disp_flg, 0x8000000);
+    DbgFlagOff(pG, DBG_SAT_DISP);
+    DpfFlagOff(pG, DPF_SCR);
     pLog->mes(0, 0, "SKELTON OFF");
 }
 
@@ -67,14 +67,14 @@ void mahoCallSc()
 // Cheat: kaiouken (speed-up) off.
 static void mahoKaiouOff()
 {
-    BitOff(pG->Debug_flg[2], 0x10000);
+    DbgFlagOff(pG, DBG_KAIOUKEN);
     pLog->mes(0, 0, "KAIOUKEN OFF");
 }
 
 // Cheat: kaiouken x2 (Debug_flg[2] 0x10000, PlKaiou 0).
 void mahoKaiou2()
 {
-    BitOn(pG->Debug_flg[2], 0x10000);
+    DbgFlagOn(pG, DBG_KAIOUKEN);
     PlKaiou = 0;
     pLog->mes(0, 0, "KAIOUKEN x2");
 }
@@ -82,7 +82,7 @@ void mahoKaiou2()
 // Cheat: kaiouken x3 (PlKaiou 1).
 void mahoKaiou3()
 {
-    BitOn(pG->Debug_flg[2], 0x10000);
+    DbgFlagOn(pG, DBG_KAIOUKEN);
     PlKaiou = 1;
     pLog->mes(0, 0, "KAIOUKEN x3");
 }
@@ -90,7 +90,7 @@ void mahoKaiou3()
 // Cheat: kaiouken x4 (PlKaiou 2).
 void mahoKaiou4()
 {
-    BitOn(pG->Debug_flg[2], 0x10000);
+    DbgFlagOn(pG, DBG_KAIOUKEN);
     PlKaiou = 2;
     pLog->mes(0, 0, "KAIOUKEN x4");
 }
@@ -228,7 +228,7 @@ void cPlayer::debugMove()
     emSearch();
     localCoordTest(this);
     EmYarareDisp(this);
-    if (pG->Debug_flg[2] & 0x10000000) {
+    if (DbgFlagChk(pG, DBG_OBA_VIEW)) {
         DrawOba(this);
     }
     if (PlDbFlag & 2) {
@@ -271,7 +271,7 @@ void PlWepMotSet(int no)
         mot = PlWepMot[2];
         break;
     case 3:
-        mot = pl->pMotTbl[0];
+        mot = pl->m_MotTbl[0];
         break;
     }
     MotionSetCore(pl, &pl->pMotion, mot, 0, 3, 5, 0);

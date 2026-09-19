@@ -30,13 +30,14 @@ struct EmMineWork {
     u8 EffKindId;           // 0x06B (0x44B)  EspPullCoreKind at creation (trail effect owner)
 };
 
-#define EMMINE_WK(em) ((EmMineWork*) &(em)->x3E0)
+#define EMMINE_WK(em) ((EmMineWork*) (((cEmMine*) (em))->free))
 
 // Mine / arrow enemy (game/emmine.cpp): the mine thrower's mine (type 0 / 1 homing) and the
 // crossbow arrow (type 2). Flies (R1_Shot / R1_ShotArrow), sticks to the scenario or an enemy
 // (R1_Set / R1_Parent), explodes (setBomb -> BombWait / BombWait2) or falls as a rope (R1_Fall).
 class cEmMine : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMMINE_WK)
     virtual void beginEvent();
     virtual void move();
 

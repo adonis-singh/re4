@@ -371,7 +371,7 @@ void EtcModelRoomInit()
 // Installs the room's etc archive table (per etc id); disabled by Debug_flg[3] 0x800.
 int EtcModelDataLoad(void* addr)
 {
-    if (pG->Debug_flg[3] & 0x800) {
+    if (DbgFlagChk(pG, DBG_NO_ETC_SET)) {
         return 0;
     }
     g_addr = addr;
@@ -390,7 +390,7 @@ int EtcModelListSet(EtcList* list)
     EtcSetData* d;
     u32 i;
 
-    if (pG->Debug_flg[3] & 0x800) {
+    if (DbgFlagChk(pG, DBG_NO_ETC_SET)) {
         return 0;
     }
     d = list->data;

@@ -88,6 +88,7 @@ public:
 // never defined, so no vtable is emitted here (em10.h is the em10 library's header).
 class cEmGanado : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMGANADO_WK)
     virtual void setHand(int no);                            // 0x50
     virtual void setWeaponFall();                            // 0x58
     virtual int ckFindPL();                                  // 0x60
@@ -121,6 +122,7 @@ public:
 // Enemy 0x2D (the dog): its own ckFindPL/ckResetEnable/setReset slots.
 class cEmDog : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMDOG_WK)
     virtual int ckFindPL();            // 0x50
     virtual int ckResetEnable();       // 0x58
     virtual void setReset(int a, int b); // 0x60
@@ -129,6 +131,7 @@ public:
 // Enemy 0x36: ckFindPL/setFindPL slots.
 class cEm36 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM36_WK)
     virtual void v50();
     virtual int ckFindPL();            // 0x58
     virtual void setFindPL();          // 0x60

@@ -48,11 +48,12 @@ struct EmBarrelWork {
     u8 Etc_no;             // 0x08D (0x46D)  etc flag index (broken flag)
 };
 
-#define EMBARREL_WK(em) ((EmBarrelWork*) &(em)->x3E0)
+#define EMBARREL_WK(em) ((EmBarrelWork*) (((cEmBarrel*) (em))->free))
 
 // Barrel enemy: explosive barrels (types 0/2) and the rolling burning barrel of room 227 (type 1).
 class cEmBarrel : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMBARREL_WK)
     virtual void move();
 
     void setEff(u8 eff);

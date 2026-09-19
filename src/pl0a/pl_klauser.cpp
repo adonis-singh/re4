@@ -90,28 +90,28 @@ cPlKlauser::cPlKlauser()
     krX7C0 = 0;
     x890 = 0;
     x894 = 1;
-    pGS->Status_flg[3] &= ~0x00800000;
+    StaFlagOff(pGS, STA_KLAUSER_TRANSFORM);
     pFootShadowTbl = pl_fs_tbl;
 }
 
-// Installs the character's event / action motions (pMotTbl 0x5F..0x6C from the player archive
+// Installs the character's event / action motions (m_MotTbl 0x5F..0x6C from the player archive
 // 0x32..0x3F); the weapon module fills the footwork slots.
 void cPlKlauser::setMotion()
 {
-    PSet(pMotTbl[0x5F], PL_ARC(0x32));
-    PSet(pMotTbl[0x60], PL_ARC(0x33));
-    PSet(pMotTbl[0x61], PL_ARC(0x34));
-    PSet(pMotTbl[0x62], PL_ARC(0x35));
-    PSet(pMotTbl[0x63], PL_ARC(0x36));
-    PSet(pMotTbl[0x64], PL_ARC(0x37));
-    PSet(pMotTbl[0x65], PL_ARC(0x38));
-    PSet(pMotTbl[0x66], PL_ARC(0x39));
-    PSet(pMotTbl[0x6B], PL_ARC(0x3A));
-    PSet(pMotTbl[0x6C], PL_ARC(0x3B));
-    PSet(pMotTbl[0x67], PL_ARC(0x3C));
-    PSet(pMotTbl[0x68], PL_ARC(0x3D));
-    PSet(pMotTbl[0x69], PL_ARC(0x3E));
-    PSet(pMotTbl[0x6A], PL_ARC(0x3F));
+    PSet(m_MotTbl[0x5F], PL_ARC(0x32));
+    PSet(m_MotTbl[0x60], PL_ARC(0x33));
+    PSet(m_MotTbl[0x61], PL_ARC(0x34));
+    PSet(m_MotTbl[0x62], PL_ARC(0x35));
+    PSet(m_MotTbl[0x63], PL_ARC(0x36));
+    PSet(m_MotTbl[0x64], PL_ARC(0x37));
+    PSet(m_MotTbl[0x65], PL_ARC(0x38));
+    PSet(m_MotTbl[0x66], PL_ARC(0x39));
+    PSet(m_MotTbl[0x6B], PL_ARC(0x3A));
+    PSet(m_MotTbl[0x6C], PL_ARC(0x3B));
+    PSet(m_MotTbl[0x67], PL_ARC(0x3C));
+    PSet(m_MotTbl[0x68], PL_ARC(0x3D));
+    PSet(m_MotTbl[0x69], PL_ARC(0x3E));
+    PSet(m_MotTbl[0x6A], PL_ARC(0x3F));
 }
 
 // Per-frame update: the common cPlayer::move, then the arm's idle effects (EstSet types 0 and
@@ -188,7 +188,7 @@ void cPlKlauser::transMove()
 {
     int step = 0x40;
 
-    if (pG->Status_flg[3] & 0x00800000) {
+    if (StaFlagChk(pG, STA_KLAUSER_TRANSFORM)) {
         alphaUp(krModel[1]);
         ALPHA_DOWN(krModel[0], step);
     } else {
@@ -237,7 +237,7 @@ void cPlKlauser::transMove()
 // pl_R1_KlauserAttack, x894 = -1 (glow off). Returns 1 when the routine was taken.
 int cPlKlauser::checkXbutton()
 {
-    if ((Joy[0].trg & 0x400) && !(pG->Status_flg[3] & 0x00800000) && x894 == 0) {
+    if ((Joy[0].trg & 0x400) && !StaFlagChk(pG, STA_KLAUSER_TRANSFORM) && x894 == 0) {
         pFuncAux = pl_R1_KlauserAttack;
         r_no_0 = 0;
         r_no_1 = 0xA;
@@ -470,7 +470,7 @@ static void pl_R1_KlauserAttack(cPlayer* pl)
     case 0:
         pl->motionSet(PL_ARC(0x8A), 5, 0, 1, 0);
         pl->x890 = 10;
-        BitOn(pGS->Status_flg[3], 0x00800000);
+        StaFlagOn(pGS, STA_KLAUSER_TRANSFORM);
         pl->Neck->motL = 0;
         DmgMgr.set(3, 0x1E, &pl->pos, 1000.0f, 2000.0f);
         EffectEspDelete(0, 0x3F, (u32) pl, 0);
@@ -519,7 +519,7 @@ static void pl_R1_KlauserAttack(cPlayer* pl)
         }
         if (MotionCheckCrossFrame(&pl->Motion, 30.0f)) {
             pl->x890 = 0x14;
-            BitOff(pGS->Status_flg[3], 0x00800000);
+            StaFlagOff(pGS, STA_KLAUSER_TRANSFORM);
         }
         if (pl->motionMove()) {
             pl->dmg.clear();
@@ -538,7 +538,7 @@ static void pl_R1_KlauserAttack(cPlayer* pl)
     case 0x1E:
         pl->motionSet(PL_ARC(0x89), 5, 0, 1, 0);
         pl->x890 = 0x14;
-        BitOff(pGS->Status_flg[3], 0x00800000);
+        StaFlagOff(pGS, STA_KLAUSER_TRANSFORM);
         pl->x894 = 1;
         EffectEspDelete(0, 0x3F, (u32) pl, 0);
         EffectEspgenDelete(0, 0x3F, (int) pl);

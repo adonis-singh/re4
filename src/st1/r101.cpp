@@ -71,7 +71,7 @@ struct PlPtr {
 #define pPLS (((PlPtr*) &pPL)->p)
 // Same for pSys (em10.cpp): the load stays below the preceding `ang = pPL->pos` copy stores (Event00).
 struct SystemWorkPtr {
-    SystemWork* p;
+    SYSTEM_SAVE_WORK* p;
 };
 #define pSysS (((SystemWorkPtr*) &pSys)->p)
 
@@ -127,12 +127,12 @@ static inline void r101_emDeadClear(int no)
     }
 }
 
-// Room init (the village, chapter 1-1): the ten reset-wave handles; first visit (Item_find_flg 0x2000)
+// Room init (the village, chapter 1-1): the ten reset-wave handles; first visit (Scenario_flg[0] 0x2000)
 // = typewriter + save; s21/s30 callbacks, floor hit effects, door 0xB lock models, rack ranges. Before
 // the bell (Room_flg bit 7): until the fight starts (bit 6) the find-player watcher, the Ganado voices
 // (area 0x13), the s00 binocular event (area 7), the kill counter, the door messages (areas 0/2); the
 // house event s21 on area 8 with the door watcher unless bit 8; the tower siege, chicken and terminal
-// tasks. After the bell: the post-fight layout, the stream watcher. Doors: area 1 until door_unlock[0]
+// tasks. After the bell: the post-fight layout, the stream watcher. Doors: area 1 until Key_flg[0]
 // 0x02000000, area 0x19 (door 102 with its key) until 0x20000000; item area 0xA3.
 void R101Init()
 {
@@ -153,8 +153,8 @@ void R101Init()
     PSet(r101_work->pEm[7], &r101_work->em[7]);
     PSet(r101_work->pEm[8], &r101_work->em[8]);
     PSet(r101_work->pEm[9], &r101_work->em[9]);
-    if (!(pG->Item_find_flg & 0x2000)) {
-        pG->Item_find_flg |= 0x2000;
+    if (!ScfFlagChk(pG, SCF_R101_ENTER)) {
+        ScfFlagOn(pG, SCF_R101_ENTER);
         SceExec(0x12, (TaskFunc) r101_execOperator2, 0, 0, SCE_PRIO_DEF_2, 0);
     }
     EvtMgr.SetFunc("evt_r101s21_func", (void*) Evt_R101S21_Func);
@@ -186,7 +186,7 @@ void R101Init()
             ((cObjLadder*) r101_work->ladder[2])->setOff();
         }
     }
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         SceAtSetEnable(0x20, 0);
     } else {
         Vec pos;
@@ -241,7 +241,7 @@ void R101Init()
         if (RsfCheck(G_ROOM_ID, 10) == 0) {
             SceExec(0x12, (TaskFunc) r101_execOperator, 0, 0, SCE_PRIO_DEF_2, 0);
         }
-        if (pG->Item_find_flg & 0x00200000) {
+        if (ScfFlagChk(pG, SCF_R106_EVENT)) {
             if (RsfCheck(G_ROOM_ID, 9) == 0) {
                 RsfSet(G_ROOM_ID, 9);
                 r101_emListOn(0x14);
@@ -267,10 +267,10 @@ void R101Init()
             SceExec(0x12, (TaskFunc) r101_checkFindPlayer, 1, 0, SCE_PRIO_DEF_2, 0);
         }
     }
-    if (!(pG->door_unlock[0] & 0x02000000)) {
+    if (!(pG->Key_flg[0] & 0x02000000)) {
         SceAtDataSet_exec(1, SCE_LEVEL10, 0, (TaskFunc) r101_DoorDontOpen3, 0, 1);
     }
-    if (!(pG->door_unlock[0] & 0x20000000)) {
+    if (!(pG->Key_flg[0] & 0x20000000)) {
         SceAtDataSet_exec(0x19, SCE_LEVEL10, 0, (TaskFunc) r101_checkDoor102, 0, 1);
         SceExec(0x12, (TaskFunc) r101_checkDoor102KeyUse, 0, 0, SCE_PRIO_DEF_2, 0);
     }
@@ -333,9 +333,9 @@ extern "C" void r101_setFlameBottle(Vec* from, Vec* to)
 static inline void r101_startEvent30()
 {
     RsfSet(G_ROOM_ID, 7);
-    BitOff(pG->Scenario_flg[0], 0x08000000);
-    BitOn(pG->door_flags_51CC, 0x200);
-    BitOn(pG->door_flags_51CC, 0x20);
+    ScfFlagOff(pG, SCF_R101_IMPRISON);
+    ScfFlagOn(pG, SCF_96);
+    ScfFlagOn(pG, SCF_9a);
     SceExec(0x12, (TaskFunc) r101_Event30, 0, 0, SCE_PRIO_DEF_2, 0);
     pG->Room_flg[0] |= 0x10000000;
 }
@@ -382,7 +382,7 @@ static void r101_checkEmNum()
             r101_startEvent30();
             return;
         }
-        if (pG->Status_flg[0] & 0x1000) {
+        if (StaFlagChk(pG, STA_EVENT)) {
             continue;
         }
         cnt++;
@@ -467,9 +467,9 @@ static void r101_Event30()
     cEm* ladder;
 
     RsfSet(G_ROOM_ID, 7);
-    BitOff(pG->Scenario_flg[0], 0x08000000);
-    BitOn(pG->door_flags_51CC, 0x200);
-    BitOn(pG->door_flags_51CC, 0x20);
+    ScfFlagOff(pG, SCF_R101_IMPRISON);
+    ScfFlagOn(pG, SCF_96);
+    ScfFlagOn(pG, SCF_9a);
     if (RsfCheck(G_ROOM_ID, 8) == 0) {
         SceAtSetEnable(8, 0);
         r101_work->evt21->setCommand(CMND_DEL_DATA, 0, 0);
@@ -487,7 +487,7 @@ static void r101_Event30()
         SceSleep(1);
     }
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SndRoomStrStop(3);
     SceDestroyEm(0x10, 0x20);
     SceSleep(2);
@@ -507,7 +507,7 @@ static void r101_Event30()
             while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
                 SceSleep(1);
             }
-            pG->System_flg &= ~0x400;
+            SysFlagOff(pG, SYS_SCREEN_STOP);
         }
     }
     BitOn(pG->Room_flg[0], 0x20000000);
@@ -639,7 +639,7 @@ static void r101_Event20()
     diff = r101_work->emNum - SceCountEmAlive(0x10, 0x20);
     SceAtSetEnable(8, 0);
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SndRoomStrStop(3);
     if (r101_work->evt21->waitLoadOk() == 0) {
         fail = 1;
@@ -681,7 +681,7 @@ static void r101_Event20()
                 }
                 SceSleep(1);
             }
-            BitOff(pG->System_flg, 0x400);
+            SysFlagOff(pG, SYS_SCREEN_STOP);
             MemorySwap(m->pArc, (u32) r101_work->evt21->m_addr, r101_work->evt21->m_size);
         }
     }
@@ -874,7 +874,7 @@ static void r101_checkDoor102KeyUse()
     }
     SndCall(6, 0x25, 0, 0, 0, 0);
     SceMesSet(0xB, 1, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-    pG->door_unlock[0] |= 0x20000000;
+    pG->Key_flg[0] |= 0x20000000;
     SceAtDataReset(0x19);
 }
 
@@ -928,9 +928,9 @@ static void r101_FindPlayer2()
 extern "C" void r101_FindPlayer()
 {
     RsfSet(G_ROOM_ID, 6);
-    BitOn(pG->Scenario_flg[0], 0x08000000);
-    BitOff(pG->door_flags_51CC, 0x200);
-    BitOff(pG->door_flags_51CC, 0x20);
+    ScfFlagOn(pG, SCF_R101_IMPRISON);
+    ScfFlagOff(pG, SCF_96);
+    ScfFlagOff(pG, SCF_9a);
     SceAtSetEnable(7, 0);
     r101_work->evt00->setCommand(CMND_DEL_DATA, 0, 0);
     setEm(0x22, -1, 1, 1, 1);
@@ -986,7 +986,7 @@ static void r101_Event00()
         if (r101_work->evt00->waitLoadOk() == 1) {
             ReadModule* m;
 
-            pG->System_flg |= 0x400;
+            SysFlagOn(pG, SYS_SCREEN_STOP);
             SceSleep(2);
             m = SearchEmModule(0x26);
             MemorySwap(m->pArc, (u32) r101_work->evt00->m_addr, r101_work->evt00->m_size);
@@ -1016,7 +1016,7 @@ static void r101_Event00()
     }
     pPL->dmg.set(0, 0x80);
     ang = pPL->pos;
-    if (pSysS->region == 0) {   // struct view: the pSys load stays below the `ang` copy stores
+    if (pSysS->eff_country == 0) {   // struct view: the pSys load stays below the `ang` copy stores
         at.x = 3492.0f;
         at.y = 1100.0f;
         at.z = 3695.0f;
@@ -1026,11 +1026,11 @@ static void r101_Event00()
         at.z = 2113.0f;
     }
     ang.y += 1750.0f;
-    pG->Stop_flg |= 0x100;
+    SpfFlagOn(pG, SPF_ACTBTN);
     SndCall(1, 2, 0, 0, 0, 0);
     CamCtrl.HoldBinocular(ROOM_ARC_PTR(pG->pRoom, 0x27), ROOM_ARC_PTR(pG->pRoom, 0x28), &ang, &at);
     CamCtrl.SetBinocularRange(-0.05992f, 0.2645f, -0.2532f, 0.14943f);
-    pG->Stop_flg |= 0x10000000;
+    SpfFlagOn(pG, SPF_PL);
     for (;;) {
         if (Key.trg & 0x40000000) {
             break;
@@ -1042,8 +1042,8 @@ static void r101_Event00()
     }
     pPL->dmg.clear();
     CamCtrl.LowerBinocular();
-    BitOff(pG->Stop_flg, 0x10000000);
-    BitOff(pG->Stop_flg, 0x100);
+    SpfFlagOff(pG, SPF_PL);
+    SpfFlagOff(pG, SPF_ACTBTN);
     pPL->cCoord::matUpdate();
     CamCtrl.m_QuasiFPS.setPlayerLocation(pPL->mat, pPL->pFloor_norm);
     CamCtrl.roomInit();

@@ -104,11 +104,12 @@ struct Em32Work {
     u8 mode;              // 0x993 (0xD73)  form: 0, 1 (parasite shown), 2 (last form)
 };
 
-#define EM32_WK(em) ((Em32Work*) &(em)->x3E0)
+#define EM32_WK(em) ((Em32Work*) (((cEm32*) (em))->free))
 #define EM32_BLEND_MOT(w) ((MotionWork*) &(w)->blendMot)
 
 class cEm32 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM32_WK)
     virtual void move();
     virtual void setNext(int no);
     virtual int getBreakNo();

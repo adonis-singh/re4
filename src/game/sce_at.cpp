@@ -121,22 +121,22 @@ static inline u32* eventFlags()
 // The item-found flag word (kind 2 of the flag areas).
 static inline u32* flags51BC()
 {
-    return &pG->Item_find_flg;
+    return &pG->Scenario_flg[0];
 }
 // Door unlock bits (SceAtDoor lockFlag).
 static inline u32* doorUnlock()
 {
-    return pG->door_unlock;
+    return pG->Key_flg;
 }
 // Global ITEM_SET flags (SceAtItem flagNo): the item was taken.
 static inline u32* itemFlags()
 {
-    return pG->item_flags;
+    return pG->Item_flg;
 }
-// Global item-found flags (item_flags[4..]): the item was seen / its area found.
+// Global item-found flags (Item_flg[4..]): the item was seen / its area found.
 static inline u32* itemFindFlags()
 {
-    return &pG->item_flags[4];
+    return &pG->Item_flg[4];
 }
 // pG->save_item as a pointer (the original adds the record offset to pG before the index).
 static inline ITEM_SAVE_WORK* saveItemTbl()
@@ -155,7 +155,7 @@ static inline u32 saveItemBase(int ofs)
 #define RAW_F32(p, ofs) (*(f32*) ((u32) (p) + (ofs)))
 #define RAW_U32(p, ofs) (*(u32*) ((u32) (p) + (ofs)))
 
-// em_dead row address as an integer (the original adds the list offset after the row index).
+// Em_flg row address as an integer (the original adds the list offset after the row index).
 static inline u32 emDeadRow(int n)
 {
     return n * 32 + (u32) pG + 0x501C;
@@ -440,23 +440,23 @@ void SceAtCheck()
     cEm* em;
 
     if (SceAtCheckHideActive() == 1) {
-        if (!(pG->Status_flg[0] & 0x00100000)) {
+        if (!StaFlagChk(pG, STA_DIEDEMO)) {
             SceAtCheckHideProc();
         }
     }
     sceAtLink_check();
-    if (pG->Stop_flg & 0x00400000) {
+    if (SpfFlagChk(pG, SPF_SCE_AT)) {
         return;
     }
     checkReleaseModelTbl();
     SceAtWorkLoopInit();
-    if (pG->Debug_flg[2] & 0x04000000) {
+    if (DbgFlagChk(pG, DBG_NO_SCE_EXE)) {
         return;
     }
     sceAtDebugDisp();
-    if ((s32) pG->Debug_flg[0] < 0) {
-        BitOff(pG->Status_flg[0], 0x40000000);
-        BitOff(pG->Status_flg[0], 0x20000000);
+    if (DbgFlagChk(pG, DBG_TEST_MODE)) {
+        StaFlagOff(pG, STA_PL_CHECK);
+        StaFlagOff(pG, STA_PL_CHECK2);
         return;
     }
     ItemMgr.flagclear();
@@ -464,10 +464,10 @@ void SceAtCheck()
     sceAtItemFindCheck();
     sceAtCamCtrlCheck();
     if ((s32) pS->stop < 0) {
-        if (pG->Status_flg[0] & 0x40000000) {
+        if (StaFlagChk(pG, STA_PL_CHECK)) {
             pS->stop &= 0x7FFFFFFF;
         } else {
-            pG->Status_flg[0] &= ~0x20000000;
+            StaFlagOff(pG, STA_PL_CHECK2);
         }
     }
     sceAtCheck_main(pPL, 1);
@@ -502,8 +502,8 @@ void SceAtCheck()
             sceAtCheck_main(em, 2);
         }
     }
-    BitOff(pG->Status_flg[0], 0x40000000);
-    BitOff(pG->Status_flg[0], 0x20000000);
+    StaFlagOff(pG, STA_PL_CHECK);
+    StaFlagOff(pG, STA_PL_CHECK2);
 }
 
 // Area test for one model: position + 250 and a point 550 ahead (wall-clipped for the player) are
@@ -536,10 +536,10 @@ int sceAtCheck_main(cEm* em, int type)
     front.z = 550.0f;
     PSMTXMultVec(em->mat, &front, &front);
     if (type & 1) {
-        if (pG->Status_flg[0] & 0x40000000) {
+        if (StaFlagChk(pG, STA_PL_CHECK)) {
             flag = 3;
         }
-        if (pG->Status_flg[0] & 0x20000000) {
+        if (StaFlagChk(pG, STA_PL_CHECK2)) {
             flag |= 4;
         }
         SatMgr.hitCheck(&pos, &front, &front, 0, 0, 0);
@@ -821,7 +821,7 @@ int CheckAshleyActive()
     if (pSUB == 0) {
         return 0;
     }
-    if (RouteCkPosToPosDis(&pPL->pos, &pSUB->pos) > 5000.0f || SceAtCheckHideActive() == 1 || (pG->Status_flg[2] & 0x20000000) ||
+    if (RouteCkPosToPosDis(&pPL->pos, &pSUB->pos) > 5000.0f || SceAtCheckHideActive() == 1 || (StaFlagChk(pG, STA_SUB_CATCHED)) ||
         (SubCharGetStatus() & 0x02000000)) {
         return 0;
     }
@@ -829,10 +829,10 @@ int CheckAshleyActive()
 }
 
 // May the player take a door now? Blocked when Ashley is present (and the "left behind" flag
-// Item_find_flg 0x80 is not set) but cannot follow.
+// Scenario_flg[0] 0x80 is not set) but cannot follow.
 int CheckDoorJumpWithAshley()
 {
-    if (pSUB != 0 && !(pG->Item_find_flg & 0x80)) {
+    if (pSUB != 0 && !ScfFlagChk(pG, SCF_NO_ASHLEY_DIST_CK)) {
         if (CheckAshleyActive() == 0) {
             return 0;
         }
@@ -889,7 +889,7 @@ static int sceAtFunc_door(SceAtWork* w, cModel* m)
     pG->Rno2 = 0;
     pG->Rno3 = 0;
     U16Set(pG->r_continue_cnt, 0);
-    BitOff(pG->System_flg, 0x40);
+    SysFlagOff(pG, SYS_START_EVT_SKIP);
     return 1;
 }
 
@@ -1048,8 +1048,8 @@ void releaseModel(SceAtWork* w, int keep)
             it->flag &= ~4;                               \
         }                                                 \
         releaseModel(w, 1);                               \
-        BitOff(pG->Status_flg[1], 2);                        \
-        BitOn(pG->Status_flg[2], 0x10000000);                \
+        StaFlagOff(pG, STA_ITEM_GET);                        \
+        StaFlagOn(pG, STA_CUT_CHANGE);                \
         SceSys.m_item_get = 0;                                   \
         SceUpCutEnd();                                    \
         return;                                           \
@@ -1085,7 +1085,7 @@ static void sceAtGetItem(SceAtWork* w_)
 
     SceUpCutStart();
     swep_flag = 0;
-    BitOn(pG->Stop_flg, 0x40000000);
+    SpfFlagOn(pG, SPF_CAMERA);
     itemInfo(it->id, &info);
     switch (info.type) {
     case 0:
@@ -1204,13 +1204,13 @@ static void sceAtGetItem(SceAtWork* w_)
     }
     sel = 0;
     cancel = 0;
-    BitOn(pG->Status_flg[1], 2);
+    StaFlagOn(pG, STA_ITEM_GET);
     disp_flag_bak = pG->Disp_flg;
     BitSet(pG->Disp_flg, -1);
-    BitOff(pG->Disp_flg, 0x00010000);
-    BitOff(pG->Disp_flg, 0x04000000);
-    BitOff(pG->Disp_flg, 0x00002000);
-    BitOff(pG->Disp_flg, 0x00000800);
+    DpfFlagOff(pG, DPF_COCKPIT);
+    DpfFlagOff(pG, DPF_ESP);
+    DpfFlagOff(pG, DPF_ID_SYSTEM);
+    DpfFlagOff(pG, DPF_MESSAGE);
     itemExam.init(w->item.id, model, 0);
     LightMgr.offScr(0x20);
     LightMgr.create(0, 9, -2, 0);
@@ -1310,14 +1310,14 @@ static void sceAtGetItem(SceAtWork* w_)
     }
     SceSys.m_item_get = 0;
     SceUpCutEnd();
-    BitOff(pG->Status_flg[1], 2);
-    BitOn(pG->Status_flg[2], 0x10000000);
+    StaFlagOff(pG, STA_ITEM_GET);
+    StaFlagOn(pG, STA_CUT_CHANGE);
 }
 
 #define ITEM_CANCEL_NOMODEL()                             \
     {                                                     \
         SceSys.m_item_get = 0;                                   \
-        BitOn(pG->Status_flg[2], 0x10000000);                \
+        StaFlagOn(pG, STA_CUT_CHANGE);                \
         SceUpCutEnd();                                    \
         return;                                           \
     }
@@ -1345,7 +1345,7 @@ static void sceAtGetItem_NoModel(SceAtWork* w)
 
     SceUpCutStart();
     pPL->setNoSuspend(1);
-    BitOff(pG->Disp_flg, 0x40000000);
+    DpfFlagOff(pG, DPF_PL);
     swep_flag = 0;
     // COMPILER-DIFF: 12 (sched2 rank in block 0): the `it->id` load after the swep_flag store ranks
     // `li r31,0` (cancel) above `addi r29,&w->item` in the prologue.
@@ -1538,7 +1538,7 @@ static void sceAtGetItem_NoModel(SceAtWork* w)
     }
     pPL->setNoSuspend(0);
     SceSys.m_item_get = 0;
-    BitOn(pG->Status_flg[2], 0x10000000);
+    StaFlagOn(pG, STA_CUT_CHANGE);
     SceUpCutEnd();
 }
 
@@ -1599,7 +1599,7 @@ static inline void RsfClear(u16 room, int no)
 #line 1400 "D:/Bio4/Prog/sce_at.cpp"
 
 // Type 4 handler (flag): sets or clears (flg.off) flag `no` of kind 0 event flags (Room_flg),
-// 1 room save flags, 2 Item_find_flg.
+// 1 room save flags, 2 Scenario_flg[0].
 static int sceAtFunc_flg(SceAtWork* w, cModel* m)
 {
     SceAtFlg* f = &w->flg;
@@ -1694,7 +1694,7 @@ void SceAtSetMes(SceAtMesData* m)
 // message 0x97 while Ashley is carried / away.
 static int sceAtFunc_save(SceAtWork* w, cModel* m)
 {
-    if (pSUB != 0 && ((pG->Status_flg[2] & 0x20000000) || (SubCharGetStatus() & 0x02000000))) {
+    if (pSUB != 0 && (StaFlagChk(pG, STA_SUB_CATCHED) || (SubCharGetStatus() & 0x02000000))) {
         cMes.MesSet(0x97, 0x64, MES_Y, 1, 0, 0, 4);
     } else {
         CardSave(w->value, 1);
@@ -2045,13 +2045,13 @@ FOUND:
                 SceKill(w->hide.func);
                 p = SceExec(0x12, (TaskFunc) w->hide.func, 1, 0, SCE_PRIO_DEF_2, 0);
             }
-            BitOff(pG->Stop_flg, 0x80000000);
+            SpfFlagOff(pG, SPF_KEY);
             SubCharCtrlHide(&pPL->pos, 0);
             if (w->hide.cut != 0) {
                 SceUpCutStart();
-                BitOff(pG->Disp_flg, 0x20000000);
+                DpfFlagOff(pG, DPF_SUBCHAR);
                 pSUB->setNoSuspend(1);
-                BitOff(pG->Stop_flg, 0x1000);
+                SpfFlagOff(pG, SPF_SUBCHAR);
                 if (p != 0) {
                     p->task->flag |= 2;
                 }
@@ -2887,7 +2887,7 @@ static void sceAtDebugDisp()
     // table, so the dst giv is numbered (and allocated, r8) before the src giv; the original has src in r8.
     int dead = 0;
 
-    if (pG->debug_mode != 0x11 && !(pG->Debug_flg[0] & 0x00400000)) {
+    if (pG->debug_mode != 0x11 && !DbgFlagChk(pG, DBG_SCE_AT_DISP)) {
         return;
     }
     w = sceAtSetOtStart();
@@ -3138,7 +3138,7 @@ int sceAtItemFlgCk(SceAtItem* it)
     return 0;
 }
 
-// Marks the item found (item_flags[4..] by flagNo, else the room record's found flags).
+// Marks the item found (Item_flg[4..] by flagNo, else the room record's found flags).
 void sceAtItemFindFlgOn(SceAtItem* it)
 {
     u16 no = it->flagNo;
@@ -3524,7 +3524,7 @@ void SceAtLinkEtcDead(int no, int etcNo, int on)
 }
 
 // Per frame: resolves the enemy / etc-model links — linkType 1 waits for the enemy from the list
-// (EM_STATUS_ITEMSET for items, inactive / dead otherwise, or its em_dead bit) and then enables or
+// (EM_STATUS_ITEMSET for items, inactive / dead otherwise, or its Em_flg bit) and then enables or
 // disables the area (a non-persistent dropped item also starts its disappear timer); an item still
 // linked to a living enemy is handed to it (SceAtSetEmItem); linkType 2 waits for the etc model to
 // break.

@@ -20,7 +20,7 @@ struct SceAtItem {
     cModel* pModel;   // 0x0C (0x68)  item model: a cObj (setItemObj) or a cEmItem (shoot-down item)
     Vec ofs;          // 0x10 (0x6C)  effect offset
     u16 id;           // 0x1C (0x78)  item id
-    u16 flagNo;       // 0x1E (0x7A)  ITEM_SET flag (pG->item_flags), 0 = use the room save flag
+    u16 flagNo;       // 0x1E (0x7A)  ITEM_SET flag (pG->Item_flg), 0 = use the room save flag
     u16 num;          // 0x20 (0x7C)
     u16 findFlagNo;   // 0x22 (0x7E)  room save flag of the "found" state (0 = none)
     u8 effType;       // 0x24 (0x80)  item glow effect colour (sceAtCheckItemEffectCol)

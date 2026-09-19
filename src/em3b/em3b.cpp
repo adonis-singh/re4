@@ -729,7 +729,7 @@ static void em3b_R1_Cart_Run(cEm3b* em)
             v.y += 1000.0f;
             zero = 0;
             PlWepHitCheck2(0, &v, &v, 0x13, 2, 6000.0f);
-            pG->Status_flg[0] |= 0x00800000;
+            StaFlagOn(pG, STA_PL_FIRE);
             EffectEspDelete(0, w->espKind, (u32) em, 0);
             EffectEspgenDelete(0, w->espKind, (int) em);
             EffectEfmDelete(0, w->espKind, (int) em);
@@ -794,7 +794,7 @@ static void em3b_R1_StopCart_Damage(cEm3b* em)
             PlWepHitCheck2(0, &v, &v, 0x13, 2, 6000.0f);
             v.y += 3000.0f;
             PlWepHitCheck2(0, &v, &v, 0x13, 2, 6000.0f);
-            pG->Status_flg[0] |= 0x00800000;
+            StaFlagOn(pG, STA_PL_FIRE);
             SndStop(w->sndId2, 0);
             SndCall(6, 0xA, &em->pos, 0, 0, em);
             EmRoutineSet(em, 1, 6, t, t);
@@ -867,7 +867,7 @@ void em3bRunDownCkTruck(cEm3b* em)
                 // reference store: pSUB and rot.y are re-read for LIMIT_ANGLE (a plain store is forwarded)
                 FSet(pSUB->ang.y, pSUB->ang.y + Muku(&pSUB->pos, &p->world, pSUB->ang.y, PI));
                 pSUB->ang.y = LIMIT_ANGLE(pSUB->ang.y);
-                SetSubDamage((int) em, (void*) subem3bRunDown);
+                SetSubDamage(em, (void*) subem3bRunDown);
                 SndCall(1, 0x4B, &pSUB->pos, 0, 0, 0);
                 break;
             }
@@ -957,7 +957,7 @@ static void subem3bRunDown()
 {
     cSubChar* sub = pSUB;
     int st = sub->r_no_2;
-    PlArc* arc = ((cEm*) sub->dmgType)->subArc;
+    PlArc* arc = sub->pEmCatch->subArc;
 
     sub->subArc = arc;
     switch (st) {

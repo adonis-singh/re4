@@ -10,7 +10,7 @@
 #include "em_wrap.h"
 
 // Room 3-0E (D:/Bio4/Prog/r30e.cpp): an island corridor whose enemy set switches once the key item
-// (item_flags[0] 0x40) is taken (the first six list entries die, the second six appear) and whose
+// (Item_flg[0] 0x40) is taken (the first six list entries die, the second six appear) and whose
 // stream changes from the plain room stream to the find-player battle stream.
 
 struct R30eWork {
@@ -23,14 +23,14 @@ static void r30e_checkEmSet();
 static void r30e_checkBgm();
 static void r30e_checkBgm2();
 
-// Room init: the enemy set by the item flag; the plain stream before the item (item_flags[0] 0x40) is
+// Room init: the enemy set by the item flag; the plain stream before the item (Item_flg[0] 0x40) is
 // taken, the find-player stream afterwards.
 void R30eInit()
 {
 #line 30 "D:/Bio4/Prog/r30e.cpp"
     r30e_work = (R30eWork*) MEM_CALLOC(sizeof(R30eWork), 1, 0xd);
     r30e_checkEmSet();
-    if (!(pG->item_flags[0] & 0x40)) {
+    if (!ItfFlagChk(pG, ITF_R309_KEY)) {
         SceExec(0x12, (TaskFunc) r30e_checkBgm, 0, 0, 2, 0);
     } else {
         SceExec(0x12, (TaskFunc) r30e_checkBgm2, 0, 0, 2, 0);
@@ -49,7 +49,7 @@ static void r30e_checkEmSet()
     u8 set[6] = {0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B};
     u32 i;
 
-    if (pGS->item_flags[0] & 0x40) {
+    if (ItfFlagChk(pGS, ITF_R309_KEY)) {
         for (i = 0; i < 6; i++) {
             EmListSetAlive(dead[i], 0);
         }

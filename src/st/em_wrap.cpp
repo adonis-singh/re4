@@ -319,7 +319,7 @@ void cEmWrap::initWork()
 // Report a failed access through pLog unless errOn is off or Debug_flg[1] bit 0x20000 silences it.
 void cEmWrap::err(const char* msg, int no)
 {
-    if (errOn == 1 && !(pG->Debug_flg[1] & 0x20000)) {
+    if (errOn == 1 && !DbgFlagChk(pG, DBG_EMW_ERR_NO_DISP)) {
         pLog->err(0, 0, msg, no);
     }
 }

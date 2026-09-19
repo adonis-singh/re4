@@ -48,10 +48,11 @@ struct Em25Work {
     u8 Atk_enable;         // 0x3AE (0x78E)  ckAtkEnable
 };
 
-#define EM25_WK(em) ((Em25Work*) &(em)->x3E0)
+#define EM25_WK(em) ((Em25Work*) (((cEm25*) (em))->free))
 
 class cEm25 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM25_WK)
     virtual void move();
     virtual int ckParent();          // 1 while no parent is set
     virtual void setParent(cEm* parent, int parts, Vec* pos, Vec* rot);

@@ -346,7 +346,7 @@ extern f32 ZFAR;
     {                                                                                             \
         u32 sysFlags = pG->Status_flg[1];                                                            \
         if ((!(sysFlags & 0x80) && (esp->m_Tool_flg & 0x8000)) ||                                      \
-            ((pG->Status_flg[1] & 0x80) && (esp->m_Tool_flg & 0x800000))) {                               \
+            (StaFlagChk(pG, STA_ALPHA_DRAW2) && (esp->m_Tool_flg & 0x800000))) {                               \
             GXSetAlphaUpdate(1);                                                                  \
         }                                                                                         \
     }                                                                                             \
@@ -398,7 +398,7 @@ void cEsp08::move()
             w->Scr_y += 1.0f;
         }
         if (w->Room_del_frame != 0) {
-            if (pG->Status_flg[1] & 0x02000000) {
+            if (StaFlagChk(pG, STA_CAMERA_IN_ROOM)) {
                 w->Room_del_cnt++;
             } else {
                 if (w->Room_del_cnt == 0) {
@@ -658,12 +658,12 @@ void Esp08_TransShimmer(cEsp08* esp, int type)
     ESP08_TEXCOORD_SET()
     if (ESP_PARTS_SCREEN(esp)) {
         ofs = 56.0f;
-    } else if (pG->System_flg & 0x800) {
+    } else if (SysFlagChk(pG, SYS_SCISSOR_ON)) {
         ofs = 56.0f;
     } else {
         ofs = 0.0f;
     }
-    if (pG->Status_flg[1] & 0x08000000) {
+    if (StaFlagChk(pG, STA_TEX_RENDER)) {
         ofs = 0.0f;
     }
     GXTexObj tex;
@@ -685,7 +685,7 @@ void Esp08_TransShimmer(cEsp08* esp, int type)
     Mtx tm;
     Mtx pm;
     if (ESP_PARTS_SCREEN(esp)) {
-        if (pG->Status_flg[1] & 0x08000000) {
+        if (StaFlagChk(pG, STA_TEX_RENDER)) {
             PSMTXConcat(Matrix1, esp->m_Mat, tm);
         } else {
             PSMTXConcat(Matrix2, esp->m_Mat, tm);
@@ -694,7 +694,7 @@ void Esp08_TransShimmer(cEsp08* esp, int type)
         GXSetTexCoordGen(0, 1, 0, 0x1E);
     } else {
         f32 fovy = pG->Cam.param.fovy;
-        if (pG->System_flg & 0x800) {
+        if (SysFlagChk(pG, SYS_SCISSOR_ON)) {
             C_MTXLightPerspective(pm, fovy, 1.3333334f, 0.5f, -0.6666667f, 0.5f, 0.5f);
         } else {
             C_MTXLightPerspective(pm, fovy, 1.3333334f, 0.5f, -0.5f, 0.5f, 0.5f);

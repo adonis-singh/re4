@@ -117,7 +117,7 @@ static void r228_execSalazarNeckDown()
     em1.setPtr(0x28, -1, 1);
     SceSleep(45);
     SceEventStart(1);
-    pG->Status_flg[2] |= 0x02000000;
+    StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     em0.setNoSuspend(1);
     em1.setNoSuspend(1);
     CamCtrl.CutCall(0xE);
@@ -127,7 +127,7 @@ static void r228_execSalazarNeckDown()
     em0.setNoSuspend(0);
     em1.setNoSuspend(0);
     CamCtrl.Comeback(0);
-    pG->Status_flg[2] &= ~0x02000000;
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     SceEventEnd(0);
     r228_work.p->se = 0;
 }
@@ -229,7 +229,7 @@ static void r228_checkSalazarBattle()
     SceEventEnd(0);
     EstSet(0, -1, 0, 0, 1, 4, 0, 0, 0, 0);
     RsfSet(G_ROOM_ID, 1);
-    pG->door_flags_51CC |= 0x10000000;
+    ScfFlagOn(pG, SCF_83);
     SceAtSetEnable(0x8C, 1);
     SatMgr.destroy(r228_work.p->sat);
     EatMgr.destroy(r228_work.p->eat);
@@ -243,9 +243,9 @@ static void r228_execEvent00()
     RsfSet(G_ROOM_ID, 0);
     SceEventStart(0);
     EvtMgr.EvtReadExec("event/evd/r228s00.evd", 0, 0);
-    if ((int) pG->Room_flg[0] >= 0) {
+    if (!(pG->Room_flg[0] & 0x80000000)) {
         EvtMgr.EvtReadExec("event/evd/r228s01.evd", 0, 0);
-        if ((int) pG->Room_flg[0] >= 0) {
+        if (!(pG->Room_flg[0] & 0x80000000)) {
             EvtMgr.EvtReadExec("event/evd/r228s02.evd", 0, 0);
         }
     }
@@ -344,7 +344,7 @@ void r228_initEvent00()
 // The effect setup shared by the three events (funcMode 0).
 static inline void r228_evtEffectSet()
 {
-    if (pG->Debug_flg[0] & 0x02000000) {
+    if (DbgFlagChk(pG, DBG_EVENT_TOOL)) {
         EffectDeleteAll();
         SstSet(1, 0xFFFF, 1, 0, 0x2F, 1);
         EspGenSetMoveLoop(200);
@@ -392,7 +392,7 @@ extern "C" void Evt_R228S00_Func(Event* e)
                 int skip = r228_evtSkip(e);
 
                 if (skip == 0) {
-                    pG->System_flg |= 0x400;
+                    SysFlagOn(pG, SYS_SCREEN_STOP);
                 }
             }
             if (e->NowFrame == 0) {
@@ -406,7 +406,7 @@ extern "C" void Evt_R228S00_Func(Event* e)
                 int skip = r228_evtSkip(e);
 
                 if (skip == 0) {
-                    pG->System_flg &= ~0x400;
+                    SysFlagOff(pG, SYS_SCREEN_STOP);
                 }
             }
             if (e->NowFrame == e->MaxFrame - 30) {
@@ -420,7 +420,7 @@ extern "C" void Evt_R228S00_Func(Event* e)
                 int skip = r228_evtSkip(e);
 
                 if (skip == 0) {
-                    pG->System_flg |= 0x400;
+                    SysFlagOn(pG, SYS_SCREEN_STOP);
                 }
             }
             break;
@@ -471,7 +471,7 @@ extern "C" void Evt_R228S01_Func(Event* e)
                 int skip = r228_evtSkip(e);
 
                 if (skip == 0) {
-                    pG->System_flg &= ~0x400;
+                    SysFlagOff(pG, SYS_SCREEN_STOP);
                 }
             }
         }

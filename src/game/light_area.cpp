@@ -48,7 +48,7 @@ struct LightAreaLauncher {
     cEm* rocket;  // 0x384
 };
 
-#define WEP_OBJ() (((LightAreaWep*) em->Wep)->pObj)
+#define WEP_OBJ() (((LightAreaWep*) ((cPlayer*) em)->Wep)->pObj)
 #define WEP_ROCKET(w) (((LightAreaLauncher*) (w))->rocket)
 
 // Sets a light-area flag bit (1 = active, 2 = inside an area).

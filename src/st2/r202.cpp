@@ -229,7 +229,7 @@ void R202Init()
             SceAtSetEnable(0x11, 0);
             SceAtSetEnable(0x15, 0);
             SceAtSetEnable(0x16, 1);
-            if ((pG->em_dead[2][1] & 0x8000) || (pG->em_dead[3][1] & 0x8000) || (pG->em_dead[4][0] & 2)) {
+            if ((pG->Em_flg[2][1] & 0x8000) || (pG->Em_flg[3][1] & 0x8000) || (pG->Em_flg[4][0] & 2)) {
                 switch (checkEmListNo(pG->room_id)) {
                 case 2:
                     EmListSetAlive(0x30, 0);
@@ -437,7 +437,7 @@ static void r202_operateCannon()
 
     SceEventStart(0);
     RsfSet(G_ROOM_ID, 1);
-    pG->door_flags_51C8 |= 0x8000;
+    ScfFlagOn(pG, SCF_70);
     r202_destroyCatapult();
     pPL->setNoSuspend(1);
     if (pSUB != 0) {
@@ -943,7 +943,7 @@ void cCatapult::move()
         break;
     case 2:
         if (rockSet == 1) {
-            if ((int) pG->Room_flg[0] < 0) {
+            if (pG->Room_flg[0] & 0x80000000) {
                 state = 3;
             }
         }

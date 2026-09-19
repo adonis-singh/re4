@@ -66,10 +66,11 @@ struct Em2fWork {
     u8 rndFlag;           // 0x5D0 (0x9B0)  Rnd() & 1 at creation, flipped by em2fRisingDragonCk
 };
 
-#define EM2F_WK(em) ((Em2fWork*) &(em)->x3E0)
+#define EM2F_WK(em) ((Em2fWork*) (((cEm2f*) (em))->free))
 
 class cEm2f : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2F_WK)
     virtual void move();
 };
 

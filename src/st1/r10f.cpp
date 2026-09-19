@@ -77,7 +77,7 @@ static void r10f_TreasureBoxOpen(int id);
 static void r10f_TreasureBoxOpened(int id);
 
 // Room init: the three locked doors (area 2 = the false-eye door with its key-use watcher, area 0 -> door
-// 0x11D, area 3 -> 0x11E, each until its door_unlock[0] bit), ten cObjGondola cars with their loop
+// 0x11D, area 3 -> 0x11E, each until its Key_flg[0] bit), ten cObjGondola cars with their loop
 // motions phase-shifted by 0x1C2 frames and per-car sub-motion works; area 7/8 = get on (side 0/1);
 // until Room_flg bit 0 (the ride done) area 9 = get off at side 1 and Ganados 0x32/0x35 get their
 // gondola-riding motions. Window 0xC starts broken; three locker item events and one treasure box.
@@ -95,14 +95,14 @@ void R10fInit()
     // the setSubMotion block is r10 too (its qty ahead of the work pointer's; ours reverses the two).
     register GlobalWork* g asm("r10");
     g = pG;
-    if (!(g->door_unlock[0] & 0x00800000)) {
+    if (!(g->Key_flg[0] & 0x00800000)) {
         SceAtDataSet_exec(2, SCE_LEVEL10, 0, (TaskFunc) r10f_DoorClose, 0, 1);
         SceExec(0x12, (TaskFunc) r10f_checkFalseEyeUse, 0, 0, SCE_PRIO_DEF_2, 0);
     }
-    if (!(pG->door_unlock[0] & 0x00010000)) {
+    if (!(pG->Key_flg[0] & 0x00010000)) {
         SceAtDataSet_exec(0, SCE_LEVEL10, 0, (TaskFunc) r10f_DoorClose, (void*) 0x11D, 1);
     }
-    if (!(pG->door_unlock[0] & 0x00080000)) {
+    if (!(pG->Key_flg[0] & 0x00080000)) {
         SceAtDataSet_exec(3, SCE_LEVEL10, 0, (TaskFunc) r10f_DoorClose, (void*) 0x11E, 1);
     }
     {
@@ -496,7 +496,7 @@ extern "C" void r10f_DoorOpen()
     pl->setNoSuspend(0);
     eye->be_flag &= ~2;
     SceEventEnd(0);
-    pG->door_unlock[0] |= 0x00800000;
+    pG->Key_flg[0] |= 0x00800000;
     SceAtDataReset(2);
 }
 

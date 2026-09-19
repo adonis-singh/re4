@@ -1177,7 +1177,7 @@ void cItemMgr::gameInit()
             get(0xB6, 1);
             get(0xB7, 1);
         }
-        if (pG->Debug_flg[3] & 0x00040000) {
+        if (DbgFlagChk(pG, DBG_START_ST3)) {
             get(0x48, 1);
             get(0x49, 1);
             get(0x4A, 1);
@@ -1188,7 +1188,7 @@ void cItemMgr::gameInit()
             get(0x4F, 1);
             get(0x50, 1);
             get(0xF4, 1);
-            if (pG->Debug_flg[3] & 0x00020000) {
+            if (DbgFlagChk(pG, DBG_START_LAST)) {
                 get(0xF5, 1);
                 get(0xF6, 1);
                 get(0xF7, 1);
@@ -1204,9 +1204,9 @@ void cItemMgr::gameInit()
             type = 1;
         }
     } else {
-        if ((s32) pG->System_flg < 0) {
+        if (SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
             set_ada(2);
-        } else if (pG->System_flg & 0x40000000) {
+        } else if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
             set_char(pG->pl_type);
         }
     }
@@ -1607,7 +1607,7 @@ void cItemMgr::construct(ItemWork* p, u16 id)
         switch (id) {
         case 0x40:
             p->id = 0x21;
-            if (pGS->Scenario_flg[0] & 0x8000) {
+            if (ScfFlagChk(pGS, SCF_ST1_SUB_PERFECT)) {
                 LV_FIRE_SET(p, 1);
             } else {
                 LV_FIRE_SET(p, 0);
@@ -1954,7 +1954,7 @@ int cItemMgr::use(ItemWork* p)
     case 0x17:
     case 0x35:
         p->num--;
-        if ((s32) pGS->Debug_flg[3] < 0) {
+        if (DbgFlagChk(pGS, DBG_INF_BULLET2)) {
             if (p->num != 0) {
                 return 1;
             }
@@ -2560,7 +2560,7 @@ int cItemMgr::reloadable(ItemWork* p, int flag)
                 ret = 1;
             }
         }
-        if ((s32) pG->Debug_flg[3] < 0) {
+        if (DbgFlagChk(pG, DBG_INF_BULLET2)) {
             ret = 1;
         }
     }
@@ -2590,7 +2590,7 @@ int cItemMgr::reload(ItemWork* p, int flag)
     if (ITEM_TYPE(id) != 1) {
         goto done;
     }
-    if ((s32) pG->Debug_flg[3] < 0) {
+    if (DbgFlagChk(pG, DBG_INF_BULLET2)) {
         setBullet(p, WeaponId2ChargeNum(id, LV_EX(p) + 1));
         return 0;
     }
@@ -2673,7 +2673,7 @@ int cItemMgr::trigger(ItemWork* p)
 {
     ItemInfo info;
 
-    if (pG->Debug_flg[2] & 0x00400000) {
+    if (DbgFlagChk(pG, DBG_INF_BULLET)) {
         return 1;
     }
     if (p == 0) {
@@ -2699,7 +2699,7 @@ int cItemMgr::trigger(ItemWork* p)
     }
     case 3:
     case 6:
-        if ((s32) pG->Debug_flg[3] < 0) {
+        if (DbgFlagChk(pG, DBG_INF_BULLET2)) {
             return 1;
         }
         if (p->id == 0x35) {
@@ -2819,7 +2819,7 @@ int cItemMgr::bulletNum(ItemWork* p)
     ItemInfo info;
     int n;
 
-    if ((s32) pG->Debug_flg[3] >= 0 && (pG->Debug_flg[2] & 0x00400000)) {
+    if (!DbgFlagChk(pG, DBG_INF_BULLET2) && (DbgFlagChk(pG, DBG_INF_BULLET))) {
         return 100;
     }
     if (p == 0) {

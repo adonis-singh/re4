@@ -67,7 +67,7 @@ void R22aInit()
     SmdSetTrans(0x50, 0);
     SceAtDataSet_exec(4, SCE_LEVEL10, 0, (TaskFunc) r22a_EleDown, 0, 1);
     SceAtDataSet_exec(5, SCE_LEVEL10, 0, (TaskFunc) r22a_EleUp, 0, 1);
-    if (pG->System_flg & 0x100) {
+    if (SysFlagChk(pG, SYS_LOAD_GAME)) {
         SmdGetObjPtr(0x4F)->be_flag |= 0x20;
         SmdGetObjPtr(0x4F)->pos.y = -8500.0f;
     }
@@ -96,7 +96,7 @@ static void r22a_RopeMove(int side)
 
     KeyStop(0xEFCF0000ULL);
     U32Set(pG->Stop_flg, 0xFFFFFFFF);
-    pG->Stop_flg &= ~0x00800000;
+    SpfFlagOff(pG, SPF_SCE);
     FadeSetW(2, 10, 0, 0);
     SceSleep(10);
     SmdSetTrans(0x2F, 0);
@@ -206,7 +206,7 @@ extern "C" void R22A_Event()
         EvtMgr.EvtReadExec("event/evd/r22as00.evd", 0, 0x50);
         SceSleep(1);
         SceEventEnd(0);
-        pG->Scenario_flg[0] |= 0x10000;
+        ScfFlagOn(pG, SCF_ST3_IN);
         SceAtInitSaveItem();
         SceSetChapterEnd(CHAPTER_4_4, 1);
     }
@@ -244,7 +244,7 @@ static void r22a_EleDown()
     pPL->setNoSuspend(1);
     SceEventStart(0);
     ((cUnitEventView*) pPL)->beginEvent(0);
-    pG->Disp_flg |= 0x02000000;
+    DpfFlagOn(pG, DPF_SHADOW);
     CamCtrl.CutCall(2);
     obj = SmdGetObjPtr(0x4F);
     BitOn(obj->be_flag, 0x20);
@@ -277,7 +277,7 @@ static void r22a_EleDown()
     pPL->pos.y = -8500.0f;
     SmdGetObjPtr(0x4F)->pos.y = -8500.0f;
     SceSleep(15);
-    pG->Disp_flg &= ~0x02000000;
+    DpfFlagOff(pG, DPF_SHADOW);
     SceEventEnd(0);
     ((cUnitEventView*) pPL)->endEvent(0);
     pPL->setNoSuspend(0);
@@ -292,7 +292,7 @@ static void r22a_EleUp()
     pPL->setNoSuspend(1);
     SceEventStart(0);
     ((cUnitEventView*) pPL)->beginEvent(0);
-    pG->Disp_flg |= 0x02000000;
+    DpfFlagOn(pG, DPF_SHADOW);
     CamCtrl.CutCall(4);
     obj = SmdGetObjPtr(0x4F);
     BitOn(obj->be_flag, 0x20);
@@ -325,7 +325,7 @@ static void r22a_EleUp()
     pPL->pos.y = 26500.0f;
     SmdGetObjPtr(0x4F)->pos.y = 26500.0f;
     SceSleep(15);
-    pG->Disp_flg &= ~0x02000000;
+    DpfFlagOff(pG, DPF_SHADOW);
     SceEventEnd(0);
     ((cUnitEventView*) pPL)->endEvent(0);
     pPL->setNoSuspend(0);

@@ -78,7 +78,7 @@ extern "C" void Evt_R11BS00_Func(Event* e);
 static void r11b_bort_pos_chk();
 
 // Room init (the lake shore / boat dock): System_flg 0x800; JumpPoint 1 (arriving by boat) marks the
-// s00 event seen (Room_flg bit 0); Item_find_flg 8 / 2, Scenario_flg[0] 0x01000000, three door flags
+// s00 event seen (Room_flg bit 0); Scenario_flg[0] 8 / 2, Scenario_flg[1] 0x01000000, three door flags
 // cleared. Water hit effects, thunder task; the boat enemy (ESL 0x3C) placed at the pier the return
 // position flag (bit 2) says; the s00 event on the first visit (bit 0), else the shore Ganado list is
 // rewritten (EmSetChange); until bit 1 area 3 = the shore ambush and the battle stream; the two water
@@ -92,23 +92,23 @@ void R11bInit()
     cObj* obj = 0;   // the zero of the EstSet data arguments and the list entry's x3 (r27)
     int one = 1;     // COMPILER-DIFF: #13 (single use: update_equiv_regs moves the li next to the store)
 
-    BitOn(pG->System_flg, 0x800);
+    SysFlagOn(pG, SYS_SCISSOR_ON);
     if (pG->JumpPoint == 1) {
         RsfSet(G_ROOM_ID, 0);
     }
     R11bWork*& wp = r11b_work.p;   // the store's `lis` sits before the SceExec call (r30)
     SceExec(0x12, (TaskFunc) r11b_bort_pos_chk, 0, 0, SCE_PRIO_DEF_2, 0);
-    BitOn(pG->Item_find_flg, 8);
+    ScfFlagOn(pG, SCF_R11B_END_SALAMANDER);
     // COMPILER-DIFF: candidate (sched1 issue-slot filler): the codeless asm depends on the flags
     // store (output dependence) and is issued in the idle cycle between it and the next pG reload,
     // so local-alloc's fake lifetimes of the two pG values no longer touch and both take r9 (the
     // original's `lwz r9; ... lwz r9`); without it the first load gets r11.
     asm("" : "=m"(rot2.x));
-    BitOn(pG->Item_find_flg, 2);
-    BitOn(pG->Scenario_flg[0], 0x01000000);
-    BitOff(pG->door_flags_51CC, 0x8000);
-    BitOff(pG->door_flags_51CC, 0x200);
-    BitOff(pG->door_flags_51CC, 0x10);
+    ScfFlagOn(pG, SCF_ST1_MAP_NIGHT);
+    ScfFlagOn(pG, SCF_ST1_NIGHT);
+    ScfFlagOff(pG, SCF_90);
+    ScfFlagOff(pG, SCF_96);
+    ScfFlagOff(pG, SCF_9b);
 #line 106 "D:/Bio4/Prog/r11b.cpp"
     wp = (R11bWork*) MEM_CALLOC(sizeof(R11bWork), 1, 0xd);
     EatMgr.registEffInfo(EAT_ET_WATER, (AtEffInfo*) &r11b_eff_info);
@@ -116,13 +116,13 @@ void R11bInit()
     EvtMgr.SetFunc("evt_r11bs00_func", (void*) Evt_R11BS00_Func);
     EstSet((int) pPL, -1, 0, 0, 3, 2, 0x800, 0, 0, obj);
     EstSet((int) pPL, -1, 0, 0, 1, 2, 0x800, 0, 0, obj);
-    BitOn(pG->Status_flg[1], 0x400);
+    StaFlagOn(pG, STA_ROOM_RAIN);
     if (RsfCheck(G_ROOM_ID, 0)) {
         SceExec(0x12, (TaskFunc) R11b_bgm_ck, 0, 0, SCE_PRIO_DEF_2, 0);
     }
     l = EM_LIST(0x3C);
     l->set = 0;
-    if (pG->room_id_prev == 0x10D && !(pG->System_flg & 0x100)) {
+    if (pG->room_id_prev == 0x10D && !SysFlagChk(pG, SYS_LOAD_GAME)) {
         static const Vec r11b_boatPos0 = {141127.0f, -1299.0f, -57107.0f};
         static const Vec r11b_boatRot0 = {0.0f, -0.68f, 0.0f};
 
@@ -401,22 +401,22 @@ static void R11b_Event()
 
     SceSleep(1);
     seen = 0;
-    BitOn(pG->System_flg, 0x400);
-    if (pG->System_flg & 0x40) {
+    SysFlagOn(pG, SYS_SCREEN_STOP);
+    if (SysFlagChk(pG, SYS_START_EVT_SKIP)) {
         seen = 1;
     }
-    BitOn(pG->Status_flg[1], 0x800);
-    if (!(pG->System_flg & 0x40)) {
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
+    if (!SysFlagChk(pG, SYS_START_EVT_SKIP)) {
         EvtMgr.EvtReadExec("event/evd/r11bs00.evd", 0, 4);
     }
-    BitOff(pG->System_flg, 0x400);
-    BitOff(pG->Status_flg[1], 0x800);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
     SndBgmTblSet(0x11B, 1);
     SceExec(0x12, (TaskFunc) R11b_bgm_ck, 0, 0, SCE_PRIO_DEF_2, 0);
     if (seen == 0) {
         OpeSetOpenTerm(8, 0.0f, 0.0f, 0.0f, 0.0f);
     }
-    if (pG->System_flg & 0x40) {
+    if (SysFlagChk(pG, SYS_START_EVT_SKIP)) {
         SndRoomBgmStart(0, 30);
     }
 }
@@ -448,7 +448,7 @@ static void r11b_str_check()
             if (n == 0) {
                 break;
             }
-            if (pG->Status_flg[1] & 0x00200000) {
+            if (StaFlagChk(pG, STA_PL_BOAT)) {
                 break;
             }
             SceSleep(1);
@@ -625,12 +625,12 @@ static void r11b_bort_pos_chk()
 {
     int riding = 0;
 
-    if (pG->Status_flg[1] & 0x00200000) {
+    if (StaFlagChk(pG, STA_PL_BOAT)) {
         riding = 1;
     }
     for (;;) {
         if (riding) {
-            if (!(pG->Status_flg[1] & 0x00200000)) {
+            if (!StaFlagChk(pG, STA_PL_BOAT)) {
                 Vec pos = r11b_work.p->boat->pos;
                 Vec pierA = {-49902.0f, -700.0f, 22743.0f};
                 Vec pierB = {126064.0f, -700.0f, 148628.0f};
@@ -646,7 +646,7 @@ static void r11b_bort_pos_chk()
                     RsfClear(G_ROOM_ID, 2);
                 }
             }
-        } else if (pG->Status_flg[1] & 0x00200000) {
+        } else if (StaFlagChk(pG, STA_PL_BOAT)) {
             riding = 1;
         }
         SceSleep(1);

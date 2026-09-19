@@ -90,7 +90,7 @@ static void wep07_r3_ready00(cPlayer* pl)
     pl->Neck->init(0, 0, 0);
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     hokan = 4;
-    if (!(pl->flags_420 & 0x40)) {
+    if (!(pl->stat & 0x40)) {
         hokan = 5;
     }
     mot = PL_ARC(0x8B);
@@ -205,7 +205,7 @@ static void wep07_r3_fire10(cPlayer* pl)
 }
 
 // Holster: footwork routine (r_no_1 0) sub-routine 2 with the player archive's down motion 0x8C
-// when a motion may be set (dmMotCk), else the idle with x4FD = 0xF.
+// when a motion may be set (dmMotCk), else the idle with m_Hokan = 0xF.
 void wepDown(cPlayer* pl)
 {
     pl->motionMove();
@@ -220,7 +220,7 @@ void wepDown(cPlayer* pl)
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
-        pl->x4FC = 0;
+        pl->m_Hokan = 0xF;
+        pl->m_Frame = 0;
     }
 }

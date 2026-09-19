@@ -38,7 +38,7 @@ int file_open(const char* name, int mode)
 {
     int fd;
 
-    if (pG->System_flg & 0x20000) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ)) {
         if (mode == 0 || mode == 2) {
             fd = PCcreat(name, 0);
             if (fd == -1) {
@@ -63,7 +63,7 @@ int file_close(int fd)
 {
     int ret;
 
-    if (pG->System_flg & 0x20000) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ)) {
         if (PCclose(fd) != 0) {
             ret = -1;
             return ret;
@@ -80,7 +80,7 @@ int file_read(int fd, void* buf, int size)
 {
     int ret = 0;
 
-    if (pG->System_flg & 0x20000) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ)) {
         ret = PCread(fd, buf, size);
     }
     return ret;
@@ -91,7 +91,7 @@ int file_write(int fd, const void* buf, int size)
 {
     int ret = 0;
 
-    if (pG->System_flg & 0x20000) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ)) {
         ret = PCwrite(fd, buf, size);
     }
     return ret;
@@ -102,7 +102,7 @@ int file_seek(int fd, int offset, int whence)
 {
     int ret = -1;
 
-    if (pG->System_flg & 0x20000) {
+    if (SysFlagChk(pG, SYS_SN_PC_READ)) {
         ret = PClseek(fd, offset, whence);
     }
     return ret;
@@ -113,7 +113,7 @@ int file_exist(const char* name)
 {
     int fd;
 
-    if (!(pG->System_flg & 0x20000)) {
+    if (!SysFlagChk(pG, SYS_SN_PC_READ)) {
         return 0;
     }
     fd = PCopen(name, 0, 0);
@@ -129,7 +129,7 @@ int file_path(const char* dir)
 {
     char buf[64];
 
-    if (!(pG->System_flg & 0x20000)) {
+    if (!SysFlagChk(pG, SYS_SN_PC_READ)) {
         return 0;
     }
     sprintf(buf, "SETROOT:%s", dir);

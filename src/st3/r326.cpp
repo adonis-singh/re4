@@ -78,7 +78,7 @@ static void r326_DoorLock()
 // Light set of the bag: the dark-room set while the lights are off.
 void set_bag_eid()
 {
-    if (pG->Status_flg[1] & 0x04000000) {
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
         r326_work->bag->LightInfo.EnableMask = 0x80;
     } else {
         r326_work->bag->LightInfo.EnableMask = 0x10;

@@ -60,7 +60,7 @@ void cObj01::move00()
         if (w->estNo0 != -1 && w->est != -1) {
             switch (w->eff_action) {
             case 1:
-                BitOn(pG->Status_flg[0], 0x800000);
+                StaFlagOn(pG, STA_PL_FIRE);
                 if (GetWaterHeight(&pos, &wh) && pos.y <= wh) {
                     EstSet(0, -1, &pos, 0, w->estNo3, (u8) w->est4, 0, 0, 0, 0);
                     AddWaterPower(&pos, 1.0f);
@@ -70,13 +70,13 @@ void cObj01::move00()
                     SndCall(1, 0x14, &pos, 0, 0, 0);
                 }
                 PlWepHitCheck2(0, &pos, &pos, 0x13, 0, 6000.0f);
-                BitOn(pG->Status_flg[1], 0x20000000);
+                StaFlagOn(pG, STA_SE_BURST);
                 memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
                 pG->bell_stat = 1;
                 ObjMgr.destroy(this);
                 return;
             case 2:
-                BitOn(pG->Status_flg[0], 0x800000);
+                StaFlagOn(pG, STA_PL_FIRE);
                 EstSet(0, -1, &pos, 0, w->estNo0, (u8) w->est, 0, 0, 0, 0);
                 EstSet(0, -1, &pos, 0, w->estNo1, (u8) w->est2, 0, 0, 0, 0);
                 SndCall(1, 0x15, &pos, 0, 0, 0);
@@ -89,7 +89,7 @@ void cObj01::move00()
                 r_no_0 = 1;
                 return;
             case 3:
-                BitOn(pG->Status_flg[0], 0x800000);
+                StaFlagOn(pG, STA_PL_FIRE);
                 EstSet(0, -1, &pos, 0, w->estNo0, (u8) w->est, 0, 0, 0, 0);
                 EstSet((int) this, -1, 0, 0, w->estNo1, (u8) w->est2, 0, 0, (u32) this, 0);
                 SndCall(6, 0, &pos, 0, 0, 0);

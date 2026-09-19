@@ -426,7 +426,7 @@ int cLightMgr::move()
     }
     hokanMove();
     dieCheck();
-    pG->Status_flg[1] |= 0x200;
+    StaFlagOn(pG, STA_USE_CAST_SHADOW);
     func = lightMove;
     l = pAlive;
     while (l) {
@@ -468,7 +468,7 @@ void lightMove(cLight* l)
     cModel* p = l->pParent;
     cModel* em;
 
-    if (p != 0 && !IS_ALIVE(p) && !(pG->Debug_flg[0] & 0x80000000)) {
+    if (p != 0 && !IS_ALIVE(p) && !DbgFlagChk(pG, DBG_TEST_MODE)) {
         if (IS_ALIVE(l)) {
             LightMgr.destroy(l);
         }
@@ -537,8 +537,8 @@ void cLightMgr::setModel2(cModel* m)
         if (m->id == 2 && (((cObj*) m)->x3D0 & 1) && (l->Attribute & 4)) {
             continue;
         }
-        if (i <= 31 && !((1 << i) & m->LightInfo.SelectMask) && !(pG->Status_flg[1] & 0x01000000)) {
-            if (!(pG->Status_flg[1] & 0x04000000)) {
+        if (i <= 31 && !((1 << i) & m->LightInfo.SelectMask) && !StaFlagChk(pG, STA_NO_LIGHTMASK)) {
+            if (!StaFlagChk(pG, STA_THERMO_GRAPH)) {
                 continue;
             }
         }
@@ -549,11 +549,11 @@ void cLightMgr::setModel2(cModel* m)
             continue;
         }
         parent = l->pParent;
-        if ((pG->Status_flg[1] & 0x10000000) && parent != 0 && !(parent->be_flag & 0x800)) {
+        if (StaFlagChk(pG, STA_SUSPEND) && parent != 0 && !(parent->be_flag & 0x800)) {
             continue;
         }
         if (n > 7) {
-            if (pG->Debug_flg[2] & 0x100) {
+            if (DbgFlagChk(pG, DBG_LIGHT_ERR_CHECK)) {
                 pLog->warn(6, 3, "MODEL'S LIGHT OVER 8 !! [%08X]", m);
             }
             m->error();
@@ -595,7 +595,7 @@ void cLightMgr::setCloth(cModel* m)
             continue;
         }
         if (n > 7) {
-            if (pG->Debug_flg[2] & 0x100) {
+            if (DbgFlagChk(pG, DBG_LIGHT_ERR_CHECK)) {
                 pLog->warn(6, 3, "MODEL'S LIGHT OVER 8 !! [%08X]", m);
             }
             m->error();
@@ -722,12 +722,12 @@ int cLightMgr::update(int cut_no, int hokan)
     u32 n;
     u32 i;
 
-    if (pG->Status_flg[2] & 0x00400000) {
+    if (StaFlagChk(pG, STA_LIT_NO_UPDATE)) {
         cut_no = m_oldCutNo;
     } else {
         m_oldCutNo = cut_no;
     }
-    if (pG->Status_flg[1] & 0x04000000) {
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
         return 0;
     }
     if (!VALID_PTR(pLitHeader)) {
@@ -875,7 +875,7 @@ void cLightMgr::setFog()
     LightFog* fog = &LightEnv.Fog;
     u8 c = 0;
 
-    if ((pG->Disp_flg & 0x4000) || (pG->Status_flg[1] & 0x04000000)) {
+    if (DpfFlagChk(pG, DPF_FOG) || (StaFlagChk(pG, STA_THERMO_GRAPH))) {
         GXColor black;
         black.r = black.g = black.b = black.a = c;
         GXSetFog(0, 0.0f, 0.0f, ZNEAR, ZFAR, black);
@@ -1347,7 +1347,7 @@ int cLight::calcPos(Vec* src, Vec* dst)
         no = ParentNo & 0xFFFF;
         if (getRoomEtcOnLight(ParentNo, &p, 0) == 0) {
             p = 0;
-            if (!(pG->Debug_flg[0] & 0x80000000)) {
+            if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "Lit:calcPos() %d-%d ETCMODEL PARENT NOT FOUND", no, partsNo);
             }
         } else if (p != 0 && IS_ALIVE(p) && partsNo < p->nParts) {
@@ -1381,7 +1381,7 @@ int cLight::getNormal(Vec* src, Vec* dst)
         p = EmMgr.getEmPtr((u8) pid, 0);
         if (!(VALID_PTR(p) && IS_ALIVE(p) && partsNo < p->nParts)) {
             if (!(ParentType == 1 && parent.no == 3)) {
-                if (!(pG->Debug_flg[0] & 0x80000000)) {
+                if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                     pLog->err(0, 0, "cLight::getNormal() FAILED.");
                     setTrans(0);
                 }
@@ -1418,7 +1418,7 @@ int cLight::getNormal(Vec* src, Vec* dst)
         no = ParentNo & 0xFFFF;
         if (getRoomEtcOnLight(ParentNo, &p, 0) == 0) {
             p = 0;
-            if (!(pG->Debug_flg[0] & 0x80000000)) {
+            if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "cLight::getNormal() ETCMODEL PARENT NOT FOUND %d %d", no, partsNo);
             }
         } else if ((p->be_flag & 1) && partsNo < p->nParts) {
@@ -1431,7 +1431,7 @@ int cLight::getNormal(Vec* src, Vec* dst)
         partsNo = pid >> 16;
         p = ObjMgrWork(no);
         if (!(VALID_PTR(p) && IS_ALIVE(p) && partsNo < p->nParts)) {
-            if (!(pG->Debug_flg[0] & 0x80000000)) {
+            if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "cLight::getNormal() FAILED.");
             }
             *dst = *src;
@@ -1748,7 +1748,7 @@ void cLightMgr::outSscrn(u32 mode)
         LightMgr.update(CamCtrl.areaNo, 0);
         break;
     case 2:
-        pG->Status_flg[1] |= 0x04000000;
+        StaFlagOn(pG, STA_THERMO_GRAPH);
         LightMgr.setThermo();
         break;
     }

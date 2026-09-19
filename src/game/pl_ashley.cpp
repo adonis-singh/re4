@@ -108,83 +108,83 @@ void cPlAshley::setModel()
     setLeftHand(0);
 }
 
-// Ashley's motion table (pMotTbl, 0x6D entries) from the player archive: a separate set for room
+// Ashley's motion table (m_MotTbl, 0x6D entries) from the player archive: a separate set for room
 // 20E (the crate-carrying / cabin section), the normal set elsewhere.
 void pl01weaponSet(cPlayer* pl)
 {
     int i;
 
     for (i = 0; i < 0x6D; i++) {
-        pl->pMotTbl[i] = 0;
+        pl->m_MotTbl[i] = 0;
     }
-    if ((G_ROOM_ID32 & 0xFFFF0000) == 0x020E0000) {
-        PSet(pl->pMotTbl[0x00], PL_ARC_PTR(pG->pPlayer, 0x80));
-        PSet(pl->pMotTbl[0x02], PL_ARC_PTR(pG->pPlayer, 0x81));
-        PSet(pl->pMotTbl[0x03], PL_ARC_PTR(pG->pPlayer, 0x9A));
-        PSet(pl->pMotTbl[0x06], PL_ARC_PTR(pG->pPlayer, 0x83));
-        PSet(pl->pMotTbl[0x07], PL_ARC_PTR(pG->pPlayer, 0x9C));
-        PSet(pl->pMotTbl[0x08], PL_ARC_PTR(pG->pPlayer, 0x82));
-        PSet(pl->pMotTbl[0x09], PL_ARC_PTR(pG->pPlayer, 0x9B));
-        PSet(pl->pMotTbl[0x0B], PL_ARC_PTR(pG->pPlayer, 0x84));
-        PSet(pl->pMotTbl[0x0C], PL_ARC_PTR(pG->pPlayer, 0x9D));
-        PSet(pl->pMotTbl[0x0D], PL_ARC_PTR(pG->pPlayer, 0x86));
-        PSet(pl->pMotTbl[0x0E], PL_ARC_PTR(pG->pPlayer, 0x9F));
-        PSet(pl->pMotTbl[0x0F], PL_ARC_PTR(pG->pPlayer, 0x85));
-        PSet(pl->pMotTbl[0x10], PL_ARC_PTR(pG->pPlayer, 0x9E));
-        PSet(pl->pMotTbl[0x3F], PL_ARC_PTR(pG->pPlayer, 0x8E));
-        PSet(pl->pMotTbl[0x40], PL_ARC_PTR(pG->pPlayer, 0x8F));
-        PSet(pl->pMotTbl[0x39], PL_ARC_PTR(pG->pPlayer, 0x90));
-        PSet(pl->pMotTbl[0x3A], PL_ARC_PTR(pG->pPlayer, 0x91));
-        PSet(pl->pMotTbl[0x41], PL_ARC_PTR(pG->pPlayer, 0x92));
-        PSet(pl->pMotTbl[0x42], PL_ARC_PTR(pG->pPlayer, 0x93));
-        PSet(pl->pMotTbl[0x5F], PL_ARC_PTR(pG->pPlayer, 0x87));
-        PSet(pl->pMotTbl[0x60], PL_ARC_PTR(pG->pPlayer, 0xA0));
-        PSet(pl->pMotTbl[0x61], PL_ARC_PTR(pG->pPlayer, 0x88));
-        PSet(pl->pMotTbl[0x62], PL_ARC_PTR(pG->pPlayer, 0xA1));
-        PSet(pl->pMotTbl[0x63], PL_ARC_PTR(pG->pPlayer, 0x89));
-        PSet(pl->pMotTbl[0x64], PL_ARC_PTR(pG->pPlayer, 0xA2));
-        PSet(pl->pMotTbl[0x65], PL_ARC_PTR(pG->pPlayer, 0x8A));
-        PSet(pl->pMotTbl[0x66], PL_ARC_PTR(pG->pPlayer, 0xA3));
-        PSet(pl->pMotTbl[0x6B], PL_ARC_PTR(pG->pPlayer, 0x8B));
-        PSet(pl->pMotTbl[0x6C], PL_ARC_PTR(pG->pPlayer, 0xA4));
-        PSet(pl->pMotTbl[0x67], PL_ARC_PTR(pG->pPlayer, 0x8D));
-        PSet(pl->pMotTbl[0x68], PL_ARC_PTR(pG->pPlayer, 0xA6));
-        PSet(pl->pMotTbl[0x69], PL_ARC_PTR(pG->pPlayer, 0x8C));
-        PSet(pl->pMotTbl[0x6A], PL_ARC_PTR(pG->pPlayer, 0xA5));
+    if (pG->stage_no == 2 && pG->room_no == 0xE) {
+        PSet(pl->m_MotTbl[0x00], PL_ARC_PTR(pG->pPlayer, 0x80));
+        PSet(pl->m_MotTbl[0x02], PL_ARC_PTR(pG->pPlayer, 0x81));
+        PSet(pl->m_MotTbl[0x03], PL_ARC_PTR(pG->pPlayer, 0x9A));
+        PSet(pl->m_MotTbl[0x06], PL_ARC_PTR(pG->pPlayer, 0x83));
+        PSet(pl->m_MotTbl[0x07], PL_ARC_PTR(pG->pPlayer, 0x9C));
+        PSet(pl->m_MotTbl[0x08], PL_ARC_PTR(pG->pPlayer, 0x82));
+        PSet(pl->m_MotTbl[0x09], PL_ARC_PTR(pG->pPlayer, 0x9B));
+        PSet(pl->m_MotTbl[0x0B], PL_ARC_PTR(pG->pPlayer, 0x84));
+        PSet(pl->m_MotTbl[0x0C], PL_ARC_PTR(pG->pPlayer, 0x9D));
+        PSet(pl->m_MotTbl[0x0D], PL_ARC_PTR(pG->pPlayer, 0x86));
+        PSet(pl->m_MotTbl[0x0E], PL_ARC_PTR(pG->pPlayer, 0x9F));
+        PSet(pl->m_MotTbl[0x0F], PL_ARC_PTR(pG->pPlayer, 0x85));
+        PSet(pl->m_MotTbl[0x10], PL_ARC_PTR(pG->pPlayer, 0x9E));
+        PSet(pl->m_MotTbl[0x3F], PL_ARC_PTR(pG->pPlayer, 0x8E));
+        PSet(pl->m_MotTbl[0x40], PL_ARC_PTR(pG->pPlayer, 0x8F));
+        PSet(pl->m_MotTbl[0x39], PL_ARC_PTR(pG->pPlayer, 0x90));
+        PSet(pl->m_MotTbl[0x3A], PL_ARC_PTR(pG->pPlayer, 0x91));
+        PSet(pl->m_MotTbl[0x41], PL_ARC_PTR(pG->pPlayer, 0x92));
+        PSet(pl->m_MotTbl[0x42], PL_ARC_PTR(pG->pPlayer, 0x93));
+        PSet(pl->m_MotTbl[0x5F], PL_ARC_PTR(pG->pPlayer, 0x87));
+        PSet(pl->m_MotTbl[0x60], PL_ARC_PTR(pG->pPlayer, 0xA0));
+        PSet(pl->m_MotTbl[0x61], PL_ARC_PTR(pG->pPlayer, 0x88));
+        PSet(pl->m_MotTbl[0x62], PL_ARC_PTR(pG->pPlayer, 0xA1));
+        PSet(pl->m_MotTbl[0x63], PL_ARC_PTR(pG->pPlayer, 0x89));
+        PSet(pl->m_MotTbl[0x64], PL_ARC_PTR(pG->pPlayer, 0xA2));
+        PSet(pl->m_MotTbl[0x65], PL_ARC_PTR(pG->pPlayer, 0x8A));
+        PSet(pl->m_MotTbl[0x66], PL_ARC_PTR(pG->pPlayer, 0xA3));
+        PSet(pl->m_MotTbl[0x6B], PL_ARC_PTR(pG->pPlayer, 0x8B));
+        PSet(pl->m_MotTbl[0x6C], PL_ARC_PTR(pG->pPlayer, 0xA4));
+        PSet(pl->m_MotTbl[0x67], PL_ARC_PTR(pG->pPlayer, 0x8D));
+        PSet(pl->m_MotTbl[0x68], PL_ARC_PTR(pG->pPlayer, 0xA6));
+        PSet(pl->m_MotTbl[0x69], PL_ARC_PTR(pG->pPlayer, 0x8C));
+        PSet(pl->m_MotTbl[0x6A], PL_ARC_PTR(pG->pPlayer, 0xA5));
     } else {
-        PSet(pl->pMotTbl[0x00], PL_ARC_PTR(pG->pPlayer, 0x6A));
-        PSet(pl->pMotTbl[0x02], PL_ARC_PTR(pG->pPlayer, 0x6B));
-        PSet(pl->pMotTbl[0x03], PL_ARC_PTR(pG->pPlayer, 0x6C));
-        PSet(pl->pMotTbl[0x06], PL_ARC_PTR(pG->pPlayer, 0x6F));
-        PSet(pl->pMotTbl[0x07], PL_ARC_PTR(pG->pPlayer, 0x70));
-        PSet(pl->pMotTbl[0x08], PL_ARC_PTR(pG->pPlayer, 0x6D));
-        PSet(pl->pMotTbl[0x09], PL_ARC_PTR(pG->pPlayer, 0x6E));
-        PSet(pl->pMotTbl[0x0B], PL_ARC_PTR(pG->pPlayer, 0x71));
-        PSet(pl->pMotTbl[0x0C], PL_ARC_PTR(pG->pPlayer, 0x72));
-        PSet(pl->pMotTbl[0x0D], PL_ARC_PTR(pG->pPlayer, 0x73));
-        PSet(pl->pMotTbl[0x0E], PL_ARC_PTR(pG->pPlayer, 0x78));
-        PSet(pl->pMotTbl[0x0F], PL_ARC_PTR(pG->pPlayer, 0x74));
-        PSet(pl->pMotTbl[0x10], PL_ARC_PTR(pG->pPlayer, 0x79));
-        PSet(pl->pMotTbl[0x3F], PL_ARC_PTR(pG->pPlayer, 0x7A));
-        PSet(pl->pMotTbl[0x40], PL_ARC_PTR(pG->pPlayer, 0x7B));
-        PSet(pl->pMotTbl[0x39], PL_ARC_PTR(pG->pPlayer, 0x7C));
-        PSet(pl->pMotTbl[0x3A], PL_ARC_PTR(pG->pPlayer, 0x7D));
-        PSet(pl->pMotTbl[0x41], PL_ARC_PTR(pG->pPlayer, 0x7E));
-        PSet(pl->pMotTbl[0x42], PL_ARC_PTR(pG->pPlayer, 0x7F));
-        PSet(pl->pMotTbl[0x5F], PL_ARC_PTR(pG->pPlayer, 0x32));
-        PSet(pl->pMotTbl[0x60], PL_ARC_PTR(pG->pPlayer, 0x33));
-        PSet(pl->pMotTbl[0x61], PL_ARC_PTR(pG->pPlayer, 0x34));
-        PSet(pl->pMotTbl[0x62], PL_ARC_PTR(pG->pPlayer, 0x35));
-        PSet(pl->pMotTbl[0x63], PL_ARC_PTR(pG->pPlayer, 0x36));
-        PSet(pl->pMotTbl[0x64], PL_ARC_PTR(pG->pPlayer, 0x37));
-        PSet(pl->pMotTbl[0x65], PL_ARC_PTR(pG->pPlayer, 0x38));
-        PSet(pl->pMotTbl[0x66], PL_ARC_PTR(pG->pPlayer, 0x39));
-        PSet(pl->pMotTbl[0x6B], PL_ARC_PTR(pG->pPlayer, 0x3A));
-        PSet(pl->pMotTbl[0x6C], PL_ARC_PTR(pG->pPlayer, 0x3B));
-        PSet(pl->pMotTbl[0x67], PL_ARC_PTR(pG->pPlayer, 0x3C));
-        PSet(pl->pMotTbl[0x68], PL_ARC_PTR(pG->pPlayer, 0x3D));
-        PSet(pl->pMotTbl[0x69], PL_ARC_PTR(pG->pPlayer, 0x3E));
-        PSet(pl->pMotTbl[0x6A], PL_ARC_PTR(pG->pPlayer, 0x3F));
+        PSet(pl->m_MotTbl[0x00], PL_ARC_PTR(pG->pPlayer, 0x6A));
+        PSet(pl->m_MotTbl[0x02], PL_ARC_PTR(pG->pPlayer, 0x6B));
+        PSet(pl->m_MotTbl[0x03], PL_ARC_PTR(pG->pPlayer, 0x6C));
+        PSet(pl->m_MotTbl[0x06], PL_ARC_PTR(pG->pPlayer, 0x6F));
+        PSet(pl->m_MotTbl[0x07], PL_ARC_PTR(pG->pPlayer, 0x70));
+        PSet(pl->m_MotTbl[0x08], PL_ARC_PTR(pG->pPlayer, 0x6D));
+        PSet(pl->m_MotTbl[0x09], PL_ARC_PTR(pG->pPlayer, 0x6E));
+        PSet(pl->m_MotTbl[0x0B], PL_ARC_PTR(pG->pPlayer, 0x71));
+        PSet(pl->m_MotTbl[0x0C], PL_ARC_PTR(pG->pPlayer, 0x72));
+        PSet(pl->m_MotTbl[0x0D], PL_ARC_PTR(pG->pPlayer, 0x73));
+        PSet(pl->m_MotTbl[0x0E], PL_ARC_PTR(pG->pPlayer, 0x78));
+        PSet(pl->m_MotTbl[0x0F], PL_ARC_PTR(pG->pPlayer, 0x74));
+        PSet(pl->m_MotTbl[0x10], PL_ARC_PTR(pG->pPlayer, 0x79));
+        PSet(pl->m_MotTbl[0x3F], PL_ARC_PTR(pG->pPlayer, 0x7A));
+        PSet(pl->m_MotTbl[0x40], PL_ARC_PTR(pG->pPlayer, 0x7B));
+        PSet(pl->m_MotTbl[0x39], PL_ARC_PTR(pG->pPlayer, 0x7C));
+        PSet(pl->m_MotTbl[0x3A], PL_ARC_PTR(pG->pPlayer, 0x7D));
+        PSet(pl->m_MotTbl[0x41], PL_ARC_PTR(pG->pPlayer, 0x7E));
+        PSet(pl->m_MotTbl[0x42], PL_ARC_PTR(pG->pPlayer, 0x7F));
+        PSet(pl->m_MotTbl[0x5F], PL_ARC_PTR(pG->pPlayer, 0x32));
+        PSet(pl->m_MotTbl[0x60], PL_ARC_PTR(pG->pPlayer, 0x33));
+        PSet(pl->m_MotTbl[0x61], PL_ARC_PTR(pG->pPlayer, 0x34));
+        PSet(pl->m_MotTbl[0x62], PL_ARC_PTR(pG->pPlayer, 0x35));
+        PSet(pl->m_MotTbl[0x63], PL_ARC_PTR(pG->pPlayer, 0x36));
+        PSet(pl->m_MotTbl[0x64], PL_ARC_PTR(pG->pPlayer, 0x37));
+        PSet(pl->m_MotTbl[0x65], PL_ARC_PTR(pG->pPlayer, 0x38));
+        PSet(pl->m_MotTbl[0x66], PL_ARC_PTR(pG->pPlayer, 0x39));
+        PSet(pl->m_MotTbl[0x6B], PL_ARC_PTR(pG->pPlayer, 0x3A));
+        PSet(pl->m_MotTbl[0x6C], PL_ARC_PTR(pG->pPlayer, 0x3B));
+        PSet(pl->m_MotTbl[0x67], PL_ARC_PTR(pG->pPlayer, 0x3C));
+        PSet(pl->m_MotTbl[0x68], PL_ARC_PTR(pG->pPlayer, 0x3D));
+        PSet(pl->m_MotTbl[0x69], PL_ARC_PTR(pG->pPlayer, 0x3E));
+        PSet(pl->m_MotTbl[0x6A], PL_ARC_PTR(pG->pPlayer, 0x3F));
     }
 }
 
@@ -206,7 +206,7 @@ void cPlAshley::setRightHand(int no)
     switch (no) {
     case 0:
     default:
-        if ((G_ROOM_ID32 & 0xFFFF0000) == 0x020E0000) {
+        if (pG->stage_no == 2 && pG->room_no == 0xE) {
             data = (cModelInfo*) PL_ARC_PTR(pG->pPlayer, 0xA7);
             tpl = PL_ARC_PTR(pG->pPlayer, 0xA8);
         } else {

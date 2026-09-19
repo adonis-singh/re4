@@ -52,27 +52,6 @@ static R108Symbol r108_symbol[8] = {
     {0, 9, 1, 0}, {1, 0xA, 0, 0}, {2, 0xB, 1, 0}, {3, 0xC, 1, 0}, {4, 0xD, 0, 0}, {5, 0xE, 0, 0}, {6, 0xF, 0, 0}, {0, 0, 0, 0},
 };
 
-// Event flag words at pG+0x174, addressed as an integer base plus the word offset (a cast-then-deref
-// store: it is not a struct access, so pG is reloaded after every store and per loop iteration).
-static inline u32 evtFlagBase()
-{
-    return (u32) &pG->Room_flg[0];
-}
-// Test event flag `no` in the pG->flags_174 words (bit 31 - (no & 31) of word no >> 5).
-static inline u32 EvtFlagChk(u32 base, int no)
-{
-    return *(u32*) (((no >> 5) << 2) + base) & (0x80000000 >> (no & 31));
-}
-// Toggle event flag `no` (the symbol dial flips a symbol's flag each turn).
-static inline void EvtFlagXor(u32 base, int no)
-{
-    *(u32*) (((no >> 5) << 2) + base) ^= 0x80000000 >> (no & 31);
-}
-// Clear event flag `no`.
-static inline void EvtFlagOff(u32 base, int no)
-{
-    *(u32*) (((no >> 5) << 2) + base) &= ~(0x80000000 >> (no & 31));
-}
 // Scroll objects fetched into the room's pointers (references: the address is evaluated before the
 // call and the flag stores go through scalar references, which reload the other pointer after them)
 static inline void r108_setObj(cObj*& o, u32 id)
@@ -109,7 +88,7 @@ static void r108_str_check();
 // (Room_flg bit 1); action colour on area 4.
 void R108Init()
 {
-    pG->System_flg &= ~0x800;
+    SysFlagOff(pG, SYS_SCISSOR_ON);
 #line 44 "D:/Bio4/Prog/r108.cpp"
     r108_work = (R108Work*) MEM_CALLOC(sizeof(R108Work), 1, 0xd);
 
@@ -167,7 +146,7 @@ static void r108_execShowView()
 // The dial operator area: opens the sub screen puzzle terminal once.
 static void r108_operator()
 {
-    if (!(pG->Scenario_flg[0] & 0x00080000)) {
+    if (!ScfFlagChk(pG, SCF_R108_OPERATOR)) {
         RsfSet(G_ROOM_ID, 0);
         OpeSetOpenTerm(6, 0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -244,8 +223,8 @@ static void r108_checkDoor()
 {
     SndCall(6, 7, 0, 0, 0, 0);
     SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-    if (!(pG->Scenario_flg[0] & 0x00080000)) {
-        BitOn(pG->Scenario_flg[0], 0x00080000);
+    if (!ScfFlagChk(pG, SCF_R108_OPERATOR)) {
+        ScfFlagOn(pG, SCF_R108_OPERATOR);
         OpeSetOpenTerm(7, 22600.0f, 11775.0f, -26200.0f, 1.6f);
     }
 }
@@ -307,12 +286,12 @@ extern "C" void r108_initPuzzle(int dial, int coverL, int coverR, int mesNo)
     if ((m = SceAtItemModelPtr(0x82)) != 0) {
         m->setNoSuspend(1);
     }
-    if (!(pG->Item_find_flg & 0x8000)) {
+    if (!ScfFlagChk(pG, SCF_R108_PUZZLE_CLEAR)) {
         SceAtDataSet_exec(0xA, SCE_LEVEL10, 0, (TaskFunc) r108_execPuzzle, 0, 1);
     } else {
         FAdd(r108_coverL->pos.x, 220.0f);
         FSub(r108_coverR->pos.x, 220.0f);
-        if (!(pG->item_flags[0] & 0x40000000)) {
+        if (!ItfFlagChk(pG, ITF_R108_ITEM)) {
             SceAtDataSet_exec(0xA, SCE_LEVEL10, 0, (TaskFunc) r108_getItem, 0, 1);
             SceAtPtr(0xA)->actBtnKind = 0x28;
         }
@@ -351,8 +330,8 @@ extern "C" void r108_switchSymbol(int n)
         r108_dial->pParts->ang.y = -LIMIT_ANGLE(next);
         SceSleep(2);
     }
-    EvtFlagXor(evtFlagBase(), r108_symbol[r108_symIdx %= 7].flagNo);
-    if (EvtFlagChk(evtFlagBase(), r108_symbol[r108_symIdx].flagNo)) {
+    FlagXorVar(&pG->Room_flg, (int) r108_symbol[r108_symIdx %= 7].flagNo);
+    if (FlagChkVar(&pG->Room_flg, (int) r108_symbol[r108_symIdx].flagNo)) {
         EstSet(0, -1, 0, 0, 1, r108_symbol[r108_symIdx].no, 1, r108_symbol[r108_symIdx].eff, 0, 0);
     } else {
         EffectEspDelete(0, r108_symbol[r108_symIdx].eff, 0, 0);
@@ -401,7 +380,7 @@ static void r108_execPuzzle()
     LightMgr.endEvent();
     r108_symIdx = 0;
     for (i = 0; i < 7; i++) {
-        EvtFlagOff(evtFlagBase(), r108_symbol[i].flagNo);
+        FlagOffVar(&pG->Room_flg, (int) r108_symbol[i].flagNo);
     }
     CamCtrl.CutCall(5);
     quit = 0;
@@ -425,14 +404,14 @@ static void r108_execPuzzle()
         }
         ok = 1;
         for (i = 0; i < 7; i++) {
-            if ((EvtFlagChk(evtFlagBase(), r108_symbol[i].flagNo) == 0) != (r108_symbol[i].on == 0)) {
+            if ((FlagChkVar(&pG->Room_flg, (int) r108_symbol[i].flagNo) == 0) != (r108_symbol[i].on == 0)) {
                 ok = 0;
                 break;
             }
         }
         if (ok == 1) {
             r108_openCover();
-            pG->Item_find_flg |= 0x8000;
+            ScfFlagOn(pG, SCF_R108_PUZZLE_CLEAR);
             SceAtDataSet_exec(0xA, SCE_LEVEL10, 0, (TaskFunc) r108_getItem, 0, 1);
             SceAtPtr(0xA)->actBtnKind = 0x28;
             break;

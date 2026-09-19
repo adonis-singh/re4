@@ -245,7 +245,7 @@ void AddWaterPowerSub(EspgenWork* w)
 // (Status_flg[0] 0x200).
 void AddWaterPower(Vec* pos, f32 power)
 {
-    if (pG->Status_flg[0] & 0x200) {
+    if (StaFlagChk(pG, STA_WATER_ALIVE)) {
         Height_find = 0;
         FSet(Add_power, power * 5.0f);
         Chk_pos = *pos;
@@ -307,7 +307,7 @@ void Espgen42SetNoWater(int on)
 // live water covers it or no water exists this frame.
 int GetWaterHeight(Vec* pos, f32* height)
 {
-    if (!(pG->Status_flg[0] & 0x200)) {
+    if (!StaFlagChk(pG, STA_WATER_ALIVE)) {
         return 0;
     }
     if (g_bNoWater == 1) {
@@ -419,7 +419,7 @@ void GetWaterCrossPosSub(EspgenWork* w)
 // (bullet splashes, item drops), 0 otherwise.
 int GetWaterCrossPos(Vec* pos, Vec* dir, Vec* out)
 {
-    if (!(pG->Status_flg[0] & 0x200)) {
+    if (!StaFlagChk(pG, STA_WATER_ALIVE)) {
         return 0;
     }
     if (dir->x == 0.0f && dir->y == 0.0f && dir->z == 0.0f) {
@@ -520,7 +520,7 @@ void Espgen42_Move00(EspgenWork* w)
     d3.x = 0.0f;
     d3.z = -1.0f;
     frame = pG->Frame_cnt % 60;
-    BitOn(pG->Status_flg[0], 0x200);
+    StaFlagOn(pG, STA_WATER_ALIVE);
     PPCMtpmc1(0);
     PPCMtpmc2(0);
     PPCMtpmc3(0);
@@ -539,7 +539,7 @@ void Espgen42_Move00(EspgenWork* w)
     f32 inx = 1.0f / (f32) (int) nx;
     f32 iny = 1.0f / (f32) (int) ny;
     if (p->mode != 1) {
-        if ((pG->Debug_flg[1] & 0x00800000) && (Joy[0].on & 0x100)) {
+        if (DbgFlagChk(pG, DBG_IN_ESP_TOOL) && (Joy[0].on & 0x100)) {
             // The index is the loop variable `k` (target `lwz r28` = k's register, base+index `lfsx f0,hB,k4`).
             k = (int) ((f32) (int) (nx * ny) * 0.5f);
             // Byte offset in a variable: inside an address `p->hB[k]` expands to `(plus (mult k 4) hB)` (expr.c
@@ -712,7 +712,7 @@ void Espgen42_Move(EspgenWork* w)
 {
     static void (*Espgen42MoveTbl[])(EspgenWork*) = {Espgen42_Move00};
 
-    if (pG->Stop_flg & 0x40000) {
+    if (SpfFlagChk(pG, SPF_WATER)) {
         return;
     }
     Espgen42MoveTbl[w->step](w);

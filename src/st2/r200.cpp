@@ -101,7 +101,7 @@ void R200Init()
     SceSetItemEvent(8, 0x84, 5, 6, r200_openBox, (void (*)()) r200_openedBox, 0, 0);
     r200_work.p->eff10 = EspPullCoreKind();
     EstSet(0, -1, 0, 0, 1, 2, 1, (u8) r200_work.p->eff10, 0, 0);
-    if ((int) pG->em_dead[2][0] < 0 || (int) pG->em_dead[3][0] < 0 || (pG->em_dead[4][0] & 4)) {
+    if ((int) pG->Em_flg[2][0] < 0 || (int) pG->Em_flg[3][0] < 0 || (pG->Em_flg[4][0] & 4)) {
         switch (checkEmListNo(G_ROOM_ID)) {
         case 2:
             EmListSetAlive(0, 0);
@@ -187,8 +187,8 @@ static void r200_execShowView()
     static const f32 vol = 0.0f;
 
     RsfSet(G_ROOM_ID, 4);
-    if ((pG->System_flg & 0x40) == 0) {
-        BitOn(pG->System_flg, 0x40);
+    if (SysFlagChk(pG, SYS_START_EVT_SKIP) == 0) {
+        SysFlagOn(pG, SYS_START_EVT_SKIP);
         r200_work.p->snd = SndStrReq(0, 0x18, 0x80000003, 0, 0, FCRef(vol));
         SceSetEventCancel(1, (TaskFunc) r200_execShowView_end, 0, -1, 1);
         SceEventStart(0);
@@ -208,13 +208,13 @@ static void r200_execEvent00()
     RsfSet(G_ROOM_ID, 2);
     SndRoomStrStop(3);
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     EmMgr.destroyAll();
     SceSleep(2);
     EmReadInit();
     EvtMgr.EvtReadExec("event/evd/r200s00.evd", 0, 0x50);
     SceEventEnd(0);
-    pG->Scenario_flg[0] |= 0x00800000;
+    ScfFlagOn(pG, SCF_ST2_IN);
     SceAtInitSaveItem();
     levelDataAdd(merchantData, level_r200);
     stockDataAdd(merchantData, stock_2st_first);

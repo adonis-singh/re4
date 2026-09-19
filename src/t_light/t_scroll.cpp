@@ -1707,7 +1707,7 @@ static void option()
             on = (pWork->flags & (1 << i)) ? 1 : 0;
         } else {
             on = 1;
-            if (!(pG->Debug_flg[3] & 0x02000000)) {
+            if (!DbgFlagChk(pG, DBG_SCR_CHECK)) {
                 on = 0;
             }
         }
@@ -1732,10 +1732,10 @@ static void option()
         case 1:
             break;
         case 2:
-            if (pG->Debug_flg[3] & 0x02000000) {
-                pG->Debug_flg[3] &= ~0x02000000;
+            if (DbgFlagChk(pG, DBG_SCR_CHECK)) {
+                DbgFlagOff(pG, DBG_SCR_CHECK);
             } else {
-                pG->Debug_flg[3] |= 0x02000000;
+                DbgFlagOn(pG, DBG_SCR_CHECK);
             }
             break;
         }
@@ -1793,12 +1793,6 @@ void setMirrorModel(cObj* obj, int on)
         obj->be_flag &= ~0x100;
         break;
     }
-}
-
-// keeps two flag tests apart (fold merges `!(f & A) || !(f & B)` into one mask)
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
 }
 
 // Draws the object table page: per object NO, NAME (NO REGIST / UNKNOWN MODEL for unmatched ids),
@@ -1864,7 +1858,7 @@ static void printEditTable()
         }
         if (obj->kindid == 4) {
             col = 6;
-        } else if (!flagBit(obj->be_flag, 4) || !flagBit(obj->be_flag, 2)) {
+        } else if (!FlagChkSignW(obj->be_flag, 29) || !FlagChkSignW(obj->be_flag, 30)) {
             col = 0x14;
         } else {
             col = 0;

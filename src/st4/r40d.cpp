@@ -100,7 +100,7 @@ void R40dInit()
             }
         }
     }
-    if (!(pG->item_flags[1] & 0x10000000)) {
+    if (!ItfFlagChk(pG, ITF_R40D_SAMPLE00)) {
         cModel* m;
 
         SceAtSetEnable(0x81, 1);

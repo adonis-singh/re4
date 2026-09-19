@@ -164,7 +164,7 @@ void cSubLuis::init()
         s->lockOfs.z = 0.0f;
     }
     setStatus(EM_STATUS_LOCKOFF);
-    hp = hpMax = 0x4B0;
+    hp = hp_max = 0x4B0;
     m_PlAtack = 5;
     be_flag |= 0x2000000;
     m_LeonHp = pGS->pl_life;   // struct view: the pG load does not wait for the dmgCnt byte store
@@ -1173,7 +1173,7 @@ void cAction::set(int m)
 // (set 1: ground floor part of the cabin, set 2: upstairs) -- not on the stairs / porch side.
 int cAction::chasePlAreaCheck()
 {
-    if ((pG->room_id32 & 0xFFFF0000) != 0x011C0000) return 1;
+    if (pG->stage_no != 1 || pG->room_no != 0x1C) return 1;
     switch (owner->set) {
     default:
         return 1;
@@ -1400,7 +1400,7 @@ int cSubLuis::damageCheck()
 {
     int dead;
 
-    if ((stat & 0xFFFF0000) == 0x04000000) {
+    if (r_no_0 == 4 && r_no_1 == 0) {
         action.set(6);
         return 1;
     }
@@ -1471,7 +1471,7 @@ void cSubLuis::equipWeapon()
 // frames when the attacker is still marked, back to action mode 0 and the routine ended.
 void cSubLuis::endDamage()
 {
-    if ((flags & 0x40) && dmgType && ((cEm*) dmgType)->dmg.m_Timer) cnt = 30;
+    if ((flags & 0x40) && pEmCatch && ((cEm*) pEmCatch)->dmg.m_Timer) cnt = 30;
     flags &= ~0x40;
     action.set(0);
     routine.end();
@@ -1623,7 +1623,7 @@ void cVoice::move()
 // On the stairs of room 11C.
 int stairCheck(cModel* m)
 {
-    if ((pG->room_id32 & 0xFFFF0000) != 0x011C0000) return 0;
+    if (pG->stage_no != 1 || pG->room_no != 0x1C) return 0;
     if (m->pos.x > 109070.0f && m->pos.x < 114620.0f && m->pos.z > -47600.0f && m->pos.z < -45930.0f) return 1;
     return 0;
 }

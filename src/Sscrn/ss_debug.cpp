@@ -147,9 +147,9 @@ void SscrnDebugMenu(SUB_SCREEN* wk)
         ssModInfoMgr.dispWorkNum(0x1A0, 0x70, 0, 0);
     }
     if (wk->debug_menu & 0x20) {
-        pG->Debug_flg[2] |= 0x40000000;
+        DbgFlagOn(pG, DBG_PROC_BAR);
     } else {
-        pG->Debug_flg[2] &= ~0x40000000;
+        DbgFlagOff(pG, DBG_PROC_BAR);
     }
 }
 
@@ -188,9 +188,9 @@ void ssDbgPzzl::move(SUB_SCREEN* wk)
     int x;
     int y;
 
-    if ((s32) pG->Debug_flg[3] < 0) {
+    if (DbgFlagChk(pG, DBG_INF_BULLET2)) {
         m_bllt_no = 2;
-    } else if (pG->Debug_flg[2] & 0x00400000) {
+    } else if (DbgFlagChk(pG, DBG_INF_BULLET)) {
         m_bllt_no = 1;
     } else {
         m_bllt_no = 0;
@@ -247,14 +247,14 @@ void ssDbgPzzl::move(SUB_SCREEN* wk)
             m_bllt_no++;
         }
         m_bllt_no = m_bllt_no < 0 ? 2 : (m_bllt_no > 2 ? 0 : m_bllt_no);
-        BitOff(pG->Debug_flg[2], 0x00400000);
-        BitOff(pG->Debug_flg[3], 0x80000000);
+        DbgFlagOff(pG, DBG_INF_BULLET);
+        DbgFlagOff(pG, DBG_INF_BULLET2);
         switch (m_bllt_no) {
         case 2:
-            BitOn(pG->Debug_flg[3], 0x80000000);
+            DbgFlagOn(pG, DBG_INF_BULLET2);
             break;
         case 1:
-            BitOn(pG->Debug_flg[2], 0x00400000);
+            DbgFlagOn(pG, DBG_INF_BULLET);
             break;
         }
         break;

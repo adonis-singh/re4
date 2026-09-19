@@ -30,7 +30,6 @@ void drawPoint(Vec* lpos, Vec* lcross);
 static inline void DispOn(u8& f, u8 b) { f |= b; }
 static inline void DispOff(u8& f, u8 b) { f &= ~b; }
 static inline int DispChk(u8 f, u8 b) { return f & b; }
-static inline int FlagChk(u32 f, u32 b) { return f & b; }
 
 // Weapon held in the hand: the stance key only counts while the hand weapon is allowed. Never
 // constructed in the DOL: the linker dropped its vtable (STRIP_UNUSED).
@@ -85,7 +84,7 @@ void cObjWep::move()
     }
     moveAll();
     if (DispChk(wep.disp, 4) == 0 || DispChk(wep.disp, 8) == 0 || DispChk(wep.disp, 0x10) == 0 ||
-        (wep.parent && (wep.parent->isTrans() == 0 || (pG->Disp_flg & 0x40000000)))) {
+        (wep.parent && (wep.parent->isTrans() == 0 || (DpfFlagChk(pG, DPF_PL))))) {
         be_flag &= ~2;
     } else {
         be_flag |= 2;
@@ -233,7 +232,7 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
     static Vec lcross;
     static int donfire;
 
-    if (FlagChk(pG->Debug_flg[0], 0x08000000) || FlagChk(pG->Debug_flg[0], 0x04000000)) {
+    if (FlagChkSign(pG->Debug_flg, DBG_SAT_DISP) || FlagChkSign(pG->Debug_flg, DBG_EAT_DISP)) {
         satCheck();
         return;
     }
@@ -289,7 +288,7 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
     if (draw) {
         f32 width;
 
-        if ((pG->room_id32 & 0xFFFF0000) == 0x022C0000 || (pG->room_id32 & 0xFFFF0000) == 0x22280000) {
+        if (pG->stage_no == 2 && pG->room_no == 0x2C || pG->stage_no == 0x22 && pG->room_no == 0x28) {
             width = 3.0f;
         } else {
             width = 1.0f;
@@ -298,13 +297,13 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
             Draw_line3d_222(&lpos, &lcross, 0x20400000, 1);
         } else {
             EspDrawLaserLine(lpos, lcross, width);
-            if ((pG->room_id32 & 0xFFFF0000) == 0x022C0000 || (pG->room_id32 & 0xFFFF0000) == 0x02280000) {
+            if (pG->stage_no == 2 && pG->room_no == 0x2C || pG->stage_no == 2 && pG->room_no == 0x28) {
                 EspDrawLaserLine(lpos, lcross, width);
             }
         }
     }
     if (donfire) {
-        pG->Status_flg[2] |= 0x80000000;
+        StaFlagOn(pG, STA_PL_DONT_FIRE);
     }
     wep.marker = lcross;
 }
@@ -320,7 +319,7 @@ void drawPoint(Vec* p0, Vec* p1)
     cEsp* esp;
     f32 size;
 
-    if (pG->Debug_flg[3] & 0x40) {
+    if (DbgFlagChk(pG, DBG_NO_LASER_LINE)) {
         return;
     }
     if (EspEstSetSelect(0, 0x50, 0, &esp, 1) != 1) {
@@ -328,8 +327,8 @@ void drawPoint(Vec* p0, Vec* p1)
     }
     PSVECSubtract(&pG->Cam.param.pos, p1, &d);
     size = PSVECMag(&d);
-    if ((pG->Status_flg[3] & 0x02000000) || (pG->room_id32 & 0xFFFF0000) == 0x022C0000 ||
-        (pG->room_id32 & 0xFFFF0000) == 0x02280000) {
+    if (StaFlagChk(pG, STA_BIG_MARKER) || pG->stage_no == 2 && pG->room_no == 0x2C ||
+        pG->stage_no == 2 && pG->room_no == 0x28) {
         size = size * 0.00033333333f + 1.0f;
         if (size > 6.0f) {
             size = 6.0f;
@@ -343,7 +342,7 @@ void drawPoint(Vec* p0, Vec* p1)
     esp->m_Pos = *p1;
     FSet(esp->m_Size_base_x, esp->m_Size_base_x * size);
     FSet(esp->m_Size_base_y, esp->m_Size_base_y * size);
-    if (pG->Status_flg[1] & 1) {
+    if (StaFlagChk(pG, STA_LASERSITE_NOADD)) {
         // COMPILER-DIFF: #17. `esp` is address-taken, so each store reloads it; the original's first
         // reload sits in r11 (r9 was still held by the previous reload at its sched1 position), ours
         // in r9. Pinned, no code emitted.
@@ -422,7 +421,7 @@ void cObjWep::interrupt()
 // The hand weapon's stance key counts only while Status_flg[3] 0x00800000 allows it.
 int cObjHand::keyKamae()
 {
-    if (pG->Status_flg[3] & 0x00800000) {
+    if (StaFlagChk(pG, STA_KLAUSER_TRANSFORM)) {
         return cObjWep::keyKamae();
     } else {
         return 0;
@@ -445,7 +444,7 @@ void cObjWep::satCheck()
     Vec nrm;
     u32 attr;
     int col;
-    u32 t = pG->Debug_flg[0] & 0x08000000;
+    u32 t = DbgFlagChk(pG, DBG_SAT_DISP);
     int eat = t == 0;
 
     getMarkerPos(&p0, &p1);

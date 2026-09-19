@@ -364,7 +364,7 @@ void roomJumpExec(test* w)
 
     w->state++;
     BitSet(pG->Stop_flg, 0xFFFFFFFF);
-    BitOn(pG->Debug_flg[2], 0x80000000);
+    DbgFlagOn(pG, DBG_ROOMJMP);
     pRj->getRoomInfo(w->stage, w->room[w->stage] + w->point)->setNextPos();
     pG->JumpPoint = w->point;
     cMes.roomInit();
@@ -390,10 +390,10 @@ void roomJumpExit(test* w)
         pG->Rno1 = 0;
         pG->Rno2 = 0;
         pG->Rno3 = 0;
-        pG->System_flg &= ~0x40;
+        SysFlagOff(pG, SYS_START_EVT_SKIP);
     }
     BitSet(pG->Stop_flg, w->stop_bak);
-    BitOff(pG->Debug_flg[0], 0x80000000);
+    DbgFlagOff(pG, DBG_TEST_MODE);
     TaskExit();
 }
 

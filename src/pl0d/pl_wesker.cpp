@@ -127,24 +127,24 @@ cPlWesker::cPlWesker()
     pFootShadowTbl = pl_fs_tbl;
 }
 
-// Installs the character's event / action motions (pMotTbl 0x5F..0x6C from the player archive
+// Installs the character's event / action motions (m_MotTbl 0x5F..0x6C from the player archive
 // 0x32..0x3F); the weapon module fills the footwork slots.
 void cPlWesker::setMotion()
 {
-    PSet(pMotTbl[0x5F], PL_ARC(0x32));
-    PSet(pMotTbl[0x60], PL_ARC(0x33));
-    PSet(pMotTbl[0x61], PL_ARC(0x34));
-    PSet(pMotTbl[0x62], PL_ARC(0x35));
-    PSet(pMotTbl[0x63], PL_ARC(0x36));
-    PSet(pMotTbl[0x64], PL_ARC(0x37));
-    PSet(pMotTbl[0x65], PL_ARC(0x38));
-    PSet(pMotTbl[0x66], PL_ARC(0x39));
-    PSet(pMotTbl[0x6B], PL_ARC(0x3A));
-    PSet(pMotTbl[0x6C], PL_ARC(0x3B));
-    PSet(pMotTbl[0x67], PL_ARC(0x3C));
-    PSet(pMotTbl[0x68], PL_ARC(0x3D));
-    PSet(pMotTbl[0x69], PL_ARC(0x3E));
-    PSet(pMotTbl[0x6A], PL_ARC(0x3F));
+    PSet(m_MotTbl[0x5F], PL_ARC(0x32));
+    PSet(m_MotTbl[0x60], PL_ARC(0x33));
+    PSet(m_MotTbl[0x61], PL_ARC(0x34));
+    PSet(m_MotTbl[0x62], PL_ARC(0x35));
+    PSet(m_MotTbl[0x63], PL_ARC(0x36));
+    PSet(m_MotTbl[0x64], PL_ARC(0x37));
+    PSet(m_MotTbl[0x65], PL_ARC(0x38));
+    PSet(m_MotTbl[0x66], PL_ARC(0x39));
+    PSet(m_MotTbl[0x6B], PL_ARC(0x3A));
+    PSet(m_MotTbl[0x6C], PL_ARC(0x3B));
+    PSet(m_MotTbl[0x67], PL_ARC(0x3C));
+    PSet(m_MotTbl[0x68], PL_ARC(0x3D));
+    PSet(m_MotTbl[0x69], PL_ARC(0x3E));
+    PSet(m_MotTbl[0x6A], PL_ARC(0x3F));
 }
 
 // Per-frame update: the common cPlayer::move.

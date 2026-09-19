@@ -81,10 +81,11 @@ struct Em2dWork {
     u8 Reset_enable;              // 0x536 (0x916)  ckReset: 0 blocks the reset; Die_Lost sets 1 (vendor name as em10)
 };
 
-#define EM2D_WK(em) ((Em2dWork*) &(em)->x3E0)
+#define EM2D_WK(em) ((Em2dWork*) (((cEm2d*) (em))->free))
 
 class cEm2d : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2D_WK)
     virtual void move();
     virtual int ckFindPL();          // 1 while alive, in battle (status 5) and the player is found
     virtual int ckReset();           // 1 once the die routine finished (the room resets the enemy)

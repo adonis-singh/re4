@@ -127,7 +127,7 @@ void R20bInit()
         SmdSetTrans(0x52, 1);
         SmdSetTrans(0x53, 1);
         SceAtSetEnable(0x1B, 0);
-        if (!(pG->Status_flg[3] & 0x04000000)) {
+        if (!StaFlagChk(pG, STA_SUB_ASHLEY)) {
             EmReadSearch((u8) GetEmIdFromListI(0x11), 0, 0);
         }
     }
@@ -165,7 +165,7 @@ void R20bInit()
     if (RsfCheck(G_ROOM_ID, 21) == 0) {
         SceExec(0x12, (TaskFunc) R20bStartCameraMain, 0, 0, SCE_PRIO_DEF_2, 0);
     }
-    if (!(pG->Status_flg[3] & 0x04000000)) {
+    if (!StaFlagChk(pG, STA_SUB_ASHLEY)) {
         r20b_work.p->cnt = zero;
         SceExec(0x12, (TaskFunc) R20bEmSetMain, 0, 0, SCE_PRIO_DEF_2, 0);
         SceExec(0x12, (TaskFunc) SceBgmCheck, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -183,12 +183,12 @@ void R20bInit()
 void R20bMain()
 {
     if ((pG->Room_flg[2] & 0x00080000) || pPL->pos.y <= 100.0f) {
-        if (!((int) pG->Room_flg[0] < 0)) {
+        if (!(pG->Room_flg[0] & 0x80000000)) {
             pG->Room_flg[0] |= 0x80000000;
             R20bScrTrans(0);
         }
     } else {
-        if ((int) pG->Room_flg[0] < 0) {
+        if (pG->Room_flg[0] & 0x80000000) {
             pG->Room_flg[0] &= 0x7FFFFFFF;
             R20bScrTrans(1);
         }
@@ -343,7 +343,7 @@ static void R20bEmSetMain()
         r20b_work.p->em[4].setFlag(1);
     }
     for (;;) {
-        if ((int) pG->Room_flg[2] < 0) {
+        if (pG->Room_flg[2] & 0x80000000) {
             if (RsfCheck(G_ROOM_ID, 2) == 0) {
                 RsfSet(G_ROOM_ID, 2);
                 r20b_work.p->em[0].setEm(0x11, -1, 0, 1, 1);
@@ -611,7 +611,7 @@ static void R20bDoorEventMain()
         SceSleep(1);
     }
     SceEventStart(1);
-    BitOn(pG->door_flags_51C8, 0x400);
+    ScfFlagOn(pG, SCF_75);
     RsfSet(G_ROOM_ID, 1);
     SceAtSetEnable(4, 0);
     SceAtSetEnable(0x19, 0);

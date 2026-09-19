@@ -45,7 +45,7 @@ void subMissionSt3();
 void SubMissionCheck();
 }
 
-// Village rooms 200..208: list 2 until the church bell (Scenario_flg[0] 0x40000), then 3.
+// Village rooms 200..208: list 2 until the church bell (Scenario_flg[1] 0x40000), then 3.
 static inline int emListVillage(int room)
 {
     switch (room) {
@@ -56,7 +56,7 @@ static inline int emListVillage(int room)
     case 0x204:
     case 0x207:
     case 0x208:
-        if (!(pG->Scenario_flg[0] & 0x40000)) {
+        if (!ScfFlagChk(pG, SCF_R204_ASHLEY_SPLIT)) {
             return 2;
         }
     }
@@ -72,7 +72,7 @@ int checkEmListNo(u16 room)
     int stage = room >> 8;
     u32 flags = pG->System_flg;
 
-    if ((s32) flags < 0) {
+    if (flags & 0x80000000) {
         return 8;
     }
     if (flags & 0x40000000) {
@@ -107,7 +107,7 @@ int checkEmListNo(u16 room)
             return -1;
         }
         if (room == 0x200) {
-            if (!(pG->Scenario_flg[0] & 0x800000)) {
+            if (!ScfFlagChk(pG, SCF_ST2_IN)) {
                 return 1;
             }
             return 2;
@@ -121,7 +121,7 @@ int checkEmListNo(u16 room)
         if (room > 0x210) {
             return 4;
         }
-        if (pG->Scenario_flg[0] & 0x10000000) {
+        if (ScfFlagChk(pG, SCF_R206_ASHLEY_RESCUE)) {
             return 4;
         }
         return emListVillage(room);
@@ -218,7 +218,7 @@ void StageSet()
         MemSetCurrentHeap(2);
         cMes.stageInit();
         if (pG->stage_no == 1) {
-            pG->Item_find_flg |= 0x4;
+            ScfFlagOn(pG, SCF_ST1_MAP_DAY);
         }
         TaskSleep(1);
     }
@@ -248,8 +248,8 @@ void readEmList(int mode)
     no = checkEmListNo(G_ROOM_ID);
     if (no >= 0) {
         GlobalWork* g = pG;
-        if (no > g->em_list_no || (g->System_flg & 0x2000) || g->SaveKind == 3 ||
-            ((s32) g->Debug_flg[2] < 0 && g->em_list_no != no)) {
+        if (no > g->em_list_no || (SysFlagChk(g, SYS_NEW_GAME)) || g->SaveKind == 3 ||
+            (DbgFlagChk(g, DBG_ROOMJMP) && g->em_list_no != no)) {
             name = getEmListName(no);
             pG->em_list_no = no;
         }
@@ -303,7 +303,7 @@ int checkSubMissionTarget(int stage, int no)
 
 // Stage 1 side mission (blue medallions): syncs each target's broken flag between its two rooms,
 // counts them; a change shows the counter id (0x33) for 150 frames (450 at 10, which also adds the
-// merchant's reward stock and clears Status_flg[2] 0x40000; 15 sets Scenario_flg[0] 0x8000); in
+// merchant's reward stock and clears Status_flg[2] 0x40000; 15 sets Scenario_flg[1] 0x8000); in
 // shooting-range mode the medallion in the current room is shown and pointed at.
 void subMissionSt1()
 {
@@ -364,13 +364,13 @@ void subMissionSt1()
         timer = 150;
         SetFree(0, count);
         if (count == 10) {
-            pG->Item_find_flg |= 0x40000;
+            ScfFlagOn(pG, SCF_ST1_SUB_MISSION);
             timer = 450;
             stockDataAdd(&merchantData, stock_1st_mission);
-            pG->Status_flg[2] &= ~0x40000;
+            StaFlagOff(pG, STA_INTO_SHOP);
         }
         if (count == 15) {
-            pG->Scenario_flg[0] |= 0x8000;
+            ScfFlagOn(pG, SCF_ST1_SUB_PERFECT);
         }
         int n = 0;
         int base = 0;

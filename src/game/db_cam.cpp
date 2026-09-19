@@ -141,7 +141,7 @@ void debugCamera::move(Camera* cam, JOY* joy, int flag)
         return;
     }
     if (joy->on & ~0x1A00) {
-        if ((s32) pG->Debug_flg[0] < 0) {
+        if (DbgFlagChk(pG, DBG_TEST_MODE)) {
             m_draw_timer = 5;
         } else {
             m_draw_timer = 30;
@@ -151,16 +151,16 @@ void debugCamera::move(Camera* cam, JOY* joy, int flag)
         m_draw_timer--;
         CameraDrawTarget(cam, 0);
     }
-    if (!(pG->Debug_flg[0] & 0x10000000)) {
+    if (!DbgFlagChk(pG, DBG_DBG_CAM)) {
         if (joy->on & ~0x1A00) {
-            pG->Debug_flg[0] |= 0x10000000;
+            DbgFlagOn(pG, DBG_DBG_CAM);
         }
     } else {
-        if ((s32) pG->Debug_flg[0] >= 0 && (pG->Frame_cnt & 0x10)) {
+        if (!DbgFlagChk(pG, DBG_TEST_MODE) && (pG->Frame_cnt & 0x10)) {
             eprintf(160, 406, 4, 0, "DEBUG CAMERA --- [%s]", key_str[m_key_type]);
         }
         if (m_menu_sw == 0 && !(flag & 1) && (joy->on & JOY_B)) {
-            pG->Debug_flg[0] &= ~0x10000000;
+            DbgFlagOff(pG, DBG_DBG_CAM);
         }
     }
     switch (m_target_type) {
@@ -221,7 +221,7 @@ void debugCamera::move(Camera* cam, JOY* joy, int flag)
                 }
             }
         }
-        if (em != NULL && (em->be_flag & 1) && (pG->Debug_flg[0] & 0x20000)) {
+        if (em != NULL && (em->be_flag & 1) && (DbgFlagChk(pG, DBG_SKELETON_DISP))) {
             em->debugSkeletonDisp();
         }
         break;
@@ -302,7 +302,7 @@ void debugCamera::move(Camera* cam, JOY* joy, int flag)
         cam->dist = PSVECDistance(&cam->param.pos, &cam->param.at);
         (this->*camera_type_tbl[m_key_type])(cam, joy);
     }
-    if ((pG->Debug_flg[0] & 0x10000000) && info_disp) {
+    if (DbgFlagChk(pG, DBG_DBG_CAM) && info_disp) {
         Mtx inv;
         Vec pos;
         Vec at;
@@ -581,7 +581,7 @@ void debugCamera::menu(Camera* cam, JOY* joy)
             // COMPILER-DIFF: candidate (sched2 tie, second half; see the campos copy above).
             asm("" : "=m"(ProjType) : "r"(t));
             CameraSetOrientationUp(&pG->Cam);
-            pG->Debug_flg[0] |= 0x10000000;
+            DbgFlagOn(pG, DBG_DBG_CAM);
         }
         do { } while (0);
     }
@@ -755,10 +755,10 @@ int debugCamera::menuFlag(JOY* joy)
     if (d != 0) {
         switch (m_sel1) {
         case 0:
-            if (pG->Debug_flg[0] & 0x10000000) {
-                pG->Debug_flg[0] &= ~0x10000000;
+            if (DbgFlagChk(pG, DBG_DBG_CAM)) {
+                DbgFlagOff(pG, DBG_DBG_CAM);
             } else {
-                pG->Debug_flg[0] |= 0x10000000;
+                DbgFlagOn(pG, DBG_DBG_CAM);
             }
             break;
         case 1:
@@ -792,10 +792,10 @@ int debugCamera::menuFlag(JOY* joy)
             }
             break;
         case 5:
-            if (pG->Debug_flg[0] & 0x20000000) {
-                pG->Debug_flg[0] &= ~0x20000000;
+            if (DbgFlagChk(pG, DBG_BACK_CLIP)) {
+                DbgFlagOff(pG, DBG_BACK_CLIP);
             } else {
-                pG->Debug_flg[0] |= 0x20000000;
+                DbgFlagOn(pG, DBG_BACK_CLIP);
             }
             break;
         case 6:
@@ -833,10 +833,10 @@ int debugCamera::menuFlag(JOY* joy)
             int c_off;
             switch (i) {
             case 0:
-                on = pG->Debug_flg[0] & 0x10000000;
+                on = DbgFlagChk(pG, DBG_DBG_CAM);
                 break;
             case 5:
-                on = pG->Debug_flg[0] & 0x20000000;
+                on = DbgFlagChk(pG, DBG_BACK_CLIP);
                 break;
             case 3:
                 on = info_disp;
@@ -910,46 +910,46 @@ int debugCamera::menuHitDisp(JOY* joy)
         switch (view_mode) {
         case 0:
             if (!shadow_flag) {
-                BitOff(pG->Disp_flg, 0x2000000);
+                DpfFlagOff(pG, DPF_SHADOW);
             }
-            BitOff(pG->Debug_flg[0], 0x800000);
-            BitOff(pG->Status_flg[0], 0x80000000);
-            BitOff(pG->Debug_flg[0], 0x80000);
+            DbgFlagOff(pG, DBG_SHADOW_POLYGON);
+            StaFlagOff(pG, STA_BG_OFF);
+            DbgFlagOff(pG, DBG_MIRROR_POLYGON);
             break;
         case 1:
-            BitOn(pG->Debug_flg[0], 0x40000000);
+            DbgFlagOn(pG, DBG_SCR_TEST);
             break;
         case 3:
             if (!shadow_flag) {
-                BitOff(pG->Disp_flg, 0x2000000);
+                DpfFlagOff(pG, DPF_SHADOW);
             }
-            BitOff(pG->Status_flg[0], 0x80000000);
-            BitOff(pG->Debug_flg[0], 0x40000000);
-            BitOn(pG->Debug_flg[0], 0x200000);
+            StaFlagOff(pG, STA_BG_OFF);
+            DbgFlagOff(pG, DBG_SCR_TEST);
+            DbgFlagOn(pG, DBG_SCR2_TEST);
             break;
         case 5:
             if (!shadow_flag) {
-                BitOff(pG->Disp_flg, 0x2000000);
+                DpfFlagOff(pG, DPF_SHADOW);
             }
-            BitOff(pG->Status_flg[0], 0x80000000);
-            BitOff(pG->Debug_flg[0], 0x200000);
-            BitOn(pG->Debug_flg[0], 0x800000);
+            StaFlagOff(pG, STA_BG_OFF);
+            DbgFlagOff(pG, DBG_SCR2_TEST);
+            DbgFlagOn(pG, DBG_SHADOW_POLYGON);
             break;
         case 2:
         case 4:
         case 6:
-            shadow_flag = pG->Disp_flg & 0x2000000;
-            BitOn(pG->Status_flg[0], 0x80000000);
-            BitOn(pG->Disp_flg, 0x2000000);
+            shadow_flag = DpfFlagChk(pG, DPF_SHADOW);
+            StaFlagOn(pG, STA_BG_OFF);
+            DpfFlagOn(pG, DPF_SHADOW);
             break;
         case 7:
-            BitOff(pG->Status_flg[0], 0x80000000);
-            BitOn(pG->Debug_flg[0], 0x80000);
-            BitOff(pG->Debug_flg[0], 0x800000);
+            StaFlagOff(pG, STA_BG_OFF);
+            DbgFlagOn(pG, DBG_MIRROR_POLYGON);
+            DbgFlagOff(pG, DBG_SHADOW_POLYGON);
             break;
         case 8:
-            BitOn(pG->Status_flg[0], 0x80000000);
-            BitOn(pG->Debug_flg[0], 0x80000);
+            StaFlagOn(pG, STA_BG_OFF);
+            DbgFlagOn(pG, DBG_MIRROR_POLYGON);
             break;
         }
     }
@@ -1010,7 +1010,7 @@ void CameraDrawTarget(Camera* cam, int flag)
     if (pG->debug_mode == 0) {
         return;
     }
-    if ((s32) pG->Debug_flg[0] < 0) {
+    if (DbgFlagChk(pG, DBG_TEST_MODE)) {
         if (flag & 1) {
             flag |= 1;
         } else {
@@ -1289,11 +1289,11 @@ int adjust_qFPS(JOY* joy, int x, int y, int flag, int* out)
         case 0:
             if (joy->trg & JOY_A) {
                 menu_level = 1;
-                BitOn(pG->Debug_flg[1], 0x20000000);
-                if ((s32) pG->Debug_flg[0] >= 0) {
+                DbgFlagOn(pG, DBG_ADJUST_CAM);
+                if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                     CamDbg.m_cam_mode = 2;
                 }
-                BitOn(pG->Stop_flg, 0x10000000);
+                SpfFlagOn(pG, SPF_PL);
             }
             break;
         case 1:
@@ -1335,15 +1335,15 @@ int adjust_qFPS(JOY* joy, int x, int y, int flag, int* out)
         break;
     case 1:
         if (joy->trg & JOY_B) {
-            BitOff(pG->Debug_flg[1], 0x20000000);
-            BitOff(pG->Stop_flg, 0x10000000);
+            DbgFlagOff(pG, DBG_ADJUST_CAM);
+            SpfFlagOff(pG, SPF_PL);
             if (CamDbg.m_cam_mode != 2) {
                 CamDbg.m_cam_mode = 0;
             }
             menu_level = 0;
         } else if (joy->trg & JOY_A) {
             q->getAreaData(g_local_ready, g_local_trans);
-            BitOn(pG->Stop_flg, 0x40000000);
+            SpfFlagOn(pG, SPF_CAMERA);
             menu_level = 2;
         } else {
             int old_umd = site_UMD;
@@ -1445,7 +1445,7 @@ int adjust_qFPS(JOY* joy, int x, int y, int flag, int* out)
     case 2:
         MotionMove(pPL, 0);
         if (joy->trg & JOY_B) {
-            BitOff(pG->Stop_flg, 0x40000000);
+            SpfFlagOff(pG, SPF_CAMERA);
             menu_level = 1;
         } else if (joy->trg & JOY_A) {
             PSMTXMultVec(inv, &g->Cam.param.pos, &QOFS(p_offset)->Campos);
@@ -1478,7 +1478,7 @@ int adjust_qFPS(JOY* joy, int x, int y, int flag, int* out)
             }
             q->setAreaData(g_local_ready, g_local_trans);
             ret = 3;
-            BitOff(pG->Stop_flg, 0x40000000);
+            SpfFlagOff(pG, SPF_CAMERA);
             menu_level = 1;
         } else {
             ret = 2;

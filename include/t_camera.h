@@ -120,7 +120,7 @@ struct TcWork {
     s8 cameraNo;                 // 0x634  CamCtrl.cameraNo at tool start (highlighted in the list)
     s8 areaNo;                   // 0x635  CamCtrl.areaNo
     s8 areaSuffix;               // 0x636  CamCtrl.areaSuffix
-    u8 keyTypeBak;               // 0x637  pSys->key_type saved while the tool runs
+    u8 keyTypeBak;               // 0x637  pSys->pad_type saved while the tool runs
     u8 lightTool;                // 0x638  1 while the light tool runs
     u8 areaDetail;               // 0x639
     u8 blink;                    // 0x63A  frame counter

@@ -10,7 +10,7 @@
 
 void PlRocketMove(cPlayer* pl);   // wep/pl_rocket.cpp
 
-// WeaponInitFunc (cPlayer::weaponInit with the player): clears flags_420 bit10 (launcher thrown
+// WeaponInitFunc (cPlayer::weaponInit with the player): clears stat bit10 (launcher thrown
 // away), creates the cObjLauncher (ObjMgr id 0x23), inits it on the player (loads its rocket),
 // stores it as Wep->m_pWep, installs its motions, loads the launch effects (archive 0x6 as group
 // 0x47) and points the debug preview PlWepMot at the aim idles 0xF/0x12/0x14.
@@ -19,7 +19,7 @@ void Wep13_init(cModel* m)
     cPlayer* pl = (cPlayer*) m;
     cObjWep* obj;
 
-    pl->flags_420 &= ~0x400;
+    pl->stat &= ~0x400;
     obj = (cObjWep*) ObjMgr.createBack(0x23);
     if (obj == 0) {
         pLog->err(0, 0, "Wep13_init() cObjWep CREATE FAILED");

@@ -91,10 +91,10 @@ static inline void emDoorMatUpdate(cEmDoor* em)
     em->partsWorldCalc();
 }
 
-// pG->door_unlock bit of key `no`.
+// pG->Key_flg bit of key `no`.
 static inline u32 emDoorKeyCk(u32 no)
 {
-    u32* tbl = pG->door_unlock;
+    u32* tbl = pG->Key_flg;
 
     return tbl[no >> 5] & (0x80000000 >> (no & 0x1F));
 }
@@ -1839,7 +1839,7 @@ void emDoor_R1_Break(cEmDoor* em)
             *flg |= 1;
         }
         if (w->Key_flag != 0x36) {
-            u32* tbl = pG->door_unlock;
+            u32* tbl = pG->Key_flg;
 
             tbl[w->Key_flag >> 5] |= 0x80000000 >> (w->Key_flag & 0x1F);
         }
@@ -3016,9 +3016,9 @@ void emDoorAction(cEmDoor* em)
         break;
     }
     if (kick) {
-        SetPlDamage((int) em, plemDoorKick);
+        SetPlDamage(em, plemDoorKick);
     } else {
-        SetPlDamage((int) em, plemDoorOpen);
+        SetPlDamage(em, plemDoorOpen);
     }
 }
 
@@ -3044,10 +3044,10 @@ void emDoorAction2(cEmDoor* em)
         break;
     }
     if (kick) {
-        SetPlDamage((int) em, plemDoorKick);
+        SetPlDamage(em, plemDoorKick);
         pPL->r_no_3 = 1;
     } else {
-        SetPlDamage((int) em, plemDoorOpen);
+        SetPlDamage(em, plemDoorOpen);
         pPL->r_no_3 = 1;
     }
 }
@@ -3055,7 +3055,7 @@ void emDoorAction2(cEmDoor* em)
 // The bell position marks where the door was kicked / opened (pG->bell_pos).
 static inline void emDoorBellSet(Vec* pos)
 {
-    BitOn(pG->Status_flg[1], 0x20000000);
+    StaFlagOn(pG, STA_SE_BURST);
     memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), pos, sizeof(Vec));
     pG->bell_stat = 0;
 }
@@ -3065,8 +3065,8 @@ static inline void emDoorBellSet(Vec* pos)
 // the paired door follows. Ends the damage state when the motion finishes.
 void plemDoorKick(cPlayer* pl)
 {
-    cEmDoor* door = (cEmDoor*) pl->dmgType;
-    cEmDoor* door2 = (cEmDoor*) pPL->dmgType;
+    cEmDoor* door = (cEmDoor*) pl->pEmCatch;
+    cEmDoor* door2 = (cEmDoor*) pPL->pEmCatch;
     EmDoorWork* w = EMDOOR_WK(door2);
     int frame;
     Vec v;
@@ -3142,8 +3142,8 @@ void plemDoorKick(cPlayer* pl)
 // damage state.
 void plemDoorOpen(cPlayer* pl)
 {
-    cEmDoor* door = (cEmDoor*) pl->dmgType;
-    cEmDoor* door2 = (cEmDoor*) pPL->dmgType;
+    cEmDoor* door = (cEmDoor*) pl->pEmCatch;
+    cEmDoor* door2 = (cEmDoor*) pPL->pEmCatch;
     EmDoorWork* w = EMDOOR_WK(door2);
     f32 d;
     u8 flag;
@@ -3157,10 +3157,10 @@ void plemDoorOpen(cPlayer* pl)
             v.x = -638.54f;
             v.y = 0.0f;
             v.z = 440.4f;
-            PSMTXMultVec(((cEmDoor*) pl->dmgType)->mat, &v, &v);
-            PSVECSubtract(&v, &pPL->pos, &pl->evTarget);
-            pl->evTarget.y = 0.0f;
-            pl->m_Fwork0 = ((cEmDoor*) pl->dmgType)->ang.y + PI;
+            PSMTXMultVec(pl->pEmCatch->mat, &v, &v);
+            PSVECSubtract(&v, &pPL->pos, &pl->m_VecWork0);
+            pl->m_VecWork0.y = 0.0f;
+            pl->m_Fwork0 = pl->pEmCatch->ang.y + PI;
             FSet(pl->m_Fwork0, LIMIT_ANGLE(pl->m_Fwork0));
             MotionSetCore(pl, &pl->pMotion, PL_ARC_PTR(pG->pPlayer, 0x1E), 0, 5, 1, 0);
             door->setOpen2(0);
@@ -3172,10 +3172,10 @@ void plemDoorOpen(cPlayer* pl)
             v.x = -638.54f;
             v.y = 0.0f;
             v.z = -440.4f;
-            PSMTXMultVec(((cEmDoor*) pl->dmgType)->mat, &v, &v);
-            PSVECSubtract(&v, &pPL->pos, &pl->evTarget);
-            pl->evTarget.y = 0.0f;
-            FSet(pl->m_Fwork0, ((cEmDoor*) pl->dmgType)->ang.y);
+            PSMTXMultVec(((cEmDoor*) pl->pEmCatch)->mat, &v, &v);
+            PSVECSubtract(&v, &pPL->pos, &pl->m_VecWork0);
+            pl->m_VecWork0.y = 0.0f;
+            FSet(pl->m_Fwork0, ((cEmDoor*) pl->pEmCatch)->ang.y);
             MotionSetCore(pl, &pl->pMotion, PL_ARC_PTR(pG->pPlayer, 0x1E), 0, 5, 1, 0);
             door->setOpen2(1);
             if (pl->r_no_3 && w->pDoor && !(w->pDoor->flag & 0x10000000)) {
@@ -3191,9 +3191,9 @@ void plemDoorOpen(cPlayer* pl)
         pl->ang.y += Muku2(pl->ang.y, pl->m_Fwork0, PI / 16);
         pl->ang.y = LIMIT_ANGLE(pl->ang.y);
         if (pl->r_no_3 == 0) {
-            PSVECScale(&pl->evTarget, &v, 0.1f);
+            PSVECScale(&pl->m_VecWork0, &v, 0.1f);
             PSVECAdd(&pl->pos, &v, &pl->pos);
-            PSVECSubtract(&pl->evTarget, &v, &pl->evTarget);
+            PSVECSubtract(&pl->m_VecWork0, &v, &pl->m_VecWork0);
         }
         if (MotionMove(pl, 0)) {
             pl->atari.setFlag200();
@@ -3203,7 +3203,7 @@ void plemDoorOpen(cPlayer* pl)
             pl->m_Work0--;
             if (Key.trg & 0x400) {
                 flag = pl->r_no_3;
-                SetPlDamage((int) pl->dmgType, plemDoorKick);
+                SetPlDamage(pl->pEmCatch, plemDoorKick);
                 pl->r_no_3 = flag;
                 pl->r_no_2 = 4;
                 door->r_no_0 = 1;
@@ -3250,7 +3250,7 @@ int cEmDoor::ckObj()
         cEmMgr* m = &EmMgr;
         u32 ofs = m->size * i;
         cEm* e = (cEm*) ((u8*) m->pArray + ofs);
-        EmRackWork* rw = 0;
+        FREE_EMRACK* rw = 0;
 
         if ((e->be_flag & 0x201) != 1) {
             continue;
@@ -3270,42 +3270,42 @@ int cEmDoor::ckObj()
             }
         }
         rw = EMRACK_WK(e);
-        v.x = rw->size.x;
+        v.x = rw->Size_x;
         v.y = 0.0f;
-        v.z = rw->size.z;
+        v.z = rw->Size_z;
         emDoorObjToDoor(e->mat, w->base_im, &v);
         OBJ_BOX_CK();
-        v.x = rw->size.x;
+        v.x = rw->Size_x;
         v.y = 0.0f;
-        v.z = -rw->size.z;
+        v.z = -rw->Size_z;
         emDoorObjToDoor(e->mat, w->base_im, &v);
         OBJ_BOX_CK();
-        v.x = -rw->size.x;
+        v.x = -rw->Size_x;
         v.y = 0.0f;
-        v.z = rw->size.z;
+        v.z = rw->Size_z;
         emDoorObjToDoor(e->mat, w->base_im, &v);
         OBJ_BOX_CK();
-        v.x = -rw->size.x;
+        v.x = -rw->Size_x;
         v.y = 0.0f;
-        v.z = -rw->size.z;
-        emDoorObjToDoor(e->mat, w->base_im, &v);
-        OBJ_BOX_CK();
-        v.x = 0.0f;
-        v.y = 0.0f;
-        v.z = rw->size.z;
+        v.z = -rw->Size_z;
         emDoorObjToDoor(e->mat, w->base_im, &v);
         OBJ_BOX_CK();
         v.x = 0.0f;
         v.y = 0.0f;
-        v.z = -rw->size.z;
+        v.z = rw->Size_z;
         emDoorObjToDoor(e->mat, w->base_im, &v);
         OBJ_BOX_CK();
-        v.x = rw->size.x;
+        v.x = 0.0f;
+        v.y = 0.0f;
+        v.z = -rw->Size_z;
+        emDoorObjToDoor(e->mat, w->base_im, &v);
+        OBJ_BOX_CK();
+        v.x = rw->Size_x;
         v.y = 0.0f;
         v.z = 0.0f;
         emDoorObjToDoor(e->mat, w->base_im, &v);
         OBJ_BOX_CK();
-        v.x = -rw->size.x;
+        v.x = -rw->Size_x;
         v.y = 0.0f;
         v.z = 0.0f;
         emDoorObjToDoor(e->mat, w->base_im, &v);
@@ -3381,7 +3381,7 @@ void cEmDoor::setNormal()
     EMDOOR_WK(this)->Be_flg &= ~1;
 }
 
-// The pG->door_unlock key bit required to open the door (0x36 = none).
+// The pG->Key_flg key bit required to open the door (0x36 = none).
 void cEmDoor::setKey(int no)
 {
     EMDOOR_WK(this)->Key_flag = no;
@@ -3471,7 +3471,7 @@ cEmDoor* DoorOpenCk(cModel* m)
 // Makes the partner open / kick `door` (subDoorKick as her damage routine).
 void SubOpenDoorSet(cEmDoor* door)
 {
-    SetSubDamage((int) door, (void*) subDoorKick);
+    SetSubDamage(door, (void*) subDoorKick);
 }
 
 // Partner damage routine: kick motion (0x2B) with setShock, or the kick-open motion (0x2A) with
@@ -3479,7 +3479,7 @@ void SubOpenDoorSet(cEmDoor* door)
 void subDoorKick()
 {
     cSubChar* sub = pSUB;
-    cEmDoor* door = (cEmDoor*) sub->dmgType;
+    cEmDoor* door = (cEmDoor*) sub->pEmCatch;
 
     if (sub->r_no_2 == 0) {
         if (door->ckKick(&sub->pos)) {

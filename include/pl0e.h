@@ -72,10 +72,11 @@ struct Pl0eWork {
     MotionWorkSub blendMot;   // 0x118 (0x4F8) .. 0x1E8  the blended lean motion
 };
 
-#define PL0E_WK(em) ((Pl0eWork*) &(em)->x3E0)
+#define PL0E_WK(em) ((Pl0eWork*) (((cPl0e*) (em))->free))
 
 class cPl0e : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (PL0E_WK)
     // constructor / destructor implicit (Pl0eInit: new (em) cPl0e())
     virtual void move();
     virtual void setPos(Vec* pos, f32 ang);

@@ -58,10 +58,11 @@ struct Em22Work {
     u8 espKind;           // 0x2E0 (0x6C0)  EspPullCoreKind at creation
 };
 
-#define EM22_WK(em) ((Em22Work*) &(em)->x3E0)
+#define EM22_WK(em) ((Em22Work*) (((cEm22*) (em))->free))
 
 class cEm22 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM22_WK)
     virtual void move();
     virtual void setGoto(Vec* pos, int on);
 };

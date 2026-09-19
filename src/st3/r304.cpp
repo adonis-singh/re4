@@ -159,7 +159,7 @@ extern "C" void Evt_R304S00_Func(Event* e)
 
     switch (e->funcMode) {
     case 0:
-        pG->Status_flg[1] |= 0x800;
+        StaFlagOn(pG, STA_CAMERA_SET_ROOM);
         break;
     case 1:
         if (e->NowCut == 0 && e->NowFrame == 0) {
@@ -216,7 +216,7 @@ extern "C" void Evt_R304S00_Func(Event* e)
         }
         break;
     case 2:
-        pG->Status_flg[1] &= ~0x800;
+        StaFlagOff(pG, STA_CAMERA_SET_ROOM);
         w = SmdGetWorkPtr(0x10);
         obj = SmdGetObjPtr(0x10);
         if (obj && w) {

@@ -72,7 +72,7 @@ void R40aInit()
 {
 #line 74 "D:/Bio4/Prog/r40a.cpp"
     r40a_work = (R40aWork*) MEM_CALLOC(sizeof(R40aWork), 1, 0xd);
-    BitOn(pG->Debug_flg[1], 0x00020000);
+    DbgFlagOn(pG, DBG_EMW_ERR_NO_DISP);
     EmReadSearch(0x1F, 0, 0);
     SceAtDataSet_exec(5, SCE_LEVEL10, 0, (TaskFunc) em_set, 0, 1);
     SceExec(0x12, (TaskFunc) em_set2, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -100,10 +100,10 @@ static void em_set()
 {
     int n = 0;
 
-    if (pG->item_flags[0] & 8) {
+    if (ItfFlagChk(pG, ITF_R40B_SAMPLE00)) {
         n = 1;
     }
-    if (pG->item_flags[0] & 4) {
+    if (ItfFlagChk(pG, ITF_R40C_SAMPLE00)) {
         n++;
     }
     if (n == 0) {

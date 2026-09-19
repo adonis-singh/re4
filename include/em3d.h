@@ -37,10 +37,11 @@ struct Em3dWork {
     u8 gunTimer;          // 0x2E1 (0x6C1)  frames between chain gun shots
 };
 
-#define EM3D_WK(em) ((Em3dWork*) &(em)->x3E0)
+#define EM3D_WK(em) ((Em3dWork*) (((cEm3d*) (em))->free))
 
 class cEm3d : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM3D_WK)
     virtual void move();
     virtual void setNoSuspend(int on);
     virtual int ckSelectEnable();

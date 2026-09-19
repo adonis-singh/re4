@@ -105,7 +105,7 @@ void Filter0aTrans()
     if (use_filter0a == 0) {
         return;
     }
-    if (pG->Status_flg[1] & 0x04000000) {
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
         return;
     }
     if (Render_checkBlurPermission()) {

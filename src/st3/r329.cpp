@@ -57,7 +57,7 @@ void R329Init()
     EvtMgr.SetFunc("evt_r329s99_func", (void*) Evt_R329S00_Func);
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         EvtMgr.EvtReadAram("event/evd/r329s00.evd", 3, 0, 0, 0);
-        pG->Status_flg[3] |= 0x04000000;
+        StaFlagOn(pG, STA_SUB_ASHLEY);
         if (DebugTrg(1) == 0) {
             SceExec(0x12, (TaskFunc) R329EventS00, 0, 0, 2, 0);
         }
@@ -84,17 +84,17 @@ void R329Main()
 {
 }
 
-// Once (Room_flg bit 0): two door_unlock[1] bits cleared, event r329s00 (Leon and Ashley reunited),
-// a fade-in, Leon placed at the fixed spot, Ashley initialised beside him in chase mode, Scenario_flg[1]
+// Once (Room_flg bit 0): two Key_flg[1] bits cleared, event r329s00 (Leon and Ashley reunited),
+// a fade-in, Leon placed at the fixed spot, Ashley initialised beside him in chase mode, Scenario_flg[2]
 // 0x40000000, the post-event objects.
 static void R329EventS00()
 {
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         RsfSet(G_ROOM_ID, 0);
-        BitOff(pG->door_unlock[1], 0x04000000);
-        BitOff(pG->door_unlock[1], 0x00040000);
+        BitOff(pG->Key_flg[1], 0x04000000);
+        BitOff(pG->Key_flg[1], 0x00040000);
         SceEventStart(0);
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         SceSleep(1);
         EvtMgr.EvtReadExec("event/evd/r329s00.evd", 3, 0);
         FadeSetW(0x80000002, 30, 0, 0);
@@ -119,8 +119,8 @@ static void R329EventS00()
             ang.z = 0.0f;
             pPL->setAng(&ang);
         }
-        BitOn(pG->Scenario_flg[1], 0x40000000);
-        BitOn(pG->Status_flg[3], 0x04000000);
+        ScfFlagOn(pG, SCF_R329_ASHLEY_HELP);
+        StaFlagOn(pG, STA_SUB_ASHLEY);
         SubCharInit(1, &pPL->pos, pPL->ang.y);
         SubCharCtrl(1, 0);
         {
@@ -160,7 +160,7 @@ extern "C" void Evt_R329S00_Func(Event* e)
 
     switch (e->funcMode) {
     case 0:
-        pG->Status_flg[1] |= 0x800;
+        StaFlagOn(pG, STA_CAMERA_SET_ROOM);
         SmdSetTrans(0x30, 1);
         SmdSetTrans(0x31, 1);
         SmdSetTrans(0x2E, 0);
@@ -283,7 +283,7 @@ extern "C" void Evt_R329S00_Func(Event* e)
         }
         break;
     case 2:
-        pG->Status_flg[1] &= ~0x800;
+        StaFlagOff(pG, STA_CAMERA_SET_ROOM);
         w = SmdGetWorkPtr(0x29);
         if ((obj = SmdGetObjPtr(0x29)) != 0 && w != 0) {
             obj->setPos(&w->pos);

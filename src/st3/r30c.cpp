@@ -79,7 +79,7 @@ static void r30c_ItemBoxOpened(int no);
 static void r30c_StrStart();
 static void r30c_StrCheck();
 
-// Room init (Ashley's cell): door 1 takes key item 0x13; until unlocked (door_unlock[0] 0x1000) area 3 =
+// Room init (Ashley's cell): door 1 takes key item 0x13; until unlocked (Key_flg[0] 0x1000) area 3 =
 // the cell door with its key watcher. Until the s00 event (Room_flg bit 0): it is pre-loaded (enemy of
 // ESL 0x40), Ashley initialised and locked in the cell (mode 5) with her shout task and, on the first
 // visit of the stage, the cell cut on area 5; after it: until the plane crashed (bit 3) area 6 = the
@@ -94,7 +94,7 @@ void R30cInit()
     if (getRoomEtcDoor(1, &r30c_work.p->door, 1)) {
         ((cEmDoor*) r30c_work.p->door)->setKey(0x13);
     }
-    if (!(pG->door_unlock[0] & 0x1000)) {
+    if (!(pG->Key_flg[0] & 0x1000)) {
         SceAtDataSet_exec(3, 0x12, 0, (TaskFunc) r30c_checkImprisonDoor, 0, 1);
         SceExec(0x12, (TaskFunc) r30c_checkImprisonDoorKeyUse, 0, 0, 2, 0);
     }
@@ -104,7 +104,7 @@ void R30cInit()
         EvtMgr.EvtReadAram("event/evd/r30cs00.evd", (u8) GetEmIdFromListI(0x40), 0, 0, 0);
         SubCharInit(1, &pPL->pos, pPL->ang.y);
         SubCharCtrl(5, 0);
-        if (ItemMgr.num(0x83) != 0 || (pG->door_unlock[0] & 0x1000)) {
+        if (ItemMgr.num(0x83) != 0 || (pG->Key_flg[0] & 0x1000)) {
             Vec pos = {0.0f, 0.0f, 0.0f};
             Vec ang;
             cSubChar* sub = pSUB;
@@ -174,7 +174,7 @@ static void r30c_checkImprisonDoorKeyUse()
     while (ItemMgr.check(0x83) != 1) {
         SceSleep(1);
     }
-    pG->door_unlock[0] |= 0x1000;
+    pG->Key_flg[0] |= 0x1000;
     SceAtSetEnable(3, 0);
     SceUpCut(1, -1, 1, 0);
 }
@@ -212,7 +212,7 @@ static void R30cEventS00()
             ang.z = 0.0f;
             pl->setAng(&ang);
         }
-        pG->Status_flg[3] |= 0x04000000;
+        StaFlagOn(pG, STA_SUB_ASHLEY);
         pSUB = r30c_work.p->ashley;
         AtariFlagsOr(&pSUB->atari, 0x100);
         MotionClear(pSUB, 1);
@@ -230,7 +230,7 @@ static void R30cEventS00()
         SceAtDataSet_exec(6, 0x12, 0, (TaskFunc) r30c_PlaneMove, 0, 1);
         r30c_work.p->strId = SndStrReq(1, 0xEF, 0x80000001, 0, 0, 0.0f);
         SndBgmTblSet(0x30C, 1);
-        pG->Scenario_flg[1] |= 0x00020000;
+        ScfFlagOn(pG, SCF_R30C_SAVE_ASHLEY);
     }
 }
 
@@ -284,7 +284,7 @@ static void r30c_EventCut()
 }
 
 // End of the cell cut: camera back, Ashley and the two Ganados may suspend, SceEventEnd, the shout
-// task resumes, Scenario_flg[1] 0x00080000.
+// task resumes, Scenario_flg[2] 0x00080000.
 static void r30c_EventCutEndProc()
 {
     CamCtrl.Comeback(0);
@@ -293,7 +293,7 @@ static void r30c_EventCutEndProc()
     r30c_work.p->em[1].setNoSuspend(0);
     SceEventEnd(0);
     r30c_work.p->shout->task->flag &= ~2;
-    pG->Scenario_flg[1] |= 0x00080000;
+    ScfFlagOn(pG, SCF_R30C_ASHLEY_SCREAM);
 }
 
 // Ashley's shouting in the cell: the sound effects on the motion frames, and the wave once the
@@ -347,7 +347,7 @@ static void r31c_AshleyDieCheck()
         pSUB = 0;
         if (!(stat & 1)) {
             pG->ashley_life = 0;
-            r30c_work.p->ashley->stat = 0x02000000;
+            EmRoutineSetW(r30c_work.p->ashley, 2, 0, 0, 0);
         }
         if ((s16) pG->ashley_life > 0) {
             SceSleep(1);
@@ -386,7 +386,7 @@ static void r30c_PlaneMove()
 // Ganados (list 6) spawn, area 8 = start the battle stream.
 static void r30c_PlaneMoveEndProc(cObj* obj)
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         void* mot = ROOM_ARC_PTR(pG->pRoom, 0x23);
 
         obj->motionSet(mot, 0, FcvGetMaxFrame((u16*) mot), 1, 0);

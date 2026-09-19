@@ -70,8 +70,8 @@ static void r106_setCloset();
 extern "C" void Evt_R106S00_Func(Event* ev);
 extern "C" void r106_setEm();
 
-// Room init: Item_find_flg 0x800, the r106s00 event callback, floor hit effects, door 8 gets the lock
-// models; two shelf item events (items 0x85/0x86). Until Item_find_flg 0x00200000 (Luis found): area 2
+// Room init: Scenario_flg[0] 0x800, the r106s00 event callback, floor hit effects, door 8 gets the lock
+// models; two shelf item events (items 0x85/0x86). Until Scenario_flg[0] 0x00200000 (Luis found): area 2
 // = the closet event, evd pre-loaded to ARAM, enemies 0x12/0x29/0x2A/0x2E pre-read, areas 4/5 = battle
 // stream on/off, the shaking closet; otherwise area 0xE off. Areas 8/9 post two Ganados; the boulder
 // unless Room_flg bit 2; the six hall Ganados; rack 0 range; a fixed hit piece at the far wall.
@@ -86,7 +86,7 @@ void R106Init()
 #line 66 "D:/Bio4/Prog/r106.cpp"
     r106_work = (R106Work*) MEM_CALLOC(sizeof(R106Work), 1, 0xd);
 
-    pG->Item_find_flg |= 0x800;
+    ScfFlagOn(pG, SCF_R106_ENTER);
     EvtMgr.SetFunc("evt_r106s00_func", (void*) Evt_R106S00_Func);
     EatMgr.registEffInfo(EAT_ET_ROOM0, (AtEffInfo*) &r106_eff_info);
     if (getRoomEtcDoor(8, &door, 1)) {
@@ -94,7 +94,7 @@ void R106Init()
     }
     SceSetItemEvent(6, 0x85, 0, 6, r106_openShelf, (void (*)()) r106_openedShelf, 0, 0);
     SceSetItemEvent(7, 0x86, 1, 7, r106_openShelf, (void (*)()) r106_openedShelf, 1, 0);
-    if (!(pG->Item_find_flg & 0x00200000)) {
+    if (!ScfFlagChk(pG, SCF_R106_EVENT)) {
         SceAtDataSet_exec(2, SCE_LEVEL10, 0, (TaskFunc) r106_Event, 0, 1);
         PSet(r106_work->evd, DC.setData(EvtMgr.NameChange("evd/r106s00.evd")));
         r106_work->evd->setCommand(CMND_ARAM_LOAD, 0, 0);
@@ -353,10 +353,10 @@ static void r106_Event()
 {
     Event* ev;
 
-    BitOn(pG->Item_find_flg, 0x00200000);
-    BitOn(pG->Item_find_flg, 0x400);
+    ScfFlagOn(pG, SCF_R106_EVENT);
+    ScfFlagOn(pG, SCF_R106_CONFINEED_WITH_LUIS);
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SndRoomStrStop(3);
     EmMgr.destroyAll();
     SceSleep(2);
@@ -474,7 +474,7 @@ static void r106_setCloset()
     body = GetPartsAddr(obj->pParts, 0);
     doorR = GetPartsAddr(obj->pParts, 2);
     doorL = GetPartsAddr(obj->pParts, 1);
-    while (!(pG->Item_find_flg & 0x00200000)) {
+    while (!ScfFlagChk(pG, SCF_R106_EVENT)) {
         if (cnt <= 0) {
             Vec sp = {157059.0f, -9245.0f, -43597.0f};
 

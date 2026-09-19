@@ -641,10 +641,10 @@ static inline u32 chkFlag6C(u32 b)
     return pG->Debug_flg[3] & b;
 }
 
-// Scenario_flg[0] bit test.
+// Scenario_flg[1] bit test.
 static inline u32 chkFlag51C0(u32 b)
 {
-    return pG->Scenario_flg[0] & b;
+    return pG->Scenario_flg[1] & b;
 }
 
 // Debug: adds every stage 1 stock and tune table at once.
@@ -739,11 +739,11 @@ void Merchant2ndRoundInit()
 void MerchantRoomInit()
 {
     if (pG->game_cnt != 0) {
-        if (pSys->unlock_flg & 0x20000000) {
+        if (ExtFlagChk(pSys, EXT_GET_SW500)) {
             levelDataAdd(merchantData, level_ext_sw500);
             stockDataAdd(merchantData, stock_ext_sw500);
         }
-        if (pSys->unlock_flg & 0x10000000) {
+        if (ExtFlagChk(pSys, EXT_GET_TOMPSON)) {
             levelDataAdd(merchantData, level_ext_tompson);
             stockDataAdd(merchantData, stock_ext_tompson);
         }
@@ -786,23 +786,23 @@ void MerchantRoomInit()
         break;
     }
     if (pG->room_id == 0x10E) {
-        if (pG->Scenario_flg[0] & 0x01000000) {
-            if (!(pG->Scenario_flg[0] & 0x00100000)) {
+        if (ScfFlagChk(pG, SCF_ST1_NIGHT)) {
+            if (!ScfFlagChk(pG, SCF_R10E_STOCK_NIGHT)) {
                 levelDataAdd(merchantData, level_null);
                 stockDataAdd(merchantData, stock_r10e_night);
-                pG->Scenario_flg[0] |= 0x00100000;
+                ScfFlagOn(pG, SCF_R10E_STOCK_NIGHT);
             }
         } else {
-            if (!(pG->Scenario_flg[0] & 0x00200000)) {
+            if (!ScfFlagChk(pG, SCF_R10E_STOCK_DAY)) {
                 levelDataAdd(merchantData, level_r10e_day);
                 stockDataAdd(merchantData, stock_r10e_day);
-                pG->Scenario_flg[0] |= 0x00200000;
+                ScfFlagOn(pG, SCF_R10E_STOCK_DAY);
             }
         }
     }
     if (chkFlag51C0(0x01000000) && !chkFlag51C0(0x2000)) {
         levelDataAdd(merchantData, level_1st_night);
-        pG->Scenario_flg[0] |= 0x2000;
+        ScfFlagOn(pG, SCF_ST1_NIGHT_LV_ADD);
     }
     switch (pG->room_id) {
     case 0x200:
@@ -931,7 +931,7 @@ void MerchantRoomInit()
         }
         break;
     }
-    if (pG->Debug_flg[3] & 0x10) {
+    if (DbgFlagChk(pG, DBG_SHOP_FULL)) {
         stockDataInit(merchantData);
         levelDataInit(merchantData);
         merchantChar.setChar(0, 0, 0, 0, 0);
@@ -1403,15 +1403,15 @@ void Merchant::makeList()
 }
 
 // Special availability of Buy items: the Infinite Launcher 0x40 only after the game is cleared and
-// not yet bought (item_flags[0] 0x10000000); a few ids never.
+// not yet bought (Item_flg[0] 0x10000000); a few ids never.
 int checkSellingItem(u16 id)
 {
     int ret = 1;
 
     switch (id) {
     case 0x40:
-        if (pG->Item_find_flg & 0x00040000) {
-            u32 sold = pG->item_flags[0] & 0x10000000;
+        if (ScfFlagChk(pG, SCF_ST1_SUB_MISSION)) {
+            u32 sold = ItfFlagChk(pG, ITF_FN57);
             ret = sold == 0;
         } else {
             ret = 0;
@@ -1731,7 +1731,7 @@ int Merchant::sell(u16 id, int num, int* money)
 
     if (*money >= price) {
         if (id == 0x40) {
-            pG->item_flags[0] |= 0x10000000;
+            ItfFlagOn(pG, ITF_FN57);
         }
         *money -= price;
         stockSub(id, num);

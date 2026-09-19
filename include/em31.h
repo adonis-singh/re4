@@ -90,10 +90,11 @@ struct Em31Work {
     u8 Down_type;          // 0x975 (0xD55)  em31DmCk: down variant 0..3
 };
 
-#define EM31_WK(em) ((Em31Work*) &(em)->x3E0)
+#define EM31_WK(em) ((Em31Work*) (((cEm31*) (em))->free))
 
 class cEm31 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM31_WK)
     virtual void move();
     virtual int ckDownEnable();
     virtual void setDownBody();

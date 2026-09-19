@@ -422,7 +422,7 @@ void cObj16::move()
             setNoSuspend(0);
         }
     }
-    if (pG->Status_flg[1] & 0x04000000) {
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
         LightInfo.EnableMask = 4;
     } else {
         LightInfo.EnableMask = 2;
@@ -1106,7 +1106,7 @@ int obj16AtkCk(cObj16* obj, u32 kind, int partsNo)
                 if (obj->type == 0xB) {
                     EstSet((int) pPL, -1, 0, 0, 0x31, 9, 0, 0, (u32) pPL, 0);
                 }
-                SetPlDamage((int) obj, plemDmMStar);
+                SetPlDamage((cEm*) obj, plemDmMStar);
                 if (fabsf(Muku(&pPL->pos, &w->body->pos, pPL->ang.y, PI)) < PI / 2) {
                     ang = Muku(&pPL->pos, &w->body->pos, pPL->ang.y, PI);
                     FSet(pPL->ang.y, pPL->ang.y + ang);
@@ -1193,7 +1193,7 @@ void obj16PlHeadLost(cObj16* obj)
 
     pG->pl_life = 0;
     PlSetDamage(6, 0, 0);
-    region = pSys->region;
+    region = pSys->eff_country;
     if (region == 0) {
         PlSetDamageSe(0xD);
         if (w->body) {
@@ -1337,7 +1337,7 @@ int cObj16::ckAtkHit()
 // Player damage routine while the head holds him (SetPlDamage callback).
 void plemDmMStar(cPlayer* pl)
 {
-    Obj16Work* w = &((cObj*) pPL->dmgType)->o16;
+    Obj16Work* w = &((cObj*) pPL->pEmCatch)->o16;
     int hokan;
 
     if (pl->r_no_3 == 0) {

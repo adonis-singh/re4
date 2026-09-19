@@ -70,14 +70,8 @@ static R221WorkPtr r221_work;
 
 static inline void S16Set(s16& d, s16 v) { d = v; }
 static inline void PSetPrim(ScePrim*& d, ScePrim* v) { d = v; }
-// The death bits of enemy list `list` (pG->em_dead[list]), as an integer base (the r218 idiom).
+// The death bits of enemy list `list` (pG->Em_flg[list]), as an integer base (the r218 idiom).
 static inline u32* emDeadWords(int list) { return (u32*) ((list << 5) + (u32) pG + 0x501C); }
-
-// Two tests of one flag word stay separate (fold-const merges `(f & A) == 0 && (f & B) == 0`).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
 
 #define R221_MES_Y (0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1)
 
@@ -699,7 +693,7 @@ static void r221_checkElevatorArrive()
         SceSleep(1);
     }
     RsfSet(G_ROOM_ID, 6);
-    pG->door_flags_51CC |= 0x00800000;
+    ScfFlagOn(pG, SCF_88);
     PSetPrim(r221_work.p->wireTask, 0);
     U32Set(r221_work.p->doorSe, 0);
     U32Set(r221_work.p->elvSe1, 0);
@@ -727,7 +721,7 @@ static void r221_checkElevatorArrive()
 // Task: the elevator switch.
 static void r221_operateElevator()
 {
-    if (!(pG->em_dead[5][4] & 0x00080000) && (pG->Room_flg[0] & 0x00200000)) {
+    if (!(pG->Em_flg[5][4] & 0x00080000) && (pG->Room_flg[0] & 0x00200000)) {
         cEmWrap em;
 
         em.setPtr(0x8C, -1, 1);
@@ -774,7 +768,7 @@ static void r221_checkBossAppear_end()
     em.setPtr(0x8C, -1, 1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    pG->Status_flg[2] &= ~0x02000000;
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     GamePointBossReset();
     if (pG->Room_flg[0] & 0x20000000) {
         em.destroy();
@@ -838,7 +832,7 @@ static void r221_checkBossAppear()
         pG->Room_flg[0] &= ~0x01000000;
         SceSetEventCancel(1, (TaskFunc) r221_checkBossAppear_end, 0, 2, 1);
         SceEventStart(1);
-        pG->Status_flg[2] |= 0x02000000;
+        StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
         EstSet((int) em1.getPtr(), -1, 0, 0, 0x24, 1, 1, 2, (u32) em1.getPtr(), 0);
         pG->Room_flg[0] |= 0x01000000;
         CamCtrl.clearAttachCamera();
@@ -1101,7 +1095,7 @@ void r221_initInsectboss()
         }
         r221_moveElevatoDoor(0, 1);
     } else {
-        if (pG->room_id_prev == 0x220 && flagBit(pG->System_flg, 0x100) == 0 && flagBit(pG->System_flg, 0x00080000) == 0) {
+        if (pG->room_id_prev == 0x220 && FlagChkSignW(pG->System_flg, SYS_LOAD_GAME) == 0 && FlagChkSignW(pG->System_flg, SYS_CONTINUE) == 0) {
             r221_moveElevatoDoor(0, 1);
             SceExec(0x12, (TaskFunc) r221_moveElevator, 1, 0, SCE_PRIO_DEF_2, 0);
         } else {
@@ -1130,7 +1124,7 @@ void r221_initInsectboss()
 
             em.setEm(0x8C, -1, 0, 1, 1);
         }
-        if (!(pG->em_dead[5][4] & 0x00080000)) {
+        if (!(pG->Em_flg[5][4] & 0x00080000)) {
             SceAtDataSet_exec(0x19, SCE_LEVEL10, 0, (TaskFunc) r221_appearBoss2nd, 0, 1);
         }
     }
@@ -1400,7 +1394,7 @@ static void r201_throwBonbe(int no)
     SceEventEnd(0);
     pG->Room_flg[0] &= ~0x80000000;
     for (u32 j = 0; j < 300; j++) {
-        if ((int) pG->Room_flg[0] < 0) {
+        if (pG->Room_flg[0] & 0x80000000) {
             SceAtSetEnable(atNo, 0);
         }
         pG->Room_flg[0] &= ~0x80000000;

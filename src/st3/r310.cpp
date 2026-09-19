@@ -100,7 +100,7 @@ void R310Init()
         R310_SAVE_FLAGS |= 0x80000000;
     }
     SubCharInit(1, &pPL->pos, pPL->ang.y);
-    pG->Status_flg[3] |= 0x04000000;
+    StaFlagOn(pG, STA_SUB_ASHLEY);
     EvtMgr.SetFunc("evt_r310s00_func", (void*) Evt_R310S00_Func);
     if ((int) R310_SAVE_FLAGS >= 0) {
         EvtMgr.EvtReadAram("event/evd/r310s00.evd", (u8) GetEmIdFromListI(0x5A), 0, 1, 0);
@@ -754,7 +754,7 @@ static void r310_checkBgm()
 static void r310_checkEmStandUp_end()
 {
     SceEventEnd(0);
-    pG->Status_flg[2] &= ~0x02000000;
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     CamCtrl.Comeback(0);
     cEmWrap em;
     em.setEm(0x5A, -1, 1, 1, 1);
@@ -792,7 +792,7 @@ static void r310_checkEmStandUp()
         SceSleep(30);
         SceSetEventCancel(1, (TaskFunc) r310_checkEmStandUp_end, 0, 2, 1);
         SceEventStart(1);
-        pG->Status_flg[2] |= 0x02000000;
+        StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
         em.setPtr(0x5A, -1, 1);
         em.setFlag(1);
         em.setNoSuspend(1);
@@ -812,7 +812,7 @@ static void R310EventS00()
     Vec p;
     if ((int) R310_SAVE_FLAGS >= 0) {
         R310_SAVE_FLAGS |= 0x80000000;
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         EvtMgr.EvtReadExec("event/evd/r310s00.evd", (u8) GetEmIdFromListI(0x5A), 0);
         cPlayer* pl = pPL;
         p.x = -6877.0f;

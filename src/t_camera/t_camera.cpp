@@ -171,15 +171,15 @@ static void tcInit()
     if (g_pToolCamData == 0) {
         g_pToolCamData = Debug_alloc(0x19000, 0);
     }
-    BitOn(pG->Debug_flg[0], 0x20000000);
-    BitOn(pG->Debug_flg[0], 0x10000000);
-    BitOn(pG->Stop_flg, 0x400000);
+    DbgFlagOn(pG, DBG_BACK_CLIP);
+    DbgFlagOn(pG, DBG_DBG_CAM);
+    SpfFlagOn(pG, SPF_SCE_AT);
     TaskSuspend(0);
     tcGameCameraStore();
     memclr_asm(pTc, sizeof(TcWork));
     tcGameCamera2ToolCamera();
     PTC->routine = 1;
-    PTC->keyTypeBak = pSys->key_type;
+    PTC->keyTypeBak = pSys->pad_type;
     tcDataInitialize();
     PTC->cdatNo = -1;
     PTC->adatNo = -1;
@@ -296,13 +296,13 @@ void tcSubMenu()
         }
         break;
     case 4:
-        if (pG->Debug_flg[3] & 0x40000000) {
+        if (DbgFlagChk(pG, DBG_BATTLE_CAM)) {
             if (TC_TRG & 0x2) {
-                pG->Debug_flg[3] &= ~0x40000000;
+                DbgFlagOff(pG, DBG_BATTLE_CAM);
             }
         } else {
             if (TC_TRG & 0x1) {
-                pG->Debug_flg[3] |= 0x40000000;
+                DbgFlagOn(pG, DBG_BATTLE_CAM);
             }
         }
         break;
@@ -348,7 +348,7 @@ void tcSubMenu()
             }
             break;
         case 4:
-            if (pG->Debug_flg[3] & 0x40000000) {
+            if (DbgFlagChk(pG, DBG_BATTLE_CAM)) {
                 eprintf(x * 8, y * 14, 0, 0, "ON-/---");
             } else {
                 eprintf(x * 8, y * 14, 0, 0, "---/OFF");
@@ -1839,7 +1839,7 @@ void tcEdit_camera_rail()
             if ((TC_TRG & 0x800) && (tcCdatPtr(PTC->cdatNo)->type == 6 || tcCdatPtr(PTC->cdatNo)->type == 7)) {
                 PTC->selMode++;
                 CamCtrl.m_system_flag &= ~1;
-                pG->Debug_flg[0] &= ~0x10000000;
+                DbgFlagOff(pG, DBG_DBG_CAM);
             } else {
                 edit_frame_no();
             }
@@ -2967,11 +2967,11 @@ static void tcQuit()
         CamCtrl.RoomDataRead((CameraDataHeader*) g_pToolCamData);
         CamCtrl.m_system_flag = (CamCtrl.m_system_flag & ~1) | 0x10;
     }
-    BitOff(pG->Debug_flg[0], 0x80000000);
-    BitOff(pG->Debug_flg[0], 0x20000000);
-    BitOff(pG->Debug_flg[0], 0x10000000);
-    BitOff(pG->Stop_flg, 0x400000);
-    pSys->key_type = PTC->keyTypeBak;
+    DbgFlagOff(pG, DBG_TEST_MODE);
+    DbgFlagOff(pG, DBG_BACK_CLIP);
+    DbgFlagOff(pG, DBG_DBG_CAM);
+    SpfFlagOff(pG, SPF_SCE_AT);
+    pSys->pad_type = PTC->keyTypeBak;
     CameraSetProjection(1);
     if (!(Joy[0].on & 0x400)) {
         CamCtrl.Comeback(0);
@@ -3056,9 +3056,9 @@ void tcPreviewOnOff(int on)
     PTC->preview = on;
     CamCtrl.m_system_flag = (CamCtrl.m_system_flag & ~1) | 0x10;
     if (PTC->preview) {
-        pG->Debug_flg[0] &= ~0x10000000;
+        DbgFlagOff(pG, DBG_DBG_CAM);
     } else {
-        pG->Debug_flg[0] |= 0x10000000;
+        DbgFlagOn(pG, DBG_DBG_CAM);
     }
 }
 

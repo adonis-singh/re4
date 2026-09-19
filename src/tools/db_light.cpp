@@ -515,7 +515,7 @@ int cLightTool::move()
             int st = Mode;
             switch (st) {
             case 0:
-                pG->Debug_flg[0] |= 0x10000000;
+                DbgFlagOn(pG, DBG_DBG_CAM);
                 color = st;
                 break;
             case 1:
@@ -524,7 +524,7 @@ int cLightTool::move()
             case 2:
                 color = 1;
                 updateLit();
-                pG->Debug_flg[0] &= ~0x10000000;
+                DbgFlagOff(pG, DBG_DBG_CAM);
                 break;
             }
         }
@@ -545,12 +545,12 @@ int cLightTool::move()
     }
     routine_tbl[rno0]();
     LightMgr.move();
-    if (pG->Debug_flg[0] & 0x02000000) {
+    if (DbgFlagChk(pG, DBG_EVENT_TOOL)) {
         if (Mode == 1) {
             CameraMove();
         } else {
-            BitOff(pG->Stop_flg, 0x40000000);
-            pG->Debug_flg[0] &= ~0x10000000;
+            SpfFlagOff(pG, SPF_CAMERA);
+            DbgFlagOff(pG, DBG_DBG_CAM);
         }
     } else {
         CameraMove();
@@ -2447,7 +2447,7 @@ static void edit_light_type_shadow_fit()
         }
         break;
     }
-    pG->Debug_flg[1] |= 0x04000000;
+    DbgFlagOn(pG, DBG_DRAW_SH_TEX);
     if (ret) {
         if (pTool->Pad1.rep & JOY_UP) {
             pTool->rno3 = (pTool->rno3 + 6) % 7;
@@ -2533,7 +2533,7 @@ static void edit_light_type_shadow_parallel()
         }
         break;
     }
-    pG->Debug_flg[1] |= 0x04000000;
+    DbgFlagOn(pG, DBG_DRAW_SH_TEX);
     if (ret) {
         if (pTool->Pad1.rep & JOY_UP) {
             pTool->rno3 = (pTool->rno3 + 6) % 7;
@@ -4088,7 +4088,7 @@ static void load()
     case 0:
         pTool->clearWork();
         pTool->rno1 = 1;
-        pTool->cursor = (pG->Debug_flg[0] & 0x02000000) ? 2 : 1;
+        pTool->cursor = (DbgFlagChk(pG, DBG_EVENT_TOOL)) ? 2 : 1;
     case 1:
         eprintf(0x20, 0x38, 0, pTool->color, "ROOM LOCAL");
         eprintf(0x20, 0x46, 0, pTool->color, "ROOM SERVER");
@@ -4354,7 +4354,7 @@ static void save()
         pTool->clearWork();
         switch (pTool->mode) {
         default:
-            pTool->cursor = (pG->Debug_flg[0] & 0x02000000) ? 2 : 1;
+            pTool->cursor = (DbgFlagChk(pG, DBG_EVENT_TOOL)) ? 2 : 1;
             break;
         case 4:
             pTool->cursor = 2;
@@ -5547,10 +5547,10 @@ int getCutNo()
 {
     int no;
 
-    if (pG->Debug_flg[0] & 0x02000000) {
+    if (DbgFlagChk(pG, DBG_EVENT_TOOL)) {
         return 0;
     }
-    if ((pG->Debug_flg[0] & 0x80000000) && DebugMenuSelected == 7) {
+    if (DbgFlagChk(pG, DBG_TEST_MODE) && DebugMenuSelected == 7) {
         no = tcCurrentCameraNo();
     } else {
         int cam = CamCtrl.CurrentCameraNo();

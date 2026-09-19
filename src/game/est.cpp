@@ -43,7 +43,7 @@ void EstSet(cModel* model, int no, Vec* pos, Vec* rot, EspSeqData* head, int e, 
     EspgenWork* w;
     Espgen10Work* p;
 
-    if (pG->Debug_flg[1] & 0x01000000) {
+    if (DbgFlagChk(pG, DBG_NO_EST_CALL)) {
         return;
     }
     if (head == NULL) {
@@ -53,10 +53,10 @@ void EstSet(cModel* model, int no, Vec* pos, Vec* rot, EspSeqData* head, int e, 
         pLog->warn(0, 0, "EstSet():EST is enpty.");
         return;
     }
-    if (pG->Status_flg[2] & 0x00080000) {
+    if (StaFlagChk(pG, STA_EVENT_SYSYTEM)) {
         e |= 0x2000;
     }
-    if (pG->Status_flg[2] & 0x02000000) {
+    if (StaFlagChk(pG, STA_ESP_COMPULSION_NOSUSPEND)) {
         e |= 1;
     }
     if (!PullEspEspgen(&w, e, f, (u8) EspgenGetCallNo(), g, owner, 1)) {
@@ -235,7 +235,7 @@ void EffectEfmDelete(int a, int b, int c)
 // Removes every sprite, controller and effect model (room change).
 void EffectDeleteAll()
 {
-    pG->Status_flg[1] &= ~0x20;
+    StaFlagOff(pG, STA_ESPGEN45_SET);
     EspArrayClear();
     EspgenArrayClear();
     EfmArrayClear();
@@ -315,7 +315,7 @@ void EspSetWaterBomb(Vec* pos)
 // Bullet-hits-water splash: est 1/0x20 in the lake rooms, else 0/0x14; none in stage 3-11 / 2-24.
 void EspSetWaterHitmark(Vec* pos)
 {
-    if ((pG->room_id32 & 0xFFFF0000) == 0x03110000 || (pG->room_id32 & 0xFFFF0000) == 0x02240000) {
+    if (pG->stage_no == 3 && pG->room_no == 0x11 || pG->stage_no == 2 && pG->room_no == 0x24) {
         return;
     }
     if (pG->room_id == 0x10A || pG->room_id == 0x10B || pG->room_id == 0x11A || pG->room_id == 0x11B) {
@@ -386,7 +386,7 @@ void EspSetEatEffect(Vec* pos, Vec* nrm, int type, int wep)
             SndCall(2, 0xC, pos, 0, 0, NULL);
         } else {
             EstSet(0, -1, pos, &rot, 0, 0x1F, 0, 0, type, (void*) type);
-            if (pG->Debug_flg[3] & 0x4000) {
+            if (DbgFlagChk(pG, DBG_SET_HITMARK_ALL)) {
                 EstSet(0, -1, pos, &rot, 0, 0x87, 0, 0, type, (void*) type);
             }
         }
@@ -459,7 +459,7 @@ void EventAllEffDelete()
 // 1 when water effects are on (Status_flg[1] 0x400) and the point is not in a flagged effect area.
 int ChkWaterEffectEnable(Vec* pos)
 {
-    if (pG->Status_flg[1] & 0x400) {
+    if (StaFlagChk(pG, STA_ROOM_RAIN)) {
         if (EffAreaCheckInRoom(pos) == 0) {
             return 1;
         }

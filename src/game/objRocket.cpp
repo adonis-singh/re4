@@ -115,7 +115,7 @@ void cObjRocket::move()
 
             res = PlWepHitCheck2(0, &rocket.oldPos, &pos, 0xD, 1, 3000.0f);
             if (res) {
-                BitOn(pG->Status_flg[1], 0x20000000);
+                StaFlagOn(pG, STA_SE_BURST);
                 memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
                 pG->bell_stat = 1;
                 PlWepHitCheck2(0, &rocket.oldPos, &pos, 0x12, 0, blastDmWidth);
@@ -156,7 +156,7 @@ void cObjRocket::move()
                         EstSet(0, -1, &hit, 0, 0, 0x27, 0, 10, 0, 0);
                         EstSet(0, -1, &hit, 0, 0, 0x1A, 0, 0, 0, 0);
                     }
-                    BitOn(pG->Status_flg[1], 0x20000000);
+                    StaFlagOn(pG, STA_SE_BURST);
                     memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &pos, sizeof(Vec));
                     pG->bell_stat = 1;
                     SndCall(1, 0x14, &pos, 0, 0, 0);
@@ -250,7 +250,7 @@ void cObjLauncher::init(cModel* parent)
         loadRocket();
     }
     if (bulletNum() == 0) {
-        pPL->flags_420 |= 0x400;
+        pPL->stat |= 0x400;
     }
 }
 
@@ -278,7 +278,7 @@ void cObjLauncher::loadRocket()
 void cObjLauncher::moveFire()
 {
     if (wep.step == 0) {
-        if ((pG->Debug_flg[2] & 0x00400000) || (s32) pG->Debug_flg[3] < 0) {
+        if (DbgFlagChk(pG, DBG_INF_BULLET) || (DbgFlagChk(pG, DBG_INF_BULLET2))) {
             if (launcher.rocket == 0) {
                 loadRocket();
             }
@@ -288,7 +288,7 @@ void cObjLauncher::moveFire()
                 launch();
                 if (pG->weapon_type == 2) {
                     loadRocket();
-                } else if ((pG->Debug_flg[2] & 0x00400000) || (s32) pG->Debug_flg[3] < 0) {
+                } else if (DbgFlagChk(pG, DBG_INF_BULLET) || (DbgFlagChk(pG, DBG_INF_BULLET2))) {
                     loadRocket();
                 }
             }
@@ -318,7 +318,7 @@ int cObjLauncher::ckBoss()
         partsWorldCalc();
         getMarkerPos(&a, &b);
         PSVECSubtract(&b, &a, &a);
-        BitOn(pG->System_flg, 0x400);
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         SND_BIT_SET(&pG->Room_flg[0], (u32) pPL->m_pBossRmf);
         return 1;
     }
@@ -343,7 +343,7 @@ void cObjLauncher::launch()
     launcher.rocket = 0;
     EstSet((int) this, -1, 0, 0, 0x47, 0, 0, 10, 0, 0);
     SndCall(2, 0, &pos, 0, 0, 0);
-    pG->Status_flg[0] |= 0x00800000;
+    StaFlagOn(pG, STA_PL_FIRE);
 }
 
 // wep.mode 5 (drop): the launcher is thrown away once.
@@ -442,39 +442,39 @@ int cObjLauncher::keyKamae()
     return 0;
 }
 
-// Fills the player's motion table (pMotTbl) with the launcher's stand / walk / aim / damage motions
+// Fills the player's motion table (m_MotTbl) with the launcher's stand / walk / aim / damage motions
 // from the weapon archive, and shows the launcher in the hands (or the empty-handed set when
-// flags_420 0x400: no rocket).
+// stat 0x400: no rocket).
 void cObjLauncher::setMotion(cPlayer* pl)
 {
-    PSet(pl->pMotTbl[0], WEP_ARC_PTR(0x8));
-    PSet(pl->pMotTbl[2], WEP_ARC_PTR(0x9));
-    PSet(pl->pMotTbl[6], WEP_ARC_PTR(0xB));
-    PSet(pl->pMotTbl[8], WEP_ARC_PTR(0xA));
-    PSet(pl->pMotTbl[0xB], WEP_ARC_PTR(0xC));
-    PSet(pl->pMotTbl[0xD], WEP_ARC_PTR(0xD));
-    PSet(pl->pMotTbl[0xF], WEP_ARC_PTR(0xE));
-    PSet(pl->pMotTbl[1], WEP_ARC_PTR(0x21));
-    PSet(pl->pMotTbl[3], WEP_ARC_PTR(0x22));
-    PSet(pl->pMotTbl[7], WEP_ARC_PTR(0x24));
-    PSet(pl->pMotTbl[9], WEP_ARC_PTR(0x23));
-    PSet(pl->pMotTbl[0xC], WEP_ARC_PTR(0x25));
-    PSet(pl->pMotTbl[0xE], WEP_ARC_PTR(0x26));
-    PSet(pl->pMotTbl[0x10], WEP_ARC_PTR(0x27));
-    PSet(pl->pMotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
+    PSet(pl->m_MotTbl[0], WEP_ARC_PTR(0x8));
+    PSet(pl->m_MotTbl[2], WEP_ARC_PTR(0x9));
+    PSet(pl->m_MotTbl[6], WEP_ARC_PTR(0xB));
+    PSet(pl->m_MotTbl[8], WEP_ARC_PTR(0xA));
+    PSet(pl->m_MotTbl[0xB], WEP_ARC_PTR(0xC));
+    PSet(pl->m_MotTbl[0xD], WEP_ARC_PTR(0xD));
+    PSet(pl->m_MotTbl[0xF], WEP_ARC_PTR(0xE));
+    PSet(pl->m_MotTbl[1], WEP_ARC_PTR(0x21));
+    PSet(pl->m_MotTbl[3], WEP_ARC_PTR(0x22));
+    PSet(pl->m_MotTbl[7], WEP_ARC_PTR(0x24));
+    PSet(pl->m_MotTbl[9], WEP_ARC_PTR(0x23));
+    PSet(pl->m_MotTbl[0xC], WEP_ARC_PTR(0x25));
+    PSet(pl->m_MotTbl[0xE], WEP_ARC_PTR(0x26));
+    PSet(pl->m_MotTbl[0x10], WEP_ARC_PTR(0x27));
+    PSet(pl->m_MotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
     if (pG->weapon_type != 2) {
-        PSet(pl->pMotTbl[0x39], WEP_ARC_PTR(0x2A));
-        PSet(pl->pMotTbl[0x3A], WEP_ARC_PTR(0x2B));
-        PSet(pl->pMotTbl[0x41], WEP_ARC_PTR(0x2C));
-        PSet(pl->pMotTbl[0x42], WEP_ARC_PTR(0x2D));
-        PSet(pl->pMotTbl[0x3F], WEP_ARC_PTR(0x28));
-        PSet(pl->pMotTbl[0x40], WEP_ARC_PTR(0x29));
+        PSet(pl->m_MotTbl[0x39], WEP_ARC_PTR(0x2A));
+        PSet(pl->m_MotTbl[0x3A], WEP_ARC_PTR(0x2B));
+        PSet(pl->m_MotTbl[0x41], WEP_ARC_PTR(0x2C));
+        PSet(pl->m_MotTbl[0x42], WEP_ARC_PTR(0x2D));
+        PSet(pl->m_MotTbl[0x3F], WEP_ARC_PTR(0x28));
+        PSet(pl->m_MotTbl[0x40], WEP_ARC_PTR(0x29));
     }
-    PSet(pl->pMotTbl[0x55], WEP_ARC_PTR(0x1A));
-    PSet(pl->pMotTbl[0x59], WEP_ARC_PTR(0x2E));
-    PSet(pl->pMotTbl[0x5B], WEP_ARC_PTR(0x1B));
-    PSet(pl->pMotTbl[0x57], WEP_ARC_PTR(0x1C));
-    if (!(pl->flags_420 & 0x400)) {
+    PSet(pl->m_MotTbl[0x55], WEP_ARC_PTR(0x1A));
+    PSet(pl->m_MotTbl[0x59], WEP_ARC_PTR(0x2E));
+    PSet(pl->m_MotTbl[0x5B], WEP_ARC_PTR(0x1B));
+    PSet(pl->m_MotTbl[0x57], WEP_ARC_PTR(0x1C));
+    if (!(pl->stat & 0x400)) {
         pl->Body->initWepHand((u32) WEP_ARC_PTR(0x7));
         pl->setRightHand(1);
         pl->setLeftHand(4);

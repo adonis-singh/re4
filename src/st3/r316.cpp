@@ -78,15 +78,15 @@ void R316Init()
     cEm* door;
     cEm* win;
 
-    BitOff(pG->System_flg, 0x400);
-    BitOn(pG->Debug_flg[1], 0x00040000);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
+    DbgFlagOn(pG, DBG_CAST_ERR_NO_DISP);
 #line 51 "D:/Bio4/Prog/r316.cpp"
     r316_work = (R316Work*) MEM_CALLOC(sizeof(R316Work), 1, 0xd);
     if (pG->JumpPoint == 1) {
         RsfSet(G_ROOM_ID, 0);
         RsfSet(G_ROOM_ID, 1);
     }
-    pG->Status_flg[3] &= ~0x04000000;
+    StaFlagOff(pG, STA_SUB_ASHLEY);
     EvtMgr.SetFunc("evt_r316s00_func", (void*) Evt_R316S00_Func);
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         EvtMgr.EvtReadAram("event/evd/r316s00.evd", (u8) GetEmIdFromListI(0), 0, 1, 0);
@@ -255,7 +255,7 @@ static void R316EventS00()
 {
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         RsfSet(G_ROOM_ID, 0);
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         EvtMgr.EvtReadExec("event/evd/r316s00.evd", (u8) GetEmIdFromListI(0), 0);
         SceSetChapterEnd(0xF, -1);
         SceExec(0x12, (TaskFunc) r316_checkEmReset, 0, 0, 2, 0);
@@ -274,7 +274,7 @@ static void R316EventSXX()
         FadeSetW(2, 60, 0, 0);
         FadeWait(2);
         SceEventEnd(0);
-        pG->Scenario_flg[0] |= 0x800;
+        ScfFlagOn(pG, SCF_R316_TO_R30A_CUTBACK_EVENT);
         {
             Vec pos;
             Vec rot;
@@ -283,7 +283,7 @@ static void R316EventSXX()
             r316_memset(&rot, 0, sizeof(Vec));
             SceAtExecRoomJump(0x30A, &pos, &rot, 0);
         }
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
     }
     // COMPILER-DIFF: candidate (gcse table size). Five dead insns (folded by cse2, no code) grow the
     // PRE hash table from 45 to 47/49 buckets, which numbers the hoisted `&pos` (fp+0x10, hash

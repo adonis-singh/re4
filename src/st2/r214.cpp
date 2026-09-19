@@ -150,10 +150,10 @@ static const R214CatapultData r214_catTbl[3] = {
 };
 static const Vec r214_rockOfs = {0.0f, 800.0f, -2400.0f};
 
-// Room init (the castle wall with the three catapults): JumpPoint 1 skips ahead (Scenario_flg[0]
+// Room init (the castle wall with the three catapults): JumpPoint 1 skips ahead (Scenario_flg[1]
 // 0x40000000, Room_flg bits 2/5); the s00 callback; both barred gates (etc 0x11/0x12) closed. Part 2
 // (arriving on the rotating bridge) plays the bridge rotation. Before the catapults are silenced
-// (Scenario_flg[0] 0x40000000): the s00 event area once (bit 5), the two patrols (0xEC/0xED between areas
+// (Scenario_flg[1] 0x40000000): the s00 event area once (bit 5), the two patrols (0xEC/0xED between areas
 // 0xF..0x11), area 9 = the catapult crew event until bit 0, the catapults; the third wave behind the
 // gates on area 0xD until bit 1 with the reset task (bit 4); the battle stream.
 void R214Init()
@@ -164,7 +164,7 @@ void R214Init()
     R214Work*& wp = r214_work.p;   // reference: the following `lwz pG` stays below the store (r227 idiom)
     wp = (R214Work*) MEM_CALLOC(sizeof(R214Work), 1, 0xD);
     if (pG->JumpPoint == 1) {
-        BitOn(pG->Scenario_flg[0], 0x40000000);
+        ScfFlagOn(pG, SCF_R217_PUZZLE_CLEAR);
         RsfSet(G_ROOM_ID, 2);
         RsfSet(G_ROOM_ID, 5);
     }
@@ -178,7 +178,7 @@ void R214Init()
     if (pG->Part == 2) {
         r214_work.p->bridgeFlag = 1;
         SceExec(0x12, (TaskFunc) r214_BridgeRotate, 0, 0, SCE_PRIO_DEF_2, 0);
-    } else if (!(pG->Scenario_flg[0] & 0x40000000)) {
+    } else if (!ScfFlagChk(pG, SCF_R217_PUZZLE_CLEAR)) {
         u32 i;
 
         if (RsfCheck(G_ROOM_ID, 5) == 0) {
@@ -957,7 +957,7 @@ static void r214_BridgeRotate()
     cObj* o15 = SmdGetObjPtr(0x15);
     cObj* o16 = SmdGetObjPtr(0x16);
 
-    if ((int) pG->Room_flg[1] < 0) {
+    if (pG->Room_flg[1] & 0x80000000) {
         r214_debugMode = pG->debug_mode;
         pG->debug_mode = 0;
         ScreenShotStart("D:/bio4/Room/Sc_shot/r214_ev", 0, 1);
@@ -965,7 +965,7 @@ static void r214_BridgeRotate()
     SceEventStart(0);
     SceExec(6, (TaskFunc) r214_BridgeRotateCamera, 0, 0, SCE_PRIO_DEF_2, 0);
     SceSleep(30);
-    if ((int) pG->Room_flg[1] >= 0) {
+    if (!(pG->Room_flg[1] & 0x80000000)) {
         SceSetEventCancel(1, (TaskFunc) r214_BridgeRotateEndProc, 0, -1, 1);
     }
     while (o15->ang.y < 1.5707964f) {
@@ -975,7 +975,7 @@ static void r214_BridgeRotate()
         o16->matUpdate();
         SceSleep(1);
     }
-    while ((int) pG->Room_flg[0] >= 0) {
+    while (!(pG->Room_flg[0] & 0x80000000)) {
         SceSleep(1);
     }
     SceSetEventCancel(0, 0, 0, -1, 1);
@@ -996,7 +996,7 @@ static void r214_BridgeRotateEndProc()
     o16->matUpdate();
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    if ((int) pG->Room_flg[1] < 0) {
+    if (pG->Room_flg[1] & 0x80000000) {
         pG->Room_flg[1] &= ~0x80000000;
         ScreenShotEnd();
         pG->debug_mode = r214_debugMode;
@@ -1040,8 +1040,8 @@ void Evt_R214S00_Func(Event* e)
         }
         switch (e->NowCut) {
         case 0:
-            if (e->NowFrame == 0 && (pG->Status_flg[0] & 0x400)) {
-                BitOff(pG->Status_flg[0], 0x400);
+            if (e->NowFrame == 0 && (StaFlagChk(pG, STA_BINOCULAR))) {
+                StaFlagOff(pG, STA_BINOCULAR);
                 r214_work.p->bino->quit(&pG->Cam);
                 r214_work.p->bino->~IdBinocular();
             }
@@ -1050,8 +1050,8 @@ void Evt_R214S00_Func(Event* e)
         case 2:
         case 3:
         case 4:
-            if (e->NowFrame == 0 && !(pG->Status_flg[0] & 0x400)) {
-                BitOn(pG->Status_flg[0], 0x400);
+            if (e->NowFrame == 0 && !StaFlagChk(pG, STA_BINOCULAR)) {
+                StaFlagOn(pG, STA_BINOCULAR);
                 r214_work.p->bino = new (&r214_work.p->binoObj) IdBinocular;
                 r214_work.p->bino->init(&pGS->Cam, ROOM_ARC_PTR(pG->pRoom, 0x22), ROOM_ARC_PTR(pG->pRoom, 0x23));
                 if (e->NowCut != 1) {
@@ -1066,8 +1066,8 @@ void Evt_R214S00_Func(Event* e)
         break;
     case 2:
         SmdSetTrans(0x18, 1);
-        if (pG->Status_flg[0] & 0x400) {
-            BitOff(pG->Status_flg[0], 0x400);
+        if (StaFlagChk(pG, STA_BINOCULAR)) {
+            StaFlagOff(pG, STA_BINOCULAR);
             r214_work.p->bino->quit(&pG->Cam);
             r214_work.p->bino->~IdBinocular();
         }

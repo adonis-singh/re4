@@ -25,13 +25,14 @@ struct EmObjWork {
     u8 etc;               // 0x25D (0x63D)
 };
 
-#define EMOBJ_WK(em) ((EmObjWork*) &(em)->x3E0)
+#define EMOBJ_WK(em) ((EmObjWork*) (((cEmObj*) (em))->free))
 
 // Generic object enemy: a cEm with an optional scenario / effect collision quad and the
 // yarare (hit box) setup. No key function: the vtable and the implicit destructor are
 // emitted by em.cpp (cEmMgr::construct), so no in-class inline members here.
 class cEmObj : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMOBJ_WK)
     void EmObjInit();
     void EmObjMove();
     void setSat(Vec* pos, int n, int flag, int cube, f32 sx, f32 sy, f32 sz);   // `cube` is unused (emwindow passes its setYarare cube flag; the mangled name needs the 4th int)

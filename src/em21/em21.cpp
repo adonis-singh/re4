@@ -53,9 +53,6 @@ static void plemTrapCancel(cPlayer* pl);
 #define ARC(no) PL_ARC_PTR(em->subArc, no)
 #define PL_ARC(no) PL_ARC_PTR(pl->subArc, no)
 
-// The enemy a player damage callback belongs to (pl_sub SetPlDamage's first argument).
-#define PL_EM(pl) ((cEm*) (pl)->dmgType)
-
 // Struct-member view of the player pointer: a load through it is not hoisted above the preceding
 // stores through the work pointer (cam_ctrl.cpp PlayerPtr).
 struct PlayerPtr {
@@ -135,7 +132,7 @@ void em21DmCk(cEm21* em)
                 em->dmg.m_Timer = c;
             }
             if (mode != 2) {
-                if ((em->stat & 0xFFFF0000) == 0x01050000 && w->pTrap) {
+                if ((em->r_no_0 == 1 && em->r_no_1 == 5) && w->pTrap) {
                     w->pTrap->r_no_0 = 1;
                     w->pTrap->r_no_1 = 4;
                     w->pTrap->r_no_2 = 0;
@@ -159,7 +156,7 @@ void em21DmCk(cEm21* em)
     if (em->set == 2) {
         return;
     }
-    if ((em->stat & 0xFFFF0000) == 0x01050000 && w->pTrap) {
+    if ((em->r_no_0 == 1 && em->r_no_1 == 5) && w->pTrap) {
         w->pTrap->r_no_0 = 1;
         w->pTrap->r_no_1 = 4;
         w->pTrap->r_no_2 = 0;
@@ -437,8 +434,8 @@ static void em21_R1_Escape(cEm21* em)
         }
         SndStop(w->sndId, 0);
         w->sndId = SndCall(8, 0xB, &em->pos, em->id, 0, em);
-        if (!(pGS->Status_flg[1] & 0x20000000)) {
-            BitOn(pG->Status_flg[1], 0x20000000);
+        if (!StaFlagChk(pGS, STA_SE_BURST)) {
+            StaFlagOn(pG, STA_SE_BURST);
             memcpy((u8*) pG + ((u32) &((GlobalWork*) 0)->bell_pos), &em->pos, sizeof(Vec));
             pG->bell_stat = 0;
         }
@@ -613,7 +610,7 @@ static void em21_R1_R100TrapWait(cEm21* em)
         }
         MotionMoveF(em, 0);
         em21TrapSearch(em);
-        if (w->pTrap && (w->pTrap->stat & 0xFFFF0000) == 0x01040000) {
+        if (w->pTrap && (w->pTrap->r_no_0 == 1 && w->pTrap->r_no_1 == 4)) {
             em->dmg.m_Timer = 0x3C;
             EmRoutineSet(em, 1, 7, 0, 1);
             return;
@@ -638,7 +635,7 @@ static void em21_R1_R100TrapCancel(cEm21* em)
             w->pTrap->flag |= 1;
         }
         SndStrReq(1, 0xE, 0x80000003, 0, 0, 0.0f);
-        pG->Item_find_flg |= 0x80000;
+        ScfFlagOn(pG, SCF_R100_DOG_RUN);
         em->hp = 0;
         em->atari.m_flag &= ~0x200;
         em->r_no_2++;
@@ -966,7 +963,7 @@ static void em21TrapCancelAction(cEm21* em)
 {
     pPL->dmg.m_Timer = 2;
     em->dmg.m_Timer = 2;
-    SetPlDamage((int) em, plemTrapCancel);
+    SetPlDamage(em, plemTrapCancel);
     EmRoutineSet(em, 1, 6, 0, 0);
 }
 
@@ -974,10 +971,10 @@ static void em21TrapCancelAction(cEm21* em)
 // trap camera, then EndPlDamage.
 static void plemTrapCancel(cPlayer* pl)
 {
-    cEm* em = PL_EM(pl);
+    cEm* em = pl->pEmCatch;
     Vec v;
 
-    pl->subArc = PL_EM(pPL)->subArc;
+    pl->subArc = pPL->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         v.x = 431.86002f;
@@ -1205,15 +1202,15 @@ int em21WakeCk(cEm21* em)
     if (em->plDist2 < 16000000.0f && w->routeAngAbs < PI / 4.0f) {
         return 1;
     }
-    if ((int) pG->Status_flg[1] < 0 && em->plDist2 < 16000000.0f) {
+    if (StaFlagChk(pG, STA_PL_SE_FOOT) && em->plDist2 < 16000000.0f) {
         return 1;
     }
-    if ((pG->Status_flg[1] & 0x40000000) || (pG->Status_flg[0] & 0x00800000)) {
+    if (StaFlagChk(pG, STA_PL_SE_WHISTLE) || (StaFlagChk(pG, STA_PL_FIRE))) {
         if (w->plDist < 15000.0f) {
             return 1;
         }
     }
-    if (pG->Status_flg[1] & 0x20000000) {
+    if (StaFlagChk(pG, STA_SE_BURST)) {
         f32 r;
 
         // three identical arms + the override after the switch: the arm sets are dead (the

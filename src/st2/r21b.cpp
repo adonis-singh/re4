@@ -375,7 +375,7 @@ static void r21b_HalfWaySwitchMoveEndProc()
 {
     cObj* obj = SmdGetObjPtr(0xC9);
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         if (r21b_work.p->se) {
             SndStop(r21b_work.p->se, 0);
         }

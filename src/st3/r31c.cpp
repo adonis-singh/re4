@@ -71,7 +71,7 @@ public:
 };
 
 // One of the nine sliding doors (0x38 bytes): a scroll object moved along one axis by `dist`,
-// with its collision pieces and the pG->door_unlock bit it clears / sets.
+// with its collision pieces and the pG->Key_flg bit it clears / sets.
 class cR31CDoor {
 public:
     u8 mode;         // 0x00  0 wait, 1 open, 2 close (index into the member table)
@@ -87,7 +87,7 @@ public:
     int init_;       // 0x28  1 once init found the object
     int status;      // 0x2C  0 closed, 1 open, 2 moving (getStatus)
     int timer;       // 0x30  close: shake frames, then the settle wait
-    int unlockNo;    // 0x34  pG->door_unlock bit set when opened (0: none)
+    int unlockNo;    // 0x34  pG->Key_flg bit set when opened (0: none)
 
     void init(u32 id);
     void move();
@@ -149,13 +149,9 @@ int GetEmIdFromListI(u32 no) asm("GetEmIdFromList");
 void cEmDoorSetCloseLock(cEm* door) asm("setCloseLock__7cEmDoori");
 // The room build's cGameSave::save had a second (unused) parameter: `li r5, -1` before the call.
 void GameSaveSave2(cGameSave* g, void* data, int mode) asm("save__9cGameSavePv");
-// The door lock bits (pG->door_unlock) like flag_rsf.h RsfFlagWord: the word base is a pointer
-// formed before the index is added (`addi 0x51dc` then `lwzx`).
-static inline u32* DoorUnlockFlags() { return (u32*) ((u8*) pG + 0x51DC); }
 // The scheduler's kill-by-function overload (sce_sys.cpp).
 void SceKill(void (*func)(int));
 
-static inline u32* DoorUnlockWord(int no) { return (u32*) ((((u32) no >> 5) << 2) + (u32) DoorUnlockFlags()); }
 
 // Position a model from three components (inline owning the Vec).
 static inline void SetPosXYZ(cModel* m, f32 x, f32 y, f32 z)
@@ -348,7 +344,7 @@ void R31cInit()
     }
     r31c_work.p->towerSat = SatMgr.create(ROOM_ARC_PTR(pG->pRoom, 5), 0, &zero, &zero, 7);
     SceAtDataSet_exec(0x19, 0x12, 0, (TaskFunc) r31c_TowerEntranceClose, 0, 1);
-    if (pG->Scenario_flg[1] & 0x10000000) {
+    if (ScfFlagChk(pG, SCF_R31C_TOWER_EXPLODE)) {
         r31c_TowerExplodeModelSet(0, 0);
         r31c_TowerExplodeModelSet(1, 1);
         SceAtSetEnable(0x87, 0);
@@ -414,7 +410,7 @@ void R31cInit()
             r31c_work.p->crest[2]->be_flag &= ~2;
         }
     }
-    if ((pG->door_unlock[0] & 0x200) == 0) {
+    if ((pG->Key_flg[0] & 0x200) == 0) {
         SceExec(0x12, (TaskFunc) r31c_CrestUseCheck, 0, 0, 2, 0);
         SceAtSetEnable(0, 0);
         SceAtDataSet_exec(0x10, 0x12, 0, (TaskFunc) r31c_DoorCheck, 0, 1);
@@ -456,10 +452,10 @@ void R31cInit()
         cEmDoorSetCloseLock(r31c_work.p->door8);
         SceAtDataSet_exec(0x11, 0x12, 0, (TaskFunc) r31c_Krauser1stBattle, 0, 1);
         EstSet((int) r31c_work.p->door8, -1, 0, 0, 1, 0x17, 1, 3, 0, 0);
-        BitOff(pG->door_unlock[1], 0x00020000);
+        BitOff(pG->Key_flg[1], 0x00020000);
     } else {
         EstSet((int) r31c_work.p->door8, -1, 0, 0, 1, 0x18, 1, 0, 0, 0);
-        BitOn(pG->door_unlock[1], 0x00020000);
+        BitOn(pG->Key_flg[1], 0x00020000);
     }
     SceExec(0x12, (TaskFunc) r31c_SeekerFirstSet, 0, 0, 2, 0);
     if (RsfCheck(G_ROOM_ID, 0x14) == 0) {
@@ -560,14 +556,14 @@ static void r31c_DoorCheck()
     }
 }
 
-// All three crests set: door_unlock[0] 0x200, Scenario_flg[1] 0x1000, area 0 on / 0x10 off, camera cut
+// All three crests set: Key_flg[0] 0x200, Scenario_flg[2] 0x1000, area 0 on / 0x10 off, camera cut
 // 0x18 while the crest door (door[0]) slides open with its effect; player-cancellable.
 static void r31c_CrestDoorOpen()
 {
     void* model = NULL;
 
-    BitOn(pG->door_unlock[0], 0x200);
-    BitOn(pG->Scenario_flg[1], 0x1000);
+    BitOn(pG->Key_flg[0], 0x200);
+    ScfFlagOn(pG, SCF_R31C_OPEN_DOOR);
     SceAtSetEnable(0, 1);
     SceAtSetEnable(0x10, 0);
     SceEventStart(1);
@@ -589,7 +585,7 @@ static void r31c_CrestDoorOpen()
 // End of the crest door opening (also its cancel path): the door snapped open, effect dropped, camera back, SceEventEnd.
 static void r31c_CrestDoorOpenEndProc()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         r31c_work.p->door[0].setOpened();
         EffectDelete(1, 2);
     }
@@ -685,7 +681,7 @@ static void r31c_SeekerAppearCut(int no)
     }
     RsfSet(G_ROOM_ID, 0x15);
     SceEventStart(1);
-    BitOn(pG->Status_flg[2], 0x02000000);
+    StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     BitOff(pG->Room_flg[0], 0x80000000);
     SceSetEventCancel(1, (TaskFunc) r31c_SeekerAppearCutEndProc, no, 0, 1);
     if (no == 0) {
@@ -731,14 +727,14 @@ static void r31c_SeekerAppearCutEndProc(int no)
     }
     // The cancel check has nothing to undo; its pG read survives as the `lis pG@ha` of the flag
     // clear below, hoisted above the calls.
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
     }
     r31c_work.p->seeker[a].setFlag(1);
     r31c_work.p->seeker[a].setNoSuspend(0);
     r31c_work.p->seeker[b].setFlag(1);
     r31c_work.p->seeker[b].setNoSuspend(0);
     CamCtrl.Comeback(0);
-    BitOff(pG->Status_flg[2], 0x02000000);
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     SceEventEnd(0);
 }
 
@@ -797,7 +793,7 @@ static void r31c_TalktoKrauser(int no)
     while (SndEndCheck(r31c_work.p->hSnd) == 0 || CamCtrl.IsMotionEnd() == 0) {
         if ((pG->Room_flg[0] & 0x08000000) == 0) {
             ActBtn.set(0x36, 5, (int) r31c_TalkToKrauserActBtnSet, 0, 6, 1, 1, 0);
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
         }
         SceSleep(1);
     }
@@ -831,7 +827,7 @@ void r31c_TalktoKrauserEndProc(int no)
 {
     cEm39* em = (cEm39*) r31c_work.p->krauser.getPtr();
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         SndStop(r31c_work.p->hSnd, 0);
     }
     pPL->setNoSuspend(0);
@@ -868,7 +864,7 @@ static void r31c_KrauserDieCheck(cEm39* em)
     SceAtSetEnable(0x1C, 0);
     SndRoomStrStop(1);
     SceEventStart(0);
-    BitOn(pG->Status_flg[2], 0x02000000);
+    StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     em->setNoSuspend(1);
     CamCtrl.clearAttachCamera();
     em->setDie();
@@ -890,14 +886,14 @@ static void r31c_KrauserDieCheckEndProc(cEm39* em)
     int zero = 0;
     int flag;
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         em->setDieCancel();
     }
     flag = 2;
     SetPosAngY(pPL, 5907.0f, 12000.0f, -14740.0f, 1.88f);
     CamCtrl.Comeback(0);
     em->setNoSuspend(0);
-    BitOff(pG->Status_flg[2], 0x02000000);
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     SceEventEnd(0);
     SceExec(0x12, (TaskFunc) r31c_GetSnakeCrest, 0, 0, 2, 0);
     SceAtDataSet_exec(0x18, 0x12, 0, (TaskFunc) r31c_CountDownEnd, 0, 1);
@@ -928,7 +924,7 @@ static void r31c_GetSnakeCrest()
     while (SceAtCheckSaveItemId(0x86) == 1) {
         SceSleep(1);
     }
-    BitOn(pG->Status_flg[2], 0x00020000);
+    StaFlagOn(pG, STA_TIMER_NO_PAUSE);
     SceEventStart(1);
     CamCtrl.CutCall(0x15);
     BitOff(pG->Room_flg[0], 0x80000000);
@@ -965,7 +961,7 @@ static void r31c_GetSnakeCrestEndProc()
 {
     Vec zero = {0, 0, 0};
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         r31c_work.p->door[2].setClosed();
         r31c_work.p->door[3].setOpened();
         r31c_work.p->door[7].setOpened();
@@ -974,7 +970,7 @@ static void r31c_GetSnakeCrestEndProc()
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     RsfSet(G_ROOM_ID, 0x18);
-    BitOff(pG->Status_flg[2], 0x00020000);
+    StaFlagOff(pG, STA_TIMER_NO_PAUSE);
     SmdSetTrans(0xB5, 1);
     SatMgr.create(ROOM_ARC_PTR(pG->pRoom, 5), 0, &zero, &zero, 9);
     EatMgr.create(ROOM_ARC_PTR(pG->pRoom, 0x12), 0, &zero, &zero, 6);
@@ -1020,7 +1016,7 @@ static void r31c_TimerDoorCountDown()
     SceSleep(10);
     EffectDelete(1, 3);
     EstSet((int) r31c_work.p->door8, -1, 0, 0, 1, 0x18, 1, 0, 0, 0);
-    BitOn(pG->door_unlock[1], 0x00020000);
+    BitOn(pG->Key_flg[1], 0x00020000);
     RoomSeCall(0x12, 0, 0, 0, 0);
     SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
     while (CamCtrl.IsMotionEnd() == 0) {
@@ -1130,7 +1126,7 @@ static void r31c_Krauser2ndBattle()
 // rack and floor 0x6A raised to y 5200, camera back, SceEventEnd; the player moved off the rack if on it.
 static void r31c_Krauser2ndBattleEndProc()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         SndStop(r31c_work.p->hSnd, 0);
     }
     SmdGetObjPtr(0x69)->be_flag &= ~2;
@@ -1187,7 +1183,7 @@ static void r31c_SwitchPushCheck()
 // End of the switch-push cut (also its cancel path): doors 4/5 snapped open, effect dropped, camera back.
 static void r31c_SwitchPushCheckEndProc()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         r31c_work.p->door[4].setOpened();
         r31c_work.p->door[5].setOpened();
         EffectDelete(1, 2);
@@ -1239,7 +1235,7 @@ static void r31c_LeverCheck()
             ((cEmSwitch*) r31c_work.p->sw[1])->setOpened();
             ((cEmSwitch*) r31c_work.p->sw[1])->setActButton(0);
             r31c_work.p->door[5].setOpened();
-            if ((pG->Scenario_flg[1] & 0x10000000) == 0) {
+            if (ScfFlagChk(pG, SCF_R31C_TOWER_EXPLODE) == 0) {
                 r31c_work.p->door[6].setOpened();
             }
         }
@@ -1250,7 +1246,7 @@ static void r31c_LeverCheck()
         }
     }
     ((cEmSwitch*) r31c_work.p->sw[0])->setOpened();
-    if (pG->Scenario_flg[1] & 0x10000000) {
+    if (ScfFlagChk(pG, SCF_R31C_TOWER_EXPLODE)) {
         ((cEmSwitch*) r31c_work.p->sw[1])->setClosed();
         r31c_work.p->door[6].setClosed();
     }
@@ -1291,7 +1287,7 @@ static void r31c_LeverOperate(int no)
 // End of lever `no` (also its cancel path): its door snapped open, effect dropped, camera back, SceEventEnd.
 static void r31c_LeverOperateEndProc(int no)
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         if (no == 0) {
             r31c_work.p->door[1].setOpened();
         } else {
@@ -1317,7 +1313,7 @@ static void r31c_CountDownEnd()
         SceSleep(1);
     }
     RsfSet(G_ROOM_ID, 0x1B);
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         r31c_work.p->countDown.setDisp(0);
     }
 }
@@ -1339,7 +1335,7 @@ static void r31c_CountDownThread()
     do { } while (0);
     r31c_work.p->countDown.countEnd();
     SceExec(0x12, (TaskFunc) r31c_TowerExplode, 0, 0, 2, 0);
-    BitOff(pG->Status_flg[2], 0x00020000);
+    StaFlagOff(pG, STA_TIMER_NO_PAUSE);
 }
 
 // The tower entrance door closes behind the player.
@@ -1366,7 +1362,7 @@ static void r31c_TowerEntranceClose()
 // End of the tower entrance closing (also its cancel path): the door snapped shut, camera back, SceEventEnd.
 static void r31c_TowerEntranceCloseEndProc()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         r31c_work.p->door[8].setClosed();
         EffectDelete(1, 2);
     }
@@ -1385,7 +1381,7 @@ static void r31c_TowerExplode()
     if (r31c_work.p->krauser2.isAlive()) {
         r31c_work.p->krauser2.destroy();
     }
-    BitOn(pG->Scenario_flg[1], 0x10000000);
+    ScfFlagOn(pG, SCF_R31C_TOWER_EXPLODE);
     SceEventStart(0);
     CamCtrl.CutCall(0x22);
     EffectDelete(1, 5);
@@ -1412,11 +1408,11 @@ static void r31c_TowerExplodeEndProc()
 {
     int die = 0;
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         EffectDelete(1, 2);
         SndStop(r31c_work.p->hSnd, 0);
     }
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         if (RsfCheck(G_ROOM_ID, 0x1B)) {
             CamCtrl.Comeback(0);
         } else {
@@ -1436,7 +1432,7 @@ static void r31c_TowerExplodeEndProc()
 // The tower cover: the crest door closes again over the bomb.
 static void r31c_TowerCoverClose()
 {
-    BitOn(pG->Status_flg[2], 0x00020000);
+    StaFlagOn(pG, STA_TIMER_NO_PAUSE);
     SceEventStart(1);
     CamCtrl.CutCall(0x15);
     BitOff(pG->Room_flg[0], 0x80000000);
@@ -1460,14 +1456,14 @@ static void r31c_TowerCoverClose()
 // End of the tower cover closing (also its cancel path): the crest door snapped shut, camera back, SceEventEnd.
 static void r31c_TowerCoverCloseEndProc()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         r31c_work.p->door[2].setOpened();
         r31c_work.p->door[3].setClosed();
     }
     BitOn(pG->Room_flg[0], 0x04000000);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    BitOff(pG->Status_flg[2], 0x00020000);
+    StaFlagOff(pG, STA_TIMER_NO_PAUSE);
 }
 
 // Krauser plants the bomb (cut 0x1F with its ticking).
@@ -1650,9 +1646,9 @@ static void r31cEventS02()
     SndRoomStrStop(1);
     EvtMgr.EvtReadExec("event/evd/r31cs02.evd", (u8) GetEmIdFromListI(0x19), 0);
     SceEventStart(1);
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         ItemMgr.get(0x85, 1);
-        BitOn(pG->item_flags[0], 2);
+        ItfFlagOn(pG, ITF_R31C_CREST_A);
         SceAtSetEnable(0x80, 0);
         r31cEventS02EndProc();
     } else {
@@ -1679,7 +1675,7 @@ static void r31cEventS02()
 // End of the s02 event (also its cancel path): door 1 snapped shut; area 0x81 re-arms the s01 event.
 static void r31cEventS02EndProc()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         EffectDelete(1, 2);
         r31c_work.p->door[1].setClosed();
     }
@@ -1801,7 +1797,7 @@ static void Evt_R31CS01_Func(Event* e)
             e->CancelSet();
         } else {
             ActBtn.set(0x25, 5, (int) r31c_EventS01Act, 0, 0x46, r31c_mesNo, 1, 0);
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
         }
     }
 }
@@ -2188,7 +2184,7 @@ void cR31CDoor::open()
         break;
     case 2:
         if (unlockNo) {
-            *DoorUnlockWord(unlockNo) |= 0x80000000 >> (unlockNo & 0x1F);
+            FlagOnVar(&pG->Key_flg, (u32) unlockNo);
         }
         mode = 0;
         status = 1;
@@ -2323,7 +2319,7 @@ void cR31CDoor::close()
             timer--;
         } else {
             if (unlockNo) {
-                *DoorUnlockWord(unlockNo) &= ~(0x80000000 >> (unlockNo & 0x1F));
+                FlagOffVar(&pG->Key_flg, (u32) unlockNo);
             }
             status = 0;
             mode = 0;
@@ -2403,7 +2399,7 @@ void cR31CDoor::setOpened()
         }
         SndStop(hSnd, 0);
         if (unlockNo) {
-            *DoorUnlockWord(unlockNo) |= 0x80000000 >> (unlockNo & 0x1F);
+            FlagOnVar(&pG->Key_flg, (u32) unlockNo);
         }
     }
 }
@@ -2433,7 +2429,7 @@ void cR31CDoor::setClosed()
         }
         SndStop(hSnd, 0);
         if (unlockNo) {
-            *DoorUnlockWord(unlockNo) &= ~(0x80000000 >> (unlockNo & 0x1F));
+            FlagOffVar(&pG->Key_flg, (u32) unlockNo);
         }
     }
 }

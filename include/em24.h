@@ -24,10 +24,11 @@ struct Em24Work {
     u8 Atk_ck;            // 0x2AC (0x68C)  the attack already hit (em24AtkCk)
 };
 
-#define EM24_WK(em) ((Em24Work*) &(em)->x3E0)
+#define EM24_WK(em) ((Em24Work*) (((cEm24*) (em))->free))
 
 class cEm24 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM24_WK)
     virtual void move();
 };
 

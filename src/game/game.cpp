@@ -222,23 +222,23 @@ static const PlRoomEff effRoom[6] = {
     {1, {0, 0, 0}, 0x21}, {1, {0, 0, 0}, 0x22}, {1, {0, 0, 0}, 0x23},
 };
 
-// New game: presets the door state flags (door_flags_51C8/51CC/51D0) of the doors that start
+// New game: presets the door state flags (Scenario_flg[3]/51CC/51D0) of the doors that start
 // locked/opened for the scenario.
 void DoorFlagInit()
 {
-    BitOn(pG->door_flags_51CC, 0x200);
-    BitOn(pG->door_flags_51CC, 0x80);
-    BitOn(pG->door_flags_51CC, 0x20);
-    BitOn(pG->door_flags_51CC, 0x10);
-    BitOn(pG->door_flags_51CC, 0x4);
-    BitOn(pG->door_flags_51D0, 0x10000000);
-    BitOn(pG->door_flags_51D0, 0x10000000);
-    BitOn(pG->door_flags_51C8, 0x2000);
-    BitOn(pG->door_flags_51C8, 0x20);
-    BitOn(pG->door_flags_51C8, 0x1);
-    BitOn(pG->door_flags_51CC, 0x80000000);
-    BitOn(pG->door_flags_51CC, 0x8000000);
-    BitOn(pG->door_flags_51CC, 0x400000);
+    ScfFlagOn(pG, SCF_96);
+    ScfFlagOn(pG, SCF_98);
+    ScfFlagOn(pG, SCF_9a);
+    ScfFlagOn(pG, SCF_9b);
+    ScfFlagOn(pG, SCF_9d);
+    ScfFlagOn(pG, SCF_a3);
+    ScfFlagOn(pG, SCF_a3);
+    ScfFlagOn(pG, SCF_72);
+    ScfFlagOn(pG, SCF_7a);
+    ScfFlagOn(pG, SCF_7f);
+    ScfFlagOn(pG, SCF_80);
+    ScfFlagOn(pG, SCF_84);
+    ScfFlagOn(pG, SCF_89);
 }
 
 // The game task (TaskExec'd by main): loops forever running game_func_tbl[pG->Rno0] once per frame
@@ -278,9 +278,9 @@ void gameInit()
         GXSetCopyClear(c.c, 0xFFFFFF);
     }
     if (pG->game_mode == 6) {
-        pG->System_flg |= 0x20;
+        SysFlagOn(pG, SYS_HARD_MODE);
     }
-    if ((pG->System_flg & 0x40000000) || pG->pl_type == 4) {
+    if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME) || pG->pl_type == 4) {
 #line 232 "D:/Bio4/Prog/game.cpp"
         Game.pBuf = MEM_ALLOC(0x70000, 1, 13);
     }
@@ -296,21 +296,21 @@ void gameInit()
     ScenarioInit();
     PlayerInit();
     U16Set(pG->ashley_life, 600);
-    if (pG->System_flg & 0x2000) {
+    if (SysFlagChk(pG, SYS_NEW_GAME)) {
         ItemMgr.gameInit();
         SceAtInitSaveItem();
     }
-    BitOff(pG->System_flg, 0x400000);
+    SysFlagOff(pG, SYS_DOOR_AFTER);
     MerchantGameInit();
     FSet(pG->mot_speed, 1.0f);
     InitGameTime();
-    if (pG->System_flg & 0x100) {
+    if (SysFlagChk(pG, SYS_LOAD_GAME)) {
         GameLoad();
     }
-    if ((s32) pG->System_flg < 0 || (pG->System_flg & 0x40000000)) {
+    if ((s32) pG->System_flg < 0 || (SysFlagChk(pG, SYS_OMAKE_ETC_GAME))) {
         pG->game_mode = 5;
     }
-    if ((pG->System_flg & 0x2000) || pG->SaveKind == 3) {
+    if (SysFlagChk(pG, SYS_NEW_GAME) || pG->SaveKind == 3) {
         GamePointInit(0);
         DoorFlagInit();
     }
@@ -326,38 +326,40 @@ void gameStageInit()
 {
     pLog->warn(1, 0, "-- R%03x ----------", pG->room_id);
     if (Flag54(0x80000) || Flag54(0x100)) {
-        BitOn(pG->System_flg, 0x80);
+        SysFlagOn(pG, SYS_CONTINUE_AFTER);
     } else {
-        BitOff(pG->System_flg, 0x80);
+        SysFlagOff(pG, SYS_CONTINUE_AFTER);
     }
-    if ((s32) pSys->unlock_flg < 0) {
-        if ((s32) pG->System_flg >= 0 && !(pG->System_flg & 0x40000000) && pG->room_id == 0x120 &&
-            ((pG->System_flg & 0x2000) || pG->SaveKind == 3)) {
-            Message* m;
-            int res;
+    if (ExtFlagChk(pSys, EXT_COSTUME)) {
+        if (!SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
+            if (!SysFlagChk(pG, SYS_OMAKE_ETC_GAME) && pG->room_id == 0x120 &&
+                (SysFlagChk(pG, SYS_NEW_GAME) || pG->SaveKind == 3)) {
+                Message* m;
+                int res;
 
-            pG->Disp_flg &= ~0x800;
-            cMes.setLayout(0, 0);
-            m = cMes.getMes(0);
-            cMes.MesSet(150, 100, 336 - m->lineSpace - m->m_font_h - 1, 1, 0, 0, 4);
-            if ((res = m->m_sel) == 0) {
-                do {
-                    TaskSleep(1);
-                } while ((res = cMes.getMes(0)->m_sel) == 0);
+                DpfFlagOff(pG, DPF_MESSAGE);
+                cMes.setLayout(0, 0);
+                m = cMes.getMes(0);
+                cMes.MesSet(150, 100, 336 - m->lineSpace - m->m_font_h - 1, 1, 0, 0, 4);
+                if ((res = m->m_sel) == 0) {
+                    do {
+                        TaskSleep(1);
+                    } while ((res = cMes.getMes(0)->m_sel) == 0);
+                }
+                switch (res) {
+                case 1:
+                default:
+                    pG->game_costume = 1;
+                    break;
+                case 2:
+                    pG->game_costume = 0;
+                    break;
+                }
+                PlSetCostume();
             }
-            switch (res) {
-            case 1:
-            default:
-                pG->game_costume = 1;
-                break;
-            case 2:
-                pG->game_costume = 0;
-                break;
-            }
-            PlSetCostume();
         }
     }
-    if (!(pG->Debug_flg[2] & 0x2000000)) {
+    if (!DbgFlagChk(pG, DBG_SINGLE_DISK)) {
         switch (pG->stage_no) {
         case 0:
             break;
@@ -375,7 +377,7 @@ void gameStageInit()
         }
     }
     SetGameTime();
-    if ((s32) pG->Status_flg[3] >= 0 && !(pG->System_flg & 0x100)) {
+    if (!StaFlagChk(pG, STA_SAVEDATA_NO_UPDATE) && !SysFlagChk(pG, SYS_LOAD_GAME)) {
         GameSaveSave(&GameSave, pSaveData, -1);
     }
     StageSet();
@@ -398,14 +400,14 @@ void gameRoomInit()
     gameRoomMemInit();
     if (pG->shooting_mode != 0) {
         pG->debug_mode = 0;
-        BitOn(pG->Debug_flg[3], 0x4000000);
-        BitOn(pG->Debug_flg[3], 0x400);
-        BitOn(pG->Debug_flg[3], 0x80000000);
-        BitOn(pG->Debug_flg[2], 0x100000);
-        BitOn(pG->Debug_flg[3], 0x200);
-        BitOff(pG->Debug_flg[3], 0x2000);
+        DbgFlagOn(pG, DBG_LOG_OFF);
+        DbgFlagOn(pG, DBG_NO_DEATH2);
+        DbgFlagOn(pG, DBG_INF_BULLET2);
+        DbgFlagOn(pG, DBG_BGM_STOP);
+        DbgFlagOn(pG, DBG_NO_PARASITE);
+        DbgFlagOff(pG, DBG_FOG_FAR_GREEN);
     }
-    BitOn(pG->Debug_flg[0], 0x200);
+    DbgFlagOn(pG, DBG_WIND_ON);
     ReadPlayerData(pG->pl_type, pG->pl_costume);
     ReadAreaData();
     DC.initDataUnit();
@@ -418,25 +420,25 @@ void gameRoomInit()
     }
     ModInfoMgr.roomInit();
     n = ConsGetRoomValue(7) + SmdGetObjNum();
-    if (pG->Debug_flg[3] & 0x200000) {
+    if (DbgFlagChk(pG, DBG_APP_USE_DBMEM)) {
         n *= 2;
     }
     ModInfoMgr.arrayAlloc(n);
     PartsMgr.roomInit();
     n = ConsGetRoomValue(6) + SmdGetObjNum();
-    if (pG->Debug_flg[3] & 0x200000) {
+    if (DbgFlagChk(pG, DBG_APP_USE_DBMEM)) {
         n *= 2;
     }
     PartsMgr.arrayAlloc(n);
     EmMgr.roomInit();
     n = ConsGetRoomValue(0);
-    if (pG->Debug_flg[3] & 0x200000) {
+    if (DbgFlagChk(pG, DBG_APP_USE_DBMEM)) {
         n *= 2;
     }
     EmMgr.arrayAlloc(n);
     ObjMgr.roomInit();
     n = ConsGetRoomValue(1) + SmdGetObjNum();
-    if (pG->Debug_flg[3] & 0x200000) {
+    if (DbgFlagChk(pG, DBG_APP_USE_DBMEM)) {
         n *= 2;
     }
     ObjMgr.arrayAlloc(n);
@@ -460,7 +462,7 @@ void gameRoomInit()
     ItemModelRoomInit();
     EtcModelRoomInit();
     LightAreaInit();
-    if (pG->System_flg & 0x200000) {
+    if (SysFlagChk(pG, SYS_DOORDEMO)) {
         pG->nPrim = 0x8000;
     } else {
         pG->nPrim = ConsGetRoomValue(8);
@@ -498,7 +500,7 @@ void gameRoomInit()
     EvtMgr.arrayAlloc(2);
     EvtMgr.myRoomInit();
     EvtDebug.myRoomInit();
-    if (!(pG->System_flg & 0x200000)) {
+    if (!SysFlagChk(pG, SYS_DOORDEMO)) {
         EmMgr.create(0, 0);
         PlRegistRoomEff((PlRoomEff*) effRoom);
     }
@@ -560,15 +562,15 @@ void gameRoomInit()
     SndRoomBgmLoad();
     DbWork = new cDbWork;
     U32Set(pG->Disp_flg, 0);
-    if (pG->System_flg & 0x200000) {
-        BitOn(pG->Disp_flg, 0x40000000);
-        BitOn(pG->Stop_flg, 0x10000000);
-        BitOn(pG->Stop_flg, 0x400000);
+    if (SysFlagChk(pG, SYS_DOORDEMO)) {
+        DpfFlagOn(pG, DPF_PL);
+        SpfFlagOn(pG, SPF_PL);
+        SpfFlagOn(pG, SPF_SCE_AT);
     }
-    if (pG->Debug_flg[3] & 0x8000000) {
-        BitOff(pG->System_flg, 0x800);
+    if (DbgFlagChk(pG, DBG_SCISSOR_OFF)) {
+        SysFlagOff(pG, SYS_SCISSOR_ON);
     } else {
-        BitOn(pG->System_flg, 0x800);
+        SysFlagOn(pG, SYS_SCISSOR_ON);
     }
     MerchantRoomInit();
     fadeSetG(0x80000001, 0, 0, 0);
@@ -579,17 +581,17 @@ void gameRoomInit()
     if (!Flag54(0x2000) && !Flag54(0x100) && !Flag54(0x80000)) {
         DoorSeCall(1);
     }
-    BitOff(pG->System_flg, 0x2000);
-    BitOff(pG->System_flg, 0x100);
-    BitOff(pG->System_flg, 0x80000);
-    BitOff(pG->System_flg, 0x400000);
-    BitOff(pG->Debug_flg[2], 0x80000000);
+    SysFlagOff(pG, SYS_NEW_GAME);
+    SysFlagOff(pG, SYS_LOAD_GAME);
+    SysFlagOff(pG, SYS_CONTINUE);
+    SysFlagOff(pG, SYS_DOOR_AFTER);
+    DbgFlagOff(pG, DBG_ROOMJMP);
     Block.check(0);
     Filter09SetbUse(0, 1);
     fadeSetG(0x80000002, 0, 0, 0);
     fadeSetG(0x80000000, 20, 0, 0);
     SubScreenWait(15);
-    BitOff(pG->System_flg, 0x100000);
+    SysFlagOff(pG, SYS_TRANS_STOP);
     DC.m_nblock_read_stop = 0;
     pG->Rno0 = 3;
     pG->SaveKind = 0;
@@ -608,7 +610,7 @@ void gameMainLoop()
     int slow;
     int nObj;
 
-    BitOff(pG->Status_flg[2], 0x10000000);
+    StaFlagOff(pG, STA_CUT_CHANGE);
     UpdateNearClipDist();
     gameStopMove();
     GameAddPoint(0);
@@ -619,11 +621,11 @@ void gameMainLoop()
     ProcessTickGet(5, "CamCtrl.Check()");
     SceAtCheck();
     ActBtn.move();
-    if (!(pG->Stop_flg & 0x800000)) {
+    if (!SpfFlagChk(pG, SPF_SCE)) {
         ScenarioMove();
     }
     ProcessTickGet(5, "ScenarioMove");
-    if (pG->Status_flg[3] & 0x8000000) {
+    if (StaFlagChk(pG, STA_SLOW)) {
         pPL->setSlow(player_Seq_speed);
         preb_slow_flg = 1;
     } else {
@@ -632,7 +634,7 @@ void gameMainLoop()
         }
         preb_slow_flg = 0;
     }
-    if (pG->Status_flg[3] & 0x8000000) {
+    if (StaFlagChk(pG, STA_SLOW)) {
         slow = (pG->Frame_cnt % other_slow) == 0;
     } else {
         slow = 1;
@@ -640,38 +642,38 @@ void gameMainLoop()
     if (slow) {
         EmMgr.move();
         EmListWaitDelete();
-        BitOff(pG->Status_flg[1], 0x20000000);
+        StaFlagOff(pG, STA_SE_BURST);
         ProcessTickGet(5, "EmMgr.move");
     }
-    if (!(pG->Stop_flg & 0x10000000) && (pPL->be_flag & 0x20) &&
-        (!(pG->Status_flg[1] & 0x10000000) || (pPL->be_flag & 0x800))) {
+    if (!SpfFlagChk(pG, SPF_PL) && (pPL->be_flag & 0x20) &&
+        (!StaFlagChk(pG, STA_SUSPEND) || (pPL->be_flag & 0x800))) {
         pPL->move();
     }
     ProcessTickGet(5, "Player");
-    if (pG->Status_flg[3] & 0x8000000) {
+    if (StaFlagChk(pG, STA_SLOW)) {
         slow = (pG->Frame_cnt % other_slow) == 0;
     } else {
         slow = 1;
     }
     if (slow) {
-        BitOff(pG->Status_flg[2], 0x8000000);
-        if (!(pG->Stop_flg & 0x4000000)) {
+        StaFlagOff(pG, STA_NO_FENCE);
+        if (!SpfFlagChk(pG, SPF_OBJ)) {
             ObjMgr.move();
         }
         ProcessTickGet(5, "ObjMgr.move");
-        if (!(pG->Stop_flg & 0x2000000)) {
+        if (!SpfFlagChk(pG, SPF_CTRL)) {
             CtrlMgr.move();
         }
     }
     CameraMove();
     ProcessTickGet(5, "CameraMove");
-    if (pG->Status_flg[3] & 0x8000000) {
+    if (StaFlagChk(pG, STA_SLOW)) {
         slow = (pG->Frame_cnt % other_slow) == 0;
     } else {
         slow = 1;
     }
     if (slow) {
-        if (!(pG->Stop_flg & 0x8000000)) {
+        if (!SpfFlagChk(pG, SPF_ESP)) {
             EffAreaUpdate();
             EffClearToolState();
             EspgenMove();
@@ -680,7 +682,7 @@ void gameMainLoop()
             EffCallToolStateCallBack();
         }
         ProcessTickGet(5, "EspMove");
-        if (!(pG->Stop_flg & 0x1000000)) {
+        if (!SpfFlagChk(pG, SPF_LIGHT)) {
             LightMgr.move();
         }
         ProcessTickGet(5, "LightMove");
@@ -752,21 +754,21 @@ void gameMainLoop()
     if (pG->debug_mode == 0x10) {
         ItemMgr.debugNumDisp(0x10);
     }
-    if (!(pG->System_flg & 0x200000)) {
+    if (!SysFlagChk(pG, SYS_DOORDEMO)) {
         gameDebugDisp();
     }
-    if (KeyTrg(0x2000) && !KeyOn(0x400000) && !(pG->Debug_flg[0] & 0x80000000) && OptionOpenCheck() == 1) {
+    if (KeyTrg(0x2000) && !KeyOn(0x400000) && !DbgFlagChk(pG, DBG_TEST_MODE) && OptionOpenCheck() == 1) {
         Game.Rno_bak = pG->mode32;
         pG->Rno0 = 6;
         pG->Rno1 = 0;
         pG->Rno2 = 0;
         pG->Rno3 = 0;
     }
-    if (!(pG->Stop_flg & 0x200)) {
+    if (!SpfFlagChk(pG, SPF_BLOCK)) {
         Block.check(0);
     }
-    if ((pG->System_flg & 0x8) || pG->debug_mode == 0) {
-        pG->Debug_flg[3] &= ~0x2000;
+    if (SysFlagChk(pG, SYS_PUBLICITY_VER) || pG->debug_mode == 0) {
+        DbgFlagOff(pG, DBG_FOG_FAR_GREEN);
     }
 }
 
@@ -776,9 +778,9 @@ void GameLoad()
 {
     GameSave.load(pSaveData);
     U16Set(pG->pl_flag, 1);
-    BitOn(pG->System_flg, 0x100);
-    BitOff(pG->System_flg, 0x80000);
-    BitOff(pG->System_flg, 0x40);
+    SysFlagOn(pG, SYS_LOAD_GAME);
+    SysFlagOff(pG, SYS_CONTINUE);
+    SysFlagOff(pG, SYS_START_EVT_SKIP);
     U16Set(pG->next_room, pG->room_id);
     pG->next_point = pG->Part;
 }
@@ -795,9 +797,9 @@ void GameContinue(int mode)
 
     GameSave.load(pSaveData);
     if (pG->SaveKind == -1) {
-        BitOn(pG->System_flg, 0x80000);
+        SysFlagOn(pG, SYS_CONTINUE);
     } else {
-        BitOn(pG->System_flg, 0x100);
+        SysFlagOn(pG, SYS_LOAD_GAME);
     }
     if (mode == 0) {
         U16Set(pG->r_continue_cnt, x4F90 + 1);
@@ -1027,7 +1029,7 @@ void gameEnding()
     case 1:
         DrawTpl(pTpl, 0, 0, 512, 448);
         if (Joy[0].trg & 0x100) {
-            BitOn(pG->System_flg, 0x4000000);
+            SysFlagOn(pG, SYS_SOFT_RESET);
         }
         break;
     }
@@ -1044,8 +1046,8 @@ void gameOption()
         SetGameTime();
         stop_bak = pG->Stop_flg;
         BitSet(pG->Stop_flg, 0xFFFFFFFF);
-        BitOff(pG->Stop_flg, 0x80000000);
-        BitOff(pG->Stop_flg, 0x40);
+        SpfFlagOff(pG, SPF_KEY);
+        SpfFlagOff(pG, SPF_ID_SYSTEM);
         OptScrn.init(0);
         SndSePauseAll(1);
         pG->Rno1++;
@@ -1072,15 +1074,15 @@ void gameOption()
 // 0x100000, stops input/movement, hides the HUD and runs gameDiedemo as a task.
 void DiedemoExec(int time, int type)
 {
-    if (pG->Status_flg[0] & 0x100000) {
+    if (StaFlagChk(pG, STA_DIEDEMO)) {
         return;
     }
     diedemo_work.exec_frame = time;
     diedemo_work.demo_type = type;
-    pG->Status_flg[0] |= 0x100000;
+    StaFlagOn(pG, STA_DIEDEMO);
     KeyStop(0xEFCF0000);
-    BitOn(pG->Stop_flg, 0x400000);
-    BitOn(pG->Stop_flg, 0x100);
+    SpfFlagOn(pG, SPF_SCE_AT);
+    SpfFlagOn(pG, SPF_ACTBTN);
     IdSys.kill(0xFF, 0x20);
     Cckpt.getCountDown()->m_state &= ~1;
     Cckpt.getCountDown()->frameOut();
@@ -1092,14 +1094,14 @@ void DiedemoExec(int time, int type)
 // (pl_life) is <= 0 (skipped in debug no-death mode).
 void gameDiedemoCheck()
 {
-    if ((s32) pG->Debug_flg[0] < 0) {
+    if (DbgFlagChk(pG, DBG_TEST_MODE)) {
         return;
     }
     if (pSUB != 0 && (s16) pG->ashley_life <= 0) {
         DiedemoExec(90, 0);
     }
     if ((s16) pG->pl_life <= 0) {
-        if ((s32) pG->System_flg < 0) {
+        if (SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
             DiedemoExec(90, 2);
         } else {
             DiedemoExec(90, 0);
@@ -1147,7 +1149,7 @@ void gameDiedemo(DiedemoWork* w)
                 IdSys.set((void*) (((OptionArc*) pG->pOption)->ofs_1C + (u32) pG->pOption), 0xFF, 0x2D, 0x13, 6, 0);
                 break;
             }
-            if (pG->Status_flg[3] & 0x1000000) {
+            if (StaFlagChk(pG, STA_EVENT_CANCEL)) {
                 IdSys.unitPtr(0, 0x2D)->be_flag |= 8;
                 fadeSetG(0x80000002, 1, 0, 0);
             } else {
@@ -1167,7 +1169,7 @@ void gameDiedemo(DiedemoWork* w)
                 IdSys.unitPtr(0, 0x2E)->be_flag |= 8;
                 IdSys.unitPtr(1, 0x2E)->be_flag &= ~8;
                 BitSet(pG->Stop_flg, 0xFFFFFFFF);
-                BitOff(pG->Stop_flg, 0x40);
+                SpfFlagOff(pG, SPF_ID_SYSTEM);
             }
             break;
         case 3:
@@ -1189,8 +1191,8 @@ void gameDiedemo(DiedemoWork* w)
                     SndCall(0, 5, 0, 0, 0, 0);
                 }
                 IdSys.beMove(IdSys.unitPtr(id, 0x2E), 1);
-                BitOn(pG->Disp_flg, 0x40000000);
-                BitOn(pG->Disp_flg, 0x10000000);
+                DpfFlagOn(pG, DPF_PL);
+                DpfFlagOn(pG, DPF_OBJ);
                 step++;
             } else {
                 int old = sel;
@@ -1228,7 +1230,7 @@ void gameDiedemo(DiedemoWork* w)
                 GameAddPoint(LVADD_DIE);
             } else {
                 OSReport("--SOFT_RESET SELECT!!\n");
-                BitOn(pG->System_flg, 0x4000000);
+                SysFlagOn(pG, SYS_SOFT_RESET);
             }
             TaskExit();
             break;
@@ -1245,10 +1247,10 @@ void gameDiedemo(DiedemoWork* w)
 void gameDoordemo()
 {
     OSReport("--DOORDEMO START!!\n");
-    BitOn(pG->System_flg, 0x1000000);
+    SysFlagOn(pG, SYS_ROOMJUMP);
     BitSet(pG->Stop_flg, 0xFFFFFFFF);
     KeyStop(0xEFCF0000);
-    if (pG->Debug_flg[2] & 0x80000000) {
+    if (DbgFlagChk(pG, DBG_ROOMJMP)) {
         fadeSetG(0, 0, 0, 0);
         TaskSleep(1);
     } else if (Flag54(0x80000) || Flag54(0x100)) {
@@ -1289,7 +1291,7 @@ void gameDoordemo()
     TaskSleep(1);
     pG->Disp_flg = 0xFFFFFFFF;
     TaskSleep(2);
-    BitOn(pG->System_flg, 0x100000);
+    SysFlagOn(pG, SYS_TRANS_STOP);
     TaskSleep(2);
     DC.initDataUnit();
     Dvd.ReadCancelAll();
@@ -1310,7 +1312,7 @@ void gameDoordemo()
     FSet(pG->sub_angle, pG->NextY);
     U16Set(pG->room_id, pG->next_room);
     pG->Part = pG->next_point;
-    if ((s32) pG->Debug_flg[2] >= 0 && !(pG->System_flg & 0x80000)) {
+    if ((s32) pG->Debug_flg[2] >= 0 && !SysFlagChk(pG, SYS_CONTINUE)) {
         pG->JumpPoint = 0;
     }
     pG->Rno0 = 1;
@@ -1325,14 +1327,14 @@ void gameDoordemo()
 // the debug/status flags.
 void gameRoomMemInit()
 {
-    if (pG->System_flg & 0x200000) {
+    if (SysFlagChk(pG, SYS_DOORDEMO)) {
         MemReplaceHeap(3, 4);
         MemorySwap((void*) 0x807EC000, ARAM_FREE_BASE, 0x188000);
         memclr_asm((void*) 0x807EC000, 0x188000);
         MemCreateHeap(10, 0x807EC000, 0x80974000);
         MemSetCurrentHeap(10);
     } else {
-        if (pG->System_flg & 0x400000) {
+        if (SysFlagChk(pG, SYS_DOOR_AFTER)) {
             MemDestroyHeap(10);
             MemorySwap((void*) 0x807EC000, ARAM_FREE_BASE, 0x188000);
         } else {
@@ -1346,10 +1348,10 @@ void gameRoomMemInit()
     U32Set(pG->Status_flg[0], 0);
     U32Set(pG->Status_flg[1], 0);
     U32Set(pG->Status_flg[2], 0);
-    if (pG->Debug_flg[3] & 0x10000) {
-        BitOn(pG->Debug_flg[0], 0x80000000);
-        BitOn(pG->Stop_flg, 0x800000);
-        BitOn(pG->Stop_flg, 0x20000000);
+    if (DbgFlagChk(pG, DBG_DOOR_SET_MODE)) {
+        DbgFlagOn(pG, DBG_TEST_MODE);
+        SpfFlagOn(pG, SPF_SCE);
+        SpfFlagOn(pG, SPF_EM);
     }
 }
 
@@ -1489,10 +1491,10 @@ void GameAddPoint(int type)
     if (pG->point < 0) {
         S32Set(pG->point, 0);
     }
-    if ((s32) pG->System_flg < 0) {
+    if (SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
         S32Set(pG->point, 0x270F);
     }
-    if (pG->System_flg & 0x20) {
+    if (SysFlagChk(pG, SYS_HARD_MODE)) {
         S32Set(pG->point, 0x2AF7);
     }
     if (pG->shooting_mode != 0) {
@@ -1503,7 +1505,7 @@ void GameAddPoint(int type)
             S32Set(pG->point, 1000);
         }
     }
-    if (pG->System_flg & 0x40000000) {
+    if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
         switch (pG->room_id) {
         case 0x401:
             break;
@@ -1534,7 +1536,7 @@ void GameAddPoint(int type)
             break;
         }
     }
-    if ((s32) pG->System_flg < 0) {
+    if (SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
         pG->Game_level = 6;
     }
 }
@@ -1543,13 +1545,13 @@ void GameAddPoint(int type)
 // mirrors them into the save block.
 void GamePointBossReset()
 {
-    if ((s32) pG->System_flg < 0) {
+    if (SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
         return;
     }
-    if (pG->System_flg & 0x40000000) {
+    if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
         return;
     }
-    if (pG->System_flg & 0x80) {
+    if (SysFlagChk(pG, SYS_CONTINUE_AFTER)) {
         return;
     }
     if (pG->point < 0x157C) {
@@ -1606,7 +1608,7 @@ void GameStopModeEnd()
 // when START is pressed again; released by another START.
 void gameStopMove()
 {
-    if (stop_rno == 0 && !(pG->Stop_flg & 0x10000000)) {
+    if (stop_rno == 0 && !SpfFlagChk(pG, SPF_PL)) {
         stop_rno = 0;
     }
     switch (stop_rno) {
@@ -1617,18 +1619,18 @@ void gameStopMove()
         }
         break;
     case 1:
-        BitOn(pG->Stop_flg, 0x20000000);
-        BitOn(pG->Stop_flg, 0x10000000);
-        BitOn(pG->Stop_flg, 0x1000);
-        BitOn(pG->Stop_flg, 0x4000000);
-        BitOn(pG->Stop_flg, 0x2000000);
-        BitOn(pG->Stop_flg, 0x8000000);
-        BitOn(pG->Stop_flg, 0x1000000);
-        BitOn(pG->Stop_flg, 0x800000);
-        BitOn(pG->Stop_flg, 0x400);
-        BitOn(pG->Stop_flg, 0x400000);
-        BitOn(pG->Stop_flg, 0x40000000);
-        BitOn(pG->Stop_flg, 0x10000);
+        SpfFlagOn(pG, SPF_EM);
+        SpfFlagOn(pG, SPF_PL);
+        SpfFlagOn(pG, SPF_SUBCHAR);
+        SpfFlagOn(pG, SPF_OBJ);
+        SpfFlagOn(pG, SPF_CTRL);
+        SpfFlagOn(pG, SPF_ESP);
+        SpfFlagOn(pG, SPF_LIGHT);
+        SpfFlagOn(pG, SPF_SCE);
+        SpfFlagOn(pG, SPF_EVT);
+        SpfFlagOn(pG, SPF_SCE_AT);
+        SpfFlagOn(pG, SPF_CAMERA);
+        SpfFlagOn(pG, SPF_EARTHQUAKE);
         stop_rno = 2;
         /* fallthrough */
     case 2:
@@ -1653,7 +1655,7 @@ void gameDebugDisp()
     int col;
     u32 i;
 
-    if ((s32) pG->Debug_flg[0] >= 0) {
+    if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
         col = 0;
         if (pPL->dmg.m_Flag || pPL->dmg.m_Timer) {
             col = 2;
@@ -1667,7 +1669,7 @@ void gameDebugDisp()
             eprintf2(8, 14, 32, 0x1AA, col, 7, "RNO[%02x][%02x][%02x][%02x], HP[%04d],FRAME[%03d/%03d]", pPL->r_no_0,
                      pPL->r_no_1, pPL->r_no_2, pPL->r_no_3, (s16) pG->pl_life, (u32) pPL->frame, pPL->frameMax);
         }
-        if (!(pG->Status_flg[0] & 0x1000)) {
+        if (!StaFlagChk(pG, STA_EVENT)) {
             eprintf(20, 30, 0, 0, "P[%.0f,%.0f,%.0f]", pPL->pos.x, pPL->pos.y, pPL->pos.z);
             {
                 int c0 = 'O';
@@ -1695,7 +1697,7 @@ void gameDebugDisp()
                 }
             }
         }
-        if (pG->Debug_flg[2] & 0x1000) {
+        if (DbgFlagChk(pG, DBG_EM_LIFE_DISP)) {
             for (i = 0; i < EmMgr.nArray; i++) {
                 cEm* em = (cEm*) ((u8*) EmMgr.pArray + EmMgr.size * i);
                 Vec pos2;
@@ -1780,22 +1782,22 @@ void gameDebugDisp()
         }
     }
     DbWork->move();
-    if (pG->Debug_flg[0] & 0x8000000) {
+    if (DbgFlagChk(pG, DBG_SAT_DISP)) {
         SatMgr.disp(0);
     }
-    if (pG->Debug_flg[0] & 0x4000000) {
+    if (DbgFlagChk(pG, DBG_EAT_DISP)) {
         EatMgr.disp(0);
     }
-    if (pG->Debug_flg[0] & 0x4000) {
+    if (DbgFlagChk(pG, DBG_RTP_DISP)) {
         Draw_rtp();
     }
-    if (pG->Debug_flg[0] & 0x20) {
+    if (DbgFlagChk(pG, DBG_EMINFO_DISP)) {
         Draw_eminfo();
     }
-    if (pG->Debug_flg[0] & 0x2000) {
+    if (DbgFlagChk(pG, DBG_WIRE_DISP)) {
         DrawRoomWireframe();
     }
-    if (pG->Debug_flg[2] & 0x4000) {
+    if (DbgFlagChk(pG, DBG_UNDER_CONST)) {
         DrawTpl((TEXPalette*) (pG->pArc->ofs_90 + (u32) pG->pArc), 0x118, 0x186, 0xDC, 0x1E);
     }
 }
@@ -1805,7 +1807,7 @@ void gameDebugDisp()
 void gameDebug()
 {
     if ((Joy[0].trg & 0x1000) && (Joy[0].on & 0x40) && (s32) pG->Debug_flg[0] >= 0) {
-        if (pG->System_flg & 8) {
+        if (SysFlagChk(pG, SYS_PUBLICITY_VER)) {
             if (PadCheckStatus(&Joy[1]) == 1) {
                 DbMenuExec();
             }

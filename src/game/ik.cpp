@@ -247,7 +247,7 @@ static void heel2toe(Mtx m, cModel* p, Vec* pos)
     {                                                                \
         u32 f = IK_FLAGS(q);                                         \
         IK_FLAGS(q) = f | 0x10000000;                                \
-        if (blend != 0 && (s32) blend->Mot_flag < 0) {                 \
+        if (blend != 0 && (blend->Mot_flag & 0x80000000)) {                 \
             IK_FLAGS(q) = f | 0x90000000;                            \
         }                                                            \
     }
@@ -256,7 +256,7 @@ static void heel2toe(Mtx m, cModel* p, Vec* pos)
     {                                                                \
         u32 f = IK_FLAGS(q);                                         \
         IK_FLAGS(q) = f | 0x10000000;                                \
-        if (blend != 0 && (s32) blend->Mot_flag < 0) {                 \
+        if (blend != 0 && (blend->Mot_flag & 0x80000000)) {                 \
             IK_FLAGS(q) = f | 0x90000000;                            \
         }                                                            \
     }

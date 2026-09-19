@@ -341,24 +341,24 @@ static void r20d_openDrawer(int no)
     r20d_openDrawer_main(no, 0);
 }
 
-// Area 0x10, the exit door: once unlocked (door_unlock[0] 0x00200000) sets Scenario_flg[0] 0x02000000
+// Area 0x10, the exit door: once unlocked (Key_flg[0] 0x00200000) sets Scenario_flg[1] 0x02000000
 // and switches control back to Leon (PlSelect(0)) before running the door area.
 static void r20d_checkDoor()
 {
-    if (!(pG->door_unlock[0] & 0x00200000)) {
+    if (!(pG->Key_flg[0] & 0x00200000)) {
         SceAtExecute(0x10);
     } else {
-        pG->Scenario_flg[0] |= 0x02000000;
+        ScfFlagOn(pG, SCF_R20D_END_OF_ASHLEY_PLAY);
         PlSelect(0);
         SceAtExecute(0x10);
     }
 }
 
-// One frame in: if the key item (item_flags[0] 0x4000) was already taken, remove every Ganado (0x10..0x20).
+// One frame in: if the key item (Item_flg[0] 0x4000) was already taken, remove every Ganado (0x10..0x20).
 static void r20d_setEm()
 {
     SceSleep(1);
-    if (pG->item_flags[0] & 0x4000) {
+    if (ItfFlagChk(pG, ITF_R20E_SALAZAR_CREST)) {
         SceDestroyEm(0x10, 0x20);
         SceExit();
     }
@@ -776,13 +776,13 @@ static void r20d_dbgWall(int frame)
     pPL->pos.y = y * rate;
 }
 
-// The round switch put the pictures right: the wall rises, Room_flg bit 2, door_flags_51C8 4 (the way
+// The round switch put the pictures right: the wall rises, Room_flg bit 2, Scenario_flg[3] 4 (the way
 // on opens), the switch area 0xD off.
 void r20d_checkPictureCombination()
 {
     SceExec(0x12, (TaskFunc) r20d_moveWall, 0, 0, SCE_PRIO_DEF_2, 0);
     RsfSet(G_ROOM_ID, 2);
-    pG->door_flags_51C8 |= 4;
+    ScfFlagOn(pG, SCF_7d);
     SceAtSetEnable(0xD, 0);
 }
 

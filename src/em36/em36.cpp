@@ -198,10 +198,6 @@ static Vec em36_weak_rot[5] = {
 #define ARC(no) PL_ARC_PTR(em->subArc, no)
 #define PL_ARC(no) PL_ARC_PTR(pl->subArc, no)
 
-// The enemy a player damage callback belongs to (pl_sub SetPlDamage's first argument).
-#define PL_EM(pl) ((cEm36*) (pl)->dmgType)
-#define PL_EM_G ((cEm36*) pPL->dmgType)
-
 #define VIB_TBL ((VibDataTbl*) (pG->pArc->ofs_1C + (u32) pG->pArc))
 
 // Struct-member view of the player pointer (cam_ctrl.cpp PlayerPtr).
@@ -276,7 +272,7 @@ void Em36Init(cEm* em)
 // A lost limb whose hit box took the damage (em36DmCk): the routine is set straight from the loop (one
 // stepping limb pointer, the hit path jumps into the RS arm); an int inline returns through a flag.
 #define EM36_LIMB_HIT_CK(no)                                                                       \
-    if (pG->Status_flg[1] & 0x04000000) {                                                             \
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {                                                             \
         int i;                                                                                     \
                                                                                                    \
         for (i = 0; i < 5; i++) {                                                                  \
@@ -1536,9 +1532,9 @@ static void em36_R1_SpineAtk(cEm36* em)
 // variant at 0 HP) with its blood effect and the footstep / get-up sounds; ends with the motion.
 static void plem36_Stamp(cPlayer* pl)
 {
-    BitOn(pG->Status_flg[1], 0x8000);
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         if ((s16) pG->pl_life <= 0) {
@@ -1585,9 +1581,9 @@ static void subem36_Stamp()
     cSubChar* sub = pSUB;
     u8 step;
 
-    sub->subArc = PL_EM(sub)->subArc;
+    sub->subArc = sub->pEmCatch->subArc;
     sub->dmg.m_Timer = 2;
-    pG->Status_flg[2] |= 0x20000000;
+    StaFlagOn(pG, STA_SUB_CATCHED);
     step = sub->r_no_2;
     switch (step) {
     case 0:
@@ -1621,7 +1617,7 @@ static void em36_R1_br_Catch(cEm36* em)
 {
     if (em->hp > 0 && (em->seFlags28B & 2) && em36CatchCk(em)) {
         VibSetData(VIB_TBL, 7, 1);
-        em->stat = 0x010B0000;
+        EmRoutineSetW(em, 1, 0xB, 0, 0);
     }
 }
 
@@ -1695,7 +1691,6 @@ static void em36_R1_Catch(cEm36* em)
 }
 
 
-#define EM_RTN(em, fc, fd) (((em)->stat & 0xFFFF0000) == (u32) (((fc) << 24) | ((fd) << 16)))
 
 // The effects of the appearance are removed when the player is caught.
 // (a macro: through an inline the kind array's address becomes a pseudo, the loads must reload
@@ -1829,9 +1824,9 @@ static void plem36_CatchHit(cPlayer* pl)
 {
     u8 step;
 
-    BitOn(pG->Status_flg[1], 0x8000);
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     step = pl->r_no_2;
     switch (step) {
     case 0:
@@ -1851,16 +1846,16 @@ static void plem36_CatchHit(cPlayer* pl)
         if (pl->frame > 14.7f && pl->frame < 15.3f) {
             VibSetData(VIB_TBL, 0xF, 1);
         }
-        if (PL_EM_G->r_no_0 != 1 && PL_EM_G->r_no_1 != 0xB) {
+        if (pPL->pEmCatch->r_no_0 != 1 && pPL->pEmCatch->r_no_1 != 0xB) {
             SndStop(pl->m_Work1, 0);
             VibSetClearType(1);
             EndPlDamage();
             pl->dmg.set(0, 30);
         } else {
             if (pl->frame > 24.7f && pl->frame < 25.3f) {
-                pl->m_Work1 = SndCall(8, 0x37, &pPL->getPartsPtr(4)->world, PL_EM(pl)->id, 0, pl);
+                pl->m_Work1 = SndCall(8, 0x37, &pPL->getPartsPtr(4)->world, pl->pEmCatch->id, 0, pl);
             }
-            pl->r_no_2 = PL_EM_G->r_no_2;
+            pl->r_no_2 = pPL->pEmCatch->r_no_2;
         }
         break;
     case 2:
@@ -1883,7 +1878,7 @@ static void plem36_CatchHit(cPlayer* pl)
         VibSetClearType(1);
         EstSet((int) pl, -1, 0, 0, 0x2D, 0x30, 0, 0, (u32) pl, 0);
         SndStop(pl->m_Work1, 0);
-        SndCall(8, 0x3B, &pPL->getPartsPtr(4)->world, PL_EM(pl)->id, 0, pl);
+        SndCall(8, 0x3B, &pPL->getPartsPtr(4)->world, pl->pEmCatch->id, 0, pl);
         pl->r_no_2++;
     case 5:
         if (MotionMoveF(pl, 0)) {
@@ -1914,7 +1909,7 @@ static void em36_R1_br_LongCatch(cEm36* em)
 {
     if (em->hp > 0 && (em->seFlags28B & 2) && em36LongCatchCk(em)) {
         VibSetData(VIB_TBL, 7, 1);
-        em->stat = 0x010D0000;
+        EmRoutineSetW(em, 1, 0xD, 0, 0);
     }
 }
 
@@ -2003,11 +1998,11 @@ static void em36_R1_LongCatchHit(cEm36* em)
             case 0:
             case 1:
             default:
-                em->stat = 0x010B0000;
+                EmRoutineSetW(em, 1, 0xB, 0, 0);
                 break;
             case 2:
             case 3:
-                em->stat = 0x010E0000;
+                EmRoutineSetW(em, 1, 0xE, 0, 0);
                 break;
             }
         }
@@ -2025,9 +2020,9 @@ static void em36_R1_LongCatchHit(cEm36* em)
 // the enemy's motion while it stays in 1/0xD, 2/3 the death bite, 4/5 the throw-off.
 static void plem36_LongCatchHit(cPlayer* pl)
 {
-    BitOn(pG->Status_flg[1], 0x8000);
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x7E), 0, 0, 1, 0);
@@ -2036,11 +2031,11 @@ static void plem36_LongCatchHit(cPlayer* pl)
         pl->r_no_2++;
     case 1:
         EmCatchMotionMove(pl, 1.0f, 1.0f);
-        if (!EM_RTN(PL_EM_G, 1, 0xD)) {
+        if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 0xD) {
             EndPlDamage();
             pl->dmg.set(0, 30);
         } else {
-            pl->r_no_2 = PL_EM_G->r_no_2;
+            pl->r_no_2 = pPL->pEmCatch->r_no_2;
         }
         break;
     case 2:
@@ -2117,9 +2112,9 @@ static void plem36_SpineCatchHit(cPlayer* pl)
 {
     u8 step;
 
-    BitOn(pG->Status_flg[1], 0x8000);
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     step = pl->r_no_2;
     switch (step) {
     case 0:
@@ -2171,7 +2166,7 @@ static void em36_R1_br_LostCatch(cEm36* em)
 {
     if (em->hp > 0 && (em->seFlags28B & 2) && em36BiteCk(em)) {
         VibSetData(VIB_TBL, 7, 1);
-        em->stat = 0x01150000;
+        EmRoutineSetW(em, 1, 0x15, 0, 0);
     }
 }
 
@@ -2616,7 +2611,7 @@ static void em36_R1_br_D_Catch(cEm36* em)
 {
     if (em->hp > 0 && (em->seFlags28B & 2) && em36BiteCk(em)) {
         VibSetData(VIB_TBL, 7, 1);
-        em->stat = 0x01150000;
+        EmRoutineSetW(em, 1, 0x15, 0, 0);
     }
 }
 
@@ -2740,26 +2735,26 @@ static void em36_R1_D_CatchHit(cEm36* em)
 // blood effect, 4/5 the throw-off; ends with the motion.
 static void plem36_D_CatchHit(cPlayer* pl)
 {
-    BitOn(pG->Status_flg[1], 0x8000);
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, MOTION(pl), PL_ARC(0x7B), 0, 0, 1, 0);
         PlSetFace(1);
         pl->atari.set(10, 480.00003f, 400.0f);
         VibSetData(VIB_TBL, 0xF, 1);
-        pl->m_Work1 = SndCall(8, 0x37, &pPL->getPartsPtr(4)->world, PL_EM(pl)->id, 0, pl);
+        pl->m_Work1 = SndCall(8, 0x37, &pPL->getPartsPtr(4)->world, pl->pEmCatch->id, 0, pl);
         pl->r_no_2++;
     case 1:
         EmCatchMotionMove(pl, 1.0f, 1.0f);
-        if (!EM_RTN(PL_EM_G, 1, 0xB)) {
+        if (pPL->pEmCatch->r_no_0 != 1 || pPL->pEmCatch->r_no_1 != 0xB) {
             SndStop(pl->m_Work1, 0);
             VibSetClearType(1);
             EndPlDamage();
             pl->dmg.set(0, 30);
         } else {
-            pl->r_no_2 = PL_EM_G->r_no_2;
+            pl->r_no_2 = pPL->pEmCatch->r_no_2;
         }
         break;
     case 2:
@@ -2783,7 +2778,7 @@ static void plem36_D_CatchHit(cPlayer* pl)
         EstSet((int) pl, -1, 0, 0, 0x2D, 0x32, 0, 0, (u32) pl, 0);
         VibSetClearType(1);
         SndStop(pl->m_Work1, 0);
-        SndCall(8, 0x3B, &pPL->getPartsPtr(4)->world, PL_EM(pl)->id, 0, pl);
+        SndCall(8, 0x3B, &pPL->getPartsPtr(4)->world, pl->pEmCatch->id, 0, pl);
         pl->m_Work0 = 10;
         pl->r_no_2++;
     case 5: {
@@ -3425,7 +3420,7 @@ void em36RouteCk(cEm36* em)
     w->targetDist = em->plDist2;
     w->pTarget = pPLS;
     w->flags &= ~4;
-    if (pSUBS && !(pG->Status_flg[0] & 0x800) && w->plRouteDis > w->subRouteDis + 1000.0f) {
+    if (pSUBS && !StaFlagChk(pG, STA_ASHLEY_HIDE) && w->plRouteDis > w->subRouteDis + 1000.0f) {
         w->targetPos = w->subRoutePos;
         w->targetAng = w->subAng;
         w->targetAngAbs = w->subAngAbs;
@@ -3467,7 +3462,7 @@ int em36AtkCk2(cEm36* em, int no, Vec* pos, Vec* oldPos)
             switch (no) {
             case 0:
                 SndCall(8, 0x1B, &pPL->pos, em->id, 0, pPL);
-                SetPlDamage((int) em, plem36_Stamp);
+                SetPlDamage(em, plem36_Stamp);
                 VibSetData(VIB_TBL, 0xB, 1);
                 break;
             case 1:
@@ -3482,7 +3477,7 @@ int em36AtkCk2(cEm36* em, int no, Vec* pos, Vec* oldPos)
             switch (no) {
             case 0:
                 SndCall(8, 0x1B, &em->pos, em->id, 0, em);
-                SetSubDamage((int) em, (void*) subem36_Stamp);
+                SetSubDamage(em, (void*) subem36_Stamp);
                 break;
             case 1:
                 SndCall(8, 0x35, &pSUB->pos, em->id, 0, pSUB);
@@ -3798,7 +3793,7 @@ void em36YarareCk(cEm36* em)
     if (!(w->flags & 1)) { \
         return 0; \
     } \
-    if (pG->Status_flg[1] & 0x8000) { \
+    if (StaFlagChk(pG, STA_PL_CATCHED)) { \
         return 0; \
     } \
     if (!(w->flags & 0x800)) { \
@@ -3896,7 +3891,7 @@ int em36LongCatchCk(cEm36* em)
     if (!(w->flags & 1)) {
         return 0;
     }
-    if (pG->Status_flg[1] & 0x8000) {
+    if (StaFlagChk(pG, STA_PL_CATCHED)) {
         return 0;
     }
     if (!(w->flags & 0x800)) {
@@ -4089,7 +4084,7 @@ void em36WeakMove(cEm36* em)
             PSMTXInverse(em->getPartsPtr(0)->mat, inv);
             PSMTXMultVec(inv, &l->pObj->getPartsPtr(0)->world, &v);
             w->hit[l->hit].ofs = v;
-            if ((pGS->Status_flg[1] & 0x04000000) && l->hp > 0 && em->hp > 0) {
+            if (StaFlagChk(pGS, STA_THERMO_GRAPH) && l->hp > 0 && em->hp > 0) {
                 l->pObj->be_flag |= 2;
                 w->hit[l->hit].flags |= 1;
             } else {
@@ -4207,7 +4202,7 @@ int em36SetDmVal(cEm36* em)
     case 9:
     case 0xA:
     case 0x28:
-        if (pG->Status_flg[1] & 0x04000000) {
+        if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
             int sum = 0;
             int i;
 
@@ -4941,14 +4936,14 @@ int em36FindCk(cEm36* em)
         if (em->plDist2 < 225000000.0f && w->routeAngAbs < 1.0471976f) {
             find = 1;
         }
-        if ((int) pG->Status_flg[1] < 0 && em->plDist2 < 25000000.0f) {
+        if (StaFlagChk(pG, STA_PL_SE_FOOT) && em->plDist2 < 25000000.0f) {
             find = 1;
         }
         if (em->plDist2 < 12250000.0f) {
             find = 1;
         }
     }
-    if (pG->Status_flg[1] & 0x20000000) {
+    if (StaFlagChk(pG, STA_SE_BURST)) {
         f32 r;
 
         switch (pG->bell_stat) {
@@ -4970,7 +4965,7 @@ int em36FindCk(cEm36* em)
             }
         }
     }
-    if ((pG->Status_flg[0] & 0x00800000) && w->plRouteDis < 25000.0f) {
+    if (StaFlagChk(pG, STA_PL_FIRE) && w->plRouteDis < 25000.0f) {
         find = 1;
     }
     if (em36DeadCk(em)) {
@@ -5056,7 +5051,7 @@ int em36FanceOverCk(cEm36* em)
     u32 rem;
     f32 ang;
 
-    if (pG->Status_flg[2] & 0x08000000) {
+    if (StaFlagChk(pG, STA_NO_FENCE)) {
         return 0;
     }
     // Written-out modulo: the second load is cse'd, the subtraction's operand is the dying load temp (r9) and

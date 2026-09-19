@@ -291,7 +291,7 @@ f32 cSatMgr::scrAtCheckSphere(cModel* m, cAtariInfo* info, int flag)
             }
         }
     }
-    if (pG->Debug_flg[2] & 0x20000000) {
+    if (DbgFlagChk(pG, DBG_SCA_VIEW)) {
         Draw_sphere(&newPos, info->m_radius, 0xA0A0A0A0, 1, 1);
     }
     return mag;
@@ -330,7 +330,7 @@ f32 cSatMgr::scrAtCheckSphereAir(cModel* m, cAtariInfo* info, int flag)
             PSVECSubtract(&m->pos, &mpos, &mpos);
             PSVECAdd(&link->pos, &mpos, &link->pos);
         }
-        if (pG->Debug_flg[2] & 0x20000000) {
+        if (DbgFlagChk(pG, DBG_SCA_VIEW)) {
             Draw_sphere(&newPos, info->m_radius, 0xA0A0A0A0, 1, 1);
         }
     }
@@ -417,7 +417,7 @@ f32 cSatMgr::getFloor(Vec* pos, f32 up, f32 down, u32* attr, int flag)
     Vec bottom;
     Vec hit;
 
-    if (pG->Debug_flg[1] & 0x10000000) {
+    if (DbgFlagChk(pG, DBG_FLAT_FLOOR)) {
         return 0.0f;
     }
     top.x = pos->x;
@@ -827,7 +827,7 @@ int blkPolySphereCkCore(cSat* sat, cSatBlock* blk, Vec* pos0, Vec* pos1, f32 r, 
             if (nrm) {
                 *nrm = sat->norm_p[sat->poly_p[*idx].n];
             }
-            if (pG->Debug_flg[0] & 0x08000000) {
+            if (DbgFlagChk(pG, DBG_SAT_DISP)) {
                 sat->disp(*idx, 0x40FF0000, 1);
             }
         }

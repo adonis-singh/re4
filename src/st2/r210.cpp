@@ -95,8 +95,8 @@ void R210Init()
 #line 53 "D:/Bio4/Prog/r210.cpp"
     r210_work = (R210Work*) MEM_CALLOC(sizeof(R210Work), 1, 0xd);
     if (pG->room_id_prev == 0xFFF) {
-        if ((pG->Status_flg[3] & 0x04000000) == 0) {
-            pG->Status_flg[3] |= 0x04000000;
+        if (StaFlagChk(pG, STA_SUB_ASHLEY) == 0) {
+            StaFlagOn(pG, STA_SUB_ASHLEY);
         }
     }
     {
@@ -105,13 +105,13 @@ void R210Init()
         if (flags & 0x04000000) {
             SubCharInit(1, &pPL->pos, pPL->ang.y);
             SubCharCtrl(SCC_CHASE, 0);
-            pG->Item_find_flg &= ~0x80;
+            ScfFlagOff(pG, SCF_NO_ASHLEY_DIST_CK);
         }
     }
-    if ((pG->System_flg & 0x100) == 0 && pG->room_id_prev == 0x222) {
-        if ((pG->Scenario_flg[0] & 0x40) == 0) {
+    if (SysFlagChk(pG, SYS_LOAD_GAME) == 0 && pG->room_id_prev == 0x222) {
+        if (ScfFlagChk(pG, SCF_R213_ASHLEY_LOST) == 0) {
             SubCharInit(1, &pPL->pos, pPL->ang.y);
-            BitOn(pG->Status_flg[3], 0x04000000);
+            StaFlagOn(pG, STA_SUB_ASHLEY);
             if (pSUB) {
                 Vec v;
 
@@ -129,7 +129,7 @@ void R210Init()
                 }
                 SubCharCtrl(SCC_STOP, 0);
             }
-            pG->Item_find_flg |= 0x80;
+            ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
         }
         SmdGetObjPtr(0x20)->be_flag |= 0x20;
         SmdGetObjPtr(0x21)->be_flag |= 0x20;
@@ -141,7 +141,7 @@ void R210Init()
     SceAtDataSet_exec(0xA, SCE_LEVEL10, 0, (TaskFunc) asl_chase, 0, 1);
     SceAtDataSet_exec(3, SCE_LEVEL10, 0, (TaskFunc) toroko_go, 0, 1);
     SceAtDataSet_exec(4, SCE_LEVEL10, 0, (TaskFunc) toroko_go, (void*) 1, 1);
-    if ((pG->System_flg & 0x100) == 0 && pG->room_id_prev == 0x210) {
+    if (SysFlagChk(pG, SYS_LOAD_GAME) == 0 && pG->room_id_prev == 0x210) {
         if (pG->Part == 1) {
             SceExec(0x12, (TaskFunc) toroko_ret, 0, 0, SCE_PRIO_DEF_2, 0);
         } else if (pG->Part == 2) {
@@ -158,12 +158,12 @@ void R210Init()
     SceAtDataSet_exec(8, SCE_LEVEL10, 0, (TaskFunc) r222_dai_set, 0, 1);
 }
 
-// Per frame: once Leon is past z -20000 (on the lift side) Ashley stops following (Item_find_flg 0x80).
+// Per frame: once Leon is past z -20000 (on the lift side) Ashley stops following (Scenario_flg[0] 0x80).
 void R210Main()
 {
     if (pPL->pos.z < -20000.0f) {
         SubCharCtrl(SCC_STOP, 0);
-        pG->Item_find_flg |= 0x80;
+        ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     }
 }
 
@@ -172,20 +172,20 @@ static void r222_DummyDoorProc()
 {
     if (pSUB) {
         EmMgr.destroy(pSUB);
-        pG->Status_flg[3] &= ~0x04000000;
+        StaFlagOff(pG, STA_SUB_ASHLEY);
     }
     SceAtDataReset(0);
     SceAtExecute(0);
 }
 
-// Areas 7/8: re-enable the lift areas 5/6; clears Room_flg[0] bit 31 (lift in use) and Item_find_flg 0x80.
+// Areas 7/8: re-enable the lift areas 5/6; clears Room_flg[0] bit 31 (lift in use) and Scenario_flg[0] 0x80.
 static void r222_dai_set()
 {
     SceAtSetEnable(5, 1);
     SceAtSetEnable(6, 1);
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         BitOff(pG->Room_flg[0], 0x80000000);
-        pG->Item_find_flg &= ~0x80;
+        ScfFlagOff(pG, SCF_NO_ASHLEY_DIST_CK);
     }
 }
 
@@ -229,9 +229,9 @@ static void r222_dai_go()
         at = &pSUB->atari;
         at->throughOff();
         SubCharCtrl(SCC_STOP, 0);
-        pG->Item_find_flg |= 0x80;
+        ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     }
-    if ((pG->Scenario_flg[0] & 0x40) == 0 && CheckDoorJumpWithAshley() == 1) {
+    if (ScfFlagChk(pG, SCF_R213_ASHLEY_LOST) == 0 && CheckDoorJumpWithAshley() == 1) {
         CamCtrl.CutCall(5);
         SetPlDamage(0, plemRide);
         pPL->setNoSuspend(1);
@@ -337,7 +337,7 @@ static void r222_dai_ret()
         at = &pSUB->atari;
         at->throughOff();
         SubCharCtrl(SCC_STOP, 0);
-        pG->Item_find_flg |= 0x80;
+        ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     }
     SceAtSetEnable(5, 0);
     SceAtSetEnable(6, 0);
@@ -612,7 +612,7 @@ static void plemRide(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         pPL->setNoSuspend(1);
-        MotionSetCore(pPL, &pPL->Motion, pl->pMotTbl[11], 0, 0, 0x201, 0);
+        MotionSetCore(pPL, &pPL->Motion, pl->m_MotTbl[11], 0, 0, 0x201, 0);
         pl->r_no_2++;
         pl->r_no_3 = 0;
     case 1:

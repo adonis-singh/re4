@@ -18,6 +18,14 @@
 #include "player.h"
 #include "pl_sub.h"
 
+// The work area of the enemy thrown off the car: the trolley only uses the yaw at 0x9BC.
+struct TrolleyEmWork {
+    u8 pad_3E0[0x9BC - 0x3E0];
+    f32 yaw;              // 0x9BC
+};
+#define TROLLEY_EM_WK(em) ((TrolleyEmWork*) ((u8*) (em) + 0x3E0))
+
+
 // Mine trolley (obj 0x3B): three cars (parts 0 / 4 / 8) running along their motion with a scenario
 // collision piece and an effect collision piece per car; the player and the enemies standing on a
 // car are carried along, the break routine throws them off.
@@ -38,6 +46,7 @@ public:
 // calls the one the cars' break throws them with (vtable slot 31).
 class cEmRoom : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMROOM_WK)
     virtual void v09();
     virtual void v10();
     virtual void v11();
@@ -176,7 +185,7 @@ void objTrolley_R0_Set(cObjTrolley* obj)
     objTrolleyPushMtx(obj);
     objTrolleySatSet(obj);
     if (w->Be_flg & 1) {
-        pG->Status_flg[0] |= 0x20;
+        StaFlagOn(pG, STA_RIDE_GONDOLA);
         w->Ride_pl = 1;
         obj->r_no_0 = 1;
         obj->r_no_1 = 0;
@@ -227,14 +236,14 @@ void objTrolley_R0_Move(cObjTrolley* obj)
     case 5:
         if (MotionMove(obj, 0) && w->Ride_pl) {
             w->Ride_pl = 0;
-            SetPlDamage((int) obj, plobjTrolleyDie);
+            SetPlDamage((cEm*) obj, plobjTrolleyDie);
             obj->r_no_0 = 2;
             obj->r_no_1 = 0;
             obj->r_no_2 = 0;
             obj->r_no_3 = 0;
         } else {
             if (obj->motFrame > 2250.0f) {
-                pG->Status_flg[2] |= 0x08000000;
+                StaFlagOn(pG, STA_NO_FENCE);
             }
             if (obj->motFrame > 2300.0f) {
                 EstSet((int) obj, -1, 0, 0, 1, 0x13, 0, 0, (u32) obj, 0);
@@ -373,7 +382,7 @@ void objTrolleySatSet(cObjTrolley* obj)
 void objTrolleyEscapeAction(cObjTrolley* obj)
 {
     obj->trolley.Ride_pl = 0;
-    SetPlDamage((int) obj, plobjTrolleyEscape);
+    SetPlDamage((cEm*) obj, plobjTrolleyEscape);
     obj->r_no_0 = 2;
     obj->r_no_1 = 0;
     obj->r_no_2 = 0;
@@ -386,11 +395,11 @@ void objTrolleyEscapeAction(cObjTrolley* obj)
 void plobjTrolleyEscape(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cObjTrolley* obj = (cObjTrolley*) em->dmgType;
+    cObjTrolley* obj = (cObjTrolley*) em->pEmCatch;
     TrolleyWork* w = &obj->trolley;
     cModel* parts = em->getPartsPtr(4);
 
-    em->subArc = ((cEm*) pPL->dmgType)->subArc;
+    em->subArc = pPL->pEmCatch->subArc;
     em->dmg.set(0, 0xF);
     switch (em->r_no_2) {
     case 0:
@@ -424,26 +433,26 @@ void plobjTrolleyEscape(cPlayer* pl)
         em->ang.y = 0.0f;
         MotionSetCore(em, &em->pMotion, w->mot[6], 0, 0, 0x201, 0);
         PlGachaInit();
-        em->m_Work0 = 90;
-        em->m_Work1 = 10;
+        ((cPlayer*) em)->m_Work0 = 90;
+        ((cPlayer*) em)->m_Work1 = 10;
         if (pG->Game_level <= 2) {
-            em->m_Work1 = 5;
+            ((cPlayer*) em)->m_Work1 = 5;
         }
         if (pG->Game_level > 7) {
-            em->m_Work1 = 15;
+            ((cPlayer*) em)->m_Work1 = 15;
         }
         em->r_no_2++;
     case 3:
         ActBtn.set(0x19, 5, 0, 0, 2, 2, 0, 0);
         if (Key.trg & 0x80000000) {
-            if (em->m_Work1) {
-                em->m_Work1--;
+            if (((cPlayer*) em)->m_Work1) {
+                ((cPlayer*) em)->m_Work1--;
             }
         }
         MotionMove(em, 0);
-        if (em->m_Work0) {
-            em->m_Work0--;
-        } else if (em->m_Work1) {
+        if (((cPlayer*) em)->m_Work0) {
+            ((cPlayer*) em)->m_Work0--;
+        } else if (((cPlayer*) em)->m_Work1) {
             em->r_no_2 = 6;
         } else {
             em->r_no_2 = 4;
@@ -492,11 +501,11 @@ void plobjTrolleyEscape(cPlayer* pl)
 void plobjTrolleyDie(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cObjTrolley* obj = (cObjTrolley*) em->dmgType;
+    cObjTrolley* obj = (cObjTrolley*) em->pEmCatch;
     TrolleyWork* w = &obj->trolley;
     u8 step;
 
-    em->subArc = ((cEm*) pPL->dmgType)->subArc;
+    em->subArc = pPL->pEmCatch->subArc;
     em->dmg.set(0, 0xF);
     step = em->r_no_2;
     switch (step) {
@@ -773,7 +782,7 @@ void objTrolleyFallEM(cObjTrolley* obj)
 
         if ((em->be_flag & 0x201) == 1 && em->id > 0xF && em->id <= 0x20 && em->hp > 0) {
             em->hp = 0;
-            em->x9BC = em->ang.y;
+            TROLLEY_EM_WK(em)->yaw = em->ang.y;
             em->be_flag |= 0x10000;
             em->r_no_0 = 2;
             em->r_no_1 = 7;

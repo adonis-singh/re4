@@ -121,7 +121,7 @@ static void r327_StrCheck();
 static void r327_BoxOpen(u32 id);
 static void r327_BoxOpened(u32 id);
 
-// Room init (the Ganado camp): on a return after Scenario_flg[1] 0x40000000 the room's 0x1D enemies are
+// Room init (the Ganado camp): on a return after Scenario_flg[2] 0x40000000 the room's 0x1D enemies are
 // dropped from the list, else the first-visit tables set the eleven camp Ganados; the two lamp switches
 // (areas 4/3 until Room_flg bits 0/1, both -> the gate open), area 6 = the door check, the card reader
 // (area 0x18 + card key 0x74 watcher until bit 11), the gatling Ganado until bit 2, the goto and
@@ -134,7 +134,7 @@ void R327Init()
     r327_work.p = (R327Work*) MEM_CALLOC(sizeof(R327Work), 1, 0xd);
     // Reference-view store: the flags test's `pG` load is issued after it (alias.c keeps them ordered).
     IntSet(r327_work.p->first, 1);
-    if (pG->Scenario_flg[1] & 0x40000000) {
+    if (ScfFlagChk(pG, SCF_R329_ASHLEY_HELP)) {
         for (i = 0; i < 0x100; i++) {
             EmListData* e = (EmListData*) ((u8*) pG + (0x52E8 + i * 0x20));
 
@@ -585,17 +585,17 @@ static void r327_DoorOpen()
 }
 
 // End of the gate rise (also its cancel path, Room_flg[0] bit 31): the gate 0x52 snapped to y 9400 with
-// its SE stopped, camera back, areas 5/6 off, door_unlock[1] 0x00400000, SceEventEnd.
+// its SE stopped, camera back, areas 5/6 off, Key_flg[1] 0x00400000, SceEventEnd.
 static void r327_DoorOpenEndProc(int se)
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         SmdGetObjPtr(0x52)->pos.y = 9400.0f;
         SndStop(se, 0);
     }
     CamCtrl.Comeback(0);
     SceAtSetEnable(5, 0);
     SceAtSetEnable(6, 0);
-    pG->door_unlock[1] |= 0x00400000;
+    pG->Key_flg[1] |= 0x00400000;
     SceEventEnd(0);
 }
 
@@ -712,7 +712,7 @@ static void r327_SetSwitchEnableEndProc()
 {
     int zero = 0;
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         EffectEspDelete(1, 2, 0, 0);
         EffectEspgenDelete(1, 2, 0);
         EffectEfmDelete(1, 2, 0);
@@ -809,7 +809,7 @@ static void r327_SetSwitchDisableEndProc()
 {
     int zero = 0;
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         EffectEspDelete(1, 2, 0, 0);
         EffectEspgenDelete(1, 2, 0);
         EffectEfmDelete(1, 2, 0);

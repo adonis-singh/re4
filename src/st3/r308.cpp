@@ -231,7 +231,7 @@ static void R308EnemySetMain()
         RsfSet(G_ROOM_ID, 2);
         SndRoomStrStart(1, 0, 1);
         SceEventStart(0);
-        BitOn(pG->Status_flg[2], 0x02000000);
+        StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
         r308_work->timer = 0;
         SceAtDataSet_exec(0, 0x12, 0, (TaskFunc) R308DoorCheck, 0, 1);
         SceUpCut(5, 4, 6, 0);
@@ -249,7 +249,7 @@ static void R308EnemySetMain()
             SceSleep(1);
         }
         SceSetEventCancel(0, 0, 0, -1, 1);
-        pG->Status_flg[2] &= ~0x02000000;
+        StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
         R308EnemySetEnd();
     }
 }
@@ -265,7 +265,7 @@ static void R308EnemySetEnd()
     SceExec(0x12, (TaskFunc) R308EnemyDieCheck, 0, 0, 2, 0);
     R308HandOpen();
     SceEventEnd(0);
-    pG->Status_flg[2] &= ~0x02000000;
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     SceExit();
 }
 

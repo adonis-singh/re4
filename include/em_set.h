@@ -33,7 +33,7 @@ cEm* GetEmPtrFromList(int no);              // alive enemy created from list ent
 EmListData* GetListPtrFromEm(cEm* em);
 u8 GetEmIdFromList(u32 no);
 void EmListSetAlive(int no, int on);
-void EmSetDie(cEm* em);                     // remember the death of `em` in pG->em_dead
+void EmSetDie(cEm* em);                     // remember the death of `em` in pG->Em_flg
 void EmSetDieCnt();
 void EmSetRoomInit();                       // clear the "set" bit of every entry
 void EmListWaitDelete();

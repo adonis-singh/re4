@@ -241,8 +241,8 @@ void R30fInit()
         }
     }
     EstSet((int) r30f_work->bull, -1, 0, 0, 1, 0x11, 0x801, 0, 0, 0);
-    if (pG->room_id_prev == 0xFFF && !(pG->Status_flg[3] & 0x04000000)) {
-        BitOn(pG->Status_flg[3], 0x04000000);
+    if (pG->room_id_prev == 0xFFF && !StaFlagChk(pG, STA_SUB_ASHLEY)) {
+        StaFlagOn(pG, STA_SUB_ASHLEY);
         SubCharInit(1, &pPL->pos, pPL->ang.y);
         SubCharCtrl(1, 0);
     }
@@ -400,7 +400,7 @@ void R30fMain()
         if (pG->Room_flg[0] & 0x01000000) {
             r30f_work->liftFrame++;
         }
-        if (((int) R30F_SAVE_FLAGS < 0 && (int) pG->Room_flg[2] < 0) || DebugTrg(0) != 0) {
+        if (((int) R30F_SAVE_FLAGS < 0 && (pG->Room_flg[2] & 0x80000000)) || DebugTrg(0) != 0) {
             if (r30f_work->liftReset == 0) {
                 r30f_work->liftReset = 0x5A;
                 em_destroy_area(0x15);
@@ -850,7 +850,7 @@ static void R30f_ride()
     int truck;
     int adjust;
 
-    BitOn(pG->Item_find_flg, 0x80);
+    ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     if (!(R30F_SAVE_FLAGS & 0x40000000)) {
         SceEventStart(0);
         SndStrReq(1, 0xE6, 0x80000003, 0, 0, 0.0f);
@@ -957,7 +957,7 @@ static void R30f_ride()
         if (r30f_work->bull->r_no_0 == 0xB && r30f_work->bull->getMoveFrameToLift() == 0x140) {
             SceAtExecute(0);
         }
-        if (r30f_work->bull->ckBreak1st() != 0 && (int) pG->Room_flg[0] >= 0) {
+        if (r30f_work->bull->ckBreak1st() != 0 && !(pG->Room_flg[0] & 0x80000000)) {
             pG->Room_flg[0] |= 0x80000000;
             SceExec(0x12, (TaskFunc) door1_break, 0, 0, 2, 0);
         }
@@ -1367,7 +1367,7 @@ static void lift_stop_task()
         if (r30f_work->bull->r_no_0 == 6 && (u32) r30f_work->bull->getMoveFrameToLift() > 0x226) {
             SceAtSetEnable(6, 0);
             SceAtSetEnable(0xC, 1);
-        } else if ((int) pG->Room_flg[2] < 0) {
+        } else if (pG->Room_flg[2] & 0x80000000) {
             pG->Room_flg[0] &= ~0x02000000;
             SceAtSetEnable(6, 0);
             SceAtSetEnable(0xC, 1);

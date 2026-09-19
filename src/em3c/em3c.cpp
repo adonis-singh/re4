@@ -77,9 +77,6 @@ static void em3c_R1_Die_Normal(cEm3c* em);
 #define PL_ARC(no) PL_ARC_PTR(pl->subArc, no)
 #define SUB_ARC(no) PL_ARC_PTR(sub->subArc, no)
 
-// The enemy a player / partner damage callback belongs to (pl_sub SetPlDamage's first argument).
-#define PL_EM(pl) ((cEm*) (pl)->dmgType)
-
 // Struct-member view of the player pointer: a load through it is not hoisted above the preceding
 // stores through the work pointer (cam_ctrl.cpp PlayerPtr).
 struct PlayerPtr {
@@ -735,13 +732,13 @@ static void em3c_R1_AtkWait(cEm3c* em)
         em->hp = 0;
         EmSetDie(em);
         em->atari.throughOn();
-        SetPlDamage((int) em, plemSurprised);
+        SetPlDamage(em, plemSurprised);
         if (pSUB) {
             f32 d = (em->pos.x - pSUB->pos.x) * (em->pos.x - pSUB->pos.x) + (em->pos.y - pSUB->pos.y) * (em->pos.y - pSUB->pos.y)
                     + (em->pos.z - pSUB->pos.z) * (em->pos.z - pSUB->pos.z);
 
             if (pSUB->hp > 0 && d < 25000000.0f) {
-                SetSubDamage((int) em, (void*) subemSurprised);
+                SetSubDamage(em, (void*) subemSurprised);
             }
         }
         em3cAtkSuspend(em, 1);
@@ -820,7 +817,7 @@ static void em3c_R1_AtkWait(cEm3c* em)
 // The player's sub archive is swapped to the enemy's for the duration of the call.
 static void plemSurprised(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0: {
         Vec v;
@@ -828,8 +825,8 @@ static void plemSurprised(cPlayer* pl)
         v.x = 0.0f;
         v.y = 0.0f;
         v.z = 1800.0f;
-        PSMTXMultVec(PL_EM(pl)->mat, &v, &pl->pos);
-        pl->ang.y = GetXZAngle(&pl->pos, &PL_EM(pl)->pos);
+        PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
+        pl->ang.y = GetXZAngle(&pl->pos, &pl->pEmCatch->pos);
         pl->atari.throughOn();
         if (pGS->pl_type == 1) {
             MotionSetCore(pl, MOTION(pl), PL_ARC(0x64), 0, 3, 1, 0);
@@ -863,13 +860,13 @@ static void plemEscapeAction(cEm3c* em)
     w->actMode = 0;
     w->Act_ck = 1;
     pPLS->dmg.m_Timer = 2;
-    SetPlDamage((int) em, plemEscape);
+    SetPlDamage(em, plemEscape);
     if (pSUB) {
         f32 d = (em->pos.x - pSUB->pos.x) * (em->pos.x - pSUB->pos.x) + (em->pos.y - pSUB->pos.y) * (em->pos.y - pSUB->pos.y)
                 + (em->pos.z - pSUB->pos.z) * (em->pos.z - pSUB->pos.z);
 
         if (pSUB->hp > 0 && d < 16000000.0f) {
-            SetSubDamage((int) em, (void*) subemSit);
+            SetSubDamage(em, (void*) subemSit);
         }
     }
     GameAddPoint(LVADD_CRITICALHIT);
@@ -880,7 +877,7 @@ static void plemEscapeAction(cEm3c* em)
 // and ends the damage when it finishes. The sub archive is swapped like in plemSurprised.
 static void plemEscape(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.m_Timer = 2;
     switch (pl->r_no_2) {
     case 0:
@@ -935,7 +932,7 @@ static void subemSurprised()
 {
     cSubChar* sub = pSUB;
 
-    sub->subArc = PL_EM(sub)->subArc;
+    sub->subArc = sub->pEmCatch->subArc;
     sub->dmg.m_Timer = 2;
     switch (sub->r_no_2) {
     case 0: {
@@ -944,8 +941,8 @@ static void subemSurprised()
         v.x = 400.0f;
         v.y = 0.0f;
         v.z = 2100.0f;
-        PSMTXMultVec(PL_EM(sub)->mat, &v, &sub->pos);
-        sub->ang.y = GetXZAngle(&sub->pos, &PL_EM(sub)->pos);
+        PSMTXMultVec(sub->pEmCatch->mat, &v, &sub->pos);
+        sub->ang.y = GetXZAngle(&sub->pos, &sub->pEmCatch->pos);
         sub->ang.y += -0.17453292f;
         sub->ang.y = LIMIT_ANGLE(sub->ang.y);
         MotionSetCore(sub, MOTION(sub), SUB_ARC(0x64), 0, 3, 0x101, 0);
@@ -955,7 +952,7 @@ static void subemSurprised()
     }
     case 1:
         MotionMoveF(sub, 0);
-        if (!(PL_EM(sub)->flag & 2) && sub->subHideMode) {
+        if (!(sub->pEmCatch->flag & 2) && sub->subHideMode) {
             sub->subHideMode--;
         } else {
             sub->r_no_2++;
@@ -1409,7 +1406,7 @@ static void em3c_R1_CoreAtk(cEm3c* em)
 // plays and to 0xF (knocked down) on exit.
 static void plemDmMStar(cPlayer* pl)
 {
-    pl->subArc = PL_EM(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.set(0, 2);
     switch (pl->r_no_2) {
     case 0: {
@@ -1683,7 +1680,7 @@ int em3cAtkCk(cEm3c* em, Vec* pos, int no)
             }
             if (no == 1 && (s16) pG->pl_life > 0) {
                 EstSet((int) pPL, -1, 0, 0, 0x31, 9, 0, 0, (u32) pPL, 0);
-                SetPlDamage((int) em, plemDmMStar);
+                SetPlDamage(em, plemDmMStar);
                 if (fabsf(Muku(&pPL->pos, &em->pos, pPL->ang.y, PI)) < PI / 2.0f) {
                     FSet(pPL->ang.y, pPL->ang.y + Muku(&pPL->pos, &em->pos, pPL->ang.y, PI));
                     pPL->r_no_3 = 0;
@@ -1821,7 +1818,7 @@ void em3cRouteCk(cEm3c* em)
         VECNormalize(&nrm, &nrm);
         PSVECScale(&nrm, &nrm, 350.0f);
         PSVECAdd(&hit, &nrm, &ofs);
-        if (pG->Debug_flg[0] & 0x4000) {
+        if (DbgFlagChk(pG, DBG_RTP_DISP)) {
             Draw_line3d(&top, &hit, 0xFFFFFFFF, 0);
             Draw_line3d(&top, &ofs, 0xFF00FF00, 0);
         }
@@ -2423,7 +2420,7 @@ int em3cFindCk(cEm3c* em)
         w->Be_flg |= 0x80;
         return 1;
     }
-    if (pG->Status_flg[1] & 0x20000000) {
+    if (StaFlagChk(pG, STA_SE_BURST)) {
         f32 r;
 
         switch (pG->bell_stat) {
@@ -2450,7 +2447,7 @@ int em3cFindCk(cEm3c* em)
             }
         }
     }
-    if ((pG->Status_flg[0] & 0x00800000) && w->L_pl_route < 25000.0f) {
+    if (StaFlagChk(pG, STA_PL_FIRE) && w->L_pl_route < 25000.0f) {
         w->Be_flg |= 0x80;
         return 1;
     }
@@ -2533,21 +2530,21 @@ void em3cAtkSuspend(cEm3c* em, int on)
     u32 i;
 
     if (on) {
-        pG->Status_flg[1] |= 0x10000000;
+        StaFlagOn(pG, STA_SUSPEND);
         pPLS->setNoSuspend(1);
         em->setNoSuspend(1);
         if (pSUB) {
             pSUB->setNoSuspend(1);
         }
-        pG->Status_flg[2] |= 0x02000000;
+        StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     } else {
-        pG->Status_flg[1] &= ~0x10000000;
+        StaFlagOff(pG, STA_SUSPEND);
         pPLS->setNoSuspend(0);
         em->setNoSuspend(0);
         if (pSUB) {
             pSUB->setNoSuspend(0);
         }
-        pG->Status_flg[2] &= ~0x02000000;
+        StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     }
     for (i = 0; i < EmMgr.nArray; i++) {
         cEm* e = (cEm*) ((u8*) EmMgr.pArray + EmMgr.size * i);

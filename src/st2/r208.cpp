@@ -303,8 +303,8 @@ void R208Init()
         RsfSet(G_ROOM_ID, 1);
         RsfSet(G_ROOM_ID, 4);
     }
-    if (pG->room_id_prev == 0xFFF && (pG->Status_flg[3] & 0x04000000) == 0) {
-        BitOn(pG->Status_flg[3], 0x04000000);
+    if (pG->room_id_prev == 0xFFF && StaFlagChk(pG, STA_SUB_ASHLEY) == 0) {
+        StaFlagOn(pG, STA_SUB_ASHLEY);
         SubCharInit(1, &pPL->pos, pPL->ang.y);
         SubCharCtrl(SCC_CHASE, 0);
     }
@@ -359,7 +359,7 @@ void R208Init()
             ((cEmBarred*) b1)->setClosed();
         }
     }
-    if (RsfCheck(G_ROOM_ID, 12) && (pG->System_flg & 0x00080000)) {
+    if (RsfCheck(G_ROOM_ID, 12) && (SysFlagChk(pG, SYS_CONTINUE))) {
         W->em[22].setEm(0xAA, 2, 0, 1, 1);
         W->em[23].setEm(0xAB, 2, 0, 1, 1);
         W->em[24].setEm(0xAC, 2, 0, 1, 1);
@@ -806,7 +806,7 @@ static void asl_yubisasi()
     }
     RsfSet(G_ROOM_ID, 14);
     SceEventStart(1);
-    BitOn(pG->Stop_flg, 0x80000000);
+    SpfFlagOn(pG, SPF_KEY);
     pPL->setNoSuspend(1);
     pSUB->setNoSuspend(1);
     {
@@ -851,7 +851,7 @@ static void asl_yubisasi()
         SceSleep(1);
     }
     CamCtrl.Comeback(0);
-    pG->Stop_flg &= ~0x80000000;
+    SpfFlagOff(pG, SPF_KEY);
     SceEventEnd(0);
     pPL->setNoSuspend(0);
     pSUB->setNoSuspend(0);

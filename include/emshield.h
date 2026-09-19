@@ -48,12 +48,13 @@ struct EmShieldWork {
     YARARE_INFO hit[9];     // 0x0AC (0x48C)  plank hit boxes (parts 2..10)
 };
 
-#define EMSHIELD_WK(em) ((EmShieldWork*) &(em)->x3E0)
+#define EMSHIELD_WK(em) ((EmShieldWork*) (((cEmShield*) (em))->free))
 
 // Shield enemy: a wooden shield carried on a parent's parts (setParent) that loses planks when
 // shot and falls as a three-node rope (setFall).
 class cEmShield : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMSHIELD_WK)
     virtual void beginEvent();
     virtual void move();
 

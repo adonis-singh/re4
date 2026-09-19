@@ -127,8 +127,8 @@ void R333Init()
     r333_work = (R333Work*) MEM_CALLOC(sizeof(R333Work), 1, 0xd);
     read_id_data();
     if (pG->room_id_prev == 0xFFF) {
-        if ((pG->Status_flg[3] & 0x04000000) == 0) {
-            BitOn(pG->Status_flg[3], 0x04000000);
+        if (StaFlagChk(pG, STA_SUB_ASHLEY) == 0) {
+            StaFlagOn(pG, STA_SUB_ASHLEY);
             SubCharInit(1, &pPL->pos, pPL->ang.y);
             SubCharCtrl(1, 0);
         }
@@ -138,7 +138,7 @@ void R333Init()
         SceExec(0x12, (TaskFunc) R333EventS10, 0, 0, 2, 0);
     }
     zero = 0;
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     EstSet(0, -1, 0, 0, 1, 0xB, 1, 2, (u32) zero, (void*) zero);
     EvtMgr.SetFunc("evt_r333s00_func", (void*) Evt_R333S00_Func);
     EvtMgr.SetFunc("evt_r333s10_func", (void*) Evt_R333S10_Func);
@@ -184,8 +184,8 @@ void R333Init()
     ((cPl0e*) r333_work->em.getPtr())->setRail(ROOM_ARC_PTR(pG->pRoom, 0x1F));
     setTexRender();
     EstSet(0, -1, 0, 0, 1, 0x10, 0x801, 3, (u32) zero, (void*) zero);
-    BitOn(pG->Stop_flg, 0x00040000);
-    pG->Disp_flg |= 0x01000000;
+    SpfFlagOn(pG, SPF_WATER);
+    DpfFlagOn(pG, DPF_WATER);
     SceAtDataSet_exec(0, 0x12, 0, (TaskFunc) fall_eff, 0, 1);
     SceAtDataSet_exec(0x10, 0x12, 0, (TaskFunc) fall_eff2, 0, 1);
     SceAtDataSet_exec(6, 0x12, 0, (TaskFunc) fall_a, 0, 1);
@@ -206,7 +206,7 @@ void R333Init()
         st3_setCountDownTimer(3600);
     }
     st3_startCountDown();
-    if (pG->System_flg & 0x00080000) {
+    if (SysFlagChk(pG, SYS_CONTINUE)) {
         if (st3_getCountDownTimer() <= 2699) {
             st3_setCountDownTimer(2700);
         }
@@ -247,8 +247,8 @@ void R333EventS00()
             EvtMgr.EvtReadExec("event/evd/r333s00.evd", 0, 0);
             SndRoomStrVolReset(200);
             boat->set2ndRail();
-            BitOn(pG->Stop_flg, 0x00040000);
-            pG->Disp_flg |= 0x01000000;
+            SpfFlagOn(pG, SPF_WATER);
+            DpfFlagOn(pG, DPF_WATER);
             SceSleep(15);
             i = 0;
             do {
@@ -299,14 +299,14 @@ extern "C" void Evt_R333S00_Func(Event* e)
         switch (e->NowCut) {
         case 0:
         case 1:
-            BitOn(pG->Status_flg[1], 0x800);
-            BitOff(pG->Stop_flg, 0x00040000);
-            BitOff(pG->Disp_flg, 0x01000000);
+            StaFlagOn(pG, STA_CAMERA_SET_ROOM);
+            SpfFlagOff(pG, SPF_WATER);
+            DpfFlagOff(pG, DPF_WATER);
             break;
         default:
-            BitOn(pG->Stop_flg, 0x00040000);
-            BitOn(pG->Disp_flg, 0x01000000);
-            BitOff(pG->Status_flg[1], 0x800);
+            SpfFlagOn(pG, SPF_WATER);
+            DpfFlagOn(pG, DPF_WATER);
+            StaFlagOff(pG, STA_CAMERA_SET_ROOM);
             break;
         }
         if (e->NowCut == 0) {
@@ -351,7 +351,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
         EffectEspDelete(0x4001, 0, 0, 0);
         EffectEspgenDelete(0x4001, 0, 0);
         EffectEfmDelete(0x4001, 0, 0);
-        pG->Stop_flg &= ~0x00040000;
+        SpfFlagOff(pG, SPF_WATER);
         Filter0bAllocBuf();
         SmdSetTrans(3, 0);
         st3_endCountDown();
@@ -361,18 +361,18 @@ extern "C" void Evt_R333S10_Func(Event* e)
         switch (e->NowCut) {
         case 0:
         case 1:
-            BitOn(pG->Status_flg[1], 0x800);
-            BitOn(pG->Disp_flg, 0x01000000);
+            StaFlagOn(pG, STA_CAMERA_SET_ROOM);
+            DpfFlagOn(pG, DPF_WATER);
             SmdSetTrans(0xCE, 0);
             break;
         case 2:
-            BitOn(pG->Status_flg[1], 0x800);
-            BitOn(pG->Disp_flg, 0x01000000);
+            StaFlagOn(pG, STA_CAMERA_SET_ROOM);
+            DpfFlagOn(pG, DPF_WATER);
             SmdSetTrans(0xCE, 1);
             break;
         default:
-            BitOn(pG->Status_flg[1], 0x800);
-            BitOff(pG->Disp_flg, 0x01000000);
+            StaFlagOn(pG, STA_CAMERA_SET_ROOM);
+            DpfFlagOff(pG, DPF_WATER);
             SmdSetTrans(0xCE, 1);
             break;
         }
@@ -474,7 +474,7 @@ static void exec_no_ret()
 {
     int zero = 0;
 
-    BitOn(pG->door_unlock[1], 0x4000);
+    BitOn(pG->Key_flg[1], 0x4000);
     RsfSet(G_ROOM_ID, 3);
     SceEventStart(1);
     SndStrReq(1, 0x3A, 0x80000003, 0, 0, 0.0f);
@@ -578,7 +578,7 @@ void ride()
 
 // The result screen after the escape movie: the game result, the extras unlocked, the save question.
 struct SystemWorkPtr {
-    SystemWork* p;
+    SYSTEM_SAVE_WORK* p;
 };
 #define pSysS (((SystemWorkPtr*) &pSys)->p)
 
@@ -612,14 +612,14 @@ static void gameResult()
     SceEventStart(0);
     disp_bak = pG->Disp_flg;
     BitSet(pG->Disp_flg, 0xFFFFFFFF);
-    BitOff(pG->Disp_flg, 0x2000);
-    BitOff(pG->Disp_flg, 0x800);
-    BitOff(pG->Disp_flg, 0x10000);
+    DpfFlagOff(pG, DPF_ID_SYSTEM);
+    DpfFlagOff(pG, DPF_MESSAGE);
+    DpfFlagOff(pG, DPF_COCKPIT);
     stop_bak = pG->Stop_flg;
     BitSet(pG->Stop_flg, 0xFFFFFFFF);
-    BitOff(pG->Stop_flg, 0x00800000);
-    BitOff(pG->Stop_flg, 0x80000000);
-    BitOff(pG->Stop_flg, 0x40);
+    SpfFlagOff(pG, SPF_SCE);
+    SpfFlagOff(pG, SPF_KEY);
+    SpfFlagOff(pG, SPF_ID_SYSTEM);
     SceSleep(2);
     systemVISetBlack(1);
     FadeKill(2);
@@ -678,7 +678,7 @@ static void gameResult()
     SndStrReq(0, 0x3A, 4, 800, 0, 0.0f);
     FadeSetW(2, FADE_TIME, 0, 0);
     r333_fadeWait(2);
-    if ((pSys->unlock_flg & 0x40000000) == 0) {
+    if (ExtFlagChk(pSys, EXT_HARD_MODE) == 0) {
         res->omake_init(data);
         FadeSetW(0x80000002, FADE_TIME, 0, 0);
         r333_fadeWait(2);
@@ -701,21 +701,21 @@ static void gameResult()
     if (pG->game_cnt > 99) {
         pG->game_cnt = 99;
     }
-    BitOn(pSys->unlock_flg, 0x80000000);
-    BitOn(pSys->unlock_flg, 0x40000000);
-    BitOn(pSys->unlock_flg, 0x00800000);
-    if ((pSys->unlock_flg & 0x00400000) == 0) {
+    ExtFlagOn(pSys, EXT_COSTUME);
+    ExtFlagOn(pSys, EXT_HARD_MODE);
+    ExtFlagOn(pSys, EXT_GET_OMAKE_ADA_GAME);
+    if (ExtFlagChk(pSys, EXT_GET_OMAKE_ETC_GAME) == 0) {
         MercSaveWork save;
         int i;
 
-        pSys->unlock_flg |= 0x00400000;
+        ExtFlagOn(pSys, EXT_GET_OMAKE_ETC_GAME);
         // Struct-member view of pSys (pGS): the element store is not disjoint from the pointer load,
         // so pSys is reloaded per iteration and the address stays `(pSys + 0x10) + i*4` (`stwx`).
         for (i = 0; i < 4; i++) {
-            pSysS->merc_stage[i] = 0;
+            pSysS->MercSysRoom[i] = 0;
         }
         for (i = 0; i < 2; i++) {
-            pSysS->merc_rank[i] = 0;
+            pSysS->MercSysRank[i] = 0;
         }
         MercSysGetSaveWork(&save);
         for (i = 0; i < 4; i++) {
@@ -730,7 +730,7 @@ static void gameResult()
     }
     U32Set(pG->Disp_flg, disp_bak);
     U32Set(pG->Stop_flg, stop_bak);
-    pG->System_flg |= 0x04000000;
+    SysFlagOn(pG, SYS_SOFT_RESET);
 }
 
 // Area 0x11 once (Room_flg bit 2): autosave.
@@ -746,9 +746,9 @@ static void exec_die()
     int zero = 0;
 
     SceEventStart(1);
-    BitOn(pG->Status_flg[1], 0x800);
-    BitOff(pG->Stop_flg, 0x00040000);
-    BitOff(pG->Disp_flg, 0x01000000);
+    StaFlagOn(pG, STA_CAMERA_SET_ROOM);
+    SpfFlagOff(pG, SPF_WATER);
+    DpfFlagOff(pG, DPF_WATER);
     SmdSetTrans(3, 0);
     EstSet(0, -1, 0, 0, 1, 0x14, 1, 4, (u32) zero, (void*) zero);
     CamCtrl.CutCall(0xD);
@@ -758,9 +758,9 @@ static void exec_die()
     SceSleep(200);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    BitOff(pG->Status_flg[1], 0x800);
-    BitOn(pG->Stop_flg, 0x00040000);
-    BitOn(pG->Disp_flg, 0x01000000);
+    StaFlagOff(pG, STA_CAMERA_SET_ROOM);
+    SpfFlagOn(pG, SPF_WATER);
+    DpfFlagOn(pG, DPF_WATER);
     SmdSetTrans(3, 1);
     EffectEspDelete(1, 4, 0, 0);
     EffectEspgenDelete(1, 4, 0);
@@ -776,7 +776,7 @@ static void yure_task()
 static void kazekiri_task()
 {
     for (;;) {
-        if ((int) pG->Room_flg[2] < 0) {
+        if (pG->Room_flg[2] & 0x80000000) {
             SndCall(6, 3, 0, 0, 0, 0);
             SceSleep(30);
         }

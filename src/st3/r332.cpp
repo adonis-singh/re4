@@ -279,7 +279,7 @@ void R332Init()
 
 #line 143 "D:/Bio4/Prog/r332.cpp"
     r332_work = (R332Work*) MEM_CALLOC(sizeof(R332Work), 1, 0xd);
-    BitOn(pG->Status_flg[3], 0x80000000);
+    StaFlagOn(pG, STA_SAVEDATA_NO_UPDATE);
     PSet((void*&) r332_work->rocket, 0);
     IntSet(r332_work->x68, 0);
     PSet((void*&) r332_work->task[0], 0);
@@ -292,7 +292,7 @@ void R332Init()
     EvtMgr.SetFunc("evt_r332s97_func", (void*) Evt_R332S00_Func);
     EvtMgr.SetFunc("evt_r332s98_func", (void*) Evt_R332S10_Func);
     EvtMgr.SetFunc("evt_r332s99_func", (void*) Evt_R332S20_Func);
-    if ((pG->Scenario_flg[0] & 0x200) == 0) {
+    if (ScfFlagChk(pG, SCF_R332_BOSS_DIE) == 0) {
         u32 size0;
         u32 size1;
         u32 size;
@@ -315,14 +315,14 @@ void R332Init()
         EvtMgr.EvtReadAram("event/evd/r332s00.evd", (u8) GetEmIdFromListI(0xA9), 0, 0, size);
         SceAtSetEnable(0, 0);
         SceAtSetEnable(9, 1);
-        BitOff(pG->door_unlock[1], 0x00010000);
+        BitOff(pG->Key_flg[1], 0x00010000);
         SmdSetTrans(7, 0);
     } else {
         SceExec(0x12, (TaskFunc) R332EmSetMain, 0, 0, 2, 0);
         st3_startCountDown();
         SceAtSetEnable(0, 1);
         SceAtSetEnable(9, 0);
-        BitOn(pG->door_unlock[1], 0x00010000);
+        BitOn(pG->Key_flg[1], 0x00010000);
         SmdSetTrans(0xA, 1);
         SndBgmTblSet(0x332, 1);
         SndRoomStrStart(1, 0, 1);
@@ -402,7 +402,7 @@ void R332Init()
             }
         }
     }
-    if ((pG->Scenario_flg[0] & 0x200) == 0) {
+    if (ScfFlagChk(pG, SCF_R332_BOSS_DIE) == 0) {
         SceAtDataSet_exec(1, 0x12, 0, (TaskFunc) R332ExecCrane, 0, 1);
         SceAtDataSet_exec(2, 0x12, 0, (TaskFunc) R332ExecCrane, (void*) 1, 1);
     }
@@ -449,7 +449,7 @@ void R332Main()
             SceExec(0x12, (TaskFunc) R332BossDown, 0, 0, 2, 0);
             return;
         }
-        if ((pG->Scenario_flg[0] & 0x200) == 0 && (pG->item_flags[1] & 0x08000000) && (pG->Room_flg[0] & 0x01000000) == 0) {
+        if (ScfFlagChk(pG, SCF_R332_BOSS_DIE) == 0 && (ItfFlagChk(pG, ITF_R332_ADA_ROCKET)) && (pG->Room_flg[0] & 0x01000000) == 0) {
             BitOn(pG->Room_flg[0], 0x01000000);
             if (r332_work->task[0]) {
                 SceKill(r332_work->task[0]);
@@ -510,7 +510,7 @@ static void playerDieBridge(cPlayer* pl)
     case 3:
         pl->r_no_3++;
         if (pl->r_no_3 > 59) {
-            BitOn(pG->Status_flg[3], 0x01000000);
+            StaFlagOn(pG, STA_EVENT_CANCEL);
             DiedemoExec(0, 1);
             pl->r_no_2++;
         }
@@ -945,7 +945,7 @@ static void R332BridgeTask(int no)
     } else {
         R332BridgeInit(no, 0);
     }
-    if ((pG->Debug_flg[0] & 0x02000000) == 0) {
+    if (DbgFlagChk(pG, DBG_EVENT_TOOL) == 0) {
         R332_TASK_SET(no, SceExec(0x12, (TaskFunc) R332BridgeTask, no, 0, 2, 0));
     }
 }
@@ -956,7 +956,7 @@ static void R332BossDown()
     cEm31* em;
 
     SceEventStart(1);
-    BitOff(pG->Status_flg[1], 0x10000000);
+    StaFlagOff(pG, STA_SUSPEND);
     em = (cEm31*) r332_work->em[1].getPtr();
     if (em) {
         CamCtrl.deleteAttachCamera((AttachCamera*) em->p2A4, em);
@@ -1016,10 +1016,10 @@ static void R332RocketShootMain(int type)
         EvtMgr.EvtFree("event/evd/r332s20.evd");
     }
     EvtMgr.EvtReadAram("event/evd/r332s10.evd", (u8) GetEmIdFromListI(0xA9), 0, 0, 0);
-    BitOn(pG->Status_flg[2], 0x02000000);
+    StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     SceEventStart(0);
-    BitOn(pG->System_flg, 0x400);
-    BitOn(pG->Scenario_flg[0], 0x200);
+    SysFlagOn(pG, SYS_SCREEN_STOP);
+    ScfFlagOn(pG, SCF_R332_BOSS_DIE);
     if (r332_work->task[0]) {
         SceKill(r332_work->task[0]);
     }
@@ -1061,7 +1061,7 @@ static void R332RocketShootMain(int type)
     } else {
         IntSet(r332_work->strBlk, SndStrPlayBlock(1, 0xED, 0.0f));
     }
-    BitOff(pG->System_flg, 0x400);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     SceSetEventCancel(1, (TaskFunc) R332RocketShootEnd, type, -1, 1);
     BitOn(pG->Room_flg[0], 0x02000000);
     if (type == 0) {
@@ -1119,7 +1119,7 @@ static void R332RocketShootMain(int type)
         }
         while (MotionGetState(pPL) == 0) {
             SceSleep(1);
-            BitOff(pG->System_flg, 0x400);
+            SysFlagOff(pG, SYS_SCREEN_STOP);
         }
         pPL->setNoSuspend(1);
         BitOff(pPL->be_flag, 2);
@@ -1140,7 +1140,7 @@ static void R332RocketShootMain(int type)
         EffectEspgenDelete(0x2001, 7, 0);
         EffectEfmDelete(0x2001, 7, 0);
     }
-    BitOff(pG->System_flg, 0x400);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     pPL->setNoSuspend(1);
     BitOff(pPL->be_flag, 2);
     em = (cEm31*) r332_work->em[1].getPtr();
@@ -1160,7 +1160,7 @@ static void R332RocketShootEnd(int type)
 {
     cEm31* em;
 
-    BitOn(pG->System_flg, 0x400);
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     em = (cEm31*) r332_work->em[1].getPtr();
     if (em) {
         em->setNoSuspend(0);
@@ -1204,9 +1204,9 @@ static void R332RocketShootEnd(int type)
     EffectEspgenDelete(0x2001, 7, 0);
     EffectEfmDelete(0x2001, 7, 0);
     SceExec(0x12, (TaskFunc) R332EventS10, 0, 0, 2, 0);
-    BitOff(pG->System_flg, 0x400);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     SceEventEnd(0);
-    BitOff(pG->Status_flg[2], 0x02000000);
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     SceExit();
 }
 
@@ -1433,7 +1433,7 @@ static void R332ExecCrane(int no)
             while (MotionGetState(pPL) == 0) {
                 SceSleep(1);
             }
-            pPL->motionSet(pPL->pMotTbl[0], pPL->pMotTbl[1], pPL->pMotTbl[0x5F], pPL->pMotTbl[0x60], 0xC, 0);
+            pPL->motionSet(pPL->m_MotTbl[0], pPL->m_MotTbl[1], pPL->m_MotTbl[0x5F], pPL->m_MotTbl[0x60], 0xC, 0);
         } else {
             MotionSetCore(crane, &crane->Motion, mot, 0, 3, 0x301, 0);
             while (MotionGetState(pPL) == 0) {
@@ -1486,7 +1486,7 @@ void R332ExecCraneEnd(int no, int atNo)
 
     pl->dmg.clear();
     ((cUnitEventView*) pl)->endEvent(0);
-    pl->x4FD = 0xC;
+    pl->m_Hokan = 0xC;
     AtariOnRaw(&pPL->atari, 0x300);
 }
 
@@ -1499,7 +1499,7 @@ static void R332EventS00()
         return;
     }
     RsfSet(G_ROOM_ID, 0);
-    BitOn(pG->System_flg, 0x400);
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SceSleep(1);
     EvtMgr.EvtReadExec("event/evd/r332s00.evd", (u8) GetEmIdFromListI(0xA9), 0);
     GamePointBossReset();
@@ -1596,22 +1596,22 @@ static void R332EventS10()
     PSet((void*&) r332_work->task[1], 0);
     R332BridgeOpened(0, 1);
     R332BridgeOpened(1, 1);
-    BitOn(pG->System_flg, 0x400);
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     if ((pG->Room_flg[0] & 0x02000000) == 0) {
         EvtMgr.EvtReadExec("event/evd/r332s10.evd", (u8) GetEmIdFromListI(0xA9), 0);
     }
-    BitOff(pG->System_flg, 0x400);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     st3_setCountDownTimer(0x127D);
     st3_startCountDown();
-    BitOn(pG->Scenario_flg[0], 0x200);
+    ScfFlagOn(pG, SCF_R332_BOSS_DIE);
     SceAtSetEnable(0, 1);
     SceAtSetEnable(9, 0);
-    BitOn(pG->door_unlock[1], 0x00010000);
+    BitOn(pG->Key_flg[1], 0x00010000);
     SceAtSetEnable(1, 0);
     SceAtSetEnable(2, 0);
     SceSleep(1);
     SceAtExecute(0x85);
-    BitOn(pG->Scenario_flg[1], 0x400);
+    ScfFlagOn(pG, SCF_R332_KEY_GET);
     while (SceAtItemFlgCk(0x85) == 0) {
         SceSleep(1);
     }
@@ -1915,7 +1915,7 @@ void Evt_R332S10_Func(Event* e)
                 }
                 break;
             case 0xD:
-                if (e->NowFrame == 0x18 && (pG->Debug_flg[0] & 0x02000000) == 0) {
+                if (e->NowFrame == 0x18 && DbgFlagChk(pG, DBG_EVENT_TOOL) == 0) {
                     st3_setCountDownTimer(0x1518);
                     st3_startCountDown();
                 }

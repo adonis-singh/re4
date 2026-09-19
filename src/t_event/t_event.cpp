@@ -373,7 +373,7 @@ ToolEvt::ToolEvt()
     if (FileListInit(&DbgFileList, path, "x:\\soft\\room\\event\\evd\\") == 0) {
         EtcFlag |= 0x80000000;
     }
-    pG->Debug_flg[0] |= 0x02000000;
+    DbgFlagOn(pG, DBG_EVENT_TOOL);
     pEvd = Debug_alloc(8000000, 1);
     memclr_asm(pEvd, 4);
     pSctrl = (DbSctrlWork*) Debug_alloc(1000000, 1);
@@ -401,7 +401,7 @@ ToolEvt::ToolEvt()
 ToolEvt::~ToolEvt()
 {
     delete pLightTool;
-    BitOff(pG->Debug_flg[0], 0x02000000);
+    DbgFlagOff(pG, DBG_EVENT_TOOL);
     ((cUnitEventView*) pPL)->endEvent(0);
     EvtTaskSignal(0);
     TutilQuitDefault();
@@ -413,7 +413,7 @@ static void (*runTbl[3])(ToolEvt*) = {ToolEvt::MainMenu, ToolEvt::MainPreview, T
 // One frame: runTbl[r_no_0] (MainMenu / MainPreview / MainExit).
 void ToolEvt::Run()
 {
-    while ((int) EtcFlag >= 0) {
+    while (!(EtcFlag & 0x80000000)) {
         runTbl[r_no_0](this);
         TaskSleep(1);
     }
@@ -467,7 +467,7 @@ void ToolEvt::RunStop(ToolEvt* t, Event* ev)
             MessDeleteAll();
             ev->RunTool(1, 0);
         } else if (t->pJoy0->on & 0x10000) {
-            pG->Debug_flg[1] |= 0x01000000;
+            DbgFlagOn(pG, DBG_NO_EST_CALL);
             ev->RunTool(0, 2);
         } else if (ev->Run() == 0) {
             pLog->err(0, 0, "EventMgr::Run : failed");
@@ -589,8 +589,8 @@ void ToolEvt::MainPreview(ToolEvt* t)
     case 3: {
         Event* ev;
 
-        if (pG->System_flg & 0x400) {
-            pG->System_flg &= ~0x400;
+        if (SysFlagChk(pG, SYS_SCREEN_STOP)) {
+            SysFlagOff(pG, SYS_SCREEN_STOP);
         }
         if (EvtMgr.GetEvt(&EvtMgr.NowExeEvtKey, (void**) &ev) == 0) {
             pLog->err(0, 0, "ToolEvt_Main_Preview : failed");
@@ -704,7 +704,7 @@ void ToolEvt::MainPreview(ToolEvt* t)
             sp = &ev->StatusFlag;
             *sp &= ~0x40000000;
         }
-        pG->Debug_flg[1] &= ~0x01000000;
+        DbgFlagOff(pG, DBG_NO_EST_CALL);
         if (t->EtcFlag & 0x40000000) {
             t->RunStop(t, ev);
         }
@@ -1037,8 +1037,8 @@ int ToolEvt::SubToolCameraMove(ToolEvt* /*t*/)
     if (DebugCameraFlag != 0) {
         if (pJoy0->trg & 0x1000) {
             DebugCameraFlag = 0;
-            if (!(pG->Debug_flg[0] & 0x10000000)) {
-                pG->Stop_flg &= ~0x40000000;
+            if (!DbgFlagChk(pG, DBG_DBG_CAM)) {
+                SpfFlagOff(pG, SPF_CAMERA);
             }
         } else {
             CamDbg.move(&pG->Cam, &Joy[0], 0);
@@ -1047,10 +1047,10 @@ int ToolEvt::SubToolCameraMove(ToolEvt* /*t*/)
             }
             if (pJoy0->trg & 0x200) {
                 CAM_MOTION_FLAGS(CamCtrl.getMotionInfoPtr()) |= 8;
-                pG->Stop_flg &= ~0x40000000;
+                SpfFlagOff(pG, SPF_CAMERA);
             } else {
                 CAM_MOTION_FLAGS(CamCtrl.getMotionInfoPtr()) &= ~8;
-                pG->Stop_flg |= 0x40000000;
+                SpfFlagOn(pG, SPF_CAMERA);
             }
             CameraMove();
         }
@@ -1071,11 +1071,11 @@ void ToolEvt::SubToolLightInit(ToolEvt* t, int sw)
     if (sw == 1) {
         MessDeleteAll();
         EvtDebug.FlagEtc |= 0x20000000;
-        pG->Debug_flg[0] |= 0x20000000;
+        DbgFlagOn(pG, DBG_BACK_CLIP);
     } else {
         EvtDebug.FlagEtc &= ~0x20000000;
-        BitOff(pG->Stop_flg, 0x40000000);
-        pG->Debug_flg[0] &= ~0x20000000;
+        SpfFlagOff(pG, SPF_CAMERA);
+        DbgFlagOff(pG, DBG_BACK_CLIP);
         TaskSleep(1);
     }
     SubToolIn(t, sw, 13);

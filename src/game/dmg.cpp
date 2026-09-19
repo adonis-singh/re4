@@ -110,7 +110,7 @@ int cDmgMgr::hitCheck(Vec* pos, Vec* out)
 // draws the volume.
 int cDmgCyl::hitCheck(Vec* p, Vec* out)
 {
-    if (pG->Debug_flg[2] & 0x10000000) {
+    if (DbgFlagChk(pG, DBG_OBA_VIEW)) {
         Draw_cylinder(&m_Pos, m_Radius, m_Height, 0xFFFFFFFF);
     }
     if (p->y > m_Pos.y + m_Height) {

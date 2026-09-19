@@ -143,7 +143,7 @@ extern "C" void Evt_R325S00_Func(Event* e)
         case 0:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&info, "ev0002", 0, 0) == 1) {
-                    if ((int) pG->Room_flg[0] >= 0) {
+                    if (!(pG->Room_flg[0] & 0x80000000)) {
                         BitOn(pG->Room_flg[0], 0x80000000);
                         r325_work->tpl = ((cModelInfo*) info)->tpl_addr;
                     }

@@ -110,7 +110,7 @@ static inline int r217_emDead(cEm* e)
 
 // Room init: Room_flg bits 2/3 preset (beams 0/1 count as done); each beam hit box (Room_flg bits 2..6
 // clear) is a cEmHit cube on scroll object 0x83+i, else the beam is hidden; the 76 scaffold objects'
-// scales saved. Before the scaffold dropped (Scenario_flg[0] 0x40000000): area 5 = the lever puzzle,
+// scales saved. Before the scaffold dropped (Scenario_flg[1] 0x40000000): area 5 = the lever puzzle,
 // enemy 0x11 pre-read, area 1 = the closed-door message; after: the lever posed, the third wave area 9,
 // the first three Ganados, the door object 0x26 raised.
 void R217Init()
@@ -131,7 +131,7 @@ void R217Init()
     for (u32 j = 0; j < 76; j++) {
         PSVECScale(R217_OBJ_VEC(SmdGetObjPtr(r217_objTbl[j])), &r217_work.p->pos[j], 1.0f);
     }
-    if (!(pG->Scenario_flg[0] & 0x40000000)) {
+    if (!ScfFlagChk(pG, SCF_R217_PUZZLE_CLEAR)) {
         for (u32 k = 0; k < 76; k++) {
             SmdGetObjPtr(r217_objTbl[k])->be_flag &= ~0x20;
         }
@@ -148,7 +148,7 @@ void R217Init()
             cEmWrapSetEmI(&r217_work.p->em[n], r217_emTbl[n], -1, 0, 1, 1);
         }
     }
-    if (!(pG->Scenario_flg[0] & 0x40000000)) {
+    if (!ScfFlagChk(pG, SCF_R217_PUZZLE_CLEAR)) {
         SceAtDataSet_exec(1, SCE_LEVEL10, 0, (TaskFunc) r217_close_door, 0, 1);
     } else {
         SmdGetObjPtr(0x26)->be_flag |= 0x20;
@@ -166,9 +166,9 @@ void R217Main()
     u32 i;
     u32 done;
 
-    if (pG->Scenario_flg[0] & 0x40000000) {
+    if (ScfFlagChk(pG, SCF_R217_PUZZLE_CLEAR)) {
         if (RsfCheck(G_ROOM_ID, 1) == 0) {
-            if ((int) pG->Room_flg[2] < 0) {
+            if (pG->Room_flg[2] & 0x80000000) {
                 RsfSet(G_ROOM_ID, 1);
                 SceExec(0x12, (TaskFunc) r217_2nd_set, 0, 0, SCE_PRIO_DEF_2, 0);
             }
@@ -194,11 +194,11 @@ void R217Main()
     if (done == 5) {
         RsfSet(G_ROOM_ID, 8);
     }
-    if (pG->Scenario_flg[0] & 0x40000000) {
+    if (ScfFlagChk(pG, SCF_R217_PUZZLE_CLEAR)) {
         int hit;
         cEm* e;
 
-        if ((int) pG->Room_flg[0] >= 0) {
+        if (!(pG->Room_flg[0] & 0x80000000)) {
             if (r217_work.p->em[0].ckFindPL()) {
                 r217_work.p->em[0].setFlag(1);
             }
@@ -330,7 +330,7 @@ static void r217_2nd_set()
         e->setAng(pa);
         SceSleep(1);
     }
-    pG->Status_flg[1] &= ~0x10000000;
+    StaFlagOff(pG, STA_SUSPEND);
     pPLS->dmg.set(0, 0x80);
     for (u32 i = 8; i < 10; i++) {
         r217_work.p->em[i].setFlag(1);
@@ -409,8 +409,8 @@ void KakuzaiMove(f32 dy)
     }
 }
 
-// End of the lever puzzle: camera back, SceEventEnd; when the scaffold dropped (Scenario_flg[0]
-// 0x40000000): door_flags_51C8 0x40, the door object 0x26 raised to y 6790, the attribute sounds back
+// End of the lever puzzle: camera back, SceEventEnd; when the scaffold dropped (Scenario_flg[1]
+// 0x40000000): Scenario_flg[3] 0x40, the door object 0x26 raised to y 6790, the attribute sounds back
 // on, the scaffold objects restored to their saved scale, areas 0xA/9 = the waves, area 5 off, autosave,
 // then the two shout SEs.
 static void r217_Puzzle_exit()
@@ -419,8 +419,8 @@ static void r217_Puzzle_exit()
 
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    if (pG->Scenario_flg[0] & 0x40000000) {
-        pG->door_flags_51C8 |= 0x40;
+    if (ScfFlagChk(pG, SCF_R217_PUZZLE_CLEAR)) {
+        ScfFlagOn(pG, SCF_79);
         SmdGetObjPtr(0x26)->be_flag |= 0x20;
         SmdGetObjPtr(0x26)->pos.y = 6790.0f;
         SceAtDataReset(1);
@@ -490,7 +490,7 @@ static void r217_Puzzle()
         SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
         SmdGetObjPtr(0x88)->pParts->ang.x = 0.0f;
     } else {
-        pG->Scenario_flg[0] |= 0x40000000;
+        ScfFlagOn(pG, SCF_R217_PUZZLE_CLEAR);
         SceSetEventCancel(1, (TaskFunc) r217_Puzzle_exit, 0, -1, 1);
         CamCtrl.CutCall(7);
         SceSleep(5);

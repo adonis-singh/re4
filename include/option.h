@@ -14,7 +14,7 @@ public:
     s8 _rno3;          // 0x03  sub menu state (retry/load: 1 confirm, 2 loading, 3 wait for the SE)
     s32 fromTitle;    // 0x04  init argument: 1 = opened from the title screen
     u32 _msg_attr;      // 0x08  MesSet attribute word (0x91 in game, 0x94 from the title)
-    s8 m_reverse;          // 0x0C  controller: pSys->flags bit 31
+    s8 m_reverse;          // 0x0C  controller: pSys->Config_flg bit 31
     s8 m_vibration;          // 0x0D  controller: vibration (bit 27)
     s8 m_knife_key;          // 0x0E  controller: bit 26
     u8 pad_F;

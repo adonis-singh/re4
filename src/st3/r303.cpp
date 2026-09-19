@@ -48,7 +48,7 @@ void setTexRender();
 
 // Room init: the water render target, no splashes; until Room_flg bit 0 area 3 = the door-fall event,
 // else the door object 0xB posed fallen; shelf / duralumin case / dust box item events; a one-shot
-// stream on area 6 (bit 3); Scenario_flg[1] 0x00200000.
+// stream on area 6 (bit 3); Scenario_flg[2] 0x00200000.
 void R303Init()
 {
 #line 52 "D:/Bio4/Prog/r303.cpp"
@@ -67,7 +67,7 @@ void R303Init()
     if (RsfCheck(G_ROOM_ID, 3) == 0) {
         SceAtDataSet_exec(6, 0x12, 0, (TaskFunc) oneshot_bgm, 0, 1);
     }
-    pG->Scenario_flg[1] |= 0x00200000;
+    ScfFlagOn(pG, SCF_R303_IN);
 }
 
 // The shelf swings open (mode 1: already open).

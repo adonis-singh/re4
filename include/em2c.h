@@ -98,11 +98,12 @@ struct Em2cWork {
     u8 x6BC;              // 0x6BC (0xA9C)
 };
 
-#define EM2C_WK(em) ((Em2cWork*) &(em)->x3E0)
+#define EM2C_WK(em) ((Em2cWork*) (((cEm2c*) (em))->free))
 #define EM2C_BLEND_MOT(w) ((MotionWork*) &(w)->blendMot)
 
 class cEm2c : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2C_WK)
     virtual void move();
 };
 

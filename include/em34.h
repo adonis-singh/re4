@@ -36,10 +36,11 @@ struct Em34Work {
     u8 Atk_ck;            // 0x328 (0x708)  the attack already hit (em34AtkCk)
 };
 
-#define EM34_WK(em) ((Em34Work*) &(em)->x3E0)
+#define EM34_WK(em) ((Em34Work*) (((cEm34*) (em))->free))
 
 class cEm34 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM34_WK)
     virtual void move();
 };
 

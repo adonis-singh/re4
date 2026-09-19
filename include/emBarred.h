@@ -29,11 +29,12 @@ struct EmBarredWork {
     u8 Etc_no;            // 0x24E (0x62E)  etc flag number (bit0 broken, bit1 open)
 };
 
-#define EMBARRED_WK(em) ((EmBarredWork*) &(em)->x3E0)
+#define EMBARRED_WK(em) ((EmBarredWork*) (((cEmBarred*) (em))->free))
 
 // Barred gate enemy: the iron gates / portcullises that open for the player and drop back shut.
 class cEmBarred : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMBARRED_WK)
     virtual void move();   // key function: the vtable stays in this unit (cEmMgr::construct stores it)
 
     void setOpen(int mode);

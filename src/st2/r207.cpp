@@ -162,7 +162,7 @@ void R207Init()
         SceAtSetEnable(0xD, 0);
         SceAtSetEnable(0xE, 0);
         if (ItemMgr.num(0x80) == 0) {
-            pG->item_flags[0] &= ~0x00100000;
+            ItfFlagOff(pG, ITF_R207_GOLDEN_SWORD);
             SceAtSetEnable(0x80, 1);
             m = SceAtItemModelPtr(0x80);
             if (RsfCheck(G_ROOM_ID, 4)) {
@@ -172,7 +172,7 @@ void R207Init()
             }
         }
         if (ItemMgr.num(0xC4) == 0) {
-            pG->item_flags[0] &= ~0x00080000;
+            ItfFlagOff(pG, ITF_R207_SILVER_SWORD);
             SceAtSetEnable(0x87, 1);
             m = SceAtItemModelPtr(0x87);
             if (RsfCheck(G_ROOM_ID, 6)) {
@@ -706,12 +706,12 @@ void r207_SetSword(int which, int mode)
             at = 0x80;
             mes = 1;
             RsfSet(G_ROOM_ID, 4);
-            pG->item_flags[0] &= ~0x00100000;
+            ItfFlagOff(pG, ITF_R207_GOLDEN_SWORD);
         } else {
             at = 0x87;
             mes = 2;
             RsfSet(G_ROOM_ID, 6);
-            pG->item_flags[0] &= ~0x00080000;
+            ItfFlagOff(pG, ITF_R207_SILVER_SWORD);
         }
         SceAtSetEnable(9, 0);
         SceAtSetEnable(0xA, 0);
@@ -722,12 +722,12 @@ void r207_SetSword(int which, int mode)
             at = 0x80;
             mes = 1;
             RsfSet(G_ROOM_ID, 5);
-            pG->item_flags[0] &= ~0x00100000;
+            ItfFlagOff(pG, ITF_R207_GOLDEN_SWORD);
         } else {
             at = 0x87;
             mes = 2;
             RsfSet(G_ROOM_ID, 7);
-            pG->item_flags[0] &= ~0x00080000;
+            ItfFlagOff(pG, ITF_R207_SILVER_SWORD);
         }
         SceAtSetEnable(0xB, 0);
         SceAtSetEnable(0xC, 0);
@@ -791,13 +791,13 @@ static void r207_WallMove()
 }
 
 // End of the wall slide (also its cancel path): the wall 0x18 snapped open, collision area 1 on,
-// door_flags_51CC 0x20000000 (the passage is open), camera back, SceEventEnd.
+// Scenario_flg[4] 0x20000000 (the passage is open), camera back, SceEventEnd.
 static void r207_WallMoveEndProc()
 {
     SmdGetObjPtr(0x18)->pos.z = -9500.0f;
     SmdGetObjPtr(0x18)->matUpdate();
     SceAtSetEnable(1, 1);
-    pG->door_flags_51CC |= 0x20000000;
+    ScfFlagOn(pG, SCF_82);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
 }

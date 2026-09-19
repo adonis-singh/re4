@@ -78,7 +78,7 @@ void cEsp0e::move()
         return;
     }
     if (w->flg & 2) {
-        if (pG->Status_flg[2] & 0x10000000) {
+        if (StaFlagChk(pG, STA_CUT_CHANGE)) {
             w->delay_cnt = 2;
         }
         if (w->delay_cnt != 0) {
@@ -279,7 +279,7 @@ void Esp0e_HideCheck(cEsp* esp0)
     // f11/f10 (a separate result variable ties the fmadds to zv instead).
     inv2 = inv2 * zv + Zoffset;
     zi = (u32)(inv2 * 16777215.0f);
-    if (pG->System_flg & 0x800) {
+    if (SysFlagChk(pG, SYS_SCISSOR_ON)) {
         margin = 56.0f;
     } else {
         margin = 0.0f;

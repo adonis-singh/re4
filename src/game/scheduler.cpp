@@ -109,10 +109,10 @@ void TaskScheduler()
 // main thread then waits (semaphore for priority > 0xF tasks) until the task sleeps / exits.
 void TaskSchedulerMain(TASK* t)
 {
-    if ((pG->Status_flg[1] & 0x10000000) && !(t->flag & 2)) {
+    if (StaFlagChk(pG, STA_SUSPEND) && !(t->flag & 2)) {
         return;
     }
-    if ((pG->Status_flg[0] & 0x100000) && !(t->flag & 4)) {
+    if (StaFlagChk(pG, STA_DIEDEMO) && !(t->flag & 4)) {
         return;
     }
     switch (t->Status) {

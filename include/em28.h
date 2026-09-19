@@ -22,10 +22,11 @@ struct Em28Work {
     int x17C;             // 0x17C (0x55C)
 };
 
-#define EM28_WK(em) ((Em28Work*) &(em)->x3E0)
+#define EM28_WK(em) ((Em28Work*) (((cEm28*) (em))->free))
 
 class cEm28 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM28_WK)
     virtual void move();
 };
 

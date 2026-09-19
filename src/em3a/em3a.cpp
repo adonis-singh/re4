@@ -1510,10 +1510,10 @@ int em3aFindPLCk(cEm3a* em)
     if (em3aDeadCk(em)) {
         return 1;
     }
-    if ((pG->Status_flg[0] & 0x00800000) && em->plDist2 < 225000000.0f) {
+    if (StaFlagChk(pG, STA_PL_FIRE) && em->plDist2 < 225000000.0f) {
         return 1;
     }
-    if ((pG->Status_flg[1] & 0x20000000) && pG->bell_stat == 2) {
+    if (StaFlagChk(pG, STA_SE_BURST) && pG->bell_stat == 2) {
         if ((em->pos.x - pG->bell_pos.x) * (em->pos.x - pG->bell_pos.x)
                 + (em->pos.y - pG->bell_pos.y) * (em->pos.y - pG->bell_pos.y)
                 + (em->pos.z - pG->bell_pos.z) * (em->pos.z - pG->bell_pos.z)

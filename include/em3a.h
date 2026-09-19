@@ -47,10 +47,11 @@ struct Em3aWork {
     u8 espKind;           // 0x2AD (0x68D)  EspPullCoreKind at creation
 };
 
-#define EM3A_WK(em) ((Em3aWork*) &(em)->x3E0)
+#define EM3A_WK(em) ((Em3aWork*) (((cEm3a*) (em))->free))
 
 class cEm3a : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM3A_WK)
     virtual void move();
     virtual void setNoSuspend(int on);
     virtual void setAtkWait(int frames);   // defined last in em3a.cpp (precedes the cUnit linkonce copies)

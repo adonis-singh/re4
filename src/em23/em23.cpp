@@ -381,7 +381,7 @@ static inline void em23TakeoffMotion(cEm23* em)
 
 // The player is close enough to react to (farther with the noise flag set).
 #define EM23_PL_NEAR(em, near, far) \
-    ((em)->plDist2 < (near) || ((pG->Status_flg[0] & 0x00800000) && (em)->plDist2 < (far)))
+    ((em)->plDist2 < (near) || (StaFlagChk(pG, STA_PL_FIRE) && (em)->plDist2 < (far)))
 
 // Flight speed update shared by the air routines: accelerate forward, climb or dive towards the
 // height flyHeight above the player, then move.

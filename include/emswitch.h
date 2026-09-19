@@ -25,10 +25,11 @@ struct EmSwitchWork {
     int actButton;        // 0x238 (0x618)  0 = no action button prompt
 };
 
-#define EMSWITCH_WK(em) ((EmSwitchWork*) &(em)->x3E0)
+#define EMSWITCH_WK(em) ((EmSwitchWork*) (((cEmSwitch*) (em))->free))
 
 class cEmSwitch : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMSWITCH_WK)
     virtual void move();
 
     int ckSwitch();

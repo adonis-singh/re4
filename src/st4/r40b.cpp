@@ -30,7 +30,7 @@ static void r40b_getItem();
 static void r40b_checkEmSet1();
 
 // Room init: windows 0xA/0xB without fences, object 6 shown; the Ganados behind the bars until Room_flg
-// bit 0; the pedestal item (area 0x81, kept updating) with its camera show on area 1 until item_flags[0] 8.
+// bit 0; the pedestal item (area 0x81, kept updating) with its camera show on area 1 until Item_flg[0] 8.
 void R40bInit()
 {
     cEm* win;
@@ -53,7 +53,7 @@ void R40bInit()
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         SceExec(0x12, (TaskFunc) r40b_checkEmSet1, 0, 0, SCE_PRIO_DEF_2, 0);
     }
-    if (!(pG->item_flags[0] & 8)) {
+    if (!ItfFlagChk(pG, ITF_R40B_SAMPLE00)) {
         cModel* m;
 
         SceAtSetEnable(0x81, 1);

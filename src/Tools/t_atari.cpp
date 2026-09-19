@@ -28,7 +28,7 @@ struct AtariToolWork {
     int x4F0;         // 0x4F0
     int cursor;       // 0x4F4  menu cursor / edited vertex
     int x4F8;         // 0x4F8
-    int x4FC;         // 0x4FC
+    int m_Frame;         // 0x4FC
     int x500;         // 0x500
     int x504;         // 0x504
     int x508;         // 0x508
@@ -159,7 +159,7 @@ void init(AtariToolWork* w)
     w->x508 = 0;
     w->x504 = 0;
     w->x500 = 0;
-    w->x4FC = 0;
+    w->m_Frame = 0;
     w->x4F8 = 0;
     w->cursor = 0;
     w->x4E8 = 0;
@@ -196,7 +196,7 @@ static void menu(AtariToolWork* w)
         w->x4E4 = 0;
         w->plMode = 0;
         w->x500 = 0;
-        w->x4FC = 0;
+        w->m_Frame = 0;
         w->x4F8 = 0;
         w->cursor = 0;
     } else if (w->joy.trg & 0x200) {

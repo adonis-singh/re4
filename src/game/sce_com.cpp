@@ -147,19 +147,19 @@ void SceEventStart(int mode)
     }
     PlEndCamera();
     LightMgr.beginEvent();
-    BitOn(pG->Status_flg[0], 0x1000);
-    BitOn(pG->Status_flg[1], 0x10000000);
+    StaFlagOn(pG, STA_EVENT);
+    StaFlagOn(pG, STA_SUSPEND);
     KeyStop(0xEFCF0000);
-    if (pG->Status_flg[0] & 0x400) {
+    if (StaFlagChk(pG, STA_BINOCULAR)) {
         CamCtrl.LowerBinocular();
     }
     Cckpt.lifeMeterDisp(0);
     IdSys.dispSw(0x21, 0);
     SceSys.dmg = pPL->dmg;
     pPL->dmg.set(0, 0x80);
-    BitOn(pG->System_flg, 0x800);
-    BitOn(pG->Stop_flg, 0x100);
-    BitOn(pG->Stop_flg, 0x400000);
+    SysFlagOn(pG, SYS_SCISSOR_ON);
+    SpfFlagOn(pG, SPF_ACTBTN);
+    SpfFlagOn(pG, SPF_SCE_AT);
     SndBlkStop(2);
 }
 
@@ -189,20 +189,20 @@ void SceEventEnd(int mode)
         pPL->dmg = s->dmg;
     }
     LightMgr.endEvent();
-    BitOff(pG->Status_flg[3], 0x1000000);
-    BitOff(pG->Status_flg[0], 0x1000);
-    BitOff(pG->Status_flg[1], 0x10000000);
-    BitOff(pG->Stop_flg, 0x80000000);
-    BitOff(pG->System_flg, 0x400);
+    StaFlagOff(pG, STA_EVENT_CANCEL);
+    StaFlagOff(pG, STA_EVENT);
+    StaFlagOff(pG, STA_SUSPEND);
+    SpfFlagOff(pG, SPF_KEY);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     Cckpt.lifeMeterDisp(1);
     IdSys.dispSw(0x21, 1);
-    BitOff(pG->Stop_flg, 0x100);
-    BitOff(pG->Stop_flg, 0x400000);
+    SpfFlagOff(pG, SPF_ACTBTN);
+    SpfFlagOff(pG, SPF_SCE_AT);
     ShadowMemClear();
     if (SceSys.system_bak & 0x800) {
-        BitOn(pG->System_flg, 0x800);
+        SysFlagOn(pG, SYS_SCISSOR_ON);
     } else {
-        BitOff(pG->System_flg, 0x800);
+        SysFlagOff(pG, SYS_SCISSOR_ON);
     }
     if (SceSys.checkCTaskRange() == 1) {
         s = &SceSys;
@@ -233,20 +233,20 @@ void SceUpCutStart()
         SceSys.stop_bak_flg = 1;
     }
     KeyStop(0xEFCF0000);
-    BitOn(pG->Disp_flg, 0x40000000);
-    BitOn(pG->Disp_flg, 0x20000000);
+    DpfFlagOn(pG, DPF_PL);
+    DpfFlagOn(pG, DPF_SUBCHAR);
     pPL->atari.clrFlag100();
-    BitOn(pGS->Status_flg[1], 0x10000000);  // the pG load waits for the clrFlag100 store
+    StaFlagOn(pGS, STA_SUSPEND);  // the pG load waits for the clrFlag100 store
     BitSet(pG->Stop_flg, 0xFFFFFFFF);
-    BitOff(pG->Stop_flg, 0x40000000);
-    BitOff(pG->Stop_flg, 0x10000);
-    BitOff(pG->Stop_flg, 0x20000000);
-    BitOff(pG->Stop_flg, 0x08000000);
-    BitOff(pG->Stop_flg, 0x04000000);
-    BitOff(pG->Stop_flg, 0x00800000);
-    BitOff(pG->Stop_flg, 0x800);
-    BitOff(pG->Stop_flg, 0x01000000);
-    BitOff(pG->Stop_flg, 0x40);
+    SpfFlagOff(pG, SPF_CAMERA);
+    SpfFlagOff(pG, SPF_EARTHQUAKE);
+    SpfFlagOff(pG, SPF_EM);
+    SpfFlagOff(pG, SPF_ESP);
+    SpfFlagOff(pG, SPF_OBJ);
+    SpfFlagOff(pG, SPF_SCE);
+    SpfFlagOff(pG, SPF_SE_CALC);
+    SpfFlagOff(pG, SPF_LIGHT);
+    SpfFlagOff(pG, SPF_ID_SYSTEM);
     Cckpt.lifeMeterDisp(0);
     IdSys.dispSw(0x21, 0);
 }
@@ -257,11 +257,11 @@ void SceUpCutEnd()
 {
     cSceSys* s = &SceSys;
 
-    BitOff(pG->Stop_flg, 0x80000000);
-    BitOff(pG->Disp_flg, 0x40000000);
-    BitOff(pG->Disp_flg, 0x20000000);
+    SpfFlagOff(pG, SPF_KEY);
+    DpfFlagOff(pG, DPF_PL);
+    DpfFlagOff(pG, DPF_SUBCHAR);
     pPL->atari.setFlag100();
-    BitOff(pGS->Status_flg[1], 0x10000000);  // the pG load waits for the setFlag100 store
+    StaFlagOff(pGS, STA_SUSPEND);  // the pG load waits for the setFlag100 store
     if (s->stop_bak_flg == 1) {
         pG->Stop_flg = s->stop_bak;
         s->stop_bak_flg = 0;
@@ -773,13 +773,13 @@ void SceChapterEnd()
     sel = 0;
     disp_bak = pG->Disp_flg;
     BitSet(pG->Disp_flg, 0xFFFFFFFF);
-    BitOff(pG->Disp_flg, 0x2000);
-    BitOff(pG->Disp_flg, 0x800);
-    BitOff(pG->Disp_flg, 0x10000);
+    DpfFlagOff(pG, DPF_ID_SYSTEM);
+    DpfFlagOff(pG, DPF_MESSAGE);
+    DpfFlagOff(pG, DPF_COCKPIT);
     stop_bak = pG->Stop_flg;
     BitSet(pG->Stop_flg, 0xFFFFFFFF);
-    BitOff(pG->Stop_flg, 0x800000);
-    BitOff(pG->Stop_flg, 0x40);
+    SpfFlagOff(pG, SPF_SCE);
+    SpfFlagOff(pG, SPF_ID_SYSTEM);
     SceSleep(2);
     chap = 0;
     sec = 0;
@@ -890,7 +890,7 @@ void SceSetChapterEnd(int chapter, int doorAt)
     SndRoomBgmStop(1, 0);
     SndSeAbsFadeOutAll_sec(1);
     SceEventStart(0);
-    BitOff(pG->Stop_flg, 0x800000);
+    SpfFlagOff(pG, SPF_SCE);
     SceSys.pause = 1;
     SceSys.m_chapter_no = chapter;
     SceSys.m_chapter_door = doorAt;
@@ -1346,7 +1346,7 @@ void SceElevator(SceElevatorData* d)
     SceEventStart(0);
     faded = 0;
     done = 0;
-    BitOn(pG->Status_flg[2], 0x20000);
+    StaFlagOn(pG, STA_TIMER_NO_PAUSE);
     obj->setNoSuspend(1);
     obj->setPos(&d->pos);
     pPL->setNoSuspend(1);
@@ -1398,14 +1398,14 @@ void SceElevator(SceElevatorData* d)
                     faded = 1;
                 }
             } else if ((fade->flags & 1) == 0) {
-                BitOff(pG->Status_flg[2], 0x20000);
+                StaFlagOff(pG, STA_TIMER_NO_PAUSE);
                 SceAtExecRoomJump(d->room, jp, &d->jumpRot, 0);
                 break;
             }
         }
     }
     if (d->dir == 0 || d->dir == 2) {
-        BitOff(pG->Status_flg[1], 0x10000000);
+        StaFlagOff(pG, STA_SUSPEND);
         spd = maxSpd;
         move = stopDist2;
         if (d->dir == 0) {
@@ -1471,7 +1471,7 @@ void SceElevator(SceElevatorData* d)
         obj->setPos(&d->pos);
         pPL->setPos(&d->plPos);
     }
-    BitOff(pG->Status_flg[2], 0x20000);
+    StaFlagOff(pG, STA_TIMER_NO_PAUSE);
     pPL->be_flag |= 0x10;
     SceEventEnd(0);
     SceExit();

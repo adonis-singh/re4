@@ -85,7 +85,7 @@ static void (*wep02_func_tbl[])(cPlayer*) = {
 #endif
 
 // r_no_2 == 0: the ready (draw) state. Runs the r_no_3 step, then: aim key released before the
-// lock turn (step 3) -> back to footwork (r_no_1 0, or 0x11 crouch with flags_420 bit6) and the
+// lock turn (step 3) -> back to footwork (r_no_1 0, or 0x11 crouch with stat bit6) and the
 // weapon's enemy collision (atari flag 0x200) is cleared; reload key with rounds available -> reload (r_no_2 4,
 // m_Flag bit0, m_Work0 = 1); otherwise the over-shoulder camera is aimed at the scenario hit of
 // the player's forward line (10 m ahead, 1 m up).
@@ -100,7 +100,7 @@ static void wep02_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -269,7 +269,7 @@ static void wep02_r3_ready30(cPlayer* pl)
 }
 
 // r_no_2 == 1: the set (aiming) state. Runs the step, the lock-on control and the laser sight,
-// then: aim key released -> holster (wepDown, or crouch routine 0x11 with flags_420 bit6); fire
+// then: aim key released -> holster (wepDown, or crouch routine 0x11 with stat bit6); fire
 // trigger with rounds -> fire (r_no_2 2), with an empty magazine -> reload (r_no_2 4, m_Flag
 // bit0) or the empty-click SE 2/0x17; fire held with rounds -> fire; reload key -> reload
 // (m_Work0 = 1 marks a manual reload).
@@ -288,7 +288,7 @@ static void wep02_r2_set(cPlayer* pl)
     PlWepLockCtrl(pl);
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -444,7 +444,7 @@ static void wep02_r3_fire10(cPlayer* pl)
 
 // Holster: leaves the weapon routine for footwork (r_no_1 0) sub-routine 2 (the weapon-down
 // motion 0x24/0x25, blended over 3 frames from a fresh draw or 5 frames from mid-aim) when a
-// motion may be set (dmMotCk), else straight to the idle with x4FD = 0xF. Weapon object mode 3
+// motion may be set (dmMotCk), else straight to the idle with m_Hokan = 0xF. Weapon object mode 3
 // (down), atari flag 0x200 cleared, the waist twist is unwound into ang.y. Also called by the
 // reload routine and the set state; exported for the module's own object.
 void wepDown(cPlayer* pl)
@@ -469,11 +469,11 @@ void wepDown(cPlayer* pl)
         pl->r_no_3 = 0;
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
     obj = WEP_OBJ(pl);
@@ -486,7 +486,7 @@ void wepDown(cPlayer* pl)
 // r_no_2 == 4: the reload state. Step 0 starts the reload motion of the reload-speed level
 // (0x2D/0x2E/0x2F) and weapon object mode 4 (the object refills the magazine when its motion
 // ends). Step 1 waits for PlReloadEndTbl's frame: aiming -> step 2, else holster (wepDown; crouch
-// with flags_420 bit6); with a level aim (|m3r[0]| <= 0.1) the motion may also run to its last
+// with stat bit6); with a level aim (|m3r[0]| <= 0.1) the motion may also run to its last
 // frame and return to set step 0. Steps 2/3 blend the aim idle back in over 8 frames (m_Work0
 // counts) and return to set step 0.
 static void wep02_r2_reload(cPlayer* pl)
@@ -520,7 +520,7 @@ static void wep02_r2_reload(cPlayer* pl)
             if (pl->Motion.Mot_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
                 if (joyKamae()) {
                     pl->r_no_3 = 2;
-                } else if (pl->flags_420 & 0x40) {
+                } else if (pl->stat & 0x40) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;
@@ -532,7 +532,7 @@ static void wep02_r2_reload(cPlayer* pl)
             }
         } else {
             if (joyKamae() == 0 && pl->Motion.Mot_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
-                if (pl->flags_420 & 0x40) {
+                if (pl->stat & 0x40) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;

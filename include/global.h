@@ -163,15 +163,14 @@ struct GlobalWork {
     u32 play_time;         // 0x4F94  seconds (SetGameTime accumulates into it)
     u32 peseta;            // 0x4F98  money (ss_shop buy/sell, item pickups; PlSelect swaps it with peseta_bak)
     union {
-        u32 room_id32;     // 0x4F9C  stage/room and the two bytes after them as one word (em_set EmSetDie: `& 0xFFFF0000`)
         u16 room_id;       // 0x4F9C  stage << 8 | room as one halfword (obj14: room 004 test)
         struct {
             u8 stage_no;   // 0x4F9C
             u8 room_no;    // 0x4F9D
-            u8 Part;       // 0x4F9E  spawn point in the current room (copied to Part_old / next_point)
-            u8 JumpPoint;  // 0x4F9F  room jump point (title/room_jmp debug jump; room scripts branch on 1/2)
         };
     };
+    u8 Part;       // 0x4F9E  spawn point in the current room (copied to Part_old / next_point)
+    u8 JumpPoint;  // 0x4F9F  room jump point (title/room_jmp debug jump; room scripts branch on 1/2)
     union {
         u16 room_id_prev;  // 0x4FA0  room_id of the previous room (room_jmp CRoomInfo::setNextPos)
         struct {
@@ -193,30 +192,23 @@ struct GlobalWork {
     u8 weapon_lv_speed;    // 0x4FB4  firing speed tune level (PlShotFrameTbl column; item cItemMgr::arm)
     u8 weapon_lv_blt;      // 0x4FB5  capacity tune level (item cItemMgr::arm)
     u8 pad_4FB6[2];
-    union {
-        u32 x4FB8_32;      // 0x4FB8  the four bytes as one word (title: `& 0xFF0000FF` == 0 -> Leon with the default Ashley)
-        struct {
-            u8 pl_type;      // 0x4FB8  player character: 0 Leon, 1 Ashley, 2 Ada, 3 HUNK, 4 Krauser, 5 Wesker, 6 Leon+Ashley
-            u8 pl_costume;    // 0x4FB9  player costume (pl_leon: 2 = no cloth simulation)
-            u8 weapon_lv_reload;      // 0x4FBA
-            u8 game_costume;   // 0x4FBB  Ashley costume (pl_cloth: 1 = ribbon + lapels instead of skirt + sweater)
-        };
-    };
+    u8 pl_type;      // 0x4FB8  player character: 0 Leon, 1 Ashley, 2 Ada, 3 HUNK, 4 Krauser, 5 Wesker, 6 Leon+Ashley
+    u8 pl_costume;    // 0x4FB9  player costume (pl_leon: 2 = no cloth simulation)
+    u8 weapon_lv_reload;      // 0x4FBA
+    u8 game_costume;   // 0x4FBB  Ashley costume (pl_cloth: 1 = ribbon + lapels instead of skirt + sweater)
     u8 pad_4FBC[2];
     u16 pl_flag;        // 0x4FBE  bit0: player data changed (pl_sub PlSelect/PlSetCostume/PlChangeData)
     Vec sub_pos;           // 0x4FC0  sub character start position (sce_sys ScenarioRoomInit)
     f32 sub_angle;         // 0x4FCC
     u8 pad_4FD0[0x500C - 0x4FD0];
     u32 Status_flg[4];     // 0x500C  game status bits ([3] 0x10000000: main_sub letterbox scissor)
-    u32 em_dead[12][8];    // 0x501C  per enemy list (emlist_no): one bit per list entry, set when the enemy died (em_set)
-    u32 item_flags[8];     // 0x519C  "ITEM_SET" flag words (t_flag; merchant: [0] bit 0x10000000 = item 0x40 sold)
-    u32 Item_find_flg;        // 0x51BC  (stage: 0x4 stage-1 loaded, 0x40000 sub-mission 1 done)
-    u32 Scenario_flg[2];   // 0x51C0  scenario progress bits set by the room scripts ([0]: stage route flags)
-    u32 door_flags_51C8;   // 0x51C8  (game DoorFlagInit presets bits of these three words)
-    u32 door_flags_51CC;   // 0x51CC
-    u32 door_flags_51D0;   // 0x51D0
-    u8 pad_51D4[0x51DC - 0x51D4];
-    u32 door_unlock[2];    // 0x51DC  one bit per locked door (sce_at: SceAtWork::lockFlag)
+    u32 Em_flg[12][8];    // 0x501C  per enemy list (emlist_no): one bit per list entry, set when the enemy died (em_set)
+    u32 Item_flg[8];     // 0x519C  "ITEM_SET" flag words (t_flag; merchant: [0] bit 0x10000000 = item 0x40 sold)
+    // 0x51BC  scenario progress bits set by the room scripts; the flag editor's SCENARIO page
+    // (game/t_flag.cpp scf_s) names them, index 0 being bit 31 of word 0. DoorFlagInit presets bits
+    // of words 3 to 5.
+    u32 Scenario_flg[8];
+    u32 Key_flg[2];        // 0x51DC  one bit per locked door (t_flag KEY_LOCK; sce_at SceAtWork::lockFlag)
     u32 Frame_cnt;         // 0x51E4  frame counter (em: `& 3` vs emset_no staggers per-enemy work; tools blink on % 30)
     u32 save_free_work[64];      // 0x51E8  scenario free words (sce_com SetFree/GetFree)
     u8 Em_list[0x2000];     // 0x52E8  enemy list (ESL file) read by stage.cpp
@@ -250,13 +242,21 @@ struct GlobalWork {
 extern GlobalWork* pG;
 extern GlobalWork Global;  // the instance pG points at (game/main.cpp); static initializers take its address
 
-// System save block (game/main.cpp `SystemSave`, 0x38 bytes; layout partially known).
-struct SystemSaveWork {
-    u32 Config_flg;  // 0x00  CFG_* bits
-    u32 Extra_flg;   // 0x04
-    u8 pad_8[0x38 - 0x08];
+// The system save block (game/main.cpp `SystemSave`, 0x38 bytes), which pSys also points at.
+struct SYSTEM_SAVE_WORK {
+    u32 Config_flg;       // 0x00  CFG_* bits (bit 30 = progressive / 60Hz screen scaling)
+    u32 Extra_flg;        // 0x04  EXT_* bits: mercenaries characters, stages and extra content
+    u8 language;          // 0x08  0 JP, 1/2/7 EN, 3 DE, 4 FR, 5 ES, 6 IT (dvd error messages)
+    u8 eff_country;       // 0x09  1 US, 2..6 EU, 7 ? (dvd: disc id game name)
+    u8 brightness;        // 0x0A  background brightness (Render_done -> Bg_brightness_set)
+    u8 pad_type;          // 0x0B  Key_type_tbl row (controller layout)
+    u8 SndMode;           // 0x0C  0 mono, 1 stereo, 2 DPL2 (Snd_get_sound_mode / SndSetOutputMode)
+    u8 __ssd_padding0[3];
+    u32 MercSysRoom[4];   // 0x10  mercenaries record per stage: score / 10 | mode << 28 | new << 31
+    u32 MercSysRank[2];   // 0x20  mercenaries rank bits, 3 per (stage, character), MSB first
+    u32 dummy32[4];       // 0x28
 };
-extern SystemSaveWork SystemSave;
+extern SYSTEM_SAVE_WORK SystemSave;
 
 // stage_no/room_no read as one u16 (stage << 8 | room), as cRoomData::getRoomSavePtr wants it.
 #define G_ROOM_ID (*(u16*) &pG->stage_no)
@@ -276,6 +276,909 @@ static inline void BitOn16(u16& f, u16 b) { f |= b; }
 // `f &= ~b` with b a parameter keeps the 32-bit mask: `rlwinm` instead of the folded `andi.` (pl_sub).
 static inline void BitOff16(u16& f, u16 b) { f &= ~b; }
 // Plain store through the same kind of reference (debug tools restoring saved flag words).
+
+// Flag bit indices, names taken from a mix of t_flag.cpp names and PS2 symbols.
+// t_flag.cpp had some typos that showed the names were manually entered there, instead of being
+// generated from the enums in the code, with some even using outdated flag names from the games
+// prototype ("HOOK_STALKING")
+// PS2 symbols gave us proper names for them instead, but a few were shifted around during the port,
+// along with new ones added for the new game modes in PS2.
+// Any PS2-specific flag names have been skipped, and names that disagreed were checked to confirm
+// usage before adding here.
+
+// Debug_flg bits
+enum DBG_FLAG {
+    DBG_TEST_MODE = 0,
+    DBG_SCR_TEST = 1,
+    DBG_BACK_CLIP = 2,
+    DBG_DBG_CAM = 3,
+    DBG_SAT_DISP = 4,
+    DBG_EAT_DISP = 5,
+    DBG_EVENT_TOOL = 6,
+    DBG_SLOW_ON = 7,
+    DBG_SHADOW_POLYGON = 8,
+    DBG_SCE_AT_DISP = 9,
+    DBG_SCR2_TEST = 10,
+    DBG_SHADOW_FRAME = 11,
+    DBG_MIRROR_POLYGON = 12,
+    DBG_GROUND_DISP = 13,
+    DBG_SKELETON_DISP = 14,
+    DBG_ESPTOOL_ONSCR = 15,
+    DBG_CINESCO_OFF = 16,
+    DBG_RTP_DISP = 17,
+    DBG_WIRE_DISP = 18,
+    DBG_YARARE_DISP = 19,
+    DBG_CAM_AREA_OFF = 20,
+    DBG_CLOTH_AT_DISP = 21,
+    DBG_WIND_ON = 22,
+    DBG_ESPTOOL_MEM_USE = 23,
+    DBG_TEX_RENDER_ALL = 24,
+    DBG_ESPTOOL_ONEM = 25,
+    DBG_EMINFO_DISP = 26,
+    DBG_LIGHT_TOOL = 27,
+    DBG_EM_COUNT = 28,
+    DBG_1d = 29,
+    DBG_EM3F_ADA_SADLER = 30,
+    DBG_1f = 31,
+    DBG_COCKPIT_TOOL = 32,
+    DBG_BOUNDING_DISP = 33,
+    DBG_ADJUST_CAM = 34,
+    DBG_FLAT_FLOOR = 35,
+    DBG_OBJ_SKELETON = 36,
+    DBG_DRAW_SH_TEX = 37,
+    DBG_EM_NO_ATK = 38,
+    DBG_NO_EST_CALL = 39,
+    DBG_IN_ESP_TOOL = 40,
+    DBG_TERM_TOOL = 41,
+    DBG_WARN_LEVEL_LOW = 42,
+    DBG_ID_TOOL = 43,
+    DBG_TITLE_CHECK = 44,
+    DBG_CAST_ERR_NO_DISP = 45,
+    DBG_EMW_ERR_NO_DISP = 46,
+    DBG_TIMER_STOP = 47,
+    DBG_SCREEN_SHOT = 48,
+    DBG_SERIES_SHOT = 49,
+    DBG_ASHLEY_NO_CATCH = 50,
+    DBG_33 = 51,
+    DBG_34 = 52,
+    DBG_35 = 53,
+    DBG_36 = 54,
+    DBG_37 = 55,
+    DBG_38 = 56,
+    DBG_39 = 57,
+    DBG_3a = 58,
+    DBG_3b = 59,
+    DBG_3c = 60,
+    DBG_3d = 61,
+    DBG_3e = 62,
+    DBG_3f = 63,
+    DBG_ROOMJMP = 64,
+    DBG_PROC_BAR = 65,
+    DBG_SCA_VIEW = 66,
+    DBG_OBA_VIEW = 67,
+    DBG_SLOW_MODE = 68,
+    DBG_NO_SCE_EXE = 69,
+    DBG_SINGLE_DISK = 70,
+    DBG_BUGCHECK_MODE = 71,
+    DBG_NO_DEATH = 72,
+    DBG_INF_BULLET = 73,
+    DBG_NO_ENEMY = 74,
+    DBG_BGM_STOP = 75,
+    DBG_SE_STOP = 76,
+    DBG_PL_LOCK_FOLLOW = 77,
+    DBG_EM_NO_DEATH = 78,
+    DBG_KAIOUKEN = 79,
+    DBG_PAD_INFO = 80,
+    DBG_UNDER_CONST = 81,
+    DBG_EM_WEAK = 82,
+    DBG_EM_LIFE_DISP = 83,
+    DBG_SHADOW_LIGHT = 84,
+    DBG_CAPTION_OFF = 85,
+    DBG_TEST_MODE_CK = 86,
+    DBG_LIGHT_ERR_CHECK = 87,
+    DBG_EST_CALL_CHK = 88,
+    DBG_GX_WARN_ALL = 89,
+    DBG_GX_WARN_MIDIUM = 90,
+    DBG_GX_WARN_SEVERE = 91,
+    DBG_PL_NOHIT = 92,
+    DBG_SE_ERR_ALL = 93,
+    DBG_QUICK_EM_STOP = 94,
+    DBG_AV_TEST = 95,
+    DBG_INF_BULLET2 = 96,
+    DBG_BATTLE_CAM = 97,
+    DBG_PL_KLAUSER = 98,
+    DBG_MAP_ZOOM_ORG = 99,
+    DBG_SCISSOR_OFF = 100,
+    DBG_LOG_OFF = 101,
+    DBG_SCR_CHECK = 102,
+    DBG_OBJ_SERVER = 103,
+    DBG_START_ST2 = 104,
+    DBG_ERROR_CK = 105,
+    DBG_APP_USE_DBMEM = 106,
+    DBG_REFRACT_CK = 107,
+    DBG_EM_NO_DIE_FLAG = 108,
+    DBG_START_ST3 = 109,
+    DBG_START_LAST = 110,
+    DBG_DOOR_SET_MODE = 111,
+    DBG_EFF_NUM_DISP = 112,
+    DBG_SET_HITMARK_ALL = 113,
+    DBG_FOG_FAR_GREEN = 114,
+    DBG_SSCRN_PROC_BAR = 115,
+    DBG_NO_ETC_SET = 116,
+    DBG_NO_DEATH2 = 117,
+    DBG_NO_PARASITE = 118,
+    DBG_ESP_CHK = 119,
+    DBG_NO_EVENT = 120,
+    DBG_NO_LASER_LINE = 121,
+    DBG_DATA_113 = 122,
+    DBG_SHOP_FULL = 123,
+    DBG_ADA_OMAKE_EV = 124,
+    DBG_FOG_FAR_COLOR = 125,
+    DBG_TOOL_EMINFO_DISP = 126,
+    DBG_CHAR_MACHINE = 127,
+};
+
+// Status_flg bits
+enum STA_FLAG {
+    STA_BG_OFF = 0,
+    STA_PL_CHECK = 1,
+    STA_PL_CHECK2 = 2,
+    STA_MOVIE_ON = 3,
+    STA_CUTCHG = 4,
+    STA_MOVIE2_ON = 5,
+    STA_SSCRN_ENABLE = 6,
+    STA_CINESCO = 7,
+    STA_PL_FIRE = 8,
+    STA_09 = 9,
+    STA_ACT_DONT_FIRE = 10,
+    STA_DIEDEMO = 11,
+    STA_BLUR = 12,
+    STA_SUB_SCRN = 13,
+    STA_CARD_ACCESS = 14,
+    STA_PAD_SENSITIVE = 15,
+    STA_LOOK_THROUGH = 16,
+    STA_PL_ACTION = 17,
+    STA_PL_INVISIBLE = 18,
+    STA_EVENT = 19,
+    STA_ASHLEY_HIDE = 20,
+    STA_BINOCULAR = 21,
+    STA_WATER_ALIVE = 22,
+    STA_CAMERA = 23,
+    STA_BLACKOUT = 24,
+    STA_SCOPE_CAMERA = 25,
+    STA_RIDE_GONDOLA = 26,
+    STA_WIND_ON = 27,
+    STA_PL_JUMP_OFF = 28,
+    STA_MIRROR = 29,
+    STA_SAND_ALIVE = 30,
+    STA_SELF_SHADOW = 31,
+    STA_PL_SE_FOOT = 32,
+    STA_PL_SE_WHISTLE = 33,
+    STA_SE_BURST = 34,
+    STA_SUSPEND = 35,
+    STA_TEX_RENDER = 36,
+    STA_THERMO_GRAPH = 37,
+    STA_CAMERA_IN_ROOM = 38,
+    STA_NO_LIGHTMASK = 39,
+    STA_PL_SPEAR_SET = 40,
+    STA_PL_SWIM = 41,
+    STA_PL_BOAT = 42,
+    STA_WATER_CAMERA = 43,
+    STA_PL_SWIM_CAMERA = 44,
+    STA_PL_LADDER = 45,
+    STA_CRITICAL = 46,
+    STA_TAKEAWAY = 47,
+    STA_PL_CATCHED = 48,
+    STA_SHADOW_EQCOL = 49,
+    STA_PL_CATCHHOLD = 50,
+    STA_NEARCLIP_TOUCH = 51,
+    STA_CAMERA_SET_ROOM = 52,
+    STA_ROOM_RAIN = 53,
+    STA_USE_CAST_SHADOW = 54,
+    STA_PROC_SHD_TEX = 55,
+    STA_ALPHA_DRAW2 = 56,
+    STA_SET_BG_COLOR = 57,
+    STA_ESPGEN45_SET = 58,
+    STA_EFFEM2D_TEXRND = 59,
+    STA_SUB_LADDER = 60,
+    STA_SUBCHAR_CTRL = 61,
+    STA_ITEM_GET = 62,
+    STA_LASERSITE_NOADD = 63,
+    STA_PL_DONT_FIRE = 64,
+    STA_PL_EM_ACTION = 65,
+    STA_SUB_CATCHED = 66,
+    STA_CUT_CHANGE = 67,
+    STA_NO_FENCE = 68,
+    STA_SSCRN_REQUEST = 69,
+    STA_ESP_COMPULSION_NOSUSPEND = 70,
+    STA_PL_MISS_SHOT = 71,
+    STA_SUB_BULLDOZER = 72,
+    STA_LIT_NO_UPDATE = 73,
+    STA_MAP_DISABLE = 74,
+    STA_USE_SHADOW_LIGHT = 75,
+    STA_EVENT_SYSYTEM = 76,
+    STA_INTO_SHOP = 77,
+    STA_TIMER_NO_PAUSE = 78,
+    STA_EFFAREA_USE_CAM = 79,
+    STA_TITLE = 80,
+    STA_51 = 81, // PS2: STA_MAP_CK_UNLIMIT, unused in GC?
+    STA_52 = 82, // PS2: STA_RIFLE_READY
+    STA_53 = 83, // PS2: STA_LOWPOLY_USE
+    STA_54 = 84, // PS2: STA_TERMINAL
+    STA_55 = 85, // PS2: STA_HIGH_TEMPERATURE_THERMO
+    STA_56 = 86,
+    STA_57 = 87,
+    STA_58 = 88,
+    STA_59 = 89,
+    STA_5a = 90,
+    STA_5b = 91,
+    STA_5c = 92,
+    STA_5d = 93,
+    STA_5e = 94,
+    STA_5f = 95,
+    STA_SAVEDATA_NO_UPDATE = 96,
+    STA_BEHIND_CAM = 97,
+    STA_62 = 98,
+    STA_SCISSOR = 99,
+    STA_SLOW = 100,
+    STA_SUB_ASHLEY = 101,
+    STA_BIG_MARKER = 102,
+    STA_EVENT_CANCEL = 103,
+    STA_KLAUSER_TRANSFORM = 104,
+    STA_69 = 105, // PS2: STA_ELEVATOR
+    STA_6a = 106,
+    STA_6b = 107,
+    STA_6c = 108,
+    STA_6d = 109,
+    STA_6e = 110,
+    STA_6f = 111,
+    STA_70 = 112, // PS2: STA_DIV_EVENT_SET
+    STA_71 = 113, // PS2: STA_DIV_EVENT_ING
+    STA_72 = 114, // PS2: STA_NOW_LOADING
+    STA_73 = 115, // PS2: STA_SCREEN_STOP_RESERVE
+    STA_74 = 116, // PS2: STA_TYPEWRITER
+    STA_75 = 117,
+    STA_76 = 118,
+    STA_77 = 119,
+    STA_78 = 120,
+    STA_79 = 121,
+    STA_7a = 122,
+    STA_7b = 123,
+    STA_7c = 124,
+    STA_7d = 125,
+    STA_7e = 126,
+    STA_7f = 127,
+};
+
+// System_flg bits
+enum SYS_FLAG {
+    SYS_OMAKE_ADA_GAME = 0,
+    SYS_OMAKE_ETC_GAME = 1,
+    SYS_EXCEPTION = 2,
+    SYS_RENDER_END = 3,
+    SYS_SP_USED = 4,
+    SYS_SOFT_RESET = 5,
+    SYS_DATA_READ = 6,
+    SYS_ROOMJUMP = 7,
+    SYS_INVISIBLE = 8,
+    SYS_DOOR_AFTER = 9,
+    SYS_DOORDEMO = 10,
+    SYS_TRANS_STOP = 11,
+    SYS_CONTINUE = 12,
+    SYS_SET_BLACK = 13,
+    SYS_SN_PC_READ = 14,
+    SYS_SN_PC_READ_TOOL = 15,
+    SYS_HARD_RESET = 16,
+    SYS_SCREEN_SHOT = 17,
+    SYS_NEW_GAME = 18,
+    SYS_TYPEWRITER = 19,
+    SYS_SCISSOR_ON = 20,
+    SYS_SCREEN_STOP = 21,
+    SYS_CARD_ACCESS = 22,
+    SYS_LOAD_GAME = 23,
+    SYS_CONTINUE_AFTER = 24,
+    SYS_START_EVT_SKIP = 25,
+    SYS_HARD_MODE = 26,
+    SYS_MESSAGE_INIT = 27,
+    SYS_PUBLICITY_VER = 28,
+    SYS_1d = 29, // PS2: SYS_SAVEDATA_EXIST
+    SYS_1e = 30, // PS2: SYS_PAL
+    SYS_1f = 31, // PS2: SYS_DTV480P
+};
+
+// Stop_flg bits
+enum SPF_FLAG {
+    SPF_KEY = 0,
+    SPF_CAMERA = 1,
+    SPF_EM = 2,
+    SPF_PL = 3,
+    SPF_ESP = 4,
+    SPF_OBJ = 5,
+    SPF_CTRL = 6,
+    SPF_LIGHT = 7,
+    SPF_SCE = 8,
+    SPF_SCE_AT = 9,
+    SPF_CCHG = 10,
+    SPF_PL_CCHG = 11,
+    SPF_NOTSUBSCR = 12,
+    SPF_WATER = 13,
+    SPF_SPECULAR = 14,
+    SPF_EARTHQUAKE = 15,
+    SPF_VIBRATION = 16,
+    SPF_CINESCO = 17,
+    SPF_MIST = 18,
+    SPF_SUBCHAR = 19,
+    SPF_SE_CALC = 20,
+    SPF_EVT = 21,
+    SPF_BLOCK = 22,
+    SPF_ACTBTN = 23,
+    SPF_DATAREAD_AT = 24,
+    SPF_ID_SYSTEM = 25,
+    SPF_ESP_AREA = 26,
+    SPF_1b = 27,
+    SPF_1c = 28,
+    SPF_1d = 29,
+    SPF_1e = 30,
+    SPF_1f = 31,
+};
+
+// Disp_flg bits
+enum DPF_FLAG {
+    DPF_EM = 0,
+    DPF_PL = 1,
+    DPF_SUBCHAR = 2,
+    DPF_OBJ = 3,
+    DPF_SCR = 4,
+    DPF_ESP = 5,
+    DPF_SHADOW = 6,
+    DPF_WATER = 7,
+    DPF_MIRROR = 8,
+    DPF_CTRL = 9,
+    DPF_CINESCO = 10,
+    DPF_FILTER = 11,
+    DPF_GLB_ILM = 12,
+    DPF_CAST_SHADOW = 13,
+    DPF_CLOTH = 14,
+    DPF_COCKPIT = 15,
+    DPF_SELF_SHADOW = 16,
+    DPF_FOG = 17,
+    DPF_ID_SYSTEM = 18,
+    DPF_ACTBTN = 19,
+    DPF_MESSAGE = 20,
+    DPF_TEX_RENDER = 21,
+    DPF_16 = 22,
+    DPF_17 = 23,
+    DPF_18 = 24,
+    DPF_19 = 25,
+    DPF_1a = 26,
+    DPF_1b = 27,
+    DPF_1c = 28,
+    DPF_1d = 29,
+    DPF_1e = 30,
+    DPF_1f = 31,
+};
+
+// Scenario_flg bits
+enum SCF_FLAG {
+    SCF_NULL = 0,
+    SCF_R104_EVENT_4 = 1,
+    SCF_R110_FLOOR_MOVE = 2,
+    SCF_ACTIVATOR_SP_MES = 3,
+    SCF_BLUE_HERB_MES = 4,
+    SCF_R102_VIRUS_OCCUR = 5,
+    SCF_R01E_TEST = 6,
+    SCF_R100_TEST00 = 7,
+    SCF_R100_TEST01 = 8,
+    SCF_R100_TEST02 = 9,
+    SCF_R106_EVENT = 10,
+    SCF_R117_FIND_ASHLEY = 11,
+    SCF_R100_DOG_RUN = 12,
+    SCF_ST1_SUB_MISSION = 13,
+    SCF_R11C_BESIEGED_EVENT = 14,
+    SCF_R201_EVENT00 = 15,
+    SCF_R108_PUZZLE_CLEAR = 16,
+    SCF_R100_KILL_GANADE_1ST = 17,
+    SCF_R101_ENTER = 18,
+    SCF_R103_ENTER = 19,
+    SCF_R106_ENTER = 20,
+    SCF_R106_CONFINEED_WITH_LUIS = 21,
+    SCF_R108_CHECK_DOOR = 22,
+    SCF_R10C_GET_CREST = 23,
+    SCF_NO_ASHLEY_DIST_CK = 24,
+    SCF_R11C_BESIEGED_END_EVENT = 25,
+    SCF_R103_CLOSE_COVER = 26,
+    SCF_R103_ITEM_IN_CESSPIT = 27,
+    SCF_R11B_END_SALAMANDER = 28,
+    SCF_ST1_MAP_DAY = 29,
+    SCF_ST1_MAP_NIGHT = 30,
+    SCF_ST2_MAP = 31,
+    SCF_ST3_MAP = 32,
+    SCF_R217_PUZZLE_CLEAR = 33,
+    SCF_R104_MEET_MERCHANT = 34,
+    SCF_R206_ASHLEY_RESCUE = 35,
+    SCF_R101_IMPRISON = 36,
+    SCF_R103_OPEN_COVER = 37,
+    SCF_R20D_END_OF_ASHLEY_PLAY = 38,
+    SCF_ST1_NIGHT = 39,
+    SCF_ST2_IN = 40,
+    SCF_CONTACT_MERCHANT = 41,
+    SCF_R10E_STOCK_DAY = 42,
+    SCF_R10E_STOCK_NIGHT = 43,
+    SCF_R108_OPERATOR = 44,
+    SCF_R204_ASHLEY_SPLIT = 45,
+    SCF_R11C_OPERATOR = 46,
+    SCF_ST3_IN = 47,
+    SCF_ST1_SUB_PERFECT = 48,
+    SCF_R104_MERCHANT_MARK = 49,
+    SCF_ST1_NIGHT_LV_ADD = 50,
+    SCF_R307_REGENERATER_APPEAR = 51,
+    SCF_R316_TO_R30A_CUTBACK_EVENT = 52,
+    SCF_R30D_ENTER = 53,
+    SCF_R332_BOSS_DIE = 54,
+    SCF_ADA_COUNT_DOWN_START = 55,
+    SCF_ST3_COUNT_DOWN_START = 56,
+    SCF_R213_ASHLEY_LOST = 57,
+    SCF_R317_LEON_WOUND = 58,
+    SCF_R120_EVENT_CANCEL = 59,
+    SCF_R22C_BONUS_1 = 60,
+    SCF_R22C_BONUS_2 = 61,
+    SCF_R22C_BONUS_3 = 62,
+    SCF_R22C_BONUS_4 = 63,
+    SCF_R321_HERI_DOWN = 64,
+    SCF_R329_ASHLEY_HELP = 65,
+    SCF_R405_ADA_GAME_INIT = 66,
+    SCF_R31C_TOWER_EXPLODE = 67,
+    SCF_R206_ASHLEY_GAME = 68,
+    SCF_R201_SET_3OBJ = 69,
+    SCF_R229_IN = 70,
+    SCF_R225_IN = 71,
+    SCF_R226_IN = 72,
+    SCF_R300_00 = 73,
+    SCF_R303_IN = 74,
+    SCF_R304_00 = 75,
+    SCF_R30C_ASHLEY_SCREAM = 76,
+    SCF_R309_GET_KEY = 77,
+    SCF_R30C_SAVE_ASHLEY = 78,
+    SCF_R317_KNIFE_BATTLE = 79,
+    SCF_R31A_IN = 80,
+    SCF_R31B_U3 = 81,
+    SCF_R31C_IN = 82,
+    SCF_R31C_OPEN_DOOR = 83,
+    SCF_R330_END_OPE = 84,
+    SCF_R332_KEY_GET = 85,
+    SCF_ST3_COUNT_DOWN_DIE = 86,
+    SCF_KEY_LOCK = 87,
+    SCF_R204_MERCHANT_MOVE = 88,
+    SCF_OMAKE_MAP = 89,
+    SCF_R100_OFFICERS_FOUND = 90,
+    SCF_R21A_R21B_IN = 91,
+    SCF_ADA_SHOP_1ST = 92,
+    SCF_ADA_SHOP_2ND = 93,
+    SCF_ASHLEY_PARA_OFF = 94,
+    SCF_5f = 95,
+    SCF_60 = 96,
+    SCF_61 = 97,
+    SCF_62 = 98,
+    SCF_63 = 99,
+    SCF_64 = 100,
+    SCF_65 = 101,
+    SCF_66 = 102,
+    SCF_67 = 103,
+    SCF_68 = 104,
+    SCF_69 = 105,
+    SCF_6a = 106,
+    SCF_6b = 107,
+    SCF_6c = 108,
+    SCF_6d = 109,
+    SCF_6e = 110,
+    SCF_6f = 111,
+    SCF_70 = 112,
+    SCF_71 = 113,
+    SCF_72 = 114,
+    SCF_73 = 115,
+    SCF_74 = 116,
+    SCF_75 = 117,
+    SCF_76 = 118,
+    SCF_77 = 119,
+    SCF_78 = 120,
+    SCF_79 = 121,
+    SCF_7a = 122,
+    SCF_7b = 123,
+    SCF_7c = 124,
+    SCF_7d = 125,
+    SCF_7e = 126,
+    SCF_7f = 127,
+    SCF_80 = 128,
+    SCF_81 = 129,
+    SCF_82 = 130,
+    SCF_83 = 131,
+    SCF_84 = 132,
+    SCF_85 = 133,
+    SCF_86 = 134,
+    SCF_87 = 135,
+    SCF_88 = 136,
+    SCF_89 = 137,
+    SCF_8a = 138,
+    SCF_8b = 139,
+    SCF_8c = 140,
+    SCF_8d = 141,
+    SCF_8e = 142,
+    SCF_8f = 143,
+    SCF_90 = 144,
+    SCF_91 = 145,
+    SCF_92 = 146,
+    SCF_93 = 147,
+    SCF_94 = 148,
+    SCF_95 = 149,
+    SCF_96 = 150,
+    SCF_97 = 151,
+    SCF_98 = 152,
+    SCF_99 = 153,
+    SCF_9a = 154,
+    SCF_9b = 155,
+    SCF_9c = 156,
+    SCF_9d = 157,
+    SCF_9e = 158,
+    SCF_9f = 159,
+    SCF_a0 = 160,
+    SCF_a1 = 161,
+    SCF_a2 = 162,
+    SCF_a3 = 163,
+    SCF_a4 = 164,
+    SCF_a5 = 165,
+    SCF_a6 = 166,
+    SCF_FILE_07_GET = 167,
+    SCF_FILE_08_GET = 168,
+    SCF_a9 = 169,
+    SCF_aa = 170,
+    SCF_ab = 171,
+    SCF_ac = 172,
+    SCF_ad = 173,
+    SCF_ae = 174,
+    SCF_af = 175,
+    SCF_b0 = 176,
+    SCF_b1 = 177,
+    SCF_b2 = 178,
+    SCF_b3 = 179,
+    SCF_b4 = 180,
+    SCF_b5 = 181,
+    SCF_b6 = 182,
+    SCF_b7 = 183,
+    SCF_R316_IN = 184,
+    SCF_R102_MEET_MERCHANT = 185,
+    SCF_ba = 186,
+    SCF_bb = 187,
+    SCF_bc = 188,
+    SCF_bd = 189,
+    SCF_be = 190,
+    SCF_bf = 191,
+    SCF_c0 = 192,
+    SCF_c1 = 193,
+    SCF_c2 = 194,
+    SCF_c3 = 195,
+    SCF_c4 = 196,
+    SCF_c5 = 197,
+    SCF_c6 = 198,
+    SCF_c7 = 199,
+    SCF_c8 = 200,
+    SCF_c9 = 201,
+    SCF_ca = 202,
+    SCF_cb = 203,
+    SCF_cc = 204,
+    SCF_cd = 205,
+    SCF_ce = 206,
+    SCF_cf = 207,
+    SCF_d0 = 208,
+    SCF_d1 = 209,
+    SCF_d2 = 210,
+    SCF_d3 = 211,
+    SCF_d4 = 212,
+    SCF_d5 = 213,
+    SCF_d6 = 214,
+    SCF_d7 = 215,
+    SCF_d8 = 216,
+    SCF_d9 = 217,
+    SCF_da = 218,
+    SCF_db = 219,
+    SCF_dc = 220,
+    SCF_dd = 221,
+    SCF_de = 222,
+    SCF_df = 223,
+    SCF_e0 = 224,
+    SCF_e1 = 225,
+    SCF_e2 = 226,
+    SCF_e3 = 227,
+    SCF_e4 = 228,
+    SCF_e5 = 229,
+    SCF_e6 = 230,
+    SCF_e7 = 231,
+    SCF_e8 = 232,
+    SCF_e9 = 233,
+    SCF_ea = 234,
+    SCF_eb = 235,
+    SCF_ec = 236,
+    SCF_ed = 237,
+    SCF_ee = 238,
+    SCF_ef = 239,
+    SCF_f0 = 240,
+    SCF_f1 = 241,
+    SCF_f2 = 242,
+    SCF_f3 = 243,
+    SCF_f4 = 244,
+    SCF_f5 = 245,
+    SCF_f6 = 246,
+    SCF_f7 = 247,
+    SCF_f8 = 248,
+    SCF_f9 = 249,
+    SCF_fa = 250,
+    SCF_fb = 251,
+    SCF_fc = 252,
+    SCF_fd = 253,
+    SCF_fe = 254,
+    SCF_ff = 255,
+};
+
+// Item_flg bits
+enum ITF_FLAG {
+    ITF_DUMMY = 0,
+    ITF_R108_ITEM = 1,
+    ITF_R105_ITEM = 2,
+    ITF_FN57 = 3,
+    ITF_R10A_ITEM06 = 4,
+    ITF_R102_ITEM = 5,
+    ITF_R103_ITEM00 = 6,
+    ITF_R103_ITEM01 = 7,
+    ITF_R10B_ITEM = 8,
+    ITF_R11C_ITEM = 9,
+    ITF_R216_ITEM = 10,
+    ITF_R207_GOLDEN_SWORD = 11,
+    ITF_R207_SILVER_SWORD = 12,
+    ITF_ITEM_5F = 13,
+    ITF_ITEM_59 = 14,
+    ITF_ITEM_5D = 15,
+    ITF_ITEM_61 = 16,
+    ITF_R20E_SALAZAR_CREST = 17,
+    ITF_R209_KEY = 18,
+    ITF_R21A_ITEM = 19,
+    ITF_R103_FILE = 20,
+    ITF_R11D_ITEM = 21,
+    ITF_R11E_ITEM = 22,
+    ITF_R117_ITEM = 23,
+    ITF_R10D_ITEM = 24,
+    ITF_R309_KEY = 25,
+    ITF_R308_THERMO_RIFLE = 26,
+    ITF_R40E_SAMPLE00 = 27,
+    ITF_R40B_SAMPLE00 = 28,
+    ITF_R40C_SAMPLE00 = 29,
+    ITF_R31C_CREST_A = 30,
+    ITF_FILE_07 = 31,
+    ITF_FILE_08 = 32,
+    ITF_R410_SAMPLE00 = 33,
+    ITF_22 = 34,
+    ITF_R40D_SAMPLE00 = 35,
+    ITF_R332_ADA_ROCKET = 36,
+    ITF_ST2A_00 = 37,
+    ITF_ST2A_01 = 38,
+    ITF_ST2A_02 = 39,
+    ITF_ST2A_03 = 40,
+    ITF_ST2A_04 = 41,
+    ITF_ST2A_05 = 42,
+    ITF_ST2A_06 = 43,
+    ITF_ST2A_07 = 44,
+    ITF_ST2A_08 = 45,
+    ITF_ST2A_09 = 46,
+    ITF_ST2A_10 = 47,
+    ITF_ST2A_11 = 48,
+    ITF_ST2B_00 = 49,
+    ITF_ST2B_01 = 50,
+    ITF_ST2B_02 = 51,
+    ITF_ST2C_00 = 52,
+    ITF_ST3B_00 = 53,
+    ITF_ST3B_01 = 54,
+    ITF_ST3B_02 = 55,
+    ITF_ST3D_00 = 56,
+    ITF_ST3D_01 = 57,
+    ITF_ST3D_02 = 58,
+    ITF_ST3D_03 = 59,
+    ITF_R400_00 = 60,
+    ITF_R400_01 = 61,
+    ITF_R400_02 = 62,
+    ITF_R400_03 = 63,
+    ITF_R400_04 = 64,
+    ITF_R402_00 = 65,
+    ITF_R402_01 = 66,
+    ITF_R402_02 = 67,
+    ITF_R402_03 = 68,
+    ITF_R402_04 = 69,
+    ITF_R402_05 = 70,
+    ITF_R403_00 = 71,
+    ITF_R403_01 = 72,
+    ITF_R403_02 = 73,
+    ITF_R403_03 = 74,
+    ITF_R403_04 = 75,
+    ITF_R403_05 = 76,
+    ITF_R403_06 = 77,
+    ITF_R403_07 = 78,
+    ITF_R403_08 = 79,
+    ITF_R403_09 = 80,
+    ITF_R403_10 = 81,
+    ITF_R403_11 = 82,
+    ITF_R404_00 = 83,
+    ITF_R404_01 = 84,
+    ITF_R404_02 = 85,
+    ITF_R404_03 = 86,
+    ITF_R404_04 = 87,
+    ITF_R404_05 = 88,
+    ITF_R404_06 = 89,
+    ITF_R404_07 = 90,
+    ITF_R404_08 = 91,
+    ITF_R404_09 = 92,
+    ITF_R404_10 = 93,
+    ITF_R404_11 = 94,
+    ITF_ST2A_12 = 95,
+    ITF_R119_ITEM0 = 96,
+    ITF_R119_ITEM1 = 97,
+    ITF_R119_ITEM2 = 98,
+    ITF_R119_ITEM3 = 99,
+    ITF_R119_ITEM4 = 100,
+    ITF_R119_ITEM5 = 101,
+    ITF_R11E_ITEM0 = 102,
+    ITF_R11E_ITEM1 = 103,
+    ITF_R11E_ITEM2 = 104,
+    ITF_R11E_ITEM3 = 105,
+    ITF_R11E_ITEM4 = 106,
+    ITF_R11E_ITEM5 = 107,
+    ITF_R11E_ITEM6 = 108,
+    ITF_R11E_ITEM7 = 109,
+    ITF_R11E_ITEM8 = 110,
+    ITF_R11E_ITEM9 = 111,
+    ITF_R11E_ITEM10 = 112,
+    ITF_R11E_ITEM11 = 113,
+    ITF_72 = 114,
+    ITF_73 = 115,
+    ITF_74 = 116,
+    ITF_75 = 117,
+    ITF_76 = 118,
+    ITF_77 = 119,
+    ITF_78 = 120,
+    ITF_79 = 121,
+    ITF_7a = 122,
+    ITF_ADA_01_TRES_00 = 123,
+    ITF_ADA_01_TRES_01 = 124,
+    ITF_ADA_01_TRES_02 = 125,
+    ITF_ADA_01_TRES_03 = 126,
+    ITF_ADA_01_TRES_04 = 127,
+};
+
+// Test flag `no` in the word array at `base` (bit 31 - (no & 31) of word no >> 5).  The base is an
+// address rather than a field so a check can read the flags through whichever pointer the caller
+// holds: pG for most of the game, pGS where the code reaches them through the save block.
+#define FlagChk(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) & (0x80000000 >> ((no) & 31)))
+
+// The same test written as a shift into the sign bit, for a condition that tests two bits of one
+// word: two mask tests fold into a single mask and stop matching, two shifts stay two tests.
+// FlagChkSignW takes the flag word itself, FlagChkSign a word array.
+#define FlagChkSignW(flg, no) ((s32) ((flg) << ((no) & 31)) < 0)
+#define FlagChkSign(flg, no) FlagChkSignW((flg)[(no) >> 5], no)
+
+// Config_flg bits, in SystemSave rather than pG
+enum CFG_FLAG {
+    CFG_AIM_REVERSE = 0,
+    CFG_WIDE_MODE = 1,
+    CFG_LOCK_ON = 2,
+    CFG_BONUS_GET = 3,
+    CFG_VIBRATION = 4,
+    CFG_KNIFE_MODE = 5,
+    CFG_06 = 6,
+    CFG_07 = 7,
+    CFG_08 = 8,
+    CFG_09 = 9,
+    CFG_0a = 10,
+    CFG_0b = 11,
+    CFG_0c = 12,
+    CFG_0d = 13,
+    CFG_0e = 14,
+    CFG_0f = 15,
+    CFG_10 = 16,
+    CFG_11 = 17,
+    CFG_12 = 18,
+    CFG_13 = 19,
+    CFG_14 = 20,
+    CFG_15 = 21,
+    CFG_16 = 22,
+    CFG_17 = 23,
+    CFG_18 = 24,
+    CFG_19 = 25,
+    CFG_1a = 26,
+    CFG_1b = 27,
+    CFG_1c = 28,
+    CFG_1d = 29,
+    CFG_1e = 30,
+    CFG_1f = 31,
+};
+
+// Extra_flg bits, in SystemSave (t_flag EXTRA page shows the CONFIG names by mistake!)
+enum EXT_FLAG {
+    EXT_COSTUME = 0,
+    EXT_HARD_MODE = 1,
+    EXT_GET_SW500 = 2,
+    EXT_GET_TOMPSON = 3,
+    EXT_GET_ADA = 4,
+    EXT_GET_HUNK = 5,
+    EXT_GET_KLAUSER = 6,
+    EXT_GET_WESKER = 7,
+    EXT_GET_OMAKE_ADA_GAME = 8,
+    EXT_GET_OMAKE_ETC_GAME = 9,
+    EXT_ASHLEY_ARMOR = 10,
+    EXT_0b = 11,
+    EXT_0c = 12,
+    EXT_0d = 13,
+    EXT_0e = 14,
+    EXT_0f = 15,
+    EXT_10 = 16,
+    EXT_11 = 17,
+    EXT_12 = 18,
+    EXT_13 = 19,
+    EXT_14 = 20,
+    EXT_15 = 21,
+    EXT_16 = 22,
+    EXT_17 = 23,
+    EXT_18 = 24,
+    EXT_19 = 25,
+    EXT_1a = 26,
+    EXT_1b = 27,
+    EXT_1c = 28,
+    EXT_1d = 29,
+    EXT_1e = 30,
+    EXT_1f = 31,
+};
+
+#define DbgFlagChk(g, n) FlagChk(&(g)->Debug_flg, n)
+#define StaFlagChk(g, n) FlagChk(&(g)->Status_flg, n)
+#define SysFlagChk(g, n) FlagChk(&(g)->System_flg, n)
+#define SpfFlagChk(g, n) FlagChk(&(g)->Stop_flg, n)
+#define DpfFlagChk(g, n) FlagChk(&(g)->Disp_flg, n)
+#define ScfFlagChk(g, n) FlagChk(&(g)->Scenario_flg, n)
+#define ItfFlagChk(g, n) FlagChk(&(g)->Item_flg, n)
+
+// Set and clear, against the same base and index as FlagChk.
+#define FlagOn(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) |= (0x80000000 >> ((no) & 31)))
+#define FlagOff(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) &= ~(0x80000000 >> ((no) & 31)))
+#define FlagXor(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) ^= (0x80000000 >> ((no) & 31)))
+
+// The same four, for a call site whose flag number is a variable or a struct field rather than an
+// enumerator.  Both arguments are copied into locals: substituted twice the field would be loaded
+// twice, where the original loads it once.  The number keeps the type the call site gives it, so an
+// index cast to u32 folds its shift into a single rlwinm where a signed one takes two instructions.
+#define FLAG_WORD_VAR(base, no, op) ({ u32 flagBase_ = (u32) (base); __typeof__(no) flagNo_ = (no); \
+                                       *(u32*) (((flagNo_ >> 5) << 2) + flagBase_) op; })
+#define FlagChkVar(base, no) FLAG_WORD_VAR(base, no, & (0x80000000 >> (flagNo_ & 31)))
+#define FlagOnVar(base, no) FLAG_WORD_VAR(base, no, |= (0x80000000 >> (flagNo_ & 31)))
+#define FlagOffVar(base, no) FLAG_WORD_VAR(base, no, &= ~(0x80000000 >> (flagNo_ & 31)))
+#define FlagXorVar(base, no) FLAG_WORD_VAR(base, no, ^= (0x80000000 >> (flagNo_ & 31)))
+
+#define DbgFlagOn(g, n) FlagOn(&(g)->Debug_flg, n)
+#define DbgFlagOff(g, n) FlagOff(&(g)->Debug_flg, n)
+#define DbgFlagXor(g, n) FlagXor(&(g)->Debug_flg, n)
+#define StaFlagOn(g, n) FlagOn(&(g)->Status_flg, n)
+#define StaFlagOff(g, n) FlagOff(&(g)->Status_flg, n)
+#define SysFlagOn(g, n) FlagOn(&(g)->System_flg, n)
+#define SysFlagOff(g, n) FlagOff(&(g)->System_flg, n)
+#define SpfFlagOn(g, n) FlagOn(&(g)->Stop_flg, n)
+#define SpfFlagOff(g, n) FlagOff(&(g)->Stop_flg, n)
+#define DpfFlagOn(g, n) FlagOn(&(g)->Disp_flg, n)
+#define DpfFlagOff(g, n) FlagOff(&(g)->Disp_flg, n)
+#define ScfFlagOn(g, n) FlagOn(&(g)->Scenario_flg, n)
+#define ScfFlagOff(g, n) FlagOff(&(g)->Scenario_flg, n)
+#define ItfFlagOn(g, n) FlagOn(&(g)->Item_flg, n)
+#define ItfFlagOff(g, n) FlagOff(&(g)->Item_flg, n)
+#define CfgFlagChk(g, n) FlagChk(&(g)->Config_flg, n)
+#define CfgFlagOn(g, n) FlagOn(&(g)->Config_flg, n)
+#define CfgFlagOff(g, n) FlagOff(&(g)->Config_flg, n)
+#define ExtFlagChk(g, n) FlagChk(&(g)->Extra_flg, n)
+#define ExtFlagOn(g, n) FlagOn(&(g)->Extra_flg, n)
+#define ExtFlagOff(g, n) FlagOff(&(g)->Extra_flg, n)
+
 static inline void BitSet(u32& f, u32 v) { f = v; }
 
 // Struct-member view of pG (the pLog trick, db_log.h): a load through it is not hoisted above a

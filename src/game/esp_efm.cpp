@@ -697,8 +697,8 @@ cObj* EfmSetObj09(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     static f32 moment_mul = 2.0f;
 
     BitOn(obj->be_flag, 0x10);
-    if (pG->Debug_flg[1] & 0x00800000) {
-        pG->Disp_flg &= ~0x02000000;
+    if (DbgFlagChk(pG, DBG_IN_ESP_TOOL)) {
+        DpfFlagOff(pG, DPF_SHADOW);
     }
     w->core = *info;
     w->basePos = gen->Pos;

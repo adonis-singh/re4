@@ -180,7 +180,7 @@ void MotionSetCore(cModel* m, void* w_, void* data_, int seq_, int hokan, int fl
     w->Mot_state = 0;
     w->Mot_flag = (w->Mot_flag & 0x7FFFFFFF) | 0x04000000;
     if (data == 0) {
-        if ((s32) pG->Debug_flg[0] >= 0) {
+        if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
 #line 273
             pLog->err(0, 0, "MotionSetCore():%d pMot == NULL", __LINE__);
         }
@@ -477,7 +477,7 @@ u16 MotionMove(cModel* m)
     if (MOTION(m)->blend != 0) {
         MOTION(m)->blend->Mot_flag |= 0x08000000;
         rate = MOTION(m)->blend->Brate;
-        if ((s32) MOTION(m)->blend->Mot_flag >= 0) {
+        if (!(MOTION(m)->blend->Mot_flag & 0x80000000)) {
             if (rate != 0.0f) {
                 MotionMoveCore(m, MOTION(m)->blend, 0);
                 MotionSequenceCtrl(MOTION(m)->blend);
@@ -765,7 +765,7 @@ void MotionMoveCore(cModel* m, MotionWork* w, int flag)
             continue;
         }
         MOTION_PARTS(p)->flags |= 0x10010000;
-        if ((s32) w->Mot_flag < 0) {
+        if (w->Mot_flag & 0x80000000) {
             MOTION_PARTS(p)->flags |= 0x80000000;
         }
         pp->type = w->pJoint_kind[i] >> 12;
@@ -846,7 +846,7 @@ void MotionHokan(cModel* m, MotionWork* w)
             }
             MOTION_PARTS(p)->flags &= ~0x10000000;
         } else {
-            if ((s32) MOTION_PARTS(p)->flags >= 0) {
+            if (!(MOTION_PARTS(p)->flags & 0x80000000)) {
                 continue;
             }
         }

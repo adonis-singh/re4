@@ -49,13 +49,13 @@ void DrawFootShadow(cEm* em)
     cLight* l;
     int cnt;
 
-    if (pG->Disp_flg & 0x02000000) {
+    if (DpfFlagChk(pG, DPF_SHADOW)) {
         return;
     }
     if (em->Shd_color == 0xFF) {
         return;
     }
-    if (pG->Status_flg[0] & 0x1000) {
+    if (StaFlagChk(pG, STA_EVENT)) {
         pos = em->pParts->world;
         pos.y = SatMgr.getFloor(&pos, 600.0f, 100000.0f, 0, 0);
     } else {
@@ -87,7 +87,7 @@ void DrawFootShadow(cEm* em)
         if (!(l->xF & em->LightInfo.EnableMask)) {
             continue;
         }
-        if (pG->Status_flg[0] & 0x80) {
+        if (StaFlagChk(pG, STA_BLACKOUT)) {
             if (l->Kind & 0x80) {
                 continue;
             }

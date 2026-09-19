@@ -893,7 +893,7 @@ void CameraControl::areaHitCheck()
     int old_area = areaNo;
     s8 i;
 
-    if (pG->Debug_flg[0] & 0x800) {
+    if (DbgFlagChk(pG, DBG_CAM_AREA_OFF)) {
         return;
     }
     d = data;
@@ -969,7 +969,7 @@ void CameraControl::areaHitCheck()
     }
 
     old_attr = m_cut_attr;
-    if (pG->Debug_flg[3] & 0x40000000) {
+    if (DbgFlagChk(pG, DBG_BATTLE_CAM)) {
         m_cut_attr = 2;
         if (blink++ & 0x18) {
             eprintf(27, 18, 22, 0, "[ BATTLE ]");
@@ -1041,7 +1041,7 @@ void CameraControl::roomInit()
 {
     s8 ver;
 
-    BitOn(pG->Status_flg[0], 0x100);
+    StaFlagOn(pG, STA_CAMERA);
     if (data == NULL) {
         be_flag = 0;
     } else {
@@ -1097,7 +1097,7 @@ void CameraControl::roomInit()
     m_behind_A_ratio = 0.75f;
     clearAttachCamera();
     BitOn(m_system_flag, 2);
-    if (pG->System_flg & 0x200000) {
+    if (SysFlagChk(pG, SYS_DOORDEMO)) {
         r0 = 0;
         BitOn(m_system_flag, 8);
     }
@@ -1120,7 +1120,7 @@ void CameraControl::Check()
 {
     Vec d;
 
-    if (pG->Status_flg[0] & 0x40000) {
+    if (StaFlagChk(pG, STA_SUB_SCRN)) {
         return;
     }
     if (!(be_flag & 1)) {
@@ -1135,10 +1135,10 @@ void CameraControl::Check()
         areaHitCheck();
     }
     checkAttachCamera();
-    if (pG->Debug_flg[1] & 0x800000) {
+    if (DbgFlagChk(pG, DBG_IN_ESP_TOOL)) {
         return;
     }
-    if (pG->Status_flg[0] & 0x1000) {
+    if (StaFlagChk(pG, STA_EVENT)) {
         return;
     }
     if (m_pExtraCamera != 0) {
@@ -1180,7 +1180,7 @@ void CameraControl::Move()
     f32 t;
     f32 lim;
 
-    if (pG->Status_flg[0] & 0x40000) {
+    if (StaFlagChk(pG, STA_SUB_SCRN)) {
         return;
     }
     if (!(be_flag & 1)) {
@@ -1259,7 +1259,7 @@ void CameraControl::Move()
         break;
     }
 
-    if (!(pG->Status_flg[0] & 0x1000)) {
+    if (!StaFlagChk(pG, STA_EVENT)) {
         if (GetWaterHeight(&cur.pos, &water_y)) {
             t = sinf(cur.fovy * PI / 360.0f) / cosf(cur.fovy * PI / 360.0f);
             lim = gain * (ZNEAR * t * 1.3333334f) + water_y;
@@ -1275,7 +1275,7 @@ void CameraControl::Move()
     CamSmth.move(&interp.param);
     camera.param = *CamSmth.getParam();
     CameraSetOrientationRoll(&camera);
-    if (!(pG->Debug_flg[0] & 0x10000000) && (m_state_flag & 4)) {
+    if (!DbgFlagChk(pG, DBG_DBG_CAM) && (m_state_flag & 4)) {
         pG->Cam = CamCtrl.camera;
     }
 }
@@ -1810,7 +1810,7 @@ void CameraControl::r0_RailBehind()
             q2.x = q.x;
             PSMTXMultVec(m, &q2, &cam.param.at);
         }
-        if ((s32) pSys->flags < 0) {
+        if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
             PSVECScale(&ang, &a, -1.0f);
         } else {
             a = ang;
@@ -1913,7 +1913,7 @@ void CameraControl::r0_Free()
         Vec yaxis = {0.0f, 1.0f, 0.0f};
         Vec tofs;
         Vec a;
-        if ((s32) pSys->flags < 0) {
+        if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
             PSVECScale(&ang, &a, -1.0f);
         } else {
             a = ang;
@@ -1947,7 +1947,7 @@ void CameraControl::r0_Free()
             Vec yaxis = {0.0f, 1.0f, 0.0f};
             Vec tofs;
             Vec a;
-            if ((s32) pSys->flags < 0) {
+            if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
                 PSVECScale(&ang, &a, -1.0f);
             } else {
                 a = ang;
@@ -2301,7 +2301,7 @@ void CameraControl::StartLookDownEm(void* em)
     extra = new (m_Free) CameraLookDownEm(em, &c);
     r0 = 0xD;
     AreaCheckOnOff(0);
-    BitOff(pG->Status_flg[0], 0x2000000);
+    StaFlagOff(pG, STA_SSCRN_ENABLE);
 }
 
 // Leaves the look-down camera, HUD back on.
@@ -2311,18 +2311,18 @@ void CameraControl::EndLookDownEm()
         delete extra;
     }
     Comeback(0);
-    BitOn(pG->Status_flg[0], 0x2000000);
+    StaFlagOn(pG, STA_SSCRN_ENABLE);
 }
 
 // Enters the rifle scope camera (r0 0x10; Status_flg[0] 0x40 scope, 0x8000 first-person view).
 void CameraControl::startScope(Vec* pos, Vec* at)
 {
-    if (!(pG->Status_flg[0] & 0x40)) {
-        BitOn(pG->Status_flg[0], 0x40);
-        BitOn(pG->Status_flg[0], 0x8000);
+    if (!StaFlagChk(pG, STA_SCOPE_CAMERA)) {
+        StaFlagOn(pG, STA_SCOPE_CAMERA);
+        StaFlagOn(pG, STA_LOOK_THROUGH);
         extra = new (m_Free) CameraScope(pos, at);
         r0 = 0x10;
-        BitOn(pG->Disp_flg, 0x40000000);
+        DpfFlagOn(pG, DPF_PL);
         AreaCheckOnOff(0);
     }
 }
@@ -2330,10 +2330,10 @@ void CameraControl::startScope(Vec* pos, Vec* at)
 // Leaves the scope camera.
 void CameraControl::endScope()
 {
-    if (pG->Status_flg[0] & 0x40) {
-        BitOff(pG->Status_flg[0], 0x40);
-        BitOff(pG->Status_flg[0], 0x8000);
-        BitOff(pG->Disp_flg, 0x40000000);
+    if (StaFlagChk(pG, STA_SCOPE_CAMERA)) {
+        StaFlagOff(pG, STA_SCOPE_CAMERA);
+        StaFlagOff(pG, STA_LOOK_THROUGH);
+        DpfFlagOff(pG, DPF_PL);
         if (extra) {
             delete extra;
         }
@@ -2344,7 +2344,7 @@ void CameraControl::endScope()
 // While scoped: the scope camera's pos / at (the rifle's shot line).
 void CameraControl::getTrajectory(Vec* pos, Vec* at)
 {
-    if (pG->Status_flg[0] & 0x40) {
+    if (StaFlagChk(pG, STA_SCOPE_CAMERA)) {
         cCamera* c = extra;
         *pos = c->param.pos;
         *at = c->param.at;
@@ -2375,20 +2375,20 @@ void CameraControl::SetBinocularRange(f32 x_low, f32 x_up, f32 y_low, f32 y_up)
 // its HUD data.
 void CameraControl::HoldBinocular(void* id_a, void* id_b, Vec* pos, Vec* at)
 {
-    BitOn(pG->Status_flg[0], 0x400);
-    BitOn(pG->Status_flg[0], 0x8000);
+    StaFlagOn(pG, STA_BINOCULAR);
+    StaFlagOn(pG, STA_LOOK_THROUGH);
     extra = new (m_Free) CameraBinocular(pos, at, id_a, id_b);
     r0 = 0xC;
-    BitOn(pG->Disp_flg, 0x40000000);
+    DpfFlagOn(pG, DPF_PL);
     AreaCheckOnOff(0);
 }
 
 // Leaves the binocular camera.
 void CameraControl::LowerBinocular()
 {
-    BitOff(pG->Status_flg[0], 0x400);
-    BitOff(pG->Status_flg[0], 0x8000);
-    BitOff(pG->Disp_flg, 0x40000000);
+    StaFlagOff(pG, STA_BINOCULAR);
+    StaFlagOff(pG, STA_LOOK_THROUGH);
+    DpfFlagOff(pG, DPF_PL);
     if (extra) {
         delete extra;
     }
@@ -2407,7 +2407,7 @@ void CameraControl::GetBinocularIDAddr(void** eff_addr, void** uwf_addr)
 void CameraControl::MotionSet(void* motion, int frame, f32 speed)
 {
     BitOn(m_system_flag, 0x28);
-    BitOn(pG->Status_flg[2], 0x10000000);
+    StaFlagOn(pG, STA_CUT_CHANGE);
     extra = new (m_Free) CameraMotion(motion, 0, 0, speed);
     ((CameraMotion*) extra)->base_mat = NULL;
     r0 = 5;
@@ -2551,7 +2551,7 @@ void CameraControl::checkAttachCamera()
     AttachCamera* ac;
     int i;
 
-    if (pG->Status_flg[0] & 0x40) {
+    if (StaFlagChk(pG, STA_SCOPE_CAMERA)) {
         return;
     }
     if (m_state_flag & 4) {

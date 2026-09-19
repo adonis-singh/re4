@@ -149,7 +149,7 @@ void objPillar_R0_Set(cObjPillar* obj)
 
 // Rno0 == 1 (setBreak): the pillar topples with motBreak towards the player: creak sound when he
 // is near, crushing hit tests on parts 1/2 (objPillarAtkCk), the escape action button (0x25)
-// offered while he stands in front, fade-out 10 frames before the end; removed when Scenario_flg[0]
+// offered while he stands in front, fade-out 10 frames before the end; removed when Scenario_flg[1]
 // 0x200 (the boss died).
 void objPillar_R0_Break(cObjPillar* obj)
 {
@@ -195,7 +195,7 @@ void objPillar_R0_Break(cObjPillar* obj)
         break;
     }
     obj->partsWorldCalc();
-    if (pG->Scenario_flg[0] & 0x200) {
+    if (ScfFlagChk(pG, SCF_R332_BOSS_DIE)) {
         ObjMgr.destroy(obj);
         return;
     }
@@ -326,7 +326,7 @@ void objPillar_R0_Throw(cObjPillar* obj)
         break;
     }
     obj->partsWorldCalc();
-    if (pG->Scenario_flg[0] & 0x200) {
+    if (ScfFlagChk(pG, SCF_R332_BOSS_DIE)) {
         ObjMgr.destroy(obj);
         return;
     }
@@ -373,7 +373,7 @@ void objPillar_R0_Escape(cObjPillar* obj)
         break;
     }
     obj->partsWorldCalc();
-    if (pG->Scenario_flg[0] & 0x200) {
+    if (ScfFlagChk(pG, SCF_R332_BOSS_DIE)) {
         ObjMgr.destroy(obj);
     }
 }
@@ -427,7 +427,7 @@ void objPillar_R0_Fall(cObjPillar* obj)
         break;
     }
     obj->partsWorldCalc();
-    if (pG->Scenario_flg[0] & 0x200) {
+    if (ScfFlagChk(pG, SCF_R332_BOSS_DIE)) {
         ObjMgr.destroy(obj);
     }
 }
@@ -549,9 +549,9 @@ void EscapeAction(cObjPillar* obj)
     PillarWork* w = &obj->pillar;
     u8 one = 1;
 
-    if (!(pG->Scenario_flg[0] & 0x200)) {
+    if (!ScfFlagChk(pG, SCF_R332_BOSS_DIE)) {
         w->Act_ck = one;
-        SetPlDamage((int) obj, plemEscape);
+        SetPlDamage((cEm*) obj, plemEscape);
         GameAddPoint(9);
     }
 }
@@ -562,7 +562,7 @@ void EscapeAction(cObjPillar* obj)
 static void plemEscape(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cObjPillar* obj = (cObjPillar*) em->dmgType;
+    cObjPillar* obj = (cObjPillar*) em->pEmCatch;
     PillarWork* w = &obj->pillar;
     f32 ang;
 
@@ -581,12 +581,12 @@ static void plemEscape(cPlayer* pl)
         SndCall(1, 0x48, &em->pos, 0, 0, em);
         SndCall(1, 0x11, &em->getPartsPtr(4)->world, 0, 0, em);
         memclr_asm(&Cam, sizeof(Camera));
-        em->m_Work0 = 50;
-        em->m_Work1 = 15;
+        ((cPlayer*) em)->m_Work0 = 50;
+        ((cPlayer*) em)->m_Work1 = 15;
         em->r_no_2++;
     case 1:
         EscapeCamMove();
-        if (em->m_Work1) {
+        if (((cPlayer*) em)->m_Work1) {
             em->ang.y += Muku(&em->pos, &w->Break_pos, em->ang.y, PI / 16);
             em->ang.y = LIMIT_ANGLE(em->ang.y);
         }
@@ -595,8 +595,8 @@ static void plemEscape(cPlayer* pl)
             EstSet(0, -1, &em->pos, 0, 3, 0x13, 0, 0, 0, 0);
             SndCall(5, 5, &em->pos, 0, 0, em);
         }
-        if (em->m_Work0) {
-            em->m_Work0--;
+        if (((cPlayer*) em)->m_Work0) {
+            ((cPlayer*) em)->m_Work0--;
         } else {
             EndPlDamage();
         }
@@ -653,9 +653,9 @@ void EscapeAction2(cObjPillar* obj)
 {
     PillarWork* w = &obj->pillar;
 
-    if (!(pG->Scenario_flg[0] & 0x200)) {
+    if (!ScfFlagChk(pG, SCF_R332_BOSS_DIE)) {
         w->Act_ck = 1;
-        SetPlDamage((int) obj, plemEscape2);
+        SetPlDamage((cEm*) obj, plemEscape2);
         obj->r_no_0 = 3;
         obj->r_no_1 = 0;
         obj->r_no_2 = 0;
@@ -668,7 +668,7 @@ void EscapeAction2(cObjPillar* obj)
 void plemEscape2(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cObjPillar* obj = (cObjPillar*) em->dmgType;
+    cObjPillar* obj = (cObjPillar*) em->pEmCatch;
     PillarWork* w = &obj->pillar;
     u8 step;
 

@@ -426,7 +426,7 @@ void SsItemMain::move(SUB_SCREEN* wk)
         }
     }
     if (Joy[0].trg & 0x10) {
-        if (!(pG->System_flg & 8) || PadCheckStatus(&Joy[1]) == 1) {
+        if (!SysFlagChk(pG, SYS_PUBLICITY_VER) || PadCheckStatus(&Joy[1]) == 1) {
             wk->item_make_open = wk->item_make_open == 0;
         }
         if (wk->item_make_open) {

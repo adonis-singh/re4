@@ -48,7 +48,7 @@ EmRackFunc EmRack_R1_move_tbl[4] = {
 cEmRack* SetRack(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcNo)
 {
     cEmRack* em;
-    EmRackWork* w;
+    FREE_EMRACK* w;
     u16* flg;
     int zero;
 
@@ -70,39 +70,39 @@ cEmRack* SetRack(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcNo)
         return 0;
     }
     EtcSetAddAmb(em, 8);
-    w->eff = 0xFF;
+    w->Eff_id = 0xFF;
     em->type = type;
     switch (em->type) {
     case 0:
     default:
-        w->size.x = 700.0f;
-        w->size.y = 1000.0f;
-        w->size.z = 400.0f;
+        w->Size_x = 700.0f;
+        w->Size_y = 1000.0f;
+        w->Size_z = 400.0f;
         break;
     case 1:
-        w->size.x = 700.0f;
-        w->size.y = 2000.0f;
-        w->size.z = 400.0f;
+        w->Size_x = 700.0f;
+        w->Size_y = 2000.0f;
+        w->Size_z = 400.0f;
         break;
     case 2:
-        w->size.x = 750.0f;
-        w->size.y = 1500.0f;
-        w->size.z = 750.0f;
+        w->Size_x = 750.0f;
+        w->Size_y = 1500.0f;
+        w->Size_z = 750.0f;
         break;
     case 3:
-        w->size.x = 500.0f;
-        w->size.y = 4100.0f;
-        w->size.z = 500.0f;
+        w->Size_x = 500.0f;
+        w->Size_y = 4100.0f;
+        w->Size_z = 500.0f;
         break;
     case 5:
-        w->size.x = 600.0f;
-        w->size.y = 2400.0f;
-        w->size.z = 600.0f;
+        w->Size_x = 600.0f;
+        w->Size_y = 2400.0f;
+        w->Size_z = 600.0f;
         break;
     case 4:
-        w->size.x = 1650.0f;
-        w->size.y = 2250.0f;
-        w->size.z = 1400.0f;
+        w->Size_x = 1650.0f;
+        w->Size_y = 2250.0f;
+        w->Size_z = 1400.0f;
         break;
     }
     em->hp_max = em->hp = 1000;
@@ -125,20 +125,20 @@ cEmRack* SetRack(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcNo)
     {
         cAtariInfo* at = &em->atari;
 
-        at->init(0, 2, 0, 0.0f, w->size.y * 0.5f, 0.0f, w->size.x - 100.0f, w->size.z - 100.0f,
-                 w->size.z - 100.0f, w->size.y * 0.5f);
+        at->init(0, 2, 0, 0.0f, w->Size_y * 0.5f, 0.0f, w->Size_x - 100.0f, w->Size_z - 100.0f,
+                 w->Size_z - 100.0f, w->Size_y * 0.5f);
         at->setPriority(PRI_LV3);
         at->m_flag &= ~0x100;
     }
-    w->xEC = zero;
-    w->sat[2] = 0;
-    w->sat[1] = 0;
-    w->sat[0] = 0;
+    w->pSat = (cSat*) zero;
+    w->pEatTop = 0;
+    w->pEatCenter = 0;
+    w->pEatUnder = 0;
     emRackYarareInit(em);
-    w->xE8 = 0.0f;
+    w->Rack_hp = 0.0f;
     w->Be_flg = 0;
     if (em->type == 1) {
-        w->xE8 = 1.0f;
+        w->Rack_hp = 1.0f;
     }
     w->Etc_no = etcNo;
     flg = GetEtcFlgPtr(etcNo, pG->room_id);
@@ -167,7 +167,7 @@ cEmRack* SetRack(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcNo)
 // knife hits topples it toward the hit position (setDown).
 void emRackDmCk(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
     YARARE_INFO* part;
     u8 wep;
     int type;
@@ -196,7 +196,7 @@ void emRackDmCk(cEmRack* em)
         return;
     }
     em->dmg.m_Flag = 0;
-    if ((int) em->flag < 0) {
+    if (em->flag & 0x80000000) {
         return;
     }
     wep = em->dmg.m_Wep;
@@ -231,8 +231,8 @@ void emRackDmCk(cEmRack* em)
     case 2:
     case 3:
     case 5:
-        if (w->eff != 0xFF) {
-            EmDmBloodSet2(em, w->eff, 1, 0, 0, 0);
+        if (w->Eff_id != 0xFF) {
+            EmDmBloodSet2(em, w->Eff_id, 1, 0, 0, 0);
         }
         return;
     }
@@ -254,14 +254,14 @@ void emRackDmCk(cEmRack* em)
     case 0x27:
     case 0x28:
     case 0x2B:
-        if (w->eff != 0xFF) {
-            EmDmBloodSet2(em, w->eff, 1, 0, 0, 0);
+        if (w->Eff_id != 0xFF) {
+            EmDmBloodSet2(em, w->Eff_id, 1, 0, 0, 0);
         }
         break;
     case 7:
     case 8:
         if (part->rad < 36000000.0f) {
-            if (w->xE8 <= 0.0f) {
+            if (w->Rack_hp <= 0.0f) {
                 em->r_no_0 = 1;
                 em->r_no_1 = 2;
                 em->r_no_2 = 0;
@@ -271,8 +271,8 @@ void emRackDmCk(cEmRack* em)
             if (part->partsNo != 0) {
                 cModel* p;
 
-                if (w->eff != 0xFF) {
-                    EstSet((int) em, -1, 0, 0, w->eff, 6, 0, 0, (u32) em, 0);
+                if (w->Eff_id != 0xFF) {
+                    EstSet((int) em, -1, 0, 0, w->Eff_id, 6, 0, 0, (u32) em, 0);
                 }
                 SndCall(6, 0x36, &em->pos, 0, 0, em);
                 p = em->getPartsPtr(1);
@@ -282,10 +282,10 @@ void emRackDmCk(cEmRack* em)
                 part->flags &= ~1;
                 return;
             }
-            w->xE8 = 0.0f;
+            w->Rack_hp = 0.0f;
         }
-        if (w->eff != 0xFF) {
-            EmDmBloodSet2(em, w->eff, 2, 0, 0, 0);
+        if (w->Eff_id != 0xFF) {
+            EmDmBloodSet2(em, w->Eff_id, 2, 0, 0, 0);
         }
         break;
     case 5:
@@ -345,14 +345,14 @@ void emRack_R0_Move(cEmRack* em)
 // (5, or 7 for the tall shelf), then updates the matrices.
 void emRack_R1_Set(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
 
     if (MotionCheckCrossFrame((MotionWork*) &em->pMotion, 2.0f)) {
-        if (w->eff != 0xFF) {
+        if (w->Eff_id != 0xFF) {
             if (em->type == 1) {
-                EstSet((int) em, -1, 0, 0, w->eff, 7, 0, 0, (u32) em, 0);
+                EstSet((int) em, -1, 0, 0, w->Eff_id, 7, 0, 0, (u32) em, 0);
             } else {
-                EstSet((int) em, -1, 0, 0, w->eff, 5, 0, 0, (u32) em, 0);
+                EstSet((int) em, -1, 0, 0, w->Eff_id, 5, 0, 0, (u32) em, 0);
             }
         }
     }
@@ -363,13 +363,13 @@ void emRack_R1_Set(cEmRack* em)
 // until 72 degrees, then Rno1 2 Break with style 1.
 void emRack_R1_Down(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
     cModel* p;
     int done;
 
     switch (em->r_no_2) {
     case 0:
-        w->downSpd = 0.0f;
+        w->TmpF = 0.0f;
         em->hp = 0;
         em->r_no_2++;
     case 1:
@@ -378,31 +378,31 @@ void emRack_R1_Down(cEmRack* em)
         switch (em->r_no_3) {
         case 0:
         default:
-            p->ang.x += w->downSpd;
+            p->ang.x += w->TmpF;
             if (p->ang.x > 1.2566371f) {
                 done = 1;
             }
             break;
         case 1:
-            p->ang.x -= w->downSpd;
+            p->ang.x -= w->TmpF;
             if (p->ang.x < -1.2566371f) {
                 done = 1;
             }
             break;
         case 2:
-            p->ang.z += w->downSpd;
+            p->ang.z += w->TmpF;
             if (p->ang.z > 1.2566371f) {
                 done = 1;
             }
             break;
         case 3:
-            p->ang.z -= w->downSpd;
+            p->ang.z -= w->TmpF;
             if (p->ang.z < -1.2566371f) {
                 done = 1;
             }
             break;
         }
-        w->downSpd += 0.01f;
+        w->TmpF += 0.01f;
         if (done) {
             em->r_no_0 = 1;
             em->r_no_1 = 2;
@@ -423,7 +423,7 @@ void emRack_R1_Down(cEmRack* em)
 // script) with the crash SE, and disables the collision.
 void emRack_R1_Break(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
     u16* flg;
 
     if (em->r_no_2 == 0) {
@@ -435,25 +435,25 @@ void emRack_R1_Break(cEmRack* em)
         }
         switch (em->type) {
         default:
-            if (w->eff == 0xFF) {
+            if (w->Eff_id == 0xFF) {
                 break;
             }
             switch (em->r_no_3) {
             case 0:
             default:
-                EstSet((int) em, -1, 0, 0, w->eff, 3, 0, 0, (u32) em, 0);
+                EstSet((int) em, -1, 0, 0, w->Eff_id, 3, 0, 0, (u32) em, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 1:
-                EstSet((int) em, -1, 0, 0, w->eff, 5, 0, 0, (u32) em, 0);
+                EstSet((int) em, -1, 0, 0, w->Eff_id, 5, 0, 0, (u32) em, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 2:
-                EstSet((int) em, -1, 0, 0, w->eff, 0, 0, 0, (u32) em, 0);
+                EstSet((int) em, -1, 0, 0, w->Eff_id, 0, 0, 0, (u32) em, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 3:
-                EstSet((int) em, -1, 0, 0, w->eff, 4, 0, 0, (u32) em, 0);
+                EstSet((int) em, -1, 0, 0, w->Eff_id, 4, 0, 0, (u32) em, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 4:
@@ -461,31 +461,31 @@ void emRack_R1_Break(cEmRack* em)
             }
             break;
         case 4:
-            if (w->eff == 0xFF) {
+            if (w->Eff_id == 0xFF) {
                 break;
             }
             switch (em->r_no_3) {
             case 0:
             default:
-                EstSet(0, -1, &em->pos, &em->ang, w->eff, 3, 0, 0, 0, 0);
+                EstSet(0, -1, &em->pos, &em->ang, w->Eff_id, 3, 0, 0, 0, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 1:
-                EstSet(0, -1, &em->pos, &em->ang, w->eff, 5, 0, 0, 0, 0);
+                EstSet(0, -1, &em->pos, &em->ang, w->Eff_id, 5, 0, 0, 0, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 2:
-                EstSet(0, -1, &em->pos, &em->ang, w->eff, 0, 0, 0, 0, 0);
+                EstSet(0, -1, &em->pos, &em->ang, w->Eff_id, 0, 0, 0, 0, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 3:
-                EstSet(0, -1, &em->pos, &em->ang, w->eff, 4, 0, 0, 0, 0);
+                EstSet(0, -1, &em->pos, &em->ang, w->Eff_id, 4, 0, 0, 0, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             case 4:
                 break;
             case 5:
-                EstSet(0, -1, &em->pos, &em->ang, w->eff, 3, 0, 0, 0, 0);
+                EstSet(0, -1, &em->pos, &em->ang, w->Eff_id, 3, 0, 0, 0, 0);
                 SndCall(6, 0x33, &em->pos, 0, 0, em);
                 break;
             }
@@ -504,7 +504,7 @@ void emRack_R1_Break(cEmRack* em)
 // frames, then back to Set.
 void emRack_R1_Shock(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
     cModel* p;
 
     switch (em->r_no_2) {
@@ -545,7 +545,7 @@ void emRack_R1_Shock(cEmRack* em)
 // two more shelves at 1000 / 1500 height. Also enables the atari flag 0x200 (blocks the player).
 void emRackSatSet(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
     Vec v[4];
     f32 hx;
     f32 hz;
@@ -560,11 +560,11 @@ void emRackSatSet(cEmRack* em)
 
         at->m_flag |= 0x200;
     }
-    if (w->sat[0] != 0 && em->plDist2 > 225000000.0f) {
+    if (w->pEatUnder != 0 && em->plDist2 > 225000000.0f) {
         return;
     }
-    hx = w->size.x - 100.0f;
-    hz = w->size.z - 100.0f;
+    hx = w->Size_x - 100.0f;
+    hz = w->Size_z - 100.0f;
     v[0].x = -hx;
     v[0].y = 0.0f;
     v[0].z = -hz;
@@ -580,13 +580,13 @@ void emRackSatSet(cEmRack* em)
     if (em->type == 1) {
         h = 1000.0f;
     } else {
-        h = w->size.y;
+        h = w->Size_y;
     }
-    if (w->sat[0] == 0) {
-        w->sat[0] = EatMgr.create(&em->pos, &em->ang, v, 0x400000, 0, h);
+    if (w->pEatUnder == 0) {
+        w->pEatUnder = EatMgr.create(&em->pos, &em->ang, v, 0x400000, 0, h);
     } else {
-        w->sat[0]->m_Flag |= 4;
-        w->sat[0]->setCoord(&em->pos, &em->ang);
+        w->pEatUnder->m_Flag |= 4;
+        w->pEatUnder->setCoord(&em->pos, &em->ang);
     }
     if (em->type != 1) {
         return;
@@ -596,39 +596,39 @@ void emRackSatSet(cEmRack* em)
     v[2].y = 1000.0f;
     v[3].y = 1000.0f;
     h = 500.0f;
-    if (w->sat[1] == 0) {
-        w->sat[1] = EatMgr.create(&em->pos, &em->ang, v, 0x400000, 0, h);
+    if (w->pEatCenter == 0) {
+        w->pEatCenter = EatMgr.create(&em->pos, &em->ang, v, 0x400000, 0, h);
     } else {
-        w->sat[1]->m_Flag |= 4;
-        w->sat[1]->setCoord(&em->pos, &em->ang);
+        w->pEatCenter->m_Flag |= 4;
+        w->pEatCenter->setCoord(&em->pos, &em->ang);
     }
     v[0].y = 1500.0f;
     v[1].y = 1500.0f;
     v[2].y = 1500.0f;
     v[3].y = 1500.0f;
     h = 500.0f;
-    if (w->sat[2] == 0) {
-        w->sat[2] = EatMgr.create(&em->pos, &em->ang, v, 0x400000, 0, h);
+    if (w->pEatTop == 0) {
+        w->pEatTop = EatMgr.create(&em->pos, &em->ang, v, 0x400000, 0, h);
     } else {
-        w->sat[2]->m_Flag |= 4;
-        w->sat[2]->setCoord(&em->pos, &em->ang);
+        w->pEatTop->m_Flag |= 4;
+        w->pEatTop->setCoord(&em->pos, &em->ang);
     }
 }
 
 // Deactivates the rack's collision quads and the atari blocking flag.
 void emRackSatClear(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
 
     em->atari.clrFlag200();
-    if (w->sat[0]) {
-        w->sat[0]->m_Flag &= ~4;
+    if (w->pEatUnder) {
+        w->pEatUnder->m_Flag &= ~4;
     }
-    if (w->sat[1]) {
-        w->sat[1]->m_Flag &= ~4;
+    if (w->pEatCenter) {
+        w->pEatCenter->m_Flag &= ~4;
     }
-    if (w->sat[2]) {
-        w->sat[2]->m_Flag &= ~4;
+    if (w->pEatTop) {
+        w->pEatTop->m_Flag &= ~4;
     }
 }
 
@@ -636,29 +636,29 @@ void emRackSatClear(cEmRack* em)
 // cube (parts 2); pillars use flag 0x41 boxes.
 void emRackYarareInit(cEmRack* em)
 {
-    EmRackWork* w = EMRACK_WK(em);
+    FREE_EMRACK* w = EMRACK_WK(em);
 
     switch (em->type) {
     case 0:
     default:
-        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->size.x, w->size.y, w->size.z, 0, 1);
+        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->Size_x, w->Size_y, w->Size_z, 0, 1);
         break;
     case 1:
-        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->size.x, w->size.y, w->size.z, 0, 1);
-        YarareAddCube((cEmHit*) em, &w->hit[0].info, 0.0f, 1800.0f, 0.0f, 700.0f, 200.0f, 400.0f, 0, 1);
-        YarareAddCube((cEmHit*) em, &w->hit[1].info, -600.0f, 0.0f, 0.0f, 100.0f, w->size.y, 400.0f, 0, 1);
-        YarareAddCube((cEmHit*) em, &w->hit[2].info, 600.0f, 0.0f, 0.0f, 100.0f, w->size.y, 400.0f, 0, 1);
-        YarareAddCube((cEmHit*) em, &w->hit[3].info, 0.0f, 1000.0f, 0.0f, 500.0f, 800.0f, 450.0f, 2, 1);
+        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->Size_x, w->Size_y, w->Size_z, 0, 1);
+        YarareAddCube((cEmHit*) em, &w->YarareTbl[0], 0.0f, 1800.0f, 0.0f, 700.0f, 200.0f, 400.0f, 0, 1);
+        YarareAddCube((cEmHit*) em, &w->YarareTbl[1], -600.0f, 0.0f, 0.0f, 100.0f, w->Size_y, 400.0f, 0, 1);
+        YarareAddCube((cEmHit*) em, &w->YarareTbl[2], 600.0f, 0.0f, 0.0f, 100.0f, w->Size_y, 400.0f, 0, 1);
+        YarareAddCube((cEmHit*) em, &w->YarareTbl[3], 0.0f, 1000.0f, 0.0f, 500.0f, 800.0f, 450.0f, 2, 1);
         break;
     case 2:
-        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->size.x, w->size.y, w->size.z, 0, 0x41);
+        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->Size_x, w->Size_y, w->Size_z, 0, 0x41);
         break;
     case 3:
     case 5:
-        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->size.x, w->size.y, w->size.z, 0, 0x41);
+        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->Size_x, w->Size_y, w->Size_z, 0, 0x41);
         break;
     case 4:
-        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->size.x, w->size.y, w->size.z, 0, 0x41);
+        YarareInitCube((cEmHit*) em, 0.0f, 0.0f, 0.0f, w->Size_x, w->Size_y, w->Size_z, 0, 0x41);
         break;
     }
 }
@@ -727,9 +727,9 @@ void cEmRack::setShock()
 // Est id used for the hit / break / dust effects.
 void cEmRack::setEff(u8 eff)
 {
-    EmRackWork* w = EMRACK_WK(this);
+    FREE_EMRACK* w = EMRACK_WK(this);
 
-    w->eff = eff;
+    w->Eff_id = eff;
 }
 
 // Defines how far the rack may be pushed from its start position in its local north / east /

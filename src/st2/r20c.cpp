@@ -146,7 +146,7 @@ void R20cInit()
         }
     }
     R20cExecShootInit();
-    if (checkEmListNo(pG->room_id) == 3 && !(pG->Status_flg[3] & 0x04000000)) {
+    if (checkEmListNo(pG->room_id) == 3 && !StaFlagChk(pG, STA_SUB_ASHLEY)) {
         EmReadSearch((u8) GetEmIdFromListI(0xCB), 0, 0);
     }
     obj = SmdGetObjPtr(6);
@@ -166,7 +166,7 @@ void R20cInit()
             R20cExecCageDown(0);
             SndBgmTblSet(0x20C, 2);
             SceExec(0x12, (TaskFunc) SceBgmCheck, 0, 0, SCE_PRIO_DEF_2, 0);
-            if (checkEmListNo(pG->room_id) == 3 && !(pG->Status_flg[3] & 0x04000000)) {
+            if (checkEmListNo(pG->room_id) == 3 && !StaFlagChk(pG, STA_SUB_ASHLEY)) {
                 SceExec(0x12, (TaskFunc) R20cEmSetMain, 0, 0, SCE_PRIO_DEF_2, 0);
             }
         } else {
@@ -250,7 +250,7 @@ void R20cExecCageDown(int lock)
     cEm* door0;
     cEm* door1;
 
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         return;
     }
     pG->Room_flg[0] |= 0x80000000;

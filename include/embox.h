@@ -28,11 +28,12 @@ struct EmBoxWork {
     u8 Etc_no;             // 0x245 (0x625)  etc flag index (broken flag)
 };
 
-#define EMBOX_WK(em) ((EmBoxWork*) &(em)->x3E0)
+#define EMBOX_WK(em) ((EmBoxWork*) (((cEmBox*) (em))->free))
 
 // Box enemy: breakable boxes, barrels, vases and cabinets (types 0..7) that drop an item.
 class cEmBox : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMBOX_WK)
     virtual void move();
 
     void setEff(u8 eff);

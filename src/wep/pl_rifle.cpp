@@ -44,10 +44,10 @@ static inline void PlRoutineSet(cPlayer* pl, int r0, int r1, int r2, int r3)
 // Scope camera on: the thermal light set for the infrared scope (weapon type 2 / weapon 0x1D).
 static inline void scopeOn(cPlayer* pl)
 {
-    BitOn(pl->flags_420, 0x10);
+    BitOn(pl->stat, 0x10);
     if (pG->weapon_type == 2 || pG->weapon_no == 0x1D) {
-        pG->Status_flg[1] |= 0x04000000;
-        pl->flags_420 |= 0x200;
+        StaFlagOn(pG, STA_THERMO_GRAPH);
+        pl->stat |= 0x200;
         LightMgr.setThermo();
     }
 }
@@ -85,7 +85,7 @@ void PlRifleMove(cPlayer* pl)
 }
 
 // r_no_2 == 0: the ready (draw) state. Aim key released -> footwork (r_no_1 0, or 0x11 crouch with
-// flags_420 bit6); else the shoulder camera aims at the locked enemy or the forward scenery hit,
+// stat bit6); else the shoulder camera aims at the locked enemy or the forward scenery hit,
 // and the reload key with rounds left starts the reload (weapon display type 1 on, m_Work0 = 1).
 static void wep09_r2_ready(cPlayer* pl)
 {
@@ -96,7 +96,7 @@ static void wep09_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -108,8 +108,8 @@ static void wep09_r2_ready(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else {
-        if (pl->pLockEm) {
-            CamCtrlShoulderSetAim(&pl->pLockEm->pos);
+        if (pl->m_pEm) {
+            CamCtrlShoulderSetAim(&pl->m_pEm->pos);
         } else {
             Vec aim = {0.0f, 1000.0f, 10000.0f};
             Vec hit;
@@ -167,7 +167,7 @@ static void wep09_r3_ready10(cPlayer* pl)
 
 // r_no_2 == 1: the set state = looking through the scope. No laser sight; the bolt SE 2/9 once at
 // frame 2 (m_Work1), the fire delay m_Work4 counts down. Aim key released -> down (r_no_2 3, or
-// crouch 0x11) with the scope direction stored in evTarget (wepDown restores the body pitch from
+// crouch 0x11) with the scope direction stored in m_VecWork0 (wepDown restores the body pitch from
 // it); fire held after the delay with rounds -> fire; trigger on an empty rifle -> reload or the
 // empty-click SE 2/3; reload key -> reload (m_Work0 = 1: manual).
 static void wep09_r2_set(cPlayer* pl)
@@ -190,7 +190,7 @@ static void wep09_r2_set(cPlayer* pl)
     if (joyKamae() == 0) {
         Vec at;
 
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -201,8 +201,8 @@ static void wep09_r2_set(cPlayer* pl)
             PlRoutineSet(pl, 0, 6, md, 0);
         }
         pl->m_Work0 = 0;
-        CamCtrl.getTrajectory(&pl->evTarget, &at);
-        PSVECSubtract(&at, &pl->evTarget, &pl->evTarget);
+        CamCtrl.getTrajectory(&pl->m_VecWork0, &at);
+        PSVECSubtract(&at, &pl->m_VecWork0, &pl->m_VecWork0);
     } else if (joyFireOn() && pl->m_Work4 == 0 && pl->Wep->m_pWep->bulletNum()) {
         PlRoutineSet(pl, 0, 6, 2, 0);
     } else if (joyFireTrg() && pl->Wep->m_pWep->bulletNum() == 0) {
@@ -226,7 +226,7 @@ static void wep09_r2_set(cPlayer* pl)
     }
 }
 
-// set step 0: switch the camera to the scope (flags_420 bit4, thermal light set for the infrared
+// set step 0: switch the camera to the scope (stat bit4, thermal light set for the infrared
 // scope) and hold the scope idle motion 0x15; step 1.
 static void wep09_r3_set00(cPlayer* pl)
 {
@@ -271,7 +271,7 @@ static void wep09_r2_fire(cPlayer* pl)
 // trajectory (extended to 200 m for the semi-auto) -> PlWepHitCheck2; the bolt-action plays the
 // shot SE 2/0 itself, the semi-auto's weapon object goes to mode 2 (recoil). Controller vibration
 // from the player archive, weapon display type 1 off (the scope glass), the scope direction is
-// kept in evTarget. Then step 1.
+// kept in m_VecWork0. Then step 1.
 static void wep09_r3_fire00(cPlayer* pl)
 {
     Vec from;
@@ -304,8 +304,8 @@ static void wep09_r3_fire00(cPlayer* pl)
         obj->wep.step = 0;
     }
     pl->Wep->m_pWep->setDisp(1, 0);
-    CamCtrl.getTrajectory(&pl->evTarget, &dir);
-    PSVECSubtract(&dir, &pl->evTarget, &pl->evTarget);
+    CamCtrl.getTrajectory(&pl->m_VecWork0, &dir);
+    PSVECSubtract(&dir, &pl->m_VecWork0, &pl->m_VecWork0);
     pl->r_no_3 = 1;
 }
 
@@ -358,7 +358,7 @@ static void wep09_r3_fire20(cPlayer* pl)
 static void wep09_r3_fire30(cPlayer* pl)
 {
     if (joyKamae() == 0 && pl->frame >= 25.0f) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -380,7 +380,7 @@ static void wep09_r3_fire30(cPlayer* pl)
             CameraMove();
             scopeOn(pl);
             PlRoutineSet(pl, 0, 6, 1, 0);
-        } else if (pl->flags_420 & 0x40) {
+        } else if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -399,16 +399,16 @@ static void wep09_r3_fire30(cPlayer* pl)
 }
 
 // r_no_2 == 3: the down (holster) state, one frame. Ends the scope camera, seeds the mot3 pitch
-// from the elevation of the stored scope direction evTarget, shows the scope glass, then the
+// from the elevation of the stored scope direction m_VecWork0, shows the scope glass, then the
 // holster motion when one may be set: the semi-auto's 0x16, the bolt-action's pitched 0x16/0x19/
 // 0x1A from the scope (m_Work0 == 0) or 0x1C after a bolt cycle / reload (the weapon object gets
-// its stay motion 0x24 and mode 0). Leaves to footwork sub-routine 2 (or the idle with x4FD = 0xF).
+// its stay motion 0x24 and mode 0). Leaves to footwork sub-routine 2 (or the idle with m_Hokan = 0xF).
 static void wepDown(cPlayer* pl)
 {
     f32 e;
 
     pl->endCamera();
-    e = VecElevation(&pl->evTarget);
+    e = VecElevation(&pl->m_VecWork0);
     m3r[0] = e;
     m3r[1] = e;
     m3r[2] = 0.0f;
@@ -436,11 +436,11 @@ static void wepDown(cPlayer* pl)
         PlRoutineSet(pl, 0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
 }
@@ -481,7 +481,7 @@ static void wep09_r2_reload(cPlayer* pl)
     }
     case 1:
         if (joyKamae() == 0 && pl->Motion.Mot_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
-            if (pl->flags_420 & 0x40) {
+            if (pl->stat & 0x40) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -507,12 +507,12 @@ static void wep09_r2_reload(cPlayer* pl)
 }
 
 // r_no_2 == 5: the next-target state (entered by the lock control on Key.trg bit5): turns the
-// player towards the locked enemy pLockEm (0.314 rad per frame, when farther than 200 units) for
+// player towards the locked enemy m_pEm (0.314 rad per frame, when farther than 200 units) for
 // 10 frames (m_Work0), then back to the scope. Another press cycles lockNext(): a new target
 // restarts the state, none returns to the set state; aim released -> set state (or crouch 0x11).
 static void wep09_r2_next(cPlayer* pl)
 {
-    cModel* em = pl->pLockEm;
+    cModel* em = pl->m_pEm;
 
     switch (pl->r_no_3) {
     case 0:
@@ -538,7 +538,7 @@ static void wep09_r2_next(cPlayer* pl)
         }
     } else {
         if (joyKamae() == 0) {
-            if (pl->flags_420 & 0x40) {
+            if (pl->stat & 0x40) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;

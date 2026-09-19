@@ -548,8 +548,8 @@ void ErrorHandler(OSError error, OSContext* context, ...)
     dar = va_arg(ap, u32);
     PPCMtmsr(0xB032);
     OSEnableScheduler();
-    BitOn(pG->System_flg, 0x20000000);
-    BitOff(pG->System_flg, 0x400);
+    SysFlagOn(pG, SYS_EXCEPTION);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     w = &test;
     n = 0;
     memclr_asm(w, sizeof(MemDump));

@@ -104,10 +104,11 @@ struct Em39Work {
     u8 EffKindIdArrow;          // 0x8C7 (0xCA7)
 };
 
-#define EM39_WK(em) ((Em39Work*) &(em)->x3E0)
+#define EM39_WK(em) ((Em39Work*) (((cEm39*) (em))->free))
 
 class cEm39 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM39_WK)
     virtual ~cEm39();
     virtual void move();
     virtual void setNoSuspend(int on);

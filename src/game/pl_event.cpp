@@ -1,6 +1,6 @@
 // game/pl_event: the player's event routine (routine 0 == 5, Pl_R0_Event): the scenario / event
 // system owns the player — Normal plays a set motion (m_Flag 0x100 returns control when it ends),
-// ToWalk turns and walks to evTarget, Smooth changes motion with a footwork. Entered / left through
+// ToWalk turns and walks to m_VecWork0, Smooth changes motion with a footwork. Entered / left through
 // cPlayer::beginAction / endEvent0 (pl_class).
 
 #include "player.h"
@@ -8,7 +8,7 @@
 #include "math_sub.h"
 
 // Routine 0 == 5 (event control): the scenario / event drives the player; r_no_1 picks Normal
-// (play a motion), ToWalk (walk to evTarget), Smooth (motion change with footwork).
+// (play a motion), ToWalk (walk to m_VecWork0), Smooth (motion change with footwork).
 void Pl_R0_Event(cPlayer* pl)
 {
     static void (*funcTbl[])(cPlayer*) = {
@@ -38,8 +38,8 @@ void pl_R1_Event_Normal(cPlayer* pl)
     }
 }
 
-// Event sub-routine 1: turns toward evTarget (turn motion when more than 60 degrees off, m_Fwork0
-// = turn speed per frame), walks (pMotTbl[2]) until within 100 units, then stands (pMotTbl[0])
+// Event sub-routine 1: turns toward m_VecWork0 (turn motion when more than 60 degrees off, m_Fwork0
+// = turn speed per frame), walks (m_MotTbl[2]) until within 100 units, then stands (m_MotTbl[0])
 // and sets m_Work0 = 1 for the event script to see.
 void pl_R1_Event_ToWalk(cPlayer* pl)
 {
@@ -47,27 +47,27 @@ void pl_R1_Event_ToWalk(cPlayer* pl)
 
     switch (pl->r_no_2) {
     case 0:
-        ang = Muku(&pl->pos, &pl->evTarget, pl->ang.y, PI * 2.0f);
+        ang = Muku(&pl->pos, &pl->m_VecWork0, pl->ang.y, PI * 2.0f);
         if (fabsf(ang) > PI / 3.0f) {
-            pl->motionSet(pl->pMotTbl[2], 5, 0, 4, 0);
+            pl->motionSet(pl->m_MotTbl[2], 5, 0, 4, 0);
             pl->r_no_2 = 1;
             break;
         }
         goto set_walk;
     case 1:
-        ang = Muku(&pl->pos, &pl->evTarget, pl->ang.y, pl->m_Fwork0);
+        ang = Muku(&pl->pos, &pl->m_VecWork0, pl->ang.y, pl->m_Fwork0);
         pl->ang.y += ang;
         if (fabsf(ang) < pl->m_Fwork0 * 0.5f) {
         set_walk:
-            pl->motionSet(pl->pMotTbl[2], 5, 0, 5, 0);
+            pl->motionSet(pl->m_MotTbl[2], 5, 0, 5, 0);
             pl->r_no_2 = 2;
         }
         break;
     case 2:
-        ang = Muku(&pl->pos, &pl->evTarget, pl->ang.y, pl->m_Fwork0);
+        ang = Muku(&pl->pos, &pl->m_VecWork0, pl->ang.y, pl->m_Fwork0);
         pl->ang.y += ang;
-        if (GetDistance(&pl->pos, &pl->evTarget) < 10000.0f) {
-            pl->motionSet(pl->pMotTbl[0], 5, 0, 1, 0);
+        if (GetDistance(&pl->pos, &pl->m_VecWork0) < 10000.0f) {
+            pl->motionSet(pl->m_MotTbl[0], 5, 0, 1, 0);
             pl->m_Work0 = 1;
             pl->r_no_2 = 3;
         }

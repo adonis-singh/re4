@@ -507,7 +507,7 @@ extern "C" void DB_EventCamLoad()
 extern "C" void DB_EventCamStart()
 {
     if (db_camMotion) {
-        BitOff(pG->Debug_flg[0], 0x10000000);
+        DbgFlagOff(pG, DBG_DBG_CAM);
         CamCtrl.MotionSet(db_camMotion, 0, 0.0f);
         CameraMove();
     }
@@ -517,10 +517,10 @@ extern "C" void DB_EventCamStart()
 extern "C" void DB_RoomCamStart(int cut)
 {
     db_camCut = cut;
-    BitOff(pG->Debug_flg[0], 0x10000000);
+    DbgFlagOff(pG, DBG_DBG_CAM);
     CamCtrl.CutCall((s8) cut);
     CameraMove();
-    BitOff(pG->Stop_flg, 0x1000000);
+    SpfFlagOff(pG, SPF_LIGHT);
     db_roomCam = 1;
 }
 
@@ -634,13 +634,13 @@ extern "C" void DB_WorkPush(int flags, int emArray)
     db_emArray = emArray != 0;
     db_workPushed = 1;
     EffectDeleteAll();
-    BitOff(pG->Debug_flg[0], 0x10000);
+    DbgFlagOff(pG, DBG_ESPTOOL_ONSCR);
     ToolArrayPush(flags);
     ToolEmArraySet(emArray);
     if (emArray) {
-        pG->Debug_flg[0] |= 0x40;
+        DbgFlagOn(pG, DBG_ESPTOOL_ONEM);
     } else {
-        pG->Debug_flg[0] &= ~0x40;
+        DbgFlagOff(pG, DBG_ESPTOOL_ONEM);
     }
     CamDbg.m_target_type = 0;
 }
@@ -655,14 +655,14 @@ extern "C" void DB_WorkPop(int flags, int emArray)
     db_workPushed = 0;
     CamDbg.m_target_type = 4;
     EffectDeleteAll();
-    BitOn(pG->Debug_flg[0], 0x10000);
+    DbgFlagOn(pG, DBG_ESPTOOL_ONSCR);
     ToolWorkPop(flags);
     Block.dispAllBlock(1);
     ToolEmArraySet(emArray);
     if (emArray) {
-        pG->Debug_flg[0] |= 0x40;
+        DbgFlagOn(pG, DBG_ESPTOOL_ONEM);
     } else {
-        pG->Debug_flg[0] &= ~0x40;
+        DbgFlagOff(pG, DBG_ESPTOOL_ONEM);
     }
 }
 
@@ -760,17 +760,17 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
     db_effLoaded = 0;
     db_nearClip = 0;
     db_workPushed = 0;
-    BitOn(pG->Debug_flg[1], 0x800000);
+    DbgFlagOn(pG, DBG_IN_ESP_TOOL);
     pLog->clear();
     pLog->modeSet(0x68, 0xE, 0x3C, 8);
     TaskSleep(1);
     TutilInitDefault();
     pG->debug_mode = 0xD;
-    BitOff(pG->Status_flg[0], 0x1000000);
-    BitOff(pG->Status_flg[1], 0x10000000);
-    BitOn(pG->Stop_flg, 0x1000000);
-    BitOff(pG->Disp_flg, 0x1000000);
-    BitOff(pG->Stop_flg, 0x40000);
+    StaFlagOff(pG, STA_CINESCO);
+    StaFlagOff(pG, STA_SUSPEND);
+    SpfFlagOn(pG, SPF_LIGHT);
+    DpfFlagOff(pG, DPF_WATER);
+    SpfFlagOff(pG, SPF_WATER);
     db_fcvData = 0;
     db_emArray = one;
     db_fog = one;
@@ -782,12 +782,12 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
     db_cinesco = 0;
     db_workPushed = 0;
     DB_WorkPush(1, 1);
-    BitOn(pG->Debug_flg[0], 0x40000);
-    BitOn(pG->Debug_flg[0], 0x20000000);
-    BitOn(pG->Stop_flg, 0x10000000);
-    BitOn(pG->Disp_flg, 0x2000000);
-    BitOn(pG->Stop_flg, 0x800000);
-    BitOn(pG->Debug_flg[0], 0x10000000);
+    DbgFlagOn(pG, DBG_GROUND_DISP);
+    DbgFlagOn(pG, DBG_BACK_CLIP);
+    SpfFlagOn(pG, SPF_PL);
+    DpfFlagOn(pG, DPF_SHADOW);
+    SpfFlagOn(pG, SPF_SCE);
+    DbgFlagOn(pG, DBG_DBG_CAM);
     LightToolStart();
     LoadModelInit();
     SetLoopFlag(0, 0);
@@ -804,9 +804,9 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
         cModel** list;
 
         EvtDebug.FlagEtc = (EvtDebug.FlagEtc & 0x7FFFFFFF) | 0x40000000;
-        BitOn(pG->Status_flg[1], 0x10000000);
-        BitOn(pG->Status_flg[2], 0x80000);
-        BitOn(pG->Status_flg[2], 0x10000);
+        StaFlagOn(pG, STA_SUSPEND);
+        StaFlagOn(pG, STA_EVENT_SYSYTEM);
+        StaFlagOn(pG, STA_EFFAREA_USE_CAM);
         list = EspEvModList;
         for (room = 0; room < 0x80; room++) {
             list[room] = 0;
@@ -840,7 +840,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
             db_litData = 0;
         }
         LightMgr.beginEvent();
-        BitOff(pG->Stop_flg, 0x1000000);
+        SpfFlagOff(pG, SPF_LIGHT);
         LightMgr.roomLitSet((cLit*) db_litData);
         LightMgr.update(0, -1);
         nLit = LightMgr.nArray;
@@ -1176,13 +1176,13 @@ extern "C" void EspToolExit()
     volatile debugCamera* dbg = &CamDbg;
     GXColor col;
 
-    BitOff(pG->Debug_flg[0], 0x40000);
-    BitOff(pG->Stop_flg, 0x10000000);
-    BitOff(pG->Stop_flg, 0x20000000);
-    BitOff(pG->Disp_flg, 0x2000000);
-    BitOff(pG->Stop_flg, 0x800000);
-    BitOff(pG->Stop_flg, 0x1000000);
-    BitOff(pG->Debug_flg[0], 0x10000000);
+    DbgFlagOff(pG, DBG_GROUND_DISP);
+    SpfFlagOff(pG, SPF_PL);
+    SpfFlagOff(pG, SPF_EM);
+    DpfFlagOff(pG, DPF_SHADOW);
+    SpfFlagOff(pG, SPF_SCE);
+    SpfFlagOff(pG, SPF_LIGHT);
+    DbgFlagOff(pG, DBG_DBG_CAM);
     *(u32*) &col = 0;
     dbg->m_target_type = 0;
     bio4_GXSetCopyClear(col, 0xFFFFFF);
@@ -1191,9 +1191,9 @@ extern "C" void EspToolExit()
     Block.dispAllBlock(0);
     if (evtToolOn()) {
         DbMenuSetExecTool("EVENT TOOL");
-        BitOff(pG->Status_flg[1], 0x10000000);
-        BitOff(pG->Status_flg[2], 0x80000);
-        BitOff(pG->Status_flg[2], 0x10000);
+        StaFlagOff(pG, STA_SUSPEND);
+        StaFlagOff(pG, STA_EVENT_SYSYTEM);
+        StaFlagOff(pG, STA_EFFAREA_USE_CAM);
         LightMgr.endEvent();
         LightMgr.roomLitSet(0);
         LightMgr.update(0, -1);
@@ -1202,7 +1202,7 @@ extern "C" void EspToolExit()
         EspDataRelease(db_effOwner, 1, 1);
     }
     CamCtrl.Comeback(0);
-    BitOff(pG->Debug_flg[1], 0x800000);
+    DbgFlagOff(pG, DBG_IN_ESP_TOOL);
     TutilQuitDefault();
     TaskExit();
 }
@@ -1232,9 +1232,9 @@ extern "C" void DB_SetBgColor(u8 r, u8 g, u8 b, u8 a)
 extern "C" void DB_DrawGrid(int on)
 {
     if (on) {
-        pG->Debug_flg[0] |= 0x40000;
+        DbgFlagOn(pG, DBG_GROUND_DISP);
     } else {
-        pG->Debug_flg[0] &= ~0x40000;
+        DbgFlagOff(pG, DBG_GROUND_DISP);
     }
 }
 
@@ -1271,19 +1271,19 @@ extern "C" void DB_SetMotionCam(int on)
 // camera, the face fcv), and applies the selected texture render manager's blend table.
 extern "C" void EspToolUpdate(DbToolWk* wk, int texNo)
 {
-    BitOn(pG->Stop_flg, 0x10000000);
+    SpfFlagOn(pG, SPF_PL);
     if (db_emArray == 0) {
-        BitOn(pG->Stop_flg, 0x20000000);
+        SpfFlagOn(pG, SPF_EM);
     }
     if (db_fog) {
-        pG->Disp_flg &= ~0x4000;
+        DpfFlagOff(pG, DPF_FOG);
     } else {
-        pG->Disp_flg |= 0x4000;
+        DpfFlagOn(pG, DPF_FOG);
     }
     if (db_cinesco) {
-        pG->Status_flg[0] |= 0x1000000;
+        StaFlagOn(pG, STA_CINESCO);
     } else {
-        pG->Status_flg[0] &= ~0x1000000;
+        StaFlagOff(pG, STA_CINESCO);
     }
     LightMgr.setFog();
     if (db_motionOn) {
@@ -1292,10 +1292,10 @@ extern "C" void EspToolUpdate(DbToolWk* wk, int texNo)
     }
     if (DB_isGetComeEventTool() == 0 && db_roomCam == 0) {
         if (db_motionCam) {
-            BitOff(pG->Debug_flg[0], 0x10000000);
+            DbgFlagOff(pG, DBG_DBG_CAM);
             CameraMove();
         } else {
-            BitOn(pG->Debug_flg[0], 0x10000000);
+            DbgFlagOn(pG, DBG_DBG_CAM);
         }
     }
     if (wk->motionReq) {

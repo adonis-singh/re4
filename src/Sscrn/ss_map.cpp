@@ -369,36 +369,36 @@ static inline u32 flagBit(u32 tbl, u32 no)
 {
     return *(u32*) ((no >> 5) * 4 + tbl) & (0x80000000 >> (no & 0x1F));
 }
-// Stage progress flag bit `no` (the Item_find_flg word run in pG).
+// Stage progress flag bit `no` (the Scenario_flg[0] word run in pG).
 static inline u32 stageFlag(u32 no)
 {
-    return flagBit((u32) &pG->Item_find_flg, no);
+    return flagBit((u32) &pG->Scenario_flg[0], no);
 }
-// Door unlock flag bit `no` (pG->door_unlock).
+// Door unlock flag bit `no` (pG->Key_flg).
 static inline u32 doorFlag(u32 no)
 {
-    return flagBit((u32) pG->door_unlock, no);
+    return flagBit((u32) pG->Key_flg, no);
 }
-// Item taken flag bit `no` (pG->item_flags).
+// Item taken flag bit `no` (pG->Item_flg).
 static inline u32 itemFlag(u32 no)
 {
-    return flagBit((u32) pG->item_flags, no);
+    return flagBit((u32) pG->Item_flg, no);
 }
 
 // Map stage of the current progress: 4 the island (stage_no 4), 3 / 2 by the Scenario_flg chapter
-// bits (castle / village-end), 1 the village once Item_find_flg bit 2 is set, else 0 (prologue).
+// bits (castle / village-end), 1 the village once Scenario_flg[0] bit 2 is set, else 0 (prologue).
 int getStageNo()
 {
     if (pG->stage_no == 4) {
         return 4;
     }
-    if (pG->Scenario_flg[0] & 0x00010000) {
+    if (ScfFlagChk(pG, SCF_ST3_IN)) {
         return 3;
     }
-    if (pG->Scenario_flg[0] & 0x00800000) {
+    if (ScfFlagChk(pG, SCF_ST2_IN)) {
         return 2;
     }
-    if (pG->Item_find_flg & 4) {
+    if (ScfFlagChk(pG, SCF_ST1_MAP_DAY)) {
         return 1;
     }
     return 0;
@@ -2521,13 +2521,13 @@ void SsMapMain::init(SUB_SCREEN* wk)
     IdSub.unitPtr(1, 0x1D)->be_flag &= ~8;
     IdSub.unitPtr(0, 0x1D)->be_flag &= ~8;
     IdSub.unitPtr(2, 0x1D)->be_flag &= ~8;
-    if (!(pG->Scenario_flg[0] & 0x20000000)) {
+    if (!ScfFlagChk(pG, SCF_R104_MEET_MERCHANT)) {
         IdSub.unitPtr(0x12, 0x1D)->be_flag &= ~8;
     }
     if (!ItemMgr.search(0xA9)) {
         IdSub.unitPtr(0x14, 0x1D)->be_flag &= ~8;
     }
-    if (ItemMgr.num(0xB0) == 0 && !(pG->Scenario_flg[0] & 0x00400000)) {
+    if (ItemMgr.num(0xB0) == 0 && !ScfFlagChk(pG, SCF_CONTACT_MERCHANT)) {
         IdSub.unitPtr(0x13, 0x1D)->be_flag &= ~8;
     }
     sscrnMainMenuInit(wk, 0);
@@ -2549,7 +2549,7 @@ int scf_check_merchant()
     SsMapWork* m = SubScreenWk.pMapWk;
 
     if (m->area == 1) {
-        if (pG->Scenario_flg[0] & 0x20000000) {
+        if (ScfFlagChk(pG, SCF_R104_MEET_MERCHANT)) {
             return 1;
         }
         return 0;
@@ -2597,7 +2597,7 @@ int scf_check_submission()
     SsMapWork* m = SubScreenWk.pMapWk;
 
     if (m->area == 1) {
-        if (ItemMgr.num(0xB0) != 0 || (pG->Scenario_flg[0] & 0x00400000)) {
+        if (ItemMgr.num(0xB0) != 0 || (ScfFlagChk(pG, SCF_CONTACT_MERCHANT))) {
             return 1;
         }
         return 0;
@@ -2903,7 +2903,7 @@ void MapModeSelect::init(SUB_SCREEN* wk)
     u->timer[2] = 0;
     u->timer[1] = 0;
     u->timer[0] = 0;
-    if (pGS->Scenario_flg[0] & 0x20000000) {
+    if (ScfFlagChk(pGS, SCF_R104_MEET_MERCHANT)) {
         u = IdSub.unitPtr(0x61, 0x10);
         u->be_flag &= ~8;
     }
@@ -2911,7 +2911,7 @@ void MapModeSelect::init(SUB_SCREEN* wk)
         u = IdSub.unitPtr(0x62, 0x10);
         u->be_flag &= ~8;
     }
-    if (ItemMgr.num(0xB0) || (pG->Scenario_flg[0] & 0x00400000)) {
+    if (ItemMgr.num(0xB0) || (ScfFlagChk(pG, SCF_CONTACT_MERCHANT))) {
         u = IdSub.unitPtr(0x63, 0x10);
         u->be_flag &= ~8;
     }
@@ -2975,12 +2975,12 @@ void MapModeSelect::move(SUB_SCREEN* wk)
     if (Key.trg & 0x80000000) {
         switch (m->modeCursor) {
         case 1:
-            if (!(pG->Scenario_flg[0] & 0x20000000)) {
+            if (!ScfFlagChk(pG, SCF_R104_MEET_MERCHANT)) {
                 return;
             }
             break;
         case 3:
-            if (ItemMgr.num(0xB0) == 0 && !(pG->Scenario_flg[0] & 0x00400000)) {
+            if (ItemMgr.num(0xB0) == 0 && !ScfFlagChk(pG, SCF_CONTACT_MERCHANT)) {
                 return;
             }
             break;

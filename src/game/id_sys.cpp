@@ -324,7 +324,7 @@ void IDSystem::set(void* data, u8 id, u8 type, u8 ot, u8 prio, u8 mode)
                         u->curve[3] = 0;
                     }
                     c = 0;
-                    if ((s32) pG->Debug_flg[0] >= 0) {
+                    if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                         u->be_flag |= 0xD;
                     }
                     u->be_flag |= 0x2;
@@ -432,7 +432,7 @@ void IDSystem::set(void* data, u8 id, u8 type, u8 ot, u8 prio, u8 mode)
                         u->curve[3] = 0;
                     }
                     c = 0;
-                    if ((s32) pG->Debug_flg[0] >= 0) {
+                    if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                         u->be_flag |= 0xD;
                     }
                     u->be_flag |= 0x2;
@@ -549,7 +549,7 @@ void IDSystem::move()
     int lv;
     int i;
 
-    if (pG->Stop_flg & 0x40) {
+    if (SpfFlagChk(pG, SPF_ID_SYSTEM)) {
         return;
     }
     Vec v = { 0.0f, 0.0f, 1.0f };
@@ -1022,15 +1022,15 @@ void IDSystem::trans()
     int i;
     IdUnit* u;
 
-    if (pG->Disp_flg & 0x2000) {
+    if (DpfFlagChk(pG, DPF_ID_SYSTEM)) {
         return;
     }
-    if ((s32) pG->Debug_flg[1] < 0) {
+    if (DbgFlagChk(pG, DBG_COCKPIT_TOOL)) {
         return;
     }
     u = pUnit;
     for (i = 0; i < m_maxId; i++, u++) {
-        if ((pG->Disp_flg & 0x10000) && u->otType == 0x13) {
+        if (DpfFlagChk(pG, DPF_COCKPIT) && u->otType == 0x13) {
             continue;
         }
         if (IdBitGet(m_disp_off, u->classNo)) {
@@ -1505,7 +1505,7 @@ void IdDebugFreeBuffer()
 // otherwise draw temp buffer 0xF.
 void* IdGetBufferAddr(int type)
 {
-    if ((pG->Debug_flg[1] & 0x100000) || (pG->Status_flg[0] & 0x40000) || (pG->Status_flg[2] & 0x8000)) {
+    if (DbgFlagChk(pG, DBG_ID_TOOL) || (StaFlagChk(pG, STA_SUB_SCRN)) || (StaFlagChk(pG, STA_TITLE))) {
         IdSetBufferType(type);
         return g_pIdBuff;
     }

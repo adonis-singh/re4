@@ -135,17 +135,17 @@ static inline u32 U32GetOfs(void* base, int ofs) { return *(u32*) ((u8*) base + 
 const Vec vecZero = {0.0f, 0.0f, 0.0f};
 
 GlobalWork Global;
-SystemSaveWork SystemSave;
+SYSTEM_SAVE_WORK SystemSave;
 JOY Joy[4];
 KeyWork Key;
 u32 MainOt[5];
 ScreenInfo Screen;
 
 GlobalWork* pG = &Global;
-SystemWork* pSys = (SystemWork*) &SystemSave;
+SYSTEM_SAVE_WORK* pSys = &SystemSave;
 int vsync_cnt = 0;
 
-RK* pRK;
+RESET_KEEP_WORK* pRK;
 char* pUser_name;
 void* roomInfoAddr;
 s8 system_vcnt;
@@ -168,33 +168,33 @@ int main()
 RESTART:
     {
         systemRestartInit();
-        if (pRK->valid) {
-            U32Set(pSys->flags, pRK->sys_flags);
+        if (pRK->reset_flag) {
+            U32Set(pSys->Config_flg, pRK->Config_flg);
             U8Set(pSys->language, pRK->language);
-            U8Set(pSys->region, pRK->region);
-            U8Set(pG->language, pRK->game_language);
-            U32Set(pSys->unlock_flg, pRK->sys_unlock_flg);
+            U8Set(pSys->eff_country, pRK->eff_country);
+            U8Set(pG->language, pRK->game_country);
+            U32Set(pSys->Extra_flg, pRK->Extra_flg);
             for (i = 0; i < 16; i += 4) {
-                U32SetOfs(pSys->merc_stage, i, U32GetOfs(pRK->sys_merc_stage, i));
+                U32SetOfs(pSys->MercSysRoom, i, U32GetOfs(pRK->MercSysRoom, i));
             }
             for (j = 0; j < 2; j++) {
-                U32SetOfs(pSys->merc_rank, j * 4, pRK->sys_merc_rank[j]);
+                U32SetOfs(pSys->MercSysRank, j * 4, pRK->MercSysRank[j]);
             }
-            if ((s32) pRK->g_flags_54 < 0) {
-                pG->System_flg |= 0x80000000;
+            if (FlagChkSignW(pRK->System_flg, SYS_OMAKE_ADA_GAME)) {
+                SysFlagOn(pG, SYS_OMAKE_ADA_GAME);
             }
-            if (pRK->g_flags_54 & 0x40000000) {
-                pG->System_flg |= 0x40000000;
+            if (FlagChk(&pRK->System_flg, SYS_OMAKE_ETC_GAME)) {
+                SysFlagOn(pG, SYS_OMAKE_ETC_GAME);
             }
         }
         ret = 0;
-        if (pG->System_flg & 0x8) {
+        if (SysFlagChk(pG, SYS_PUBLICITY_VER)) {
             U16Set(pG->room_id, 0x120);
             pG->JumpPoint = 0;
             pSys->language = 1;
             pG->debug_mode = 0;
             pG->pl_type = 0;
-            BitOff(pG->Debug_flg[3], 0x2000);
+            DbgFlagOff(pG, DBG_FOG_FAR_GREEN);
         }
         TaskExec(0, Title_task, 0);
         for (;;) {
@@ -211,13 +211,13 @@ RESTART:
             pG->Frame_cnt++;
             TaskScheduler();
             ProcessTickGet(5, "TaskScheduler");
-            if (!(pG->System_flg & 0x100000) || (pG->Status_flg[0] & 0x40000)) {
+            if (!SysFlagChk(pG, SYS_TRANS_STOP) || (StaFlagChk(pG, STA_SUB_SCRN))) {
                 IdSys.move();
             }
-            if (!(pG->System_flg & 0x100000) || (pG->Status_flg[0] & 0x40000)) {
+            if (!SysFlagChk(pG, SYS_TRANS_STOP) || (StaFlagChk(pG, STA_SUB_SCRN))) {
                 IdSys.trans();
             }
-            if (!(pG->System_flg & 0x100000)) {
+            if (!SysFlagChk(pG, SYS_TRANS_STOP)) {
                 Trans();
             }
             Dvd.Watcher();
@@ -227,7 +227,7 @@ RESTART:
             cMes.Move();
             cMes.Trans();
             CinescoMove();
-            if (!(pG->Debug_flg[0] & 0x8000)) {
+            if (!DbgFlagChk(pG, DBG_CINESCO_OFF)) {
                 Draw_cinesco();
             }
             FadeControl(1);
@@ -249,7 +249,7 @@ RESTART:
             while (vsync_cnt < GetSystemVcnt()) {}
             vsync_cnt = 0;
             systemVSyncPost();
-            BitOff(pG->System_flg, 0x10000000);
+            SysFlagOff(pG, SYS_RENDER_END);
             ProcessTickGet(0, "PROCESS TOTAL");
             ret = systemResetCheck();
             if (ret == 1) {
@@ -274,7 +274,7 @@ void postVSyncCallback()
     if (vsync_cnt >= GetSystemVcnt()) {
         iTaskSuspend();
     }
-    if (!(pG->System_flg & 0x20000000)) {
+    if (!SysFlagChk(pG, SYS_EXCEPTION)) {
         haltExecCheck();
     }
 }
@@ -403,13 +403,13 @@ void systemRestartInit()
     GXCopyDisp(pCurrent_buff, 1);
     ConfigSet();
     if (DBIsDebuggerPresent() == 0) {
-        BitOff(pG->System_flg, 0x20000);
-        BitOff(pG->System_flg, 0x10000);
+        SysFlagOff(pG, SYS_SN_PC_READ);
+        SysFlagOff(pG, SYS_SN_PC_READ_TOOL);
     }
-    if (pRK->brightness == 0) {
-        U8Set(pRK->brightness, 0x40);
+    if (pRK->base_brightness == 0) {
+        U8Set(pRK->base_brightness, 0x40);
     }
-    U8Set(pSys->brightness, pRK->brightness);
+    U8Set(pSys->brightness, pRK->base_brightness);
 #line 752 "D:/Bio4/Prog/main.cpp"
     ret = DvdReadN("debug/roomInfo.dat", 0, 0, 0, 0, 5, __FILE__, __LINE__);
     if (Dvd.ReadCheck(ret, 0, 0, &roomInfoAddr) < 0) {
@@ -457,7 +457,7 @@ void systemWorkInit()
 #line 823 "D:/Bio4/Prog/main.cpp"
     pUser_name = (char*) mem_calloc(0x40, __FILE__, __LINE__, 1, 13);
     U8Set(pSys->language, 1);
-    U8Set(pSys->region, 1);
+    U8Set(pSys->eff_country, 1);
     U8Set(pG->language, 1);
 }
 
@@ -490,11 +490,11 @@ int checkHardReset()
     } else {
         if (OSGetResetButtonState() == 0) {
             reset_check = 0;
-            pG->System_flg |= 0x8000;
+            SysFlagOn(pG, SYS_HARD_RESET);
         }
     }
-    if (pG->System_flg & 0x8000) {
-        if (!(pG->System_flg & 0x200)) {
+    if (SysFlagChk(pG, SYS_HARD_RESET)) {
+        if (!SysFlagChk(pG, SYS_CARD_ACCESS)) {
             systemHardReset();
             PADRecalibrate(0xF0000000);
             OSResetSystem(0, 0, 0);
@@ -514,18 +514,18 @@ int systemResetCheck()
         Soft_reset_cnt += GetSystemVcnt();
         if (Soft_reset_cnt > 30) {
             if (pG->dev_mode == 1) {
-                pG->System_flg |= 0x4000000;
+                SysFlagOn(pG, SYS_SOFT_RESET);
             } else {
-                pG->System_flg |= 0x8000;
+                SysFlagOn(pG, SYS_HARD_RESET);
             }
         }
     } else {
         Soft_reset_cnt = 0;
     }
     checkHardReset();
-    if (!(pG->System_flg & 0x8000)) {
-        if (pG->System_flg & 0x4000000) {
-            if (!(pG->System_flg & 0x200)) {
+    if (!SysFlagChk(pG, SYS_HARD_RESET)) {
+        if (SysFlagChk(pG, SYS_SOFT_RESET)) {
+            if (!SysFlagChk(pG, SYS_CARD_ACCESS)) {
                 systemSoftReset();
                 return 1;
             }
@@ -546,20 +546,20 @@ void systemResetCommon()
     ReleasePlData();
     ReleaseWepData();
     RoomData.stopRelData();
-    U32Set(pRK->sys_flags, pSys->flags);
+    U32Set(pRK->Config_flg, pSys->Config_flg);
     U8Set(pRK->language, pSys->language);
-    U8Set(pRK->region, pSys->region);
-    U8Set(pRK->game_language, pG->language);
-    U32Set(pRK->sys_unlock_flg, pSys->unlock_flg);
-    U32Set(pRK->g_flags_54, pG->System_flg);
+    U8Set(pRK->eff_country, pSys->eff_country);
+    U8Set(pRK->game_country, pG->language);
+    U32Set(pRK->Extra_flg, pSys->Extra_flg);
+    U32Set(pRK->System_flg, pG->System_flg);
     for (i = 0; i < 4; i++) {
-        U32SetOfs(pRK->sys_merc_stage, i * 4, pSys->merc_stage[i]);
+        U32SetOfs(pRK->MercSysRoom, i * 4, pSys->MercSysRoom[i]);
     }
     for (i = 0; i < 2; i++) {
-        U32SetOfs(pRK->sys_merc_rank, i * 4, pSys->merc_rank[i]);
+        U32SetOfs(pRK->MercSysRank, i * 4, pSys->MercSysRank[i]);
     }
-    U32Set(pRK->card_checked, pG->CardStatus >> 31);
-    U8Set(pRK->valid, 1);
+    U32Set(pRK->MemcardCheckDone, pG->CardStatus >> 31);
+    U8Set(pRK->reset_flag, 1);
 }
 
 // Blacks the screen and runs the common reset (the OS then reboots).
@@ -599,6 +599,6 @@ void systemSoftReset()
 void setLanguage()
 {
     U8Set(pSys->language, 1);
-    U8Set(pSys->region, pSys->language);
+    U8Set(pSys->eff_country, pSys->language);
     U8Set(pG->language, pSys->language);
 }

@@ -311,9 +311,9 @@ void R317EventS00()
             pPL->setAng(&v);
         }
         RsfSet(G_ROOM_ID, 0);
-        BitOn(pG->Scenario_flg[0], 0x20);
+        ScfFlagOn(pG, SCF_R317_LEON_WOUND);
         pPL->setWound();
-        pG->Scenario_flg[1] |= 0x00010000;
+        ScfFlagOn(pG, SCF_R317_KNIFE_BATTLE);
         OpeSetOpenTerm(0x14, 0.0f, 0.0f, 0.0f, 0.0f);
         EstSet(0, -1, 0, 0, 1, 0, 0x2001, 3, (u32) zero, zero);
     }
@@ -715,7 +715,7 @@ void Evt_R317S00_Func(Event* e)
             }
         }
         if (on == 1) {
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (pG->Room_flg[0] & 0x80000000) {
                 KnifeActBtn(0x00200000, R317EventS00Action);
             } else {
@@ -790,7 +790,7 @@ void Evt_R317S01_Func(Event* e)
             }
         }
         if (on == 1) {
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (pG->Room_flg[0] & 0x08000000) {
                 KnifeActBtn(0x00020000, R317EventS01Action);
             } else {
@@ -953,7 +953,7 @@ void Evt_R317S03_Func(Event* e)
             }
         }
         if (on == 1) {
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (pG->Room_flg[0] & 0x04000000) {
                 KnifeActBtn(0x00010000, R317EventS03Action);
             } else {
@@ -1201,7 +1201,7 @@ void Evt_R317S07_Func(Event* e)
             }
         }
         if (on == 1) {
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (pG->Room_flg[0] & 0x40000000) {
                 KnifeActBtn(0x00100000, R317EventS07Action);
             } else {
@@ -1311,7 +1311,7 @@ void Evt_R317S09_Func(Event* e)
             }
         }
         if (on == 1) {
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (pG->Room_flg[0] & 0x20000000) {
                 KnifeActBtn(0x00080000, R317EventS09Action);
             } else {
@@ -1403,7 +1403,7 @@ void Evt_R317S11_Func(Event* e)
             }
         }
         if (on == 1) {
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (pG->Room_flg[0] & 0x10000000) {
                 KnifeActBtn(0x00040000, R317EventS11Action);
             } else {
@@ -1518,7 +1518,7 @@ void Evt_R317S13_Func(Event* e)
             }
         }
         if (on == 1) {
-            BitOff(pG->Stop_flg, 0x100);
+            SpfFlagOff(pG, SPF_ACTBTN);
             if (e->NowCut == 0xA && e->NowFrame > 0x27) {
                 btn = 0xD;
                 if ((pG->Room_flg[0] & 0x8000) == 0) {
@@ -1530,7 +1530,7 @@ void Evt_R317S13_Func(Event* e)
                     btn = 2;
                 }
             }
-            pG->Disp_flg &= ~0x800;
+            DpfFlagOff(pG, DPF_MESSAGE);
             ActBtn.set(0x30, 5, 0, 0, 0x42, btn, 0, 0);
             if (btn == 2) {
                 if (Key.trg & 0x00080000) {

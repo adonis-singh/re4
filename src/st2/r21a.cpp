@@ -241,7 +241,7 @@ static void R21aEmSetMain()
     r21a_work.p->em[7].setPtr(0x5C, -1, 0);
     r21a_work.p->patrol.SetPatrol(0x5B, r21a_patrolTbl, 2, 0, 0);
     for (;;) {
-        if (pG->item_flags[0] & 0x1000) {
+        if (ItfFlagChk(pG, ITF_R21A_ITEM)) {
             if (RsfCheck(G_ROOM_ID, 2) == 0) {
                 int cnt = 0;
 
@@ -337,7 +337,7 @@ static void R21aDoorMain()
         }
         zero = 0;
         SceEventStart(1);
-        BitOn(pG->door_flags_51CC, 0x02000000);
+        ScfFlagOn(pG, SCF_86);
         RsfSet(G_ROOM_ID, 0);
         SceAtSetEnable(5, 0);
         obj = SmdGetObjPtr(0x19);
@@ -539,26 +539,9 @@ static void R21aFallRoofDie(int no)
     }
 }
 
-// One flag-word test kept as its own `and` (fold-const would merge two tests of one word).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
-
 // Scalar reference store (st_room.h idiom): the pG load that follows stays below it.
 static inline void S16Set(s16& d, s16 v) { d = v; }
 
-// Event flag words at pG+0x174, addressed as an integer base plus the word offset (a cast-then-deref
-// store: it is not a struct access, so pG is reloaded after every store).
-static inline u32 evtFlagBase()
-{
-    return (u32) &pG->Room_flg[0];
-}
-// Set event flag `no` in the pG->flags_174 words (the roof Ganados' death is remembered there).
-static inline void EvtFlagOn(u32 base, u32 no)
-{
-    *(u32*) (((no >> 5) << 2) + base) |= 0x80000000 >> (no & 31);
-}
 
 // The burning roof: shakes, drops in steps, then falls (onto the player if he stands under it).
 static void R21aFallRoofMove()
@@ -654,7 +637,7 @@ static void R21aFallRoofMove()
 
             if (hit && hit->ckStatus() == 1) {
                 hit->hp = 0;
-                EvtFlagOn((u32) &pGS->Room_flg[0], i + 1);
+                FlagOnVar(&pGS->Room_flg, (u32) (i + 1));
                 EffectEspDelete(1, (u8) r21a_roofTbl[i].eff, 0, 0);
                 EffectEspgenDelete(1, (u8) r21a_roofTbl[i].eff, 0);
                 EffectEfmDelete(1, (u8) r21a_roofTbl[i].eff, 0);
@@ -664,8 +647,8 @@ static void R21aFallRoofMove()
                 }
             }
         }
-        if (flagBit(pG->Room_flg[0], 0x40000000) && flagBit(pG->Room_flg[0], 0x20000000) && flagBit(pG->Room_flg[0], 0x10000000) &&
-            flagBit(pG->Room_flg[0], 0x08000000)) {
+        if (FlagChkSign(pG->Room_flg, 1) && FlagChkSign(pG->Room_flg, 2) && FlagChkSign(pG->Room_flg, 3) &&
+            FlagChkSign(pG->Room_flg, 4)) {
             EffectEspDelete(1, 6, 0, 0);
             EffectEspgenDelete(1, 6, 0);
             EffectEfmDelete(1, 6, 0);

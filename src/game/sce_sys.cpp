@@ -93,16 +93,16 @@ void ScenarioRoomInit()
     SceSys.m_door_fade_eff = 0;
     SceSys.m_item_get = 0;
     SceSys.pause = 0;
-    pGS->Item_find_flg &= ~0x80;
+    ScfFlagOff(pGS, SCF_NO_ASHLEY_DIST_CK);
     ScenarioTaskAllOff();
     SceInitItemEvent();
     SceAtSetSaveItem();
-    if (!(pG->Debug_flg[2] & 0x4000000)) {
+    if (!DbgFlagChk(pG, DBG_NO_SCE_EXE)) {
         SceExecInitCondition();
         RoomData.execInitFunc(pG->room_id);
         SceSys.scheduler();
     }
-    if (pG->Status_flg[3] & 0x4000000) {
+    if (StaFlagChk(pG, STA_SUB_ASHLEY)) {
         SubCharInit(1, &pG->sub_pos, pG->sub_angle);
         SubCharCtrl(SCC_CHASE, 0);
     }
@@ -144,16 +144,16 @@ void scenarioLoopAfterInit()
 // (scheduler), then the after-hooks. Skipped in the debug "no scenario" mode.
 void ScenarioMove()
 {
-    if (pG->Debug_flg[2] & 0x4000000) {
+    if (DbgFlagChk(pG, DBG_NO_SCE_EXE)) {
         return;
     }
     scenarioLoopBeforeInit();
     if (SceSys.m_item_get == 0 && SceSys.pause == 0) {
-        if (!(pG->Status_flg[0] & 0x100000)) {
+        if (!StaFlagChk(pG, STA_DIEDEMO)) {
             scenarioCheckEventCancel();
             RoomData.execMainFunc(pG->room_id);
         }
-        if (!(pG->Stop_flg & 0x400) || (pG->Debug_flg[3] & 0x80)) {
+        if (!SpfFlagChk(pG, SPF_EVT) || (DbgFlagChk(pG, DBG_NO_EVENT))) {
             EvtMgr.Run();
         }
     }
@@ -225,7 +225,7 @@ void cSceSys::scheduler()
     }
     p = (ScePrim*) scenarioSetOtStart();
     while ((p = (ScePrim*) scenarioGetOtAddr((u32*) p)) != 0) {
-        if (pG->Stop_flg & 0x800000) {
+        if (SpfFlagChk(pG, SPF_SCE)) {
             break;
         }
         running = p->running;
@@ -323,7 +323,7 @@ ScePrim* SceExec(int prio, TaskFunc func, int arg, u8 flag, int otPrio, void* mo
     } else {
         t->flag = pCTask->flag;
     }
-    if (!(pG->Debug_flg[1] & 0x200000)) {
+    if (!DbgFlagChk(pG, DBG_WARN_LEVEL_LOW)) {
         busy = 0;
         for (i = 17; i >= 6; i--) {
             if (Task[i].Status != 0) {
@@ -411,13 +411,13 @@ void SceExecInitCondition()
     ClearOTagR(&SceExecOt, 1);
 }
 
-// em_dead row address as an integer (the original adds the list offset after the row index), as in sce_at.
+// Em_flg row address as an integer (the original adds the list offset after the row index), as in sce_at.
 static inline u32 emDeadRow(int n)
 {
     return n * 32 + (u32) pG + 0x501C;
 }
 
-// Is the condition met? type 0 enemy list entry dead (em_dead bit), 1 camera area == param, 2
+// Is the condition met? type 0 enemy list entry dead (Em_flg bit), 1 camera area == param, 2
 // enemy `param` dead and in its die routine, 3 callback returns 1, 4 etc model `param` broken, 5
 // item area `param` taken.
 int SceExecCheckCondition_sub(SceCond* pP)

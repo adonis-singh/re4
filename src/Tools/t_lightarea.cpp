@@ -328,7 +328,7 @@ void OptionExec()
     u32 rep;
 
     eprintf(0xAA, 0xA0, 4, 0, "FOG : ");
-    if (pG->Disp_flg & 0x4000) {
+    if (DpfFlagChk(pG, DPF_FOG)) {
         eprintf(0xAA, 0xA0, 0, 0, "       ON");
     } else {
         eprintf(0xAA, 0xA0, 0, 0, "       OFF");
@@ -352,10 +352,10 @@ void OptionExec()
     switch (cursor) {
     case 0:
         if ((rep & 0x30003) || (Joy[0].trg & 0x100)) {
-            if (pG->Disp_flg & 0x4000) {
-                pG->Disp_flg &= ~0x4000;
+            if (DpfFlagChk(pG, DPF_FOG)) {
+                DpfFlagOff(pG, DPF_FOG);
             } else {
-                pG->Disp_flg |= 0x4000;
+                DpfFlagOn(pG, DPF_FOG);
             }
         }
         break;
@@ -385,7 +385,7 @@ void ToolLightAreaMain()
     int plNoHit = 0;
     u32 i;
 
-    if (pG->System_flg & 0x800) {
+    if (SysFlagChk(pG, SYS_SCISSOR_ON)) {
         plNoHit = 1;
     }
     TutilInitDefault();
@@ -425,34 +425,34 @@ void ToolLightAreaMain()
             cnt = (u8) (c + 1);
             if (c & 8) {
                 eprintf2(0xE, 0x12, 0xAA, 0x18, 6, 0, "PREVIEW MODE");
-            } else if (pG->Debug_flg[2] & 8) {
+            } else if (DbgFlagChk(pG, DBG_PL_NOHIT)) {
                 eprintf(0xF0, 0x30, 2, 0, "PL NOHIT");
             }
             if (Joy[0].trg & 0x400) {
-                if (pG->Debug_flg[2] & 8) {
-                    BitOff(pG->Debug_flg[2], 8);
+                if (DbgFlagChk(pG, DBG_PL_NOHIT)) {
+                    DbgFlagOff(pG, DBG_PL_NOHIT);
                 } else {
-                    BitOn(pG->Debug_flg[2], 8);
+                    DbgFlagOn(pG, DBG_PL_NOHIT);
                 }
             }
-            if (!(pG->Stop_flg & 0x10000000) && (Joy[0].trg & 0x10)) {
+            if (!SpfFlagChk(pG, SPF_PL) && (Joy[0].trg & 0x10)) {
                 // back to the editor: the game's own light areas again
-                BitOn(pG->Debug_flg[0], 0x10000000);
-                BitOn(pG->Stop_flg, 0x10000000);
-                BitOn(pG->Stop_flg, 0x20000000);
+                DbgFlagOn(pG, DBG_DBG_CAM);
+                SpfFlagOn(pG, SPF_PL);
+                SpfFlagOn(pG, SPF_EM);
                 TaskSleep(10);
                 if (plNoHit == 0) {
-                    BitOff(pG->System_flg, 0x800);
+                    SysFlagOff(pG, SYS_SCISSOR_ON);
                 }
                 preview ^= 1;
             } else if (!(Joy[0].on & 0x10)) {
-                BitOff(pG->Stop_flg, 0x10000000);
-                BitOff(pG->Stop_flg, 0x20000000);
+                SpfFlagOff(pG, SPF_PL);
+                SpfFlagOff(pG, SPF_EM);
             }
         } else {
-            BitOn(pG->Stop_flg, 0x10000000);
-            BitOn(pG->Stop_flg, 0x20000000);
-            BitOn(pG->Debug_flg[2], 0x00800000);
+            SpfFlagOn(pG, SPF_PL);
+            SpfFlagOn(pG, SPF_EM);
+            DbgFlagOn(pG, DBG_NO_DEATH);
             w = light_area_work;
             for (i = 0; i < LIGHT_AREA_MAX; i++, w++) {
                     if (IsWorkAlive(w)) {
@@ -502,14 +502,14 @@ void ToolLightAreaMain()
                     // preview: play with the edited areas
                     preview ^= 1;
                     ((cUnitEventView*) pPL)->endEvent(0);
-                    BitOff(pG->Debug_flg[0], 0x10000000);
-                    BitOn(pG->System_flg, 0x800);
+                    DbgFlagOff(pG, DBG_DBG_CAM);
+                    SysFlagOn(pG, SYS_SCISSOR_ON);
                 }
             }
         }
         TaskSleep(1);
     }
-    BitOff(pG->Debug_flg[0], 0x10000000);
+    DbgFlagOff(pG, DBG_DBG_CAM);
     tLightAreaExit();
     TutilQuitDefault();
     TaskExit();
@@ -518,14 +518,14 @@ void ToolLightAreaMain()
 // Pauses the game and turns on the debug displays, camera target type 4, all blocks visible.
 void tLightAreaInit()
 {
-    BitOn(pG->Stop_flg, 0x20000000);
-    BitOn(pG->Stop_flg, 0x10000000);
-    BitOn(pG->Stop_flg, 0x08000000);
-    BitOn(pG->Stop_flg, 0x00800000);
-    BitOn(pG->Stop_flg, 0x00400000);
-    BitOn(pG->Stop_flg, 0x00010000);
-    BitOn(pG->Stop_flg, 0x00002000);
-    BitOn(pG->Debug_flg[0], 0x10000000);
+    SpfFlagOn(pG, SPF_EM);
+    SpfFlagOn(pG, SPF_PL);
+    SpfFlagOn(pG, SPF_ESP);
+    SpfFlagOn(pG, SPF_SCE);
+    SpfFlagOn(pG, SPF_SCE_AT);
+    SpfFlagOn(pG, SPF_EARTHQUAKE);
+    SpfFlagOn(pG, SPF_MIST);
+    DbgFlagOn(pG, DBG_DBG_CAM);
     CamDbg.m_target_type = 4;
     Block.dispAllBlock(1);
 }
@@ -533,14 +533,14 @@ void tLightAreaInit()
 // Undoes tLightAreaInit.
 void tLightAreaExit()
 {
-    BitOff(pG->Stop_flg, 0x20000000);
-    BitOff(pG->Stop_flg, 0x10000000);
-    BitOff(pG->Stop_flg, 0x08000000);
-    BitOff(pG->Stop_flg, 0x00800000);
-    BitOff(pG->Stop_flg, 0x00400000);
-    BitOff(pG->Stop_flg, 0x00010000);
-    BitOff(pG->Stop_flg, 0x00002000);
-    BitOff(pG->Debug_flg[0], 0x10000000);
+    SpfFlagOff(pG, SPF_EM);
+    SpfFlagOff(pG, SPF_PL);
+    SpfFlagOff(pG, SPF_ESP);
+    SpfFlagOff(pG, SPF_SCE);
+    SpfFlagOff(pG, SPF_SCE_AT);
+    SpfFlagOff(pG, SPF_EARTHQUAKE);
+    SpfFlagOff(pG, SPF_MIST);
+    DbgFlagOff(pG, DBG_DBG_CAM);
     {
         // through a volatile pointer: the store keeps `&CamDbg` in a register (`stb 0xf(rX)`)
         volatile debugCamera* c = &CamDbg;

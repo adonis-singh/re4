@@ -21,7 +21,7 @@ struct EmWindowWork {
     u8 breakDir;          // 0x2BD (0x69D)  ChkBreakDir result of the last event
 };
 
-#define EMWINDOW_WK(em) ((EmWindowWork*) &(em)->x3E0)
+#define EMWINDOW_WK(em) ((EmWindowWork*) (((cEmObj*) (em))->free))
 
 // Breakable window / fence enemy (game/emwindow.cpp).
 class cEmWindow : public cEmObj {

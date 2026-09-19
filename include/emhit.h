@@ -23,12 +23,13 @@ struct EmHitWork {
     u8 x248;              // 0x248 (0x628)  0xFF
 };
 
-#define EMHIT_WK(em) ((EmHitWork*) &(em)->x3E0)
+#define EMHIT_WK(em) ((EmHitWork*) (((cEmHit*) (em))->free))
 
 // Hit-only enemy: a cEm that exists to receive weapon damage for an object (bell, ...) or to
 // follow a parent model's parts (setParent); type 3 is the beetle that flies off when shot.
 class cEmHit : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMHIT_WK)
     virtual void move();
 
     int ckStatus();                                 // EmHitWork::status

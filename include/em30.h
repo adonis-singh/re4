@@ -42,10 +42,11 @@ struct Em30Work {
     Em30Parasite para[3]; // 0x390 (0x770)  their parasites
 };
 
-#define EM30_WK(em) ((Em30Work*) &(em)->x3E0)
+#define EM30_WK(em) ((Em30Work*) (((cEm30*) (em))->free))
 
 class cEm30 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM30_WK)
     virtual void move();
 };
 

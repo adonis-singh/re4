@@ -54,9 +54,6 @@ int GameSaveSave(cGameSave* g, void* data, int mode) asm("save__9cGameSavePv");
 // (atari_init.h: GCC emits the argument moves in declaration order).
 void setYarareCubeF(cEmRock* em, f32 x, f32 y, f32 z, Vec* size) asm("setYarareCube__7cEmRockP3Vecfff");
 
-// The rock the player damage callbacks belong to: the original re-reads pl->dmgType at every use.
-#define PL_ROCK(pl) ((cEmRock*) (pl)->dmgType)
-
 // Head of a key-frame motion data block (motion.h MotionData; motion.h's one-argument MotionMove
 // prototype keeps it out of the em units).
 struct RockMotData {
@@ -786,12 +783,12 @@ void emRock_R1_Roll(cEmRock* em)
         emRockPushCk(em, 0);
         em->atari.m_flag &= ~0x200;
         PLS->ang.y = em->ang.y;
-        SetPlDamage((int) em, (void (*)(cPlayer*)) plemRockEscape);
+        SetPlDamage(em, (void (*)(cPlayer*)) plemRockEscape);
         w->Roll_wait = 75;
         w->spd.x = 0.0f;
         w->spd.y = 0.0f;
         w->spd.z = 0.0f;
-        if ((pG->room_id32 & 0xFFFF0000) == 0x01040000) {
+        if (pG->stage_no == 1 && pG->room_no == 4) {
             w->First_bound = 1;
             w->rollWait = 0;
         } else {
@@ -975,7 +972,7 @@ void emRock_R1_Drop2(cEmRock* em)
         FSet(pPL->pos.z, -14770.0f);
         pPL->setPos(&pPL->pos);
         pPL->dmg.m_Timer = 2;
-        SetPlDamage((int) em, (void (*)(cPlayer*)) plemDropFind);
+        SetPlDamage(em, (void (*)(cPlayer*)) plemDropFind);
         em->r_no_2++;
     case 3:
         MotionSetCore(em, &em->pMotion, w->mot1, 0, 0, 1, 0);
@@ -1012,7 +1009,7 @@ void emRock_R1_Drop2(cEmRock* em)
                 }
                 if ((s16) pG->pl_life > 0) {
                     w->Act_ck = 1;
-                    SetPlDamage((int) em, (void (*)(cPlayer*)) plemDropDie);
+                    SetPlDamage(em, (void (*)(cPlayer*)) plemDropDie);
                     pPL->r_no_3 = 1;
                     break;
                 }
@@ -1039,15 +1036,15 @@ void plemDropEscAction(cEmRock* em)
 {
     EMROCK_WK(em)->Act_ck = 1;
     pPL->dmg.m_Timer = 2;
-    SetPlDamage((int) em, (void (*)(cPlayer*)) plemDropEscape);
+    SetPlDamage(em, (void (*)(cPlayer*)) plemDropEscape);
 }
 
 // Player damage routine of the drop: notices the rock, then the escape / death routine takes over.
 void plemDropFind(cPlayer* pl)
 {
-    EmRockWork* w = EMROCK_WK(PL_ROCK(pl));
+    EmRockWork* w = EMROCK_WK(pl->pEmCatch);
 
-    pl->subArc = PL_ROCK(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     pl->dmg.m_Timer = 2;
     switch (pl->r_no_2) {
     case 0:
@@ -1057,12 +1054,12 @@ void plemDropFind(cPlayer* pl)
         if (pl->m_Work0) {
             pl->m_Work0--;
             MotionSetCore(pl, &pl->pMotion, w->mot5, 0, 3, 1, 0);
-            emRockPushCamMove(PL_ROCK(pl));
+            emRockPushCamMove((cEmRock*)pl->pEmCatch);
         } else {
-            emRockDropCamMove(PL_ROCK(pl));
+            emRockDropCamMove((cEmRock*)pl->pEmCatch);
         }
         if (MotionMove(pl, 0)) {
-            pG->Stop_flg &= ~0x80000000;
+            SpfFlagOff(pG, SPF_KEY);
             EndPlDamage();
         }
         break;
@@ -1073,9 +1070,9 @@ void plemDropFind(cPlayer* pl)
 // Player damage routine: the player dives out of the way of the dropping rock.
 void plemDropEscape(cPlayer* pl)
 {
-    EmRockWork* w = EMROCK_WK(PL_ROCK(pl));
+    EmRockWork* w = EMROCK_WK(pl->pEmCatch);
 
-    pl->subArc = PL_ROCK(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->pMotion, w->mot4, 0, 3, 1, 0);
@@ -1092,7 +1089,7 @@ void plemDropEscape(cPlayer* pl)
             SndCall(5, 3, &pl->pos, 0, 0, pl);
         }
         if (MotionMove(pl, 0)) {
-            pG->Stop_flg &= ~0x80000000;
+            SpfFlagOff(pG, SPF_KEY);
             EndPlDamage();
         }
         break;
@@ -1368,7 +1365,7 @@ void emRockAtkScrCk(cEmRock* em)
             9000000.0f) {
             continue;
         }
-        if ((pG->room_id32 & 0xFFFF0000) == 0x01190000) {
+        if (pG->stage_no == 1 && pG->room_no == 0x19) {
             if (e->state == 0) {
                 switch (e->sub) {
                 case 0:
@@ -1543,7 +1540,7 @@ int emRockRollStartCk(cEmRock* em)
 // button-mash speed motions, and jumps to the side (or gets caught) at the goal.
 void plemRockEscape(cPlayer* pl)
 {
-    EmRockWork* w = EMROCK_WK(PL_ROCK(pl));
+    EmRockWork* w = EMROCK_WK(pl->pEmCatch);
     void* mot;
     void* mot2;
     Vec v;
@@ -1551,7 +1548,7 @@ void plemRockEscape(cPlayer* pl)
     int n;
     int flag;
 
-    pl->subArc = PL_ROCK(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     mot2 = w->plMot[3];
     mot = w->plMot[2];
     switch (pl->r_no_2) {
@@ -1585,13 +1582,13 @@ void plemRockEscape(cPlayer* pl)
         pl->dmg.m_Timer = 0x1E;
         if (pl->m_Work0) {
             pl->m_Work0--;
-            emRockPushCamMove(PL_ROCK(pl));
+            emRockPushCamMove((cEmRock*)pl->pEmCatch);
             MotionSetCore(pl, &pl->pMotion, w->plMot[0], (int) w->plMot[1], 0, 1, 0);
-            pl->ang.y += Muku(&pl->pos, &PL_ROCK(pl)->pos, pl->ang.y, 3.1415927f);
+            pl->ang.y += Muku(&pl->pos, &pl->pEmCatch->pos, pl->ang.y, 3.1415927f);
             pl->ang.y = LIMIT_ANGLE(pl->ang.y);
             MotionMove(pl, 0);
         } else {
-            emRockPushCamMove2(PL_ROCK(pl));
+            emRockPushCamMove2((cEmRock*)pl->pEmCatch);
             ActBtn.set(0x18, 5, 0, 0, 2, 2, 0, 0);
             if (MotionMove(pl, 0)) {
                 pl->r_no_2++;
@@ -1734,7 +1731,7 @@ void plemRockEscape(cPlayer* pl)
             SndCall(5, 5, &pl->pos, 0, 0, pl);
         }
         if (MotionMove(pl, 0)) {
-            pG->Stop_flg &= ~0x80000000;
+            SpfFlagOff(pG, SPF_KEY);
             Cckpt.lifeMeterDisp(1);
             pl->Wep->setTrans(1, 0);
             GameSaveSave(&GameSave, pSaveData, -1);
@@ -1905,7 +1902,7 @@ void plemRockEscapeCamMove2(cPlayer* pl, int side)
         emRock_campos.x = -30.0f;
         emRock_target.x = 397.0f;
     }
-    if ((pG->room_id32 & 0xFFFF0000) == 0x01060000) {
+    if (pG->stage_no == 1 && pG->room_no == 6) {
         emRock_campos.y = 690.0f;
     } else {
         emRock_campos.y = 490.0f;
@@ -2284,7 +2281,7 @@ int emRockDropHitCk(cEmRock* em)
     if (len > r * r) {
         return 0;
     }
-    SetPlDamage((int) em, plemDropDie);
+    SetPlDamage(em, plemDropDie);
     return 1;
 }
 
@@ -2320,7 +2317,7 @@ int emRockDropHitCkSub(cEmRock* em)
     if (len > r * r) {
         return 0;
     }
-    SetSubDamage((int) em, (void*) subemDropDie);
+    SetSubDamage(em, (void*) subemDropDie);
     return 1;
 }
 
@@ -2370,9 +2367,9 @@ int emRockDropHitCkEm2b(cEmRock* em)
 // Player damage routine: crushed by the dropping rock.
 void plemDropDie(cPlayer* pl)
 {
-    EmRockWork* w = EMROCK_WK(PL_ROCK(pl));
+    EmRockWork* w = EMROCK_WK(pl->pEmCatch);
 
-    pl->subArc = PL_ROCK(pl)->subArc;
+    pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->pMotion, w->mot2, 0, 3, 1, 0);
@@ -2381,9 +2378,9 @@ void plemDropDie(cPlayer* pl)
         pl->r_no_2++;
     case 1:
         if (pl->r_no_3 == 0) {
-            plemRockDropDieCamMove(PL_ROCK(pl));
+            plemRockDropDieCamMove((cEmRock*)pl->pEmCatch);
         } else {
-            emRockDropCamMove(PL_ROCK(pl));
+            emRockDropCamMove((cEmRock*)pl->pEmCatch);
         }
         MotionMove(pl, 0);
         break;
@@ -2395,9 +2392,9 @@ void plemDropDie(cPlayer* pl)
 void subemDropDie()
 {
     cEm* sub = pSUB;
-    EmRockWork* w = EMROCK_WK(PL_ROCK(sub));
+    EmRockWork* w = EMROCK_WK(sub->pEmCatch);
 
-    sub->subArc = PL_ROCK(sub)->subArc;
+    sub->subArc = sub->pEmCatch->subArc;
     switch (sub->r_no_2) {
     case 0:
         MotionSetCore(sub, &sub->pMotion, w->mot3, 0, 3, 1, 0);

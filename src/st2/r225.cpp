@@ -160,16 +160,16 @@ void R225Init()
     }
     SceAtDataSet_exec(1, SCE_LEVEL10, 0, (TaskFunc) SceElevator_r225, &r225_elvLeave, 1);
     if (pG->room_id_prev == 0x226) {
-        if (!(pG->System_flg & 0x80000)) {
-            if (!(pG->System_flg & 0x100)) {
+        if (!SysFlagChk(pG, SYS_CONTINUE)) {
+            if (!SysFlagChk(pG, SYS_LOAD_GAME)) {
                 SceExec(0x12, (TaskFunc) SceElevator_r225, (int) &r225_elvArrive, 0, SCE_PRIO_DEF_2, 0);
             }
         }
     }
     SceAtDataSet_exec(0, SCE_LEVEL10, 0, (TaskFunc) r225_checkGrave, 0, 1);
     if (pG->room_id_prev == 0x21D) {
-        if (!(pG->System_flg & 0x80000)) {
-            if (!(pG->System_flg & 0x100)) {
+        if (!SysFlagChk(pG, SYS_CONTINUE)) {
+            if (!SysFlagChk(pG, SYS_LOAD_GAME)) {
                 SceExec(0x12, (TaskFunc) r225_moveGrave, 0, 0, SCE_PRIO_DEF_2, 0);
             }
         }
@@ -193,7 +193,7 @@ void R225Init()
             hit->setBeetle(ROOM_ARC_PTR(pG->pRoom, 0x37), ROOM_ARC_PTR(pG->pRoom, 0x39), ROOM_ARC_PTR(pG->pRoom, 0x38));
         }
     }
-    pG->Scenario_flg[1] |= 0x01000000;
+    ScfFlagOn(pG, SCF_R225_IN);
 }
 
 // Per-frame room main: nothing.
@@ -391,7 +391,7 @@ void r225_open_door()
     f32 spd;
     f32 max;
 
-    pG->door_flags_51CC |= 0x04000000;
+    ScfFlagOn(pG, SCF_85);
     SceEventStart(0);
     CamCtrl.CutCall(9);
     SceSleep(15);
@@ -472,7 +472,7 @@ static void r225_moveGrave(int dir)
             }
         }
         SceEventStart(0);
-        pG->Disp_flg |= 0x02000000;
+        DpfFlagOn(pG, DPF_SHADOW);
         if (dir == 1) {
             CamCtrl.CutCall(6);
             SndCall(6, 7, 0, 0, 0, 0);
@@ -495,7 +495,7 @@ static void r225_moveGrave(int dir)
             SceSleep(15);
             CamCtrl.Comeback(0);
         }
-        pG->Disp_flg &= ~0x02000000;
+        DpfFlagOff(pG, DPF_SHADOW);
         SceEventEnd(0);
     }
 }
@@ -643,7 +643,7 @@ void SceElevator_r225(SceElevatorData* d)
         }
     }
     if (d->dir == 0 || d->dir == 2) {
-        BitOff(pG->Status_flg[1], 0x10000000);
+        StaFlagOff(pG, STA_SUSPEND);
         spd = maxSpd;
         move = stopDist2;
         if (d->dir == 0) {

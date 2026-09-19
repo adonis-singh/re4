@@ -283,7 +283,7 @@ void cEm25::move()
     motFlags2 &= ~0x40000000;
     em25DmCk(this);
     w->Be_flg &= ~0x2F;
-    if (!(pGS->Debug_flg[2] & 0x20000) && w->Alive_timer) {
+    if (!DbgFlagChk(pGS, DBG_EM_NO_DEATH) && w->Alive_timer) {
         w->Alive_timer--;
     }
     if (w->Atk_wait) {
@@ -328,7 +328,7 @@ void cEm25::move()
             }
         }
     }
-    if (pG->Status_flg[1] & 0x04000000) {
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
         LightInfo.EnableMask = 0x80;
     } else {
         LightInfo.EnableMask = 2;
@@ -764,9 +764,9 @@ static void plem25_Bite(cPlayer* pl)
 {
     int end;
 
-    pG->Status_flg[1] |= 0x8000;
+    StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 10);
-    pl->subArc = ((cEm*) pPL->dmgType)->subArc;
+    pl->subArc = pPL->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, PL_ARC(0x2F), 0, 0, 1, 0);
@@ -1437,7 +1437,7 @@ void cEm25::setHide()
 // 1 while the parasite is parked in Hide (R0 1 / R1 0).
 int cEm25::ckHide()
 {
-    return (stat & 0xFFFF0000) == 0x01000000;
+    return (r_no_0 == 1 && r_no_1 == 0);
 }
 
 // Room script: a floor parasite is born at `ppos` facing `ang` (Birth 1).
@@ -1518,7 +1518,7 @@ int em25CatchCk(cEm25* em)
     if (!(w->Be_flg & 1)) {
         return 0;
     }
-    if (pG->Status_flg[1] & 0x8000) {
+    if (StaFlagChk(pG, STA_PL_CATCHED)) {
         return 0;
     }
     PSMTXInverse(em->mat, inv);
@@ -1788,7 +1788,7 @@ void em25PlHeadLost()
     cObj* obj;
     int zero;
 
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         PlSetDamageSe(0xD);
         EstSet((int) pPL, -1, 0, 0, 0x1D, 0xA, 0, 0, (u32) pPL, 0);
         return;

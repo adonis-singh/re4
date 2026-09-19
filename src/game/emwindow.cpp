@@ -405,14 +405,14 @@ void cEmWindow::DmCk()
     int a = 0;
     int hit = 0;
     u8 eff;
-    int dmgType;
+    int pEmCatch;
     u8 wep;
 
     eff = getEff();
-    dmgType = 0;
+    pEmCatch = 0;
     if (hp > 0) {
-        dmgType = DmgMgr.hitCheck(&pos, 0);
-        switch (dmgType) {
+        pEmCatch = DmgMgr.hitCheck(&pos, 0);
+        switch (pEmCatch) {
         case 1:
         case 4:
         case 5:
@@ -451,7 +451,7 @@ void cEmWindow::DmCk()
     if (ChkEnableDamage() == 0) {
         return;
     }
-    switch (dmgType) {
+    switch (pEmCatch) {
     case 1:
     case 4:
     case 5:

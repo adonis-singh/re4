@@ -47,6 +47,7 @@ void EffectEfmDelete(int a, int b, int c);
 // The chief (game/em2b.cpp): only the two event virtuals the room calls.
 class cEm2b : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2B_WK)
     virtual void v50();
     virtual void v58();
 };
@@ -106,8 +107,8 @@ void R11fInit()
         SmdSetTrans(0x14, 1);
         SmdSetTrans(0x15, 0);
         SmdSetTrans(0x16, 0);
-        if (!(pG->Status_flg[3] & 0x04000000)) {
-            pG->Status_flg[3] |= 0x04000000;
+        if (!StaFlagChk(pG, STA_SUB_ASHLEY)) {
+            StaFlagOn(pG, STA_SUB_ASHLEY);
             SubCharInit(1, &pPLS->pos, pPLS->ang.y);
             SubCharCtrl(SCC_CHASE, 0);
         }
@@ -209,7 +210,7 @@ static void r11f_EventS00()
             pl->setAng(&ang);
         }
         SceEventEnd(0);
-        pG->Status_flg[1] |= 1;
+        StaFlagOn(pG, STA_LASERSITE_NOADD);
         EstSet(0, -1, 0, 0, 1, 0, 0x801, 0, 0, 0);
         EstSet(0, -1, 0, 0, 1, 4, 0x801, 2, 0, 0);
         SceExec(0x12, r11f_EventS10, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -342,9 +343,9 @@ extern "C" void Evt_R11FS00_Func(Event* e)
             r11f_actOn = 0;
             e->CancelSet();
         } else {
-            BitOff(pG->Disp_flg, 0x800);
+            DpfFlagOff(pG, DPF_MESSAGE);
             ActBtn.set(0x25, 5, (int) r11f_EventS00_Act, 0, 0x46, r11f_actNo, 1, 0);
-            pG->Stop_flg &= ~0x100;
+            SpfFlagOff(pG, SPF_ACTBTN);
         }
     }
 }
@@ -615,7 +616,7 @@ static void r11f_EventS11()
     EffectEspgenDelete(0x801, 2, 0);
     EffectEfmDelete(0x801, 2, 0);
     EstSet(0, -1, 0, 0, 1, 5, 1, 0, 0, 0);
-    pG->Status_flg[1] &= ~1;
+    StaFlagOff(pG, STA_LASERSITE_NOADD);
     SceExec(0x12, r11f_AshleyRunUp, 0, 0, SCE_PRIO_DEF_2, 0);
 }
 

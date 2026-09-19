@@ -367,28 +367,28 @@ void Trans()
     void (*func)(cModel*);
     cUnit* u;
 
-    if (!(pG->Disp_flg & 0x04000000)) {
+    if (!DpfFlagChk(pG, DPF_ESP)) {
         EspTrans();
     }
-    if (!(pG->Disp_flg & 0x01000000)) {
+    if (!DpfFlagChk(pG, DPF_WATER)) {
         EspgenTrans();
     }
-    if (!(pG->Disp_flg & 0x00400000)) {
+    if (!DpfFlagChk(pG, DPF_CTRL)) {
         CtrlMgr.trans();
     }
     ProcessTickGet(5, "EspTrans");
     ShadowTrans();
     ProcessTickGet(5, "ShadowTrans");
     ProcessTickGet(5, "MirrorTrans");
-    if (!(pG->Disp_flg & 0x00020000)) {
+    if (!DpfFlagChk(pG, DPF_CLOTH)) {
         ClothDraw();
     }
     ProcessTickGet(5, "ClothTrans");
-    if (!(pG->Disp_flg & 0x00100000)) {
+    if (!DpfFlagChk(pG, DPF_FILTER)) {
         FilterTrans();
     }
-    if (!(pG->Disp_flg & 0x04000000)) {
-        if (!(pG->Disp_flg & 0x400)) {
+    if (!DpfFlagChk(pG, DPF_ESP)) {
+        if (!DpfFlagChk(pG, DPF_TEX_RENDER)) {
             TransTexRenderMgr();
         }
     }
@@ -416,15 +416,15 @@ void lightSetEm(cModel* m)
         return;
     }
     if (m == pPL) {
-        if (pG->Disp_flg & 0x40000000) {
+        if (DpfFlagChk(pG, DPF_PL)) {
             return;
         }
     } else if (m == pSUB) {
-        if (pG->Disp_flg & 0x20000000) {
+        if (DpfFlagChk(pG, DPF_SUBCHAR)) {
             return;
         }
     } else {
-        if ((s32) pG->Disp_flg < 0) {
+        if (DpfFlagChk(pG, DPF_EM)) {
             return;
         }
     }
@@ -439,11 +439,11 @@ void lightSetObj(cModel* m)
         return;
     }
     if (m->kindid == 2) {
-        if (pG->Disp_flg & 0x08000000) {
+        if (DpfFlagChk(pG, DPF_SCR)) {
             return;
         }
     } else {
-        if (pG->Disp_flg & 0x10000000) {
+        if (DpfFlagChk(pG, DPF_OBJ)) {
             return;
         }
     }
@@ -454,15 +454,15 @@ void lightSetObj(cModel* m)
 void emTrans(cModel* m)
 {
     if (m == pPL) {
-        if (pG->Disp_flg & 0x40000000) {
+        if (DpfFlagChk(pG, DPF_PL)) {
             return;
         }
     } else if (m == pSUB) {
-        if (pG->Disp_flg & 0x20000000) {
+        if (DpfFlagChk(pG, DPF_SUBCHAR)) {
             return;
         }
     } else {
-        if ((s32) pG->Disp_flg < 0) {
+        if (DpfFlagChk(pG, DPF_EM)) {
             return;
         }
     }
@@ -473,11 +473,11 @@ void emTrans(cModel* m)
 void objTrans(cModel* m)
 {
     if (m->kindid == 2) {
-        if (pG->Disp_flg & 0x08000000) {
+        if (DpfFlagChk(pG, DPF_SCR)) {
             return;
         }
     } else {
-        if (pG->Disp_flg & 0x10000000) {
+        if (DpfFlagChk(pG, DPF_OBJ)) {
             return;
         }
     }
@@ -510,7 +510,7 @@ void ModelTrans(cModel* m)
     f32 radius;
     cModel* p;
 
-    if ((pG->Status_flg[1] & 0x10000000) && !(m->be_flag & 0x800)) {
+    if (StaFlagChk(pG, STA_SUSPEND) && !(m->be_flag & 0x800)) {
         return;
     }
     if (!(m->be_flag & 2)) {
@@ -639,7 +639,7 @@ void ModelTrans(cModel* m)
             lightSetObj(m);
         }
     } else {
-        if (pG->Debug_flg[0] & 0x10) {
+        if (DbgFlagChk(pG, DBG_LIGHT_TOOL)) {
             if (m->kindid == 0) {
                 lightSetEm(m);
             } else {
@@ -724,7 +724,7 @@ int commonScreenMatSub(cModel* m, cModelInfo* info)
                 t->frame = 0;
             }
         }
-        if (!(pG->Stop_flg & 0x08000000) && (t->flags & 1)) {
+        if (!SpfFlagChk(pG, SPF_ESP) && (t->flags & 1)) {
             f32 u = t->u + t->su;
             f32 v = t->v + t->sv;
             t->u = u;
@@ -951,8 +951,8 @@ void Render()
     g_prev_tpl_addr = (void*) -1;
     g_prev_add_tpl_addr = (void*) -1;
     GXSetCurrentGXThread();
-    if (pG->System_flg & 0x800) {
-        pG->Status_flg[3] |= 0x10000000;
+    if (SysFlagChk(pG, SYS_SCISSOR_ON)) {
+        StaFlagOn(pG, STA_SCISSOR);
         SetScissorState();
     }
     LightMgr.setFog();
@@ -973,7 +973,7 @@ void Render()
     ExecOt(OT_TYPE_SHADOW_DRAW);
     SetDrawTmpBufType(0);
     bio4_AddBgColor();
-    if (pG->Debug_flg[0] & 0x00040000) {
+    if (DbgFlagChk(pG, DBG_GROUND_DISP)) {
         drawGround(0);
     }
     ExecOt(OT_TYPE_SUBSCRN_NEAR);
@@ -988,7 +988,7 @@ void Render()
     ExecOt(OT_TYPE_AFTER_RENDER);
     ExecOt(OT_TYPE_DEBUG);
     ExecOt(OT_TYPE_MAX);
-    pG->Status_flg[3] &= ~0x10000000;
+    StaFlagOff(pG, STA_SCISSOR);
     SetScissorState();
     ExecOt(0x13);
     save = pG->Cam;
@@ -1003,7 +1003,7 @@ void Render()
     }
     GXSetDrawSync(0xADEB);
     GXSetDrawSyncCallback(Render_DrawSyncCallback);
-    pG->System_flg &= ~0x10000000;
+    SysFlagOff(pG, SYS_RENDER_END);
 }
 
 static const GXColor col64 = {0x40, 0x40, 0x40, 0x40};
@@ -1045,7 +1045,7 @@ void ModelRender(cModel* m)
         GXSetDstAlpha(0, 0);
     }
     shaderReset();
-    if (pG->Debug_flg[1] & 0x40000000) {
+    if (DbgFlagChk(pG, DBG_BOUNDING_DISP)) {
         m->drawAllBoundingBox(m->pModelInfo);
     }
 }
@@ -1070,9 +1070,9 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
     int matSet;
 
     PSet(g_pShdMng, 0);
-    if ((pG->Status_flg[2] & 0x00100000) && (m->be_flag & 0x02000000) && !(pG->Disp_flg & 0x00040000) &&
-        (pG->Status_flg[1] & 0x200)) {
-        if (!(pG->Status_flg[1] & 0x100)) {
+    if (StaFlagChk(pG, STA_USE_SHADOW_LIGHT) && (m->be_flag & 0x02000000) && !DpfFlagChk(pG, DPF_CAST_SHADOW) &&
+        (StaFlagChk(pG, STA_USE_CAST_SHADOW))) {
+        if (!StaFlagChk(pG, STA_PROC_SHD_TEX)) {
         g_pShdMng = GetCastShadowMngPtr(m);
         if (g_pShdMng != 0) {
             ShadowLightWork* w = (ShadowLightWork*) g_pShdMng->pLight->work;
@@ -1083,7 +1083,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
             }
             u32 n = m->LightInfo.getLightNum();
             if (n > 7) {
-                if (!(pG->Debug_flg[1] & 0x00040000)) {
+                if (!DbgFlagChk(pG, DBG_CAST_ERR_NO_DISP)) {
                     pLog->err(0, 0, "CAST LIGHT NUM OVER %d", n);
                 }
                 g_pShdMng = 0;
@@ -1101,7 +1101,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
         ModelPart* part;
         u32 i;
 
-        if (!(pG->Status_flg[1] & 0x100) && m->ot_type == 7) {
+        if (!StaFlagChk(pG, STA_PROC_SHD_TEX) && m->ot_type == 7) {
             if (m->be_flag & 0x08000000) {
                 if (!(info->be_flag & 0x40)) {
                     info = info->pList;
@@ -1168,7 +1168,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
         } else {
             GXSetVtxAttrFmt(0, 10, 0, 3, 14);
         }
-        if ((s32) d->flags < 0) {
+        if (d->flags & 0x80000000) {
             void* clr = d->pClr;
             GXSetVtxAttrFmt(0, 13, 1, 3, 8);
             GXSetVtxDesc(11, 3);
@@ -1205,7 +1205,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
             GXSetCullMode(0);
             break;
         }
-        if (pG->Debug_flg[0] & 0x20000000) {
+        if (DbgFlagChk(pG, DBG_BACK_CLIP)) {
             GXSetCullMode(1);
         }
         if (g_prev_tpl_addr != info->tpl_addr || g_prev_add_tpl_addr != info->pAddTpl) {
@@ -1223,7 +1223,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
                 } else {
                     td = TEXGet(info->pAddTpl, i - tpl->numDescriptors);
                 }
-                if ((s32) d->flags < 0) {
+                if (d->flags & 0x80000000) {
                     TEXHeader* wh = td->textureHeader;
                     wh->wrapT = 1;
                     wh->wrapS = 1;
@@ -1298,12 +1298,12 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
         }
         info = info->pList;
     }
-    if (!(pG->Status_flg[1] & 0x100)) {
+    if (!StaFlagChk(pG, STA_PROC_SHD_TEX)) {
         if (MODEL_EXT(m)->pFootShadowTbl != 0 && (m->be_flag & 0x10)) {
             DrawFootShadow((cEm*) m);
         }
     }
-    if (!(pG->Status_flg[1] & 0x100)) {
+    if (!StaFlagChk(pG, STA_PROC_SHD_TEX)) {
         if (m->ot_type == 7) {
             m->be_flag |= 0x08000000;
         }
@@ -1365,7 +1365,7 @@ static void shaderSetup(cModel* m, cModelInfo* info, ModelPart* part, Mtx mv)
     int st;
     int scale;
 
-    if (pG->Status_flg[1] & 0x04000000) {
+    if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
         ThermoShaderSetup(m, info, part);
         return;
     }
@@ -1380,7 +1380,7 @@ static void shaderSetup(cModel* m, cModelInfo* info, ModelPart* part, Mtx mv)
     ISET0(tex_coord);
     ISET0(ind_stage);
     selfDone = 0;
-    if ((pGS->Status_flg[0] & 1) && isSelfUse) {
+    if (StaFlagChk(pGS, STA_SELF_SHADOW) && isSelfUse) {
         u32 i;
         for (i = 0; i < g_SelfShdNum; i++) {
             if (GetSelfShadowMng(i)->pModel[0] == m) {
@@ -2037,7 +2037,7 @@ static void GlobalIlluminationSetup(ModelPart* part, int nrm8)
     int coord;
     u32 mtx;
 
-    if (pG->Disp_flg & 0x00080000) {
+    if (DpfFlagChk(pG, DPF_GLB_ILM)) {
         return;
     }
     {

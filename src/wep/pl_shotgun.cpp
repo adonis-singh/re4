@@ -74,7 +74,7 @@ void PlShotgunMove(cPlayer* pl)
 }
 
 // r_no_2 == 0: the ready (draw) state. After the step: aim key released -> footwork (r_no_1 0, or
-// 0x11 crouch with flags_420 bit6) at normal motion speed; reload key with shells left -> reload
+// 0x11 crouch with stat bit6) at normal motion speed; reload key with shells left -> reload
 // (m_Flag bit0, m_Work0 = 1); else the shoulder camera aims at the locked enemy or at the scenario
 // hit of the player's forward line.
 static void wep07_r2_ready(cPlayer* pl)
@@ -88,7 +88,7 @@ static void wep07_r2_ready(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
         pl->motSpeedRate = 1.0f;
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -104,8 +104,8 @@ static void wep07_r2_ready(cPlayer* pl)
         pl->Wep->m_Flag |= 1;
         PlRoutineSet(pl, 0, 6, 4, 0);
         pl->m_Work0 = 1;
-    } else if (pl->pLockEm) {
-        CamCtrlShoulderSetAim(&pl->pLockEm->pos);
+    } else if (pl->m_pEm) {
+        CamCtrlShoulderSetAim(&pl->m_pEm->pos);
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
         Vec hit;
@@ -143,7 +143,7 @@ static void wep07_r3_ready00(cPlayer* pl)
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     pl->Wep->lockInit();
     hokan = 4;
-    if (!(pl->flags_420 & 0x40)) {
+    if (!(pl->stat & 0x40)) {
         hokan = 5;
     }
     mot = WEP_ARC_PTR(0x18);
@@ -225,7 +225,7 @@ static void wep07_r2_set(cPlayer* pl)
     PlWepLockCtrl(pl);
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if (pl->flags_420 & 0x40) {
+        if (pl->stat & 0x40) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -502,7 +502,7 @@ static void wep07_r3_fire10(cPlayer* pl)
 }
 
 // Holster: footwork routine (r_no_1 0) sub-routine 2 with the weapon-down motion 0x1F when a
-// motion may be set (dmMotCk), else straight to the idle (x4FD = 0xF). The weapon object's mode is
+// motion may be set (dmMotCk), else straight to the idle (m_Hokan = 0xF). The weapon object's mode is
 // left to cObjWep::move (unlike the handgun's wepDown).
 void wepDown(cPlayer* pl)
 {
@@ -511,11 +511,11 @@ void wepDown(cPlayer* pl)
         PlRoutineSet(pl, 0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
-        pl->x4FD = 0xF;
+        pl->m_Hokan = 0xF;
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
         pl->r_no_2 = 0;
-        pl->x4FC = 0;
+        pl->m_Frame = 0;
     }
     pl->motionMove();
 }
@@ -523,7 +523,7 @@ void wepDown(cPlayer* pl)
 // r_no_2 == 4: the reload state. Step 0 starts the reload motion of the reload-speed level
 // (0x2A/0x2C/0x2E), clears m_ShotCancelCtr, knifeStance = 1, weapon object mode 4 (the object
 // loads the shells on its motion). Step 1 waits for PlReloadEndTbl's frame: aiming -> step 2; else
-// footwork sub-routine 2 with x4FD = 9 (or crouch 0x11); a level aim (|m3r[0]| <= 0.1) that runs
+// footwork sub-routine 2 with m_Hokan = 9 (or crouch 0x11); a level aim (|m3r[0]| <= 0.1) that runs
 // the motion out returns to set step 0. Steps 2/3 blend the aim idle back over 8 frames (m_Work0).
 static void wep07_r2_reload(cPlayer* pl)
 {
@@ -559,14 +559,14 @@ static void wep07_r2_reload(cPlayer* pl)
             if (pl->frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
                 if (joyKamae()) {
                     pl->r_no_3 = 2;
-                } else if (pl->flags_420 & 0x40) {
+                } else if (pl->stat & 0x40) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;
                     pl->r_no_3 = 0;
                 } else {
-                    pl->x4FD = 9;
-                    pl->x4FC = 0;
+                    pl->m_Hokan = 9;
+                    pl->m_Frame = 0;
                     pl->r_no_0 = 0;
                     pl->r_no_1 = 0;
                     pl->r_no_2 = 0;
@@ -575,14 +575,14 @@ static void wep07_r2_reload(cPlayer* pl)
             }
         } else {
             if (joyKamae() == 0 && pl->frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
-                if (pl->flags_420 & 0x40) {
+                if (pl->stat & 0x40) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;
                     pl->r_no_3 = 0;
                 } else {
-                    pl->x4FD = 9;
-                    pl->x4FC = 0;
+                    pl->m_Hokan = 9;
+                    pl->m_Frame = 0;
                     pl->r_no_0 = 0;
                     pl->r_no_1 = 0;
                     pl->r_no_2 = 0;

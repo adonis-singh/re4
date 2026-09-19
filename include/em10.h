@@ -197,7 +197,7 @@ struct Em10Work {
     MotionWorkSub blendMot;  // 0x748 (0xB28)
 };
 
-#define EM10_WK(em) ((Em10Work*) &(em)->x3E0)
+#define EM10_WK(em) ((Em10Work*) (((cEm10*) (em))->free))
 
 class cObjGatling;
 
@@ -205,6 +205,7 @@ class cObjGatling;
 // (docs/matching.md: a class with undefined virtuals emits no vtable). Slot names are the vtable byte offsets.
 class cEmPartner : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMPARTNER_WK)
     virtual int v50();
     virtual void v58(cEm* em, int a, int b, int c);
     virtual int v60();
@@ -226,6 +227,7 @@ public:
 // The Ganado (em10.cpp). Vtable order after the cEm virtuals: the declaration order below.
 class cEm10 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM10_WK)
     // no user constructor: em10.cpp has no cEm10::cEm10 body (the in-class `cEm10() {}` would be
     // emitted out of line like every in-class member), EmXXInit's `new (em) cEm10()` synthesizes it
     virtual ~cEm10();

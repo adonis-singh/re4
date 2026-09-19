@@ -66,7 +66,7 @@ public:
     u32 id;         // 0x28  scroll object id
     int status;     // 0x2C  0 closed, 1 open, 4 moving
     int timer;      // 0x30
-    int flagNo;     // 0x34  door flag bit (pG->flags_51BC ...)
+    int flagNo;     // 0x34  door flag index in pG->Scenario_flg
     cSat* sat;      // 0x38  collision of the rotating doors
     cSat* eat;      // 0x3C  event collision of the lift
 
@@ -145,21 +145,6 @@ static R209WorkPtr r209_work;
 // truncation (`lwzx` straight into r4); an int-parameter view of the callee (r104/r203).
 int cEmWrapSetEmI(cEmWrap* w, int no, int list, int errOn, int chkDead, int setAlive) asm("setEm__7cEmWrapsSciii");
 
-// Door flag words at pG+0x51BC, addressed as an integer base plus the word offset (cast-then-deref).
-static inline u32 doorFlagBase()
-{
-    return (u32) &pG->Item_find_flg;
-}
-// Set door flag `no` in the words at `base` (pG+0x51BC).
-static inline void FlagOn(u32 base, u32 no)
-{
-    *(u32*) (((no >> 5) << 2) + base) |= 0x80000000 >> (no & 31);
-}
-// Clear door flag `no` in the words at `base`.
-static inline void FlagOff(u32 base, u32 no)
-{
-    *(u32*) (((no >> 5) << 2) + base) &= ~(0x80000000 >> (no & 31));
-}
 
 // MSB-first bit `no` of the u32 array `a`.
 #define R209_BIT_ON(a, no) (*((a) + ((u32) (no) >> 5)) |= 0x80000000 >> ((no) & 31))
@@ -319,7 +304,7 @@ void R209Init()
         Vec ofs = {0.0f, -2.0f, 180.0f};
         Vec rot0 = {0.0f, 0.0f, 0.0f};
 
-        pG->door_flags_51CC &= ~0x00080000;
+        ScfFlagOff(pG, SCF_8c);
         r209_work.p->leader.setEm(0x7D, 3, 1, 0, 0);
         r209_work.p->head = SetObj00(ROOM_ARC_PTR(pG->pRoom, 0x20), ROOM_ARC_PTR(pG->pRoom, 0x21), &ofs, &rot0);
         OyaSetObj00(r209_work.p->head, r209_work.p->leader.getPtr(), 2);
@@ -884,7 +869,7 @@ static void r209_LeaderEscapeToDEndProc()
     SceAtDataSet_exec(0x19, SCE_LEVEL10, 0, (TaskFunc) r209_DoorOpen1F, (void*) 0x19, 1);
     SceAtDataSet_exec(0x1D, SCE_LEVEL10, 0, (TaskFunc) r209_DoorOpen2F, (void*) 0x1D, 1);
     SceAtDataSet_exec(0x1C, SCE_LEVEL10, 0, (TaskFunc) r209_DoorOpen2F, (void*) 0x1C, 1);
-    pG->door_flags_51CC |= 0x00080000;
+    ScfFlagOn(pG, SCF_8c);
     SceEventEnd(0);
     while (w->ckGoto() == 1) {
         SceSleep(1);
@@ -906,7 +891,7 @@ static void r209_DoorMessage()
     }
 }
 
-// Task: waits for the salon key (item 0xA3) to be used, then Room_flg bit 2, door_flags_51C8 0x1000,
+// Task: waits for the salon key (item 0xA3) to be used, then Room_flg bit 2, Scenario_flg[3] 0x1000,
 // door 9 becomes normal, message up-cut 1/2.
 static void r209_CheckUseSalonKey()
 {
@@ -914,7 +899,7 @@ static void r209_CheckUseSalonKey()
         SceSleep(1);
     }
     RsfSet(G_ROOM_ID, 2);
-    pG->door_flags_51C8 |= 0x1000;
+    ScfFlagOn(pG, SCF_73);
     SceAtSetEnable(2, 0);
     ((cEmDoor*) r209_work.p->door9)->setNormal();
     SceUpCut(1, -1, 2, 0);
@@ -937,7 +922,7 @@ static void r209_GatlingAppear()
     SceEventStart(1);
     r209_work.p->door2->setNoSuspend(0);
     r209_work.p->door3->setNoSuspend(0);
-    pG->Status_flg[2] |= 0x02000000;
+    StaFlagOn(pG, STA_ESP_COMPULSION_NOSUSPEND);
     SndStrReq(r209_work.p->strId, 4, 400, 0);
     U32Set(r209_work.p->strId, SndStrReq(0, 0x1B, 0x80000003, 0, 0, 0.0f));
     pos.x = -27050.0f;
@@ -986,7 +971,7 @@ static void r209_GatlingAppearEndProc()
     r209_work.p->head->setNoSuspend(0);
     r209_work.p->gatling->setNoSuspend(0);
     SceEventEnd(0);
-    pG->Status_flg[2] &= ~0x02000000;
+    StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
     r209_work.p->leader.setFlag(1);
     SceExec(0x12, (TaskFunc) r209_GatlingEndCheck, 0, 0, SCE_PRIO_DEF_2, 0);
 }
@@ -1045,7 +1030,7 @@ static void r209_2ndBattle()
     memclr_asm(r209_work.p->em, sizeof(R209Em) * 23);
     SceSleep(2);
     SndBgmTblSet(0x209, 1);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     SubScreenWait(60);
     if (r209_work.p->evd->waitLoadOk() == 1) {
         MemorySwap(m->pArc, (u32) r209_work.p->evd->m_addr, r209_work.p->evd->m_size);
@@ -2142,11 +2127,11 @@ void cR209Door::init(u32 id_)
             eat = EatMgr.create(ROOM_ARC_PTR(pGS->pRoom, 0x12), 0, &obj->pos, &obj->ang, 4);
             break;
         case 2:
-            flagNo = 0x8B;
+            flagNo = SCF_8b;
             openH = 2700.0f;
             break;
         case 3:
-            flagNo = 0x74;
+            flagNo = SCF_74;
             openH = 2700.0f;
             break;
         case 0xB3:
@@ -2283,7 +2268,7 @@ void cR209Door::open()
         mode = 0;
         step = 0;
         if (flagNo) {
-            FlagOn(doorFlagBase(), flagNo);
+            FlagOnVar(&pG->Scenario_flg, (u32) flagNo);
         }
         break;
     }
@@ -2391,7 +2376,7 @@ void cR209Door::close()
         mode = 0;
         step = 0;
         if (flagNo) {
-            FlagOff(doorFlagBase(), flagNo);
+            FlagOffVar(&pG->Scenario_flg, (u32) flagNo);
         }
         break;
     }
@@ -2457,7 +2442,7 @@ void cR209Door::setOpened()
     }
     SndStop(se, 0);
     if (flagNo) {
-        FlagOn(doorFlagBase(), flagNo);
+        FlagOnVar(&pG->Scenario_flg, (u32) flagNo);
     }
 }
 
@@ -2487,7 +2472,7 @@ void cR209Door::setClosed()
     }
     SndStop(se, 0);
     if (flagNo) {
-        FlagOff(doorFlagBase(), flagNo);
+        FlagOffVar(&pG->Scenario_flg, (u32) flagNo);
     }
 }
 

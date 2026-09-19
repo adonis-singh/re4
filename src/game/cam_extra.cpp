@@ -438,7 +438,7 @@ void CameraScope::move()
             if (Joy[0].on & 4) {
                 add = gain * SCOP_VEL_X + add;
             }
-            if (pSys->flags & 0x80000000) {
+            if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
                 add = -add;
             }
             ang = angle_x;
@@ -720,7 +720,7 @@ void CameraBinocular::move()
         if (Joy[0].on & 4) {
             add = add - gain * BINO_VEL_X;
         }
-        if (pSys->flags & 0x80000000) {
+        if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
             add = -add;
         }
         ang = m_rad.x;
@@ -761,14 +761,14 @@ void IdBinocular::init(Camera* cam, void* a, void* b)
     IdSys.kill(0xFF, 0x20);
     IdSys.kill(0xFF, 0x23);
     IdSys.kill(0xFF, 0x30);
-    pG->Stop_flg |= 0x100;
+    SpfFlagOn(pG, SPF_ACTBTN);
     IdTexRelease(TEX_OWNER_ID_COCKPIT);
     IdTexDataLoad(a, TEX_OWNER_ID_COCKPIT);
     IdSys.set(b, 0xFF, 0x24, 0x13, 5, 0);
     m_pos0_L = IdSys.unitPtr(1, 0x24)->scr;
     m_pos0_C = IdSys.unitPtr(2, 0x24)->scr;
     m_pos0_R = IdSys.unitPtr(3, 0x24)->scr;
-    if (pGS->Status_flg[0] & 0x1000) {
+    if (StaFlagChk(pGS, STA_EVENT)) {
         IdSys.unitPtr(0x30, 0x24)->be_flag &= ~8;
         IdSys.unitPtr(0x1B, 0x24)->be_flag &= ~8;
     }
@@ -885,7 +885,7 @@ void IdBinocular::move(void* p)
         i++;
         IdSys.unitPtr(i, 0x24)->be_flag &= ~8;
     }
-    if (!(pG->Status_flg[0] & 0x1000)) {
+    if (!StaFlagChk(pG, STA_EVENT)) {
         IdUnit* u = IdSys.unitPtr(0x36, 0x24);
         MessageControl* mc;
         Message* ms;
@@ -956,9 +956,9 @@ void IdBinocular::quit(void*)
     u->size_H = m_meter_h0;
     u->sizeX = m_meter_w0;
     IdSys.kill(0xFF, 0x24);
-    pG->Stop_flg &= ~0x100;
+    SpfFlagOff(pG, SPF_ACTBTN);
     Cckpt.roomInit();
-    if (pG->Status_flg[0] & 0x1000) {
+    if (StaFlagChk(pG, STA_EVENT)) {
         Cckpt.lifeMeterDisp(0);
     }
     {

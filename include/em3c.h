@@ -56,7 +56,7 @@ struct Em3cWork {
     u8 Armor_type;            // 0x3DD (0x7BD)  type 2 / 3
 };
 
-#define EM3C_WK(em) ((Em3cWork*) &(em)->x3E0)
+#define EM3C_WK(em) ((Em3cWork*) (((cEm3c*) (em))->free))
 
 // Falling parts of the burst head (em3cPartsBombSet / em3cPartsBombControl), overlaid on
 // cParts from 0x128 (addRot .. the motion history).
@@ -71,6 +71,7 @@ struct Em3cPartsBomb {
 
 class cEm3c : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM3C_WK)
     virtual void move();
 };
 

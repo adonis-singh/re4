@@ -154,7 +154,7 @@ void R11cInit()
     EstSet((int) pPL, -1, 0, 0, 1, 0, 0x800, 0, 0, 0);
     EstSet((int) pPL, -1, 0, 0, 3, 1, 0x800, 0, 0, 0);
     EstSet((int) pPL, -1, 0, 0, 0, 0x23, 0x800, 0, 0, 0);
-    pG->Status_flg[1] |= 0x400;
+    StaFlagOn(pG, STA_ROOM_RAIN);
     EstSet(0, -1, 0, 0, 1, 0xA, 1, 2, 0, 0);
     getRoomEtcLadder(6, (cEm**) &W->ladder[0], 1);
     getRoomEtcLadder(7, (cEm**) &W->ladder[1], 1);
@@ -200,7 +200,7 @@ void R11cInit()
     if (getRoomEtcRack(2, &rack, 1)) {
         ((cEmRack*) rack)->setRange(0.0f, 10000.0f, 0.0f, 10000.0f);
     }
-    if (!(pG->Item_find_flg & 0x00020000)) {
+    if (!ScfFlagChk(pG, SCF_R11C_BESIEGED_EVENT)) {
         SceAtDataSet_exec(3, SCE_LEVEL10, 0, (TaskFunc) r11c_EventBesiegedStart, 0, 1);
         r11c_eventInit();
         if (!r11c_emDead(0xC8)) {
@@ -246,14 +246,14 @@ void R11cInit()
     EvtMgr.SetFunc("evt_r11cs00_func", (void*) Evt_R11CS00_Func);
     EvtMgr.SetFunc("evt_r11cs10_func", (void*) Evt_R11CS10_Func);
     EvtMgr.SetFunc("evt_r11cs20_func", (void*) Evt_R11CS20_Func);
-    if (!(pG->Scenario_flg[0] & 0x00020000)) {
+    if (!ScfFlagChk(pG, SCF_R11C_OPERATOR)) {
         SceAtDataSet_exec(0xC, SCE_LEVEL10, 0, (TaskFunc) r11c_operator, 0, 1);
     }
     if (EtcGetDasAddr(0x14, &arc)) {
         RoomEfmRegist(GetEtcAddr(arc, "et1400.bin"), GetEtcAddr(arc, "et1400.tpl"), 0x6F);
     }
     FlrAtSetDefVal(0, 0, 3);
-    if (!(pG->Item_find_flg & 0x00020000) && RoomData.checkPassed(pG->room_id, 0) == 0) {
+    if (!ScfFlagChk(pG, SCF_R11C_BESIEGED_EVENT) && RoomData.checkPassed(pG->room_id, 0) == 0) {
         levelDataAdd(merchantData, level_null);
         stockDataAdd(merchantData, stock_r11c);
     }
@@ -293,7 +293,7 @@ extern "C" void r11c_eventInit()
     W->evd1 = DC.setData(EvtMgr.NameChange("evd/r11cs10.evd"));
     EmReadSearch(0x13, 0, W->evd0->m_size);
     EmReadSearch(3, 0, 0x120000);
-    BitOn(pG->Status_flg[3], 0x04000000);
+    StaFlagOn(pG, STA_SUB_ASHLEY);
     SubCharInit(1, &pPL->pos, pPL->ang.y);
     SubCharCtrl(SCC_CHASE, 0);
     W->mod3 = SearchEmModule(3);
@@ -307,7 +307,7 @@ static void r11c_EventBesiegedStart()
     ReadModule* mod;
     int err;
 
-    BitOn(pG->Item_find_flg, 0x00020000);
+    ScfFlagOn(pG, SCF_R11C_BESIEGED_EVENT);
     BitOn(pG->Room_flg[0], 0x40000000);
     EffectEspDelete(0, (u8) W->eff, 0, 0);
     EffectEspgenDelete(0, (u8) W->eff, 0);
@@ -315,13 +315,13 @@ static void r11c_EventBesiegedStart()
     SceEventStart(0);
     if (pSUB) {
         EmMgr.destroy(pSUB);
-        pG->Status_flg[3] &= ~0x04000000;
+        StaFlagOff(pG, STA_SUB_ASHLEY);
     }
     if (getRoomEtcDoor(0xA, &door, 1)) {
         door->setNoSuspend(0);
         cEmDoorSetCloseLock(door);
     }
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     err = W->evd0->waitLoadOk() == 0;
     EmMgr.destroy(W->em);
     SceSleep(2);
@@ -368,7 +368,7 @@ static void r11c_EventBesiegedStart()
         MemorySwap(mod->pArc, (u32) W->evd0->m_addr, W->evd0->m_size);
     }
     W->evd0->setCommand(CMND_DEL_DATA, 0, 0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     EmReadSearch(4, 0, 0x120000);
     W->ashley = EmMgr.create(4);
     // Mid-function declarations: the two error arms above own block-local pos/ang pairs, so these
@@ -418,7 +418,7 @@ static void r11c_EventBesiegedStart()
 
     W->evd1->setCommand(CMND_ARAM_LOAD, 0, 0);
     SceSleep(2);
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     SceEventEnd(0);
     CamCtrl.AreaOnOff(1, 0, 1);
     SndRoomStrStart(1, 3, 1);
@@ -501,7 +501,7 @@ static void r11c_EventBesiegedStart()
             if (pG->Room_flg[0] & 0x20000000) {
                 SceEventStart(0);
                 SndRoomStrStop(3);
-                pG->System_flg |= 0x400;
+                SysFlagOn(pG, SYS_SCREEN_STOP);
                 SceDestroyEm(0x10, 0x20);
                 SceSleep(2);
                 InitModule(SearchEmModule(0x13));
@@ -560,7 +560,7 @@ static void r11c_EventBesiegedStart()
     }
     SndRoomStrStop(5);
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     err2 = W->evd1->waitLoadOk() == 0;
     for (i = 0; i < n; i++) {
         e = em[i];
@@ -588,10 +588,10 @@ static void r11c_EventBesiegedStart()
         }
     }
     W->evd1->setCommand(CMND_DEL_DATA, 0, 0);
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     SceEventEnd(0);
     r11c_initGate();
-    BitOn(pG->Status_flg[3], 0x04000000);
+    StaFlagOn(pG, STA_SUB_ASHLEY);
     SubCharInit(1, &pPL->pos, pPL->ang.y);
     SubCharCtrl(SCC_CHASE, 0);
     if (!r11c_emDead(0xC8)) {
@@ -640,7 +640,7 @@ static void r11c_EventBesiegedStart()
         // calls below, so sched1 may hoist it): a block-local, as in r111.
         void* zero = 0;
 
-        pG->Item_find_flg |= 0x40;
+        ScfFlagOn(pG, SCF_R11C_BESIEGED_END_EVENT);
         stockDataAdd(merchantData, stock_r11c_after_event);
         merchantChar.setChar(&merchant_info_A, merchantData, g_item_price_tbl, g_item_price_tbl, level_price);
         SceAtSetEnable(8, 0);
@@ -710,7 +710,7 @@ extern "C" void r11c_initGate()
     cObj* g1 = SmdGetObjPtr(0x34);
 
     if (g0 && g1) {
-        if (!(pG->Item_find_flg & 0x00020000)) {
+        if (!ScfFlagChk(pG, SCF_R11C_BESIEGED_EVENT)) {
             const f32 h = 3600.0f;
 
             g0->pos.y += h;
@@ -824,7 +824,7 @@ static void r11c_moveGear(int dir)
     g1->pParts->ang.y += d;
     SceSleep(1);
     EstSet(0, -1, 0, 0, 1, 5, 1, (u8) W->effGear, 0, 0);
-    while ((s32) pG->Room_flg[2] >= 0) {
+    while (!(pG->Room_flg[2] & 0x80000000)) {
         f32 a;
 
         t += acc;
@@ -861,7 +861,7 @@ static void r11c_moveChain(int dir)
     c = SmdGetObjPtr(id);
     spd = 0.0f;
     c->be_flag |= 0x20;
-    while ((s32) pGS->Room_flg[2] >= 0) {
+    while (!(pGS->Room_flg[2] & 0x80000000)) {
         spd += acc;
         if (spd > max) {
             spd = max;
@@ -1081,8 +1081,8 @@ static void r11c_selectRoute()
 // Area 0xC: the typewriter terminal.
 static void r11c_operator()
 {
-    if (!(pG->Scenario_flg[0] & 0x00020000)) {
-        pG->Scenario_flg[0] |= 0x00020000;
+    if (!ScfFlagChk(pG, SCF_R11C_OPERATOR)) {
+        ScfFlagOn(pG, SCF_R11C_OPERATOR);
         SceAtSetEnable(0xC, 0);
         OpeSetOpenTerm(0xB, 71600.0f, -10.0f, -55420.0f, 1.6f);
     }

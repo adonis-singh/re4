@@ -258,7 +258,7 @@ void objGondola_R0_Up(cObjGondola* obj)
             FSet(pSUB->ang.y, -0.49f);
             pSUB->setPos(&b);
         }
-        pG->Status_flg[0] &= ~0x20;
+        StaFlagOff(pG, STA_RIDE_GONDOLA);
         w->Ride_pl = 0;
         obj->r_no_0 = 1;
         obj->r_no_1 = 0;
@@ -644,7 +644,7 @@ void cObjGondola::setRidePL()
         pSUB->setPos(&v2);
         w->Ride_sub = 1;
     }
-    pG->Status_flg[0] |= 0x20;
+    StaFlagOn(pG, STA_RIDE_GONDOLA);
     r_no_0 = 2;
     r_no_1 = 0;
     r_no_2 = 0;
@@ -654,7 +654,7 @@ void cObjGondola::setRidePL()
 // Clears the riding flag.
 void cObjGondola::setGetOffPL()
 {
-    pG->Status_flg[0] &= ~0x20;
+    StaFlagOff(pG, STA_RIDE_GONDOLA);
     r_no_0 = 1;
     r_no_1 = 0;
     r_no_2 = 0;

@@ -117,11 +117,11 @@ void R222Init()
     // before the call (the r11b/r402 idiom); the sixth be_flag store is a BitOn so the RsfCheck's `lwz pG`
     // stays below it. The reference is declared after the pG flag store so that `high(pG)` is the earlier
     // gcse expression: the two PRE'd highs fill the prologue's free slots in first-occurrence order.
-    pG->Debug_flg[1] |= 0x20000;
+    DbgFlagOn(pG, DBG_EMW_ERR_NO_DISP);
     R222Work*& wp = r222_work.p;
 #line 70 "D:/Bio4/Prog/r222.cpp"
     wp = (R222Work*) MEM_CALLOC(sizeof(R222Work), 1, 0xd);
-    pG->Status_flg[1] |= 1;
+    StaFlagOn(pG, STA_LASERSITE_NOADD);
     Espgen42SetNoWater(1);
     SmdGetObjPtr(0xA)->be_flag |= 0x20;
     SmdGetObjPtr(0xB)->be_flag |= 0x20;
@@ -342,14 +342,14 @@ void R222Main()
     SmdGetObjPtr(1)->pParts->ang.y = LIMIT_ANGLE(SmdGetObjPtr(1)->pParts->ang.y);
     ry = SmdGetObjPtr(1)->pParts->ang.y;
     if ((ry > r222_angA0 && ry < r222_angA1) || (ry > r222_angA2 && ry < r222_angA3)) {
-        if ((int) pG->Room_flg[2] < 0) {
-            pG->Status_flg[0] &= ~8;
+        if (pG->Room_flg[2] & 0x80000000) {
+            StaFlagOff(pG, STA_PL_JUMP_OFF);
         }
         eprintf(0xD8, 0x38, 4, 0, "%f", ry);
         SceAtSetEnable(8, 0);
     } else {
-        if ((int) pG->Room_flg[2] < 0) {
-            pG->Status_flg[0] |= 8;
+        if (pG->Room_flg[2] & 0x80000000) {
+            StaFlagOn(pG, STA_PL_JUMP_OFF);
         }
         SceAtSetEnable(8, 1);
         eprintf(0xD8, 0x38, 2, 0, "%f", ry);
@@ -358,13 +358,13 @@ void R222Main()
     ry = SmdGetObjPtr(1)->pParts->ang.y;
     if ((ry > r222_angB0 && ry < r222_angB1) || (ry > r222_angB2 && ry < r222_angB3)) {
         if (pG->Room_flg[2] & 0x40000000) {
-            pG->Status_flg[0] &= ~8;
+            StaFlagOff(pG, STA_PL_JUMP_OFF);
         }
         eprintf(0xD8, 0x46, 4, 0, "%f", ry);
         SceAtSetEnable(7, 0);
     } else {
         if (pG->Room_flg[2] & 0x40000000) {
-            pG->Status_flg[0] |= 8;
+            StaFlagOn(pG, STA_PL_JUMP_OFF);
         }
         eprintf(0xD8, 0x46, 2, 0, "%f", ry);
         SceAtSetEnable(7, 1);
@@ -408,11 +408,11 @@ static void dragon_down_ck()
 {
     for (;;) {
         if (RsfCheck(G_ROOM_ID, 0) == 0) {
-            if ((int) pG->Room_flg[0] < 0) {
+            if (pG->Room_flg[0] & 0x80000000) {
                 em_reset();
             }
             R222_DRAGON_CHECK(0, 0x16, 0x17, dragon, dragon_down);
-            if (RsfCheck(G_ROOM_ID, 3) == 0 && (int) pG->Room_flg[0] < 0) {
+            if (RsfCheck(G_ROOM_ID, 3) == 0 && (pG->Room_flg[0] & 0x80000000)) {
                 RsfSet(G_ROOM_ID, 3);
                 SceExec(0x12, (TaskFunc) dragon_appear, 0, 0, SCE_PRIO_DEF_2, 0);
             }

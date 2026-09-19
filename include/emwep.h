@@ -62,12 +62,13 @@ struct EmWepWork {
     EmAtkInfo* pAtk;      // 0x218 (0x5F8)  attack info used against the player (emWepAtk by default)
 };
 
-#define EMWEP_WK(em) ((EmWepWork*) &(em)->x3E0)
+#define EMWEP_WK(em) ((EmWepWork*) (((cEmWep*) (em))->free))
 
 // Weapon enemy (game/emwep.cpp): weapons the enemies hold, drop, throw or shoot (axes, scythes,
 // arrows, rockets, dynamite, flash / hand grenades). cEmMgr::construct builds it (id 0x42).
 class cEmWep : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EMWEP_WK)
     virtual void beginEvent();
     virtual void move();
 

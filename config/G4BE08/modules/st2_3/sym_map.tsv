@@ -241,7 +241,7 @@ section	offset	size	unit	scope	name	demangled
 .text	0x0001834C	0x9C	st2_3/r226.cpp	local	SceBgmCheck__Fv	SceBgmCheck
 .text	0x000183E8	0x5C8	st2_3/r226.cpp	local	playerRunMovePassage__FP7cPlayer	playerRunMovePassage
 .text	0x000189B0	0xA68	st2_3/r226.cpp	local	playerRunMoveBridge__FP7cPlayer	playerRunMoveBridge
-.text	0x00019418	0x98	st2_3/r226.cpp	global	playerRunDieSet__Fii	playerRunDieSet
+.text	0x00019418	0x98	st2_3/r226.cpp	global	playerRunDieSet__FP3cEmi	playerRunDieSet
 .text	0x000194B0	0xCC	st2_3/r226.cpp	local	playerRunDiePassage__FP7cPlayer	playerRunDiePassage
 .text	0x0001957C	0x16C	st2_3/r226.cpp	local	playerRunDieBridge__FP7cPlayer	playerRunDieBridge
 .text	0x000196E8	0x58	st2_3/r226.cpp	global	playerRunCamInitBridge__Fv	playerRunCamInitBridge

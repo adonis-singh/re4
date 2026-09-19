@@ -50,7 +50,7 @@ void R31aInit()
     Espgen42SetNoWater(1);
     SceAtDataSet_exec(0, 0x12, 0, (TaskFunc) SceElevator, &r31a_elvLeave, 1);
     SceAtSetActColor(0, 1);
-    if ((pG->System_flg & 0x100) == 0 && pG->room_id_prev == 0x318) {
+    if (SysFlagChk(pG, SYS_LOAD_GAME) == 0 && pG->room_id_prev == 0x318) {
         SceExec(0x12, (TaskFunc) SceElevator, (int) &r31a_elvArrive, 0, 2, 0);
     }
 }

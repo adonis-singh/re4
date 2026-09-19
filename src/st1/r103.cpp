@@ -84,9 +84,9 @@ extern "C" void r103_initCesspit(R103Cesspit* c);
 static void r103_BgmStartCheck();
 
 // Room init (in st1_1 and st1_3): the ten corpse models only outside region 0 (Japan hides them and
-// area 0xB), Item_find_flg 0x1000, battle-stream timer, the cesspit and its sub-mission target on
+// area 0xB), Scenario_flg[0] 0x1000, battle-stream timer, the cesspit and its sub-mission target on
 // object 8, floor hit effects, rack 6 range, three shelf item events (items 0x92/0x81/0x83), and the
-// glowing file at area 0x80 until item_flags[0] 0x800.
+// glowing file at area 0x80 until Item_flg[0] 0x800.
 void R103Init()
 {
     cEm* rack;
@@ -94,7 +94,7 @@ void R103Init()
 #line 72 "D:/Bio4/Prog/r103.cpp"
     r103_work = (R103Work*) MEM_CALLOC(sizeof(R103Work), 1, 0xd);
 
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         SceAtSetEnable(0xB, 0);
     } else {
         r103_setCorpse(ROOM_ARC_PTR(pG->pRoom, 0x1F), ROOM_ARC_PTR(pG->pRoom, 0x20), ROOM_ARC_PTR(pG->pRoom, 0x21),
@@ -103,7 +103,7 @@ void R103Init()
                        ROOM_ARC_PTR(pG->pRoom, 0x28));
         EstSet(0, -1, 0, 0, 1, 5, 0, 0, 0, 0);
     }
-    pG->Item_find_flg |= 0x1000;
+    ScfFlagOn(pG, SCF_R103_ENTER);
     SceExec(0x12, (TaskFunc) r103_BgmStartCheck, 0, 0, SCE_PRIO_DEF_2, 0);
     SceExec(0x12, (TaskFunc) r103_initCesspit, (int) &r103_cesspit, 0, SCE_PRIO_DEF_2, 0);
     r103_setSubMissionTarget(8);
@@ -114,7 +114,7 @@ void R103Init()
     SceSetItemEvent(7, 0x92, 0, 0xA, (void (*)(int)) r103_openShelf, (void (*)()) r103_openedShelf, (int) &r103_shelf0, 0);
     SceSetItemEvent(8, 0x81, 1, 0xB, (void (*)(int)) r103_openShelf, (void (*)()) r103_openedShelf, (int) &r103_shelf1, 0);
     SceSetItemEvent(9, 0x83, 2, 9, (void (*)(int)) r103_openShelf, (void (*)()) r103_openedShelf, (int) &r103_shelf2, 0);
-    if (!(pG->item_flags[0] & 0x800)) {
+    if (!ItfFlagChk(pG, ITF_R103_FILE)) {
         U32Set(r103_work->eff, EspPullCoreKind());
         EstSet(0, -1, 0, 0, 1, 6, 1, (u8) r103_work->eff, 0, 0);
         SceAtDataSet_exec(0x80, SCE_LEVEL10, 0, (TaskFunc) r103_getFile, 0, 1);
@@ -272,7 +272,7 @@ static void r103_execOpenCover(R103Cesspit* c)
 {
     cObj* lid;
 
-    pG->Scenario_flg[0] |= 0x04000000;
+    ScfFlagOn(pG, SCF_R103_OPEN_COVER);
     lid = SmdGetObjPtr(c->lid);
     SndCall(6, 9, &lid->pos, 0, 0, 0);
     // `step` a variable (f31 across the call); the exit store on the break path keeps the peeled
@@ -322,7 +322,7 @@ static void r103_checkCloseCover(R103Cesspit* c)
     SndCall(6, 7, &cover->pos, 0, 0, 0);
     cover->be_flag &= ~2;
     SceAtSetEnable(c->at10, 1);
-    pG->Item_find_flg |= 0x20;
+    ScfFlagOn(pG, SCF_R103_CLOSE_COVER);
     {
         const f32 deg = 0.017453292f;
         f32 spd = 0.0f;
@@ -340,7 +340,7 @@ static void r103_checkCloseCover(R103Cesspit* c)
     }
     SndCall(6, 8, &lid->pos, 0, 0, 0);
     EstSet(0, -1, 0, 0, 1, 0x11, 0, 0, 0, 0);
-    pG->Item_find_flg |= 0x20;
+    ScfFlagOn(pG, SCF_R103_CLOSE_COVER);
     lid->pParts->ang.x -= 0.06981317f;
     SceSleep(1);
     lid->pParts->ang.x -= 0.02617994f;
@@ -369,10 +369,10 @@ extern "C" void r103_checkCesspit0(R103Cesspit* c)
 
     at = SceAtPtr(c->itemAt);
     while (1) {
-        if (!(pG->Item_find_flg & 0x20)) {
-            if (!(pG->Item_find_flg & 0x10)) {
+        if (!ScfFlagChk(pG, SCF_R103_CLOSE_COVER)) {
+            if (!ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT)) {
                 if (SceAtItemFindFlgCk(c->itemAt) == 1) {
-                    pG->Item_find_flg |= 0x10;
+                    ScfFlagOn(pG, SCF_R103_ITEM_IN_CESSPIT);
                     at->item.id = 0x89;
                     r103_moveItemModel(at, SceAtPtr(c->itemAt2));
                 }
@@ -384,7 +384,7 @@ extern "C" void r103_checkCesspit0(R103Cesspit* c)
     }
     at->item.seFind = 5;
     SceAtSetEnable(c->at10, 1);
-    if (pG->Item_find_flg & 0x10) {
+    if (ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT)) {
         SceAtSetEnable(c->itemAt, 0);
     }
     SceAtDataSet_exec(c->at18, SCE_LEVEL10, 0, (TaskFunc) r103_execOpenCover, c, 1);
@@ -399,8 +399,8 @@ extern "C" void r103_checkCesspit1(R103Cesspit* c)
 
     at = SceAtPtr(c->itemAt);
     while (1) {
-        if (!(pG->Scenario_flg[0] & 0x04000000)) {
-            if (!(pG->Item_find_flg & 0x10)) {
+        if (!ScfFlagChk(pG, SCF_R103_OPEN_COVER)) {
+            if (!ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT)) {
                 if (!(pG->Room_flg[0] & 0x80000000)) {
                     if (SceAtItemFindFlgCk(c->itemAt) == 1) {
                         SceAtSetEnable(c->at18, 0);
@@ -424,7 +424,7 @@ extern "C" void r103_checkCesspit1(R103Cesspit* c)
     if (SceAtItemFlgCk(c->itemAt) == 1) {
         SceExit();
     }
-    if (pG->Item_find_flg & 0x10) {
+    if (ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT)) {
         at->item.flag2 |= 0x10;
         at->item.pModel->pos.y += 10.0f;
         SceAtSetEnable(c->itemAt, 1);
@@ -439,8 +439,8 @@ extern "C" void r103_checkCesspit2(R103Cesspit* c)
 
     at = SceAtPtr(c->itemAt);
     while (1) {
-        if (!(pG->Item_find_flg & 0x10) && SceAtItemFindFlgCk(c->itemAt) == 1) {
-            pG->Item_find_flg |= 0x10;
+        if (!ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT) && SceAtItemFindFlgCk(c->itemAt) == 1) {
+            ScfFlagOn(pG, SCF_R103_ITEM_IN_CESSPIT);
             at->item.id = 0x89;
             r103_moveItemModel(at, SceAtPtr(c->itemAt2));
             break;
@@ -457,18 +457,18 @@ extern "C" void r103_initCesspit(R103Cesspit* c)
     at = SceAtPtr(c->itemAt);
     SceAtSetEnable(c->itemAt2, 1);
     BitOn(SmdGetObjPtr(c->lid)->be_flag, 0x20);
-    if (!(pG->Item_find_flg & 0x20)) {
+    if (!ScfFlagChk(pG, SCF_R103_CLOSE_COVER)) {
         SceExec(0x12, (TaskFunc) r103_checkCloseCover, (int) c, 0, SCE_PRIO_DEF_2, 0);
         SceExec(0x12, (TaskFunc) r103_checkCesspit0, (int) c, 0, SCE_PRIO_DEF_2, 0);
         SceAtSetEnable(c->at10, 0);
         SceAtSetEnable(c->itemAt, 1);
     } else {
         BitOff(SmdGetObjPtr(c->cover)->be_flag, 2);
-        if (!(pG->Scenario_flg[0] & 0x04000000)) {
+        if (!ScfFlagChk(pG, SCF_R103_OPEN_COVER)) {
             SmdGetObjPtr(c->lid)->pParts->ang.x = 1.12f;
             SceAtDataSet_exec(c->at18, SCE_LEVEL10, 0, (TaskFunc) r103_execOpenCover, c, 1);
             SceAtSetEnable(c->at14, 0);
-            if (pG->Item_find_flg & 0x10) {
+            if (ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT)) {
                 SceAtSetEnable(c->itemAt, 1);
                 SceAtSetEnable(c->itemAt, 0);
                 SceAtSetEnable(c->at10, 1);
@@ -488,7 +488,7 @@ extern "C" void r103_initCesspit(R103Cesspit* c)
         }
     }
     SceSleep(1);
-    if (pG->Item_find_flg & 0x10) {
+    if (ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT)) {
         at->item.id = 0x89;
         r103_moveItemModel(at, SceAtPtr(c->itemAt2));
     }

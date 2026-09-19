@@ -111,16 +111,16 @@ void CameraMove()
     Camera* cam = &pG->Cam;
 
     CamCtrl.Check();
-    if (!(pG->Stop_flg & 0x40000000)) {
+    if (!SpfFlagChk(pG, SPF_CAMERA)) {
         CamCtrl.Move();
-        if ((pG->Status_flg[0] & 0x100) && !(pG->Debug_flg[0] & 0x10000000)) {
+        if (StaFlagChk(pG, STA_CAMERA) && !DbgFlagChk(pG, DBG_DBG_CAM)) {
             pG->Cam = CamCtrl.camera;
             if (CamCtrl.m_pExtraCamera != 0) {
                 pG->Cam = *(Camera*) CamCtrl.m_pExtraCamera;
             }
         }
         CamCtrl.m_pExtraCamera = 0;
-        if (!(pG->Stop_flg & 0x10000)) {
+        if (!SpfFlagChk(pG, SPF_EARTHQUAKE)) {
             QuakeMove();
         }
     }

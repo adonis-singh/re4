@@ -2414,7 +2414,7 @@ address	size	section	unit	scope	name	demangled
 0x800A3C6C	0x68	.text	game/snd_main.cpp	global	Snd_system_init	Snd_system_init
 0x800A3CD4	0x118	.text	game/snd_main.cpp	global	snd_work_clear	snd_work_clear
 0x800A3DEC	0xC4	.text	game/snd_main.cpp	global	zero_buff_clear	zero_buff_clear
-0x800A3EB0	0x38	.text	game/snd_main.cpp	global	cb_dma_end	cb_dma_end
+0x800A3EB0	0x38	.text	game/snd_main.cpp	global	cb_dma_end__FUl	cb_dma_end
 0x800A3EE8	0x7C	.text	game/snd_main.cpp	global	cb_audio_frame	cb_audio_frame
 0x800A3F64	0x74	.text	game/snd_main.cpp	global	Snd_sound_mode_init	Snd_sound_mode_init
 0x800A3FD8	0x84	.text	game/snd_main.cpp	global	Snd_sound_mode_init_load	Snd_sound_mode_init_load
@@ -4351,7 +4351,7 @@ address	size	section	unit	scope	name	demangled
 0x80132EE8	0x7C	.text	game/EtcModel.cpp	global	GetEtcFlgPtr__Fii	GetEtcFlgPtr
 0x80132F64	0x110	.text	game/EtcModel.cpp	global	getRoomEtcBreak	getRoomEtcBreak
 0x80133074	0xB4	.text	game/EtcModel.cpp	global	setRoomEtcDisp	setRoomEtcDisp
-0x80133128	0xB8	.text	game/EtcModel.cpp	global	setRoomEtcBreakDisp__Fiii	setRoomEtcBreakDisp
+0x80133128	0xB8	.text	game/EtcModel.cpp	local	setRoomEtcBreakDisp	setRoomEtcBreakDisp
 0x801331E0	0x80	.text	game/EtcModel.cpp	global	getRoomEtcOnLight	getRoomEtcOnLight
 0x80133260	0x40C	.text	game/EtcModel.cpp	global	getRoomEtcWindow	getRoomEtcWindow
 0x8013366C	0x14C	.text	game/EtcModel.cpp	global	getRoomEtcBox	getRoomEtcBox
@@ -10504,7 +10504,7 @@ address	size	section	unit	scope	name	demangled
 0x80271C1C	0x14	.bss	game/merchant.cpp	global	merchantChar	merchantChar
 0x80271C30	0x304	.bss	game/merchant.cpp	global	merchantData	merchantData
 0x80271F34	0x1200	.bss	game/mes.cpp	global	cMes	cMes
-0x80273134	0x370	.bss	game/mes.cpp	local	MesFont	MesFont
+0x80273134	0x370	.bss	game/mes.cpp	global	MesFont	MesFont
 0x802734A4	0x18	.bss	game/mes.cpp	global	MesData	MesData
 0x802734BC	0x3000	.bss	game/mes.cpp	local	MsgQueue	MsgQueue
 0x802764BC	0x30	.bss	game/objBull.cpp	local	Bull_MatOld	Bull_MatOld

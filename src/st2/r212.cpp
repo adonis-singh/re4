@@ -58,7 +58,7 @@ public:
     f32 spd;        // 0x18  fall speed
     u32 se;         // 0x1C  RoomSeCall handle
     int valid;      // 0x20
-    int flagNo;     // 0x24  door flag bit (pG->flags_51BC ...)
+    int flagNo;     // 0x24  door flag index in pG->Scenario_flg
     u32 id;         // 0x28  scroll object id
     int status;     // 0x2C  0 closed, 1 open, 4 moving
     int timer;      // 0x30
@@ -116,44 +116,11 @@ struct PlPtr {
 };
 #define pPLS (((PlPtr*) &pPL)->p)
 
-// Two tests of one flag word stay separate (fold-const merges `(f & A) == 0 && (f & B) == 0`).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
-
-// Event flag words at pG+0x174 / door flags at pG+0x51BC, addressed as an integer base plus the
-// word offset (cast-then-deref: not a struct access).
-static inline u32 evtFlagBase()
-{
-    return (u32) &pG->Room_flg[0];
-}
-// The door / item flag words at pG->Item_find_flg, as an integer base for FlagChk/On/Off.
-static inline u32 doorFlagBase()
-{
-    return (u32) &pG->Item_find_flg;
-}
-// Test flag `no` in the word array at `base` (bit 31 - (no & 31) of word no >> 5).
-static inline u32 FlagChk(u32 base, u32 no)
-{
-    return *(u32*) (((no >> 5) << 2) + base) & (0x80000000 >> (no & 31));
-}
-// Set flag `no` in the word array at `base`.
-static inline void FlagOn(u32 base, u32 no)
-{
-    *(u32*) (((no >> 5) << 2) + base) |= 0x80000000 >> (no & 31);
-}
-// Clear flag `no` in the word array at `base`.
-static inline void FlagOff(u32 base, u32 no)
-{
-    *(u32*) (((no >> 5) << 2) + base) &= ~(0x80000000 >> (no & 31));
-}
-
 // The four roof-trap flags (event flags 3..6).
 #define R212_TRAP_FLAGS_ALL(f) \
-    (flagBit(f, 0x10000000) && flagBit(f, 0x08000000) && flagBit(f, 0x04000000) && flagBit(f, 0x02000000))
+    (FlagChkSignW(f, 3) && FlagChkSignW(f, 4) && FlagChkSignW(f, 5) && FlagChkSignW(f, 6))
 #define R212_TRAP_FLAGS_NONE(f) \
-    (flagBit(f, 0x10000000) == 0 && flagBit(f, 0x08000000) == 0 && flagBit(f, 0x04000000) == 0 && flagBit(f, 0x02000000) == 0)
+    (FlagChkSignW(f, 3) == 0 && FlagChkSignW(f, 4) == 0 && FlagChkSignW(f, 5) == 0 && FlagChkSignW(f, 6) == 0)
 
 void r212_TrapInit();
 void r212_SetSwitchInfo();
@@ -219,8 +186,8 @@ void r212_TrapInit()
         }
     } else {
         SceExec(0x12, (TaskFunc) r212_Puzzle, 0, 0, SCE_PRIO_DEF_2, 0);
-        if (!(pG->Status_flg[3] & 0x04000000)) {
-            pG->Status_flg[3] |= 0x04000000;
+        if (!StaFlagChk(pG, STA_SUB_ASHLEY)) {
+            StaFlagOn(pG, STA_SUB_ASHLEY);
             SubCharInit(1, &pPLS->pos, pPLS->ang.y);
             SubCharCtrl(SCC_CHASE, 0);
         }
@@ -553,8 +520,8 @@ static void r212_RoofTrapWatcher()
     }
     for (;;) {
         for (i = 0; i < 4; i++) {
-            if (FlagChk(evtFlagBase(), i + 3) == 0 && r212_work.p->hit[i]->ckStatus() == 1) {
-                FlagOn(evtFlagBase(), i + 3);
+            if (FlagChkVar(&pG->Room_flg, i + 3) == 0 && r212_work.p->hit[i]->ckStatus() == 1) {
+                FlagOnVar(&pG->Room_flg, i + 3);
                 EffectEspDelete(0x800, (u8) prm[i][1], 0, 0);
                 EffectEspgenDelete(0x800, (u8) prm[i][1], 0);
                 EffectEfmDelete(0x800, (u8) prm[i][1], 0);
@@ -897,7 +864,7 @@ static void r212_DoorLock()
         while (((cEmDoor*) door)->ckLock()) {
             SceSleep(1);
         }
-        pG->door_flags_51C8 |= 0x200;
+        ScfFlagOn(pG, SCF_76);
     }
 }
 
@@ -913,16 +880,16 @@ void cR212Door::init(u32 id_)
         pos0 = obj->pos;
         switch (id) {
         case 0x1B:
-            flagNo = 0x78;
+            flagNo = SCF_78;
             openH = 2900.0f;
             break;
         case 0x16:
             openH = 2400.0f;
             SceAtDataSet_exec(0xA, SCE_LEVEL10, 0, (TaskFunc) r212_MesRoofDoor, 0, 1);
-            flagNo = 0x8B;
+            flagNo = SCF_8b;
             break;
         case 0x22:
-            flagNo = 0x77;
+            flagNo = SCF_77;
             openH = 2400.0f;
             break;
         }
@@ -987,7 +954,7 @@ void cR212Door::open()
         mode = 0;
         step = 0;
         if (flagNo) {
-            FlagOn(doorFlagBase(), flagNo);
+            FlagOnVar(&pG->Scenario_flg, (u32) flagNo);
         }
         break;
     }
@@ -1049,7 +1016,7 @@ void cR212Door::close()
             mode = 0;
         }
         if (flagNo) {
-            FlagOff(doorFlagBase(), flagNo);
+            FlagOffVar(&pG->Scenario_flg, (u32) flagNo);
         }
         break;
     }
@@ -1110,7 +1077,7 @@ void cR212Door::setOpened()
     }
     SndStop(se, 0);
     if (flagNo) {
-        FlagOn(doorFlagBase(), flagNo);
+        FlagOnVar(&pG->Scenario_flg, (u32) flagNo);
     }
 }
 
@@ -1134,7 +1101,7 @@ void cR212Door::setClosed()
     }
     SndStop(se, 0);
     if (flagNo) {
-        FlagOff(doorFlagBase(), flagNo);
+        FlagOffVar(&pG->Scenario_flg, (u32) flagNo);
     }
 }
 

@@ -349,7 +349,7 @@ void CameraQuasiFPS::calcDepressionRatio()
     } else if ((f32) Key.substickX != 0.0f || (f32) Key.substickY != 0.0f) {
         f32 t;
 
-        if ((s32) pSys->flags < 0) {
+        if (CfgFlagChk(pSys, CFG_AIM_REVERSE)) {
             angle_y = -((f32) Key.substickY / C_RANGE);
         } else {
             angle_y = (f32) Key.substickY / C_RANGE;
@@ -441,7 +441,7 @@ void CameraQuasiFPS::calcBaseMatrix(Mtx m)
         setColumns(m, &v0, &v1, &v3, &v4);
         memclr_asm(&m_pl_dir, sizeof(Vec));
     }
-    if (!pl->isKamae() && m_p_floor_norm != NULL && !(pG->Status_flg[0] & 0x40000)) {
+    if (!pl->isKamae() && m_p_floor_norm != NULL && !StaFlagChk(pG, STA_SUB_SCRN)) {
         Vec up = {0.0f, 1.0f, 0.0f};
 
         v5 = *m_p_floor_norm;
@@ -475,7 +475,7 @@ int CameraQuasiFPS::checkFBLR()
 {
     cPlayer* pl = pPL;
 
-    if (pG->Status_flg[3] & 0x800000) {
+    if (StaFlagChk(pG, STA_KLAUSER_TRANSFORM)) {
         return 0;
     }
     if (pl->isKamae()) {
@@ -549,7 +549,7 @@ void CameraQuasiFPS::checkCameraType()
         }
     }
     blend_dst = trans_tbl[m_trans_type];
-    if (pGS->Debug_flg[1] & 0x20000000) {
+    if (DbgFlagChk(pGS, DBG_ADJUST_CAM)) {
         blend_dst = g_transOfs[5];
     }
     switch (m_trans_type) {
@@ -613,7 +613,7 @@ void CameraQuasiFPS::checkCameraType()
         }
         break;
     case 4:
-        if (pG->Status_flg[3] & 0x800000) {
+        if (StaFlagChk(pG, STA_KLAUSER_TRANSFORM)) {
             m_ready_type = 0xA;
         } else if (PlGetWeaponNo() != 0x10) {
             m_ready_type = 8;
@@ -630,7 +630,7 @@ void CameraQuasiFPS::checkCameraType()
         break;
     }
     blend_src = ready_tbl[m_ready_type];
-    if (pGS->Debug_flg[1] & 0x20000000) {
+    if (DbgFlagChk(pGS, DBG_ADJUST_CAM)) {
         blend_src = g_readyOfs[14];
     }
 }
@@ -1234,7 +1234,7 @@ void CameraQuasiFPS::move()
 
     checkCameraType();
     calcBaseMatrix(m);
-    if (!(pG->Debug_flg[1] & 0x20000000)) {
+    if (!DbgFlagChk(pG, DBG_ADJUST_CAM)) {
         m_site = checkFBLR();
     }
     switch (m_site) {
@@ -1255,7 +1255,7 @@ void CameraQuasiFPS::move()
         old = g_transOfs[6][1];
         break;
     }
-    if (!(pG->Debug_flg[1] & 0x20000000)) {
+    if (!DbgFlagChk(pG, DBG_ADJUST_CAM)) {
         calcDepressionRatio();
     }
     calcOffset(&ofs);

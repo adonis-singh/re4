@@ -43,7 +43,7 @@ cObjWep* equipWeapon(cPlayer* pl)
     }
     obj->init(pl);
     pl->Body->initWepHand((u32) PL_ARC_PTR(pG->pPlayer, 0x12));
-    if (!(pG->Status_flg[1] & 0x00200000)) {
+    if (!StaFlagChk(pG, STA_PL_BOAT)) {
         pl->setRightHand(1);
         pl->setLeftHand(0);
     }
@@ -56,38 +56,38 @@ void ObjHand_init(cObj* obj)
     new (obj) cObjHand();
 }
 
-// Fills the player's motion table (pMotTbl) with the unarmed footwork set of the weapon archive
+// Fills the player's motion table (m_MotTbl) with the unarmed footwork set of the weapon archive
 // (idle, walk, run, turns, back, the 0x39..0x42 damage set, 0x57/0x5B knife transitions; 0x3D
 // stays the player archive's). Called from Wep00_init and PlReloadBullet.
 void cObjHand::setMotion(cPlayer* pl)
 {
-    PSet(pl->pMotTbl[0x00], WEP_ARC_PTR(0x04));
-    PSet(pl->pMotTbl[0x02], WEP_ARC_PTR(0x05));
-    PSet(pl->pMotTbl[0x03], WEP_ARC_PTR(0x0B));
-    PSet(pl->pMotTbl[0x04], WEP_ARC_PTR(0x05));
-    PSet(pl->pMotTbl[0x05], WEP_ARC_PTR(0x05));
-    PSet(pl->pMotTbl[0x06], WEP_ARC_PTR(0x07));
-    PSet(pl->pMotTbl[0x07], WEP_ARC_PTR(0x0D));
-    PSet(pl->pMotTbl[0x08], WEP_ARC_PTR(0x06));
-    PSet(pl->pMotTbl[0x09], WEP_ARC_PTR(0x0C));
-    PSet(pl->pMotTbl[0x0A], WEP_ARC_PTR(0x06));
-    PSet(pl->pMotTbl[0x0B], WEP_ARC_PTR(0x08));
-    PSet(pl->pMotTbl[0x0C], WEP_ARC_PTR(0x0E));
-    PSet(pl->pMotTbl[0x0D], WEP_ARC_PTR(0x09));
-    PSet(pl->pMotTbl[0x0E], WEP_ARC_PTR(0x0F));
-    PSet(pl->pMotTbl[0x0F], WEP_ARC_PTR(0x0A));
-    PSet(pl->pMotTbl[0x10], WEP_ARC_PTR(0x10));
-    PSet(pl->pMotTbl[0x12], WEP_ARC_PTR(0x07));
-    PSet(pl->pMotTbl[0x13], WEP_ARC_PTR(0x07));
-    PSet(pl->pMotTbl[0x39], WEP_ARC_PTR(0x13));
-    PSet(pl->pMotTbl[0x3A], WEP_ARC_PTR(0x14));
-    PSet(pl->pMotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
-    PSet(pl->pMotTbl[0x41], WEP_ARC_PTR(0x15));
-    PSet(pl->pMotTbl[0x42], WEP_ARC_PTR(0x16));
-    PSet(pl->pMotTbl[0x3F], WEP_ARC_PTR(0x11));
-    PSet(pl->pMotTbl[0x40], WEP_ARC_PTR(0x12));
-    PSet(pl->pMotTbl[0x5B], WEP_ARC_PTR(0x17));
-    PSet(pl->pMotTbl[0x57], WEP_ARC_PTR(0x18));
+    PSet(pl->m_MotTbl[0x00], WEP_ARC_PTR(0x04));
+    PSet(pl->m_MotTbl[0x02], WEP_ARC_PTR(0x05));
+    PSet(pl->m_MotTbl[0x03], WEP_ARC_PTR(0x0B));
+    PSet(pl->m_MotTbl[0x04], WEP_ARC_PTR(0x05));
+    PSet(pl->m_MotTbl[0x05], WEP_ARC_PTR(0x05));
+    PSet(pl->m_MotTbl[0x06], WEP_ARC_PTR(0x07));
+    PSet(pl->m_MotTbl[0x07], WEP_ARC_PTR(0x0D));
+    PSet(pl->m_MotTbl[0x08], WEP_ARC_PTR(0x06));
+    PSet(pl->m_MotTbl[0x09], WEP_ARC_PTR(0x0C));
+    PSet(pl->m_MotTbl[0x0A], WEP_ARC_PTR(0x06));
+    PSet(pl->m_MotTbl[0x0B], WEP_ARC_PTR(0x08));
+    PSet(pl->m_MotTbl[0x0C], WEP_ARC_PTR(0x0E));
+    PSet(pl->m_MotTbl[0x0D], WEP_ARC_PTR(0x09));
+    PSet(pl->m_MotTbl[0x0E], WEP_ARC_PTR(0x0F));
+    PSet(pl->m_MotTbl[0x0F], WEP_ARC_PTR(0x0A));
+    PSet(pl->m_MotTbl[0x10], WEP_ARC_PTR(0x10));
+    PSet(pl->m_MotTbl[0x12], WEP_ARC_PTR(0x07));
+    PSet(pl->m_MotTbl[0x13], WEP_ARC_PTR(0x07));
+    PSet(pl->m_MotTbl[0x39], WEP_ARC_PTR(0x13));
+    PSet(pl->m_MotTbl[0x3A], WEP_ARC_PTR(0x14));
+    PSet(pl->m_MotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
+    PSet(pl->m_MotTbl[0x41], WEP_ARC_PTR(0x15));
+    PSet(pl->m_MotTbl[0x42], WEP_ARC_PTR(0x16));
+    PSet(pl->m_MotTbl[0x3F], WEP_ARC_PTR(0x11));
+    PSet(pl->m_MotTbl[0x40], WEP_ARC_PTR(0x12));
+    PSet(pl->m_MotTbl[0x5B], WEP_ARC_PTR(0x17));
+    PSet(pl->m_MotTbl[0x57], WEP_ARC_PTR(0x18));
 }
 
 // REL entry: registers the module's weapon init / move routines and the object constructor slot.

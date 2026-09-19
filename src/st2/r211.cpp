@@ -32,12 +32,6 @@ struct R211Work {
 
 static R211Work* r211_work;
 
-// Two tests of one flag word stay separate (fold-const merges `(f & A) && (f & B)`).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
-
 Vec r211_cup_pos0 = {12229.0f, 1469.0f, -20709.0f};
 static Vec r211_cup_pos1 = {6244.0f, 1403.0f, -20920.0f};
 Vec r211_cup_rot = {0.0f, 0.0f, 0.0f};
@@ -96,7 +90,7 @@ void R211Init()
     } else {
         SceAtDataSet_exec(0, SCE_LEVEL10, 0, (TaskFunc) r211_DoorMessage, 0, 1);
     }
-    if (flagBit(pG->Room_flg[0], 0x80000000) && flagBit(pG->Room_flg[0], 0x40000000)) {
+    if (FlagChkSign(pG->Room_flg, 0) && FlagChkSign(pG->Room_flg, 1)) {
         setEm(0xAA, -1, 0, 1, 0);
         setEm(0xAB, -1, 0, 1, 0);
         setEm(0xAC, -1, 0, 1, 0);
@@ -199,7 +193,7 @@ void r211_GrateOpen()
 }
 
 // End of the grate opening: the grate object stays shown, SE / effect cleanup when cancelled early,
-// camera back, Room_flg bit 2 and door_flags_51C8 0x10 (the way is open), collision area 0 re-armed.
+// camera back, Room_flg bit 2 and Scenario_flg[3] 0x10 (the way is open), collision area 0 re-armed.
 static void r211_GrateOpenEndProc()
 {
     cObj* obj = SmdGetObjPtr(0x1B);
@@ -213,7 +207,7 @@ static void r211_GrateOpenEndProc()
     }
     CamCtrl.Comeback(0);
     RsfSet(G_ROOM_ID, 2);
-    pG->door_flags_51C8 |= 0x10;
+    ScfFlagOn(pG, SCF_7b);
     SceAtDataReset(0);
     SceEventEnd(0);
 }

@@ -288,7 +288,7 @@ static void em30_R0_Init(cEm30* em)
     EspDataLoad((u32) ARC(0xE), 0x28, 0);
     w->neckAng = 0.0f;
     w->flags = 0;
-    if ((int) em->flag < 0) {
+    if (em->flag & 0x80000000) {
         if (w->pInfo0) {
             w->pInfo0->be_flag &= ~8;
         }

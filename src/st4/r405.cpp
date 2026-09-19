@@ -186,7 +186,7 @@ static void R405ExecEventS00()
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         RsfSet(G_ROOM_ID, 0);
         SceEventStart(0);
-        pG->System_flg |= 0x400;
+        SysFlagOn(pG, SYS_SCREEN_STOP);
         SceSleep(1);
         EvtMgr.EvtReadExec("event/evd/r405s00.evd", (u8) GetEmIdFromListI(0), 0);
         SceEventEnd(0);

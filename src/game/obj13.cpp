@@ -585,7 +585,7 @@ void objLadderClimbActEvtCk(cObjLadder* obj)
 void objLadderActClimb(cObjLadder* obj)
 {
     obj->setClimb();
-    SetPlDamage((int) obj, plobjLadderClimb);
+    SetPlDamage((cEm*) obj, plobjLadderClimb);
 }
 
 // Player climb routine (via SetPlDamage): Rno2 0 snaps the player in front of the ladder and
@@ -594,14 +594,14 @@ void objLadderActClimb(cObjLadder* obj)
 void plobjLadderClimb(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cObjLadder* obj = (cObjLadder*) em->dmgType;
+    cObjLadder* obj = (cObjLadder*) em->pEmCatch;
     LadderWork* w = &obj->ladder;
     Mtx m;
     Vec v;
     f32 fl;
 
-    em->subArc = ((cEm*) pPL->dmgType)->subArc;
-    pGS->Status_flg[1] |= 0x00040000;
+    em->subArc = pPL->pEmCatch->subArc;
+    StaFlagOn(pGS, STA_PL_LADDER);
     em->dmg.set(0, 0xF);
     switch (em->r_no_2) {
     case 0:
@@ -615,7 +615,7 @@ void plobjLadderClimb(cPlayer* pl)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         MotionSetCore(em, &em->pMotion, w->mot[0], 0, 5, 1, 0);
         em->atari.throughOn();
-        em->m_Work0 = obj->getLadderNum();
+        ((cPlayer*) em)->m_Work0 = obj->getLadderNum();
         em->be_flag &= ~0x10;
         if (w->camera != -1) {
             CamCtrl.CutCall((s8) w->camera);
@@ -629,8 +629,8 @@ void plobjLadderClimb(cPlayer* pl)
             SndCall(6, 0x42, &em->pos, 0, 0, 0);
         }
         if (MotionMove(em, 0)) {
-            em->m_Work0 -= 4;
-            if ((int) em->m_Work0 > 0) {
+            ((cPlayer*) em)->m_Work0 -= 4;
+            if ((int) ((cPlayer*) em)->m_Work0 > 0) {
                 em->r_no_2++;
             } else {
                 em->r_no_2 = 4;
@@ -648,8 +648,8 @@ void plobjLadderClimb(cPlayer* pl)
             SndCall(6, 0x42, &em->pos, 0, 0, 0);
         }
         if (MotionMove(em, 0)) {
-            em->m_Work0 -= 2;
-            if ((int) em->m_Work0 > 0) {
+            ((cPlayer*) em)->m_Work0 -= 2;
+            if ((int) ((cPlayer*) em)->m_Work0 > 0) {
                 break;
             }
             em->r_no_2 = 4;
@@ -664,7 +664,7 @@ void plobjLadderClimb(cPlayer* pl)
         if (w->camera != -1) {
             CamCtrl.Comeback(0);
         }
-        em->m_Work0 = 0;
+        ((cPlayer*) em)->m_Work0 = 0;
         em->r_no_2++;
     case 5:
         if (obj->getType() == 1) {
@@ -688,8 +688,8 @@ void plobjLadderClimb(cPlayer* pl)
                 SndCall(5, 0xE, &em->getPartsPtr(0x18)->world, em->id, 0, 0);
             }
         }
-        em->m_Work0++;
-        if (obj->getType() != 1 && (int) em->m_Work0 > 0x17) {
+        ((cPlayer*) em)->m_Work0++;
+        if (obj->getType() != 1 && (int) ((cPlayer*) em)->m_Work0 > 0x17) {
             fl = SatMgr.getFloor(&em->pos, 600.0f, 100000.0f, 0, 0);
             if (em->pos.y < fl) {
                 em->pos.y = em->pos.y * 0.9f + fl * 0.1f;
@@ -744,7 +744,7 @@ int SubLadderClimbCk(cEm* em)
             }
             if (em->plDist2 > 100000000.0f || em->pos.y + 1000.0f < pPL->pos.y) {
                 obj->ladder.flags |= 4;
-                SetSubDamage((int) obj, (void*) subobjLadderClimb);
+                SetSubDamage((cEm*) obj, (void*) subobjLadderClimb);
                 obj->setClimb();
                 return 1;
             }
@@ -782,7 +782,7 @@ int SubLadderClimbCk2(cEm* em)
 void subobjLadderClimb(cEm* pl)
 {
     cEm* em = pSUB;
-    cObjLadder* obj = (cObjLadder*) em->dmgType;
+    cObjLadder* obj = (cObjLadder*) em->pEmCatch;
     LadderWork* w = &obj->ladder;
     Mtx m;
     Vec p;
@@ -802,19 +802,19 @@ void subobjLadderClimb(cEm* pl)
         rot.x = rot.z = 0.0f;
         rot.y = obj->ang.y + PI;
         rot.y = LIMIT_ANGLE(rot.y);
-        ((cMotBase*) &em->subFlags58C)->set((cMotModel*) em, &p, &rot, 10);
+        ((cMotBase*) &((cSubChar*) em)->subFlags58C)->set((cMotModel*) em, &p, &rot, 10);
         MotionSetCore(em, &em->pMotion, w->mot[16], 0, 5, 1, 0);
         em->atari.m_flag &= ~0x100;
         em->atari.m_flag |= 0x10;
-        em->subFlags |= 0x20;
-        em->subHideMode = obj->getLadderNum();
-        em->subX534 = 8;
+        ((cSubChar*) em)->subFlags |= 0x20;
+        ((cSubChar*) em)->subHideMode = obj->getLadderNum();
+        ((cSubChar*) em)->subX534 = 8;
         em->r_no_2++;
     case 1:
-        if (em->subX534) {
-            em->subX534--;
+        if (((cSubChar*) em)->subX534) {
+            ((cSubChar*) em)->subX534--;
         } else {
-            pG->Status_flg[1] |= 8;
+            StaFlagOn(pG, STA_SUB_LADDER);
         }
         if (em->frame > 8.7f && em->frame < 9.3f) {
             SndCall(6, 0x46, &em->pos, 0, 0, 0);
@@ -823,8 +823,8 @@ void subobjLadderClimb(cEm* pl)
             SndCall(6, 0x45, &em->pos, 0, 0, 0);
         }
         if (MotionMove(em, 0)) {
-            em->subHideMode -= 4;
-            if (em->subHideMode > 0) {
+            ((cSubChar*) em)->subHideMode -= 4;
+            if (((cSubChar*) em)->subHideMode > 0) {
                 em->r_no_2++;
             } else {
                 em->r_no_2 = 4;
@@ -835,7 +835,7 @@ void subobjLadderClimb(cEm* pl)
         MotionSetCore(em, &em->pMotion, w->mot[17], 0, 5, 5, 0);
         em->r_no_2++;
     case 3:
-        pG->Status_flg[1] |= 8;
+        StaFlagOn(pG, STA_SUB_LADDER);
         if (em->frame > 11.7f && em->frame < 12.3f) {
             SndCall(6, 0x46, &em->pos, 0, 0, 0);
         }
@@ -843,8 +843,8 @@ void subobjLadderClimb(cEm* pl)
             SndCall(6, 0x45, &em->pos, 0, 0, 0);
         }
         if (MotionMove(em, 0)) {
-            em->subHideMode -= 2;
-            if (em->subHideMode > 0) {
+            ((cSubChar*) em)->subHideMode -= 2;
+            if (((cSubChar*) em)->subHideMode > 0) {
                 break;
             }
             em->r_no_2 = 4;
@@ -853,17 +853,17 @@ void subobjLadderClimb(cEm* pl)
     case 4:
         if (obj->getType() == 1) {
             MotionSetCore(em, &em->pMotion, w->mot[19], 0, 5, 1, 0);
-            em->subX534 = 0x28;
+            ((cSubChar*) em)->subX534 = 0x28;
         } else {
             MotionSetCore(em, &em->pMotion, w->mot[18], 0, 5, 1, 0);
-            em->subX534 = 0x23;
+            ((cSubChar*) em)->subX534 = 0x23;
         }
-        em->subHideMode = 0;
+        ((cSubChar*) em)->subHideMode = 0;
         em->r_no_2++;
     case 5:
-        if (em->subX534) {
-            em->subX534--;
-            pGS->Status_flg[1] |= 8;
+        if (((cSubChar*) em)->subX534) {
+            ((cSubChar*) em)->subX534--;
+            StaFlagOn(pGS, STA_SUB_LADDER);
         }
         if (obj->getType() == 1) {
             if (em->frame > 11.7f && em->frame < 12.3f) {
@@ -874,7 +874,7 @@ void subobjLadderClimb(cEm* pl)
             }
             if (em->frame > 42.7f && em->frame < 43.3f) {
                 SndCall(5, 0xE, &em->getPartsPtr(0x18)->world, em->id, 0, 0);
-                BitOff16(em->subFlags, 0x20);
+                BitOff16(((cSubChar*) em)->subFlags, 0x20);
             }
         } else {
             if (em->frame > 11.7f && em->frame < 12.3f) {
@@ -885,11 +885,11 @@ void subobjLadderClimb(cEm* pl)
             }
             if (em->frame > 35.7f && em->frame < 36.3f) {
                 SndCall(5, 0xE, &em->getPartsPtr(0x18)->world, em->id, 0, 0);
-                BitOff16(em->subFlags, 0x20);
+                BitOff16(((cSubChar*) em)->subFlags, 0x20);
             }
         }
-        em->subHideMode++;
-        if (obj->getType() != 1 && em->subHideMode > 0x17) {
+        ((cSubChar*) em)->subHideMode++;
+        if (obj->getType() != 1 && ((cSubChar*) em)->subHideMode > 0x17) {
             fl = SatMgr.getFloor(&em->pos, 600.0f, 100000.0f, 0, 0);
             if (em->pos.y < fl) {
                 em->pos.y = em->pos.y * 0.9f + fl * 0.1f;
@@ -901,7 +901,7 @@ void subobjLadderClimb(cEm* pl)
                 em->pos.y = fl;
             }
             EndSubDamage();
-            BitOff16(em->subFlags, 0x20);
+            BitOff16(((cSubChar*) em)->subFlags, 0x20);
             em->atari.m_flag |= 0x100;
             em->atari.m_flag &= ~0x10;
         }
@@ -1006,7 +1006,7 @@ void objLadderActDown(cObjLadder* obj)
     LadderWork* w = &obj->ladder;
 
     if (!(w->flags & 4)) {
-        SetPlDamage((int) obj, plobjLadderDown);
+        SetPlDamage((cEm*) obj, plobjLadderDown);
         w->climbTimer = 90;
     }
 }
@@ -1016,12 +1016,12 @@ void objLadderActDown(cObjLadder* obj)
 void plobjLadderDown(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cObjLadder* obj = (cObjLadder*) em->dmgType;
+    cObjLadder* obj = (cObjLadder*) em->pEmCatch;
     LadderWork* w = &obj->ladder;
     Mtx m;
     Vec v;
 
-    em->subArc = ((cEm*) pPL->dmgType)->subArc;
+    em->subArc = pPL->pEmCatch->subArc;
     em->dmg.set(0, 0xF);
     switch (em->r_no_2) {
     case 0:
@@ -1122,7 +1122,7 @@ void objLadderResetActEvtCk(cObjLadder* obj)
 // Action button 0xB: puts the player into plobjLadderReset.
 void objLadderActReset(cObjLadder* obj)
 {
-    SetPlDamage((int) obj, plobjLadderReset);
+    SetPlDamage((cEm*) obj, plobjLadderReset);
     obj->setResetReserve();
 }
 
@@ -1130,13 +1130,13 @@ void objLadderActReset(cObjLadder* obj)
 void plobjLadderReset(cPlayer* pl)
 {
     cEm* em = (cEm*) pl;
-    cObjLadder* obj = (cObjLadder*) em->dmgType;
+    cObjLadder* obj = (cObjLadder*) em->pEmCatch;
     LadderWork* w = &obj->ladder;
     Mtx m;
     Vec v;
     int motA;
 
-    em->subArc = ((cEm*) pPL->dmgType)->subArc;
+    em->subArc = pPL->pEmCatch->subArc;
     em->dmg.set(0, 0xF);
     switch (em->r_no_2) {
     case 0:

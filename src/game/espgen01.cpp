@@ -313,7 +313,7 @@ void HideCheck(cEsp* esp)
     iw = 1.0f / -v.z;
     m22 = m22 * v.z;
     zval = (u32) ((iw * ((m22 + m23) * Zscale) + Zoffset) * 16777215.0f);
-    if (pG->System_flg & 0x800) {
+    if (SysFlagChk(pG, SYS_SCISSOR_ON)) {
         border = 56.0f;
     } else {
         border = 0.0f;

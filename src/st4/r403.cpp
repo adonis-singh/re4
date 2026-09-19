@@ -526,7 +526,7 @@ void emset_gatling(int no)
     if (em.isActive()) {
         em.setFindPL();
     }
-    if ((int) pG->Room_flg[3] < 0) {
+    if (pG->Room_flg[3] & 0x80000000) {
         l = EM_LIST(0x89);
     } else {
         l = EM_LIST(0x8A);
@@ -552,8 +552,8 @@ void R403Main()
     SceDebugDisp("");
     SceDebugDisp("");
     SceDebugDisp("");
-    if (!(pG->Status_flg[0] & 0x1000)) {
-        if (r403_work.p->timer == 1 && (int) pG->Room_flg[0] >= 0) {
+    if (!StaFlagChk(pG, STA_EVENT)) {
+        if (r403_work.p->timer == 1 && !(pG->Room_flg[0] & 0x80000000)) {
             U32Set(r403_work.p->base, r403_work.p->cnt);
             pG->Room_flg[0] |= 0x80000000;
         }
@@ -565,7 +565,7 @@ void R403Main()
         r403_work.p->cnt = SceCountEmAlive(0x10, 0x20);
         SceDebugDisp("EM_NUM[%d/%d]", r403_work.p->cnt, r403_work.p->base);
         if (r403_work.p->timer > 1800) {
-            if ((int) pG->Room_flg[2] < 0) {
+            if (pG->Room_flg[2] & 0x80000000) {
                 reset_40();
             }
         }

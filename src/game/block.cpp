@@ -89,7 +89,7 @@ void cBlock::roomInit(void* data)
     pArea = 0;
     pConnect = 0;
     stopFlagSet = 0;
-    if (!(pG->Debug_flg[0] & 0x80000000)) {
+    if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
         debugData = 0;
         debugMem = 0;
         allDisp = 0;

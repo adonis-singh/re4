@@ -70,7 +70,7 @@ void Filter08Trans()
     if (use_filter8 == 0) {
         return;
     }
-    if (!(pG->Status_flg[3] & 0x08000000)) {
+    if (!StaFlagChk(pG, STA_SLOW)) {
         filter08_ratio -= filter08_ratio * 0.6f;
         if (filter08_ratio < 0.01f) {
             return;

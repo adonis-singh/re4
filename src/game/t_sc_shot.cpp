@@ -23,7 +23,7 @@ void ToolScreenShot()
 
     stop_bak = pG->Stop_flg;
     BitOn(pG->Stop_flg, ~0x4000);
-    BitOn(pG->Debug_flg[0], 0x80000000);
+    DbgFlagOn(pG, DBG_TEST_MODE);
     cursor = 0;
     while (1) {
         ToolMenuDisp_cur(60, 80, 0, &cursor, menu, sizeof(menu), Joy);
@@ -64,6 +64,6 @@ void ToolScreenShot()
         TaskSleep(1);
     }
     BitSet(pG->Stop_flg, stop_bak);
-    BitOff(pG->Debug_flg[0], 0x80000000);
+    DbgFlagOff(pG, DBG_TEST_MODE);
     TaskExit();
 }

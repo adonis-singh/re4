@@ -129,11 +129,12 @@ struct Em2bWork {
 };
 
 
-#define EM2B_WK(em) ((Em2bWork*) &(em)->x3E0)
+#define EM2B_WK(em) ((Em2bWork*) (((cEm2b*) (em))->free))
 #define EM2B_BLEND_MOT(w) ((MotionWork*) &(w)->blendMot)
 
 class cEm2b : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2B_WK)
     virtual ~cEm2b();
     virtual void move();
     virtual void setNoSuspend(int on);

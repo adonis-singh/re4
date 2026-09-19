@@ -138,14 +138,8 @@ struct PlPtr {
 };
 #define pPLS (((PlPtr*) &pPL)->p)
 
-// Two tests of one flag word stay separate (fold-const merges `(f & A) == 0 && (f & B) == 0`).
-static inline u32 flagBit(u32 f, u32 bit)
-{
-    return f & bit;
-}
-
 // Event skip: the skip key or the skip flag; the event is marked skipped.
-#define R21D_SKIP ((Key.trg & 0x20000000) || (int) pG->Room_flg[0] < 0)
+#define R21D_SKIP ((Key.trg & 0x20000000) || (pG->Room_flg[0] & 0x80000000))
 #define R21D_SKIP_SET() pG->Room_flg[0] |= 0x80000000
 // fade.h's FadeSetW with `zero`/`black` locals (zero first): the loop-hoisted constants of moveFence's
 // skip block get the target's registers (0 -> r27, 0xFF -> r28) and store order (start, end).
@@ -187,7 +181,7 @@ void R21dInit()
     r21d_initSwitch();
     r21d_initFence();
     SceAtDataSet_exec(0xC, SCE_LEVEL10, 0, (TaskFunc) r21d_checkGrave, 0, 1);
-    if (pG->room_id_prev == 0x225 && flagBit(pG->System_flg, 0x100) == 0 && flagBit(pG->System_flg, 0x80000) == 0) {
+    if (pG->room_id_prev == 0x225 && FlagChkSignW(pG->System_flg, SYS_LOAD_GAME) == 0 && FlagChkSignW(pG->System_flg, SYS_CONTINUE) == 0) {
         SceExec(0x12, (TaskFunc) r21d_moveGrave, 0, 0, SCE_PRIO_DEF_2, 0);
     }
     PlRegistMotion(ROOM_ARC_PTR(pG->pRoom, 0x1F), ROOM_ARC_PTR(pG->pRoom, 0x20), 0, 0, 0, 0, 0, 0,
@@ -549,7 +543,7 @@ void r21d_irradiateLaser()
 void r21d_operateSwitch_end(u32 n)
 {
     SceEventEnd(0);
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         FadeSetW(0x80000000, 10, 0, 0);
         SubScreenWait(20);
         if (r21d_work.p->str != 0) {
@@ -737,7 +731,7 @@ static void r21d_checkFence()
     return;
 yes:
     RsfSet(G_ROOM_ID, 0);
-    pG->door_flags_51CC |= 0x01000000;
+    ScfFlagOn(pG, SCF_87);
     SceAtSetEnable(0x13, 0);
     pG->Room_flg[0] &= 0x7FFFFFFF;
     SceEventStart(0);
@@ -806,7 +800,7 @@ static void r21d_moveGrave(int dir)
             }
         }
         SceEventStart(0);
-        pG->Disp_flg |= 0x02000000;
+        DpfFlagOn(pG, DPF_SHADOW);
         if (dir == 1) {
             CamCtrl.CutCall(0xE);
             SndCall(6, 7, 0, 0, 0, 0);
@@ -829,7 +823,7 @@ static void r21d_moveGrave(int dir)
             SceSleep(15);
             CamCtrl.Comeback(0);
         }
-        pG->Disp_flg &= ~0x02000000;
+        DpfFlagOff(pG, DPF_SHADOW);
         SceEventEnd(0);
     }
 }
@@ -867,7 +861,7 @@ void TRAP::stop(int v)
 
 #define R21D_TRAP_HIT()                                                                        \
     if (SceAtHitCheck(hitAtNo) == 1) {                                                         \
-        if (!(pG->Status_flg[0] & 0x00100000)) {                                                  \
+        if (!StaFlagChk(pG, STA_DIEDEMO)) {                                                  \
             SndCall(6, 0xA, 0, 0, 0, 0);                                                       \
             pPL->dmg.set(0, 0x80);                                                             \
             pPL->setNoSuspend(1);                                                              \
@@ -1013,7 +1007,7 @@ static void r21d_moveDeathTrap()
 // switch's pistons stop at the top unless already (0x40000000), camera back, SceEventEnd.
 static void r21d_checkDeathTrapSwitch_end()
 {
-    if ((int) pG->Room_flg[0] < 0) {
+    if (pG->Room_flg[0] & 0x80000000) {
         r21d_work.p->deathSw.setEndPos();
         if (!(pG->Room_flg[0] & 0x40000000)) {
             SceExec(0x12, (TaskFunc) r21d_setDeathTrap2nd, 0, 2, SCE_PRIO_DEF_2, 0);

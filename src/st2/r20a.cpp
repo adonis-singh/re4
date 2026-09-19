@@ -56,7 +56,7 @@ static void r20a_DoorLock();
 // Room init: until Room_flg bit 0 door 0x11 is close-locked and area 2 gives the locked message (the
 // shoulder-carry prompt follows when Ashley is with Leon); else areas 2/5 off. The padlocked second door
 // task, the refracting render-textured object, five treasure-box item events; area 0xD (with action
-// colour) only once Scenario_flg[0] 0x10000000, else area 0 is used.
+// colour) only once Scenario_flg[1] 0x10000000, else area 0 is used.
 void R20aInit()
 {
 #line 42 "D:/Bio4/Prog/r20a.cpp"
@@ -79,7 +79,7 @@ void R20aInit()
     SceSetItemEvent(0xC, 0x8A, 4, 0xB, r20a_TreasureBoxOpen, (void (*)()) r20a_TreasureBoxOpened, 0x26, 0);
     SceSetItemEvent(0xB, 0x80, 5, 0xC, r20a_TreasureBoxOpen, (void (*)()) r20a_TreasureBoxOpened, 0x27, 0);
     SceSetItemEvent(0xE, 0x91, 6, 0xD, r20a_TreasureBoxOpen, (void (*)()) r20a_TreasureBoxOpened, 0x2A, 0);
-    if ((pG->Scenario_flg[0] & 0x10000000) == 0) {
+    if (ScfFlagChk(pG, SCF_R206_ASHLEY_RESCUE) == 0) {
         SceAtSetEnable(0xD, 0);
     } else {
         SceAtSetEnable(0, 0);
@@ -154,7 +154,7 @@ static void r20a_CarryOnShoulder()
 }
 
 // End of the shoulder-carry event: Leon and Ashley may suspend, Ashley placed behind the door facing
-// like Leon and back to follow mode, SceEventEnd, the door becomes a normal door, door_flags_51CC
+// like Leon and back to follow mode, SceEventEnd, the door becomes a normal door, Scenario_flg[4]
 // 0x40000 (unlocked), area 2 off.
 static void r20a_CarryOnShoulderEndProc()
 {
@@ -174,7 +174,7 @@ static void r20a_CarryOnShoulderEndProc()
     if (r20a_work.p->door) {
         ((cEmDoor*) r20a_work.p->door)->setNormal();
     }
-    pG->door_flags_51CC |= 0x40000;
+    ScfFlagOn(pG, SCF_8d);
     SceAtSetEnable(2, 0);
 }
 
@@ -193,7 +193,7 @@ static void r20a_AshleyPosCheck()
 static void r20a_DoorLockMessage()
 {
     SceUpCut(0, 6, 3, 0);
-    if (pG->Status_flg[3] & 0x04000000) {
+    if (StaFlagChk(pG, STA_SUB_ASHLEY)) {
         SceAtDataSet_exec(5, SCE_LEVEL10, 0, (TaskFunc) r20a_AshleyPosCheck, 0, 1);
     }
 }
@@ -273,6 +273,6 @@ static void r20a_DoorLock()
         while (((cEmDoor*) door)->ckLock()) {
             SceSleep(1);
         }
-        pG->door_flags_51CC |= 0x200000;
+        ScfFlagOn(pG, SCF_8a);
     }
 }

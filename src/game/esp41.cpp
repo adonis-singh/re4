@@ -46,7 +46,7 @@ void cEsp41::move()
             PushEsp(this);
         } else if (w->Type == 0) {
             cModel* target = pPL;
-            if (pG->Debug_flg[1] & 0x00800000) {
+            if (DbgFlagChk(pG, DBG_IN_ESP_TOOL)) {
                 target = EmMgrWork(0);
                 if (!(target->be_flag & 1)) {
                     return;

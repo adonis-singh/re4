@@ -160,7 +160,7 @@ int cModel::modelInit(void* bin, void* tpl)
         releaseModelInfo();
         return 0;
     }
-    if (pG->System_flg & 0x800000) {
+    if (SysFlagChk(pG, SYS_INVISIBLE)) {
         invisible_factor = 0.0f;
     } else {
         invisible_factor = 1.0f;
@@ -1579,7 +1579,7 @@ void cModel::error()
 {
     Vec v;
 
-    if (pG->Debug_flg[3] & 0x400000) {
+    if (DbgFlagChk(pG, DBG_ERROR_CK)) {
         be_flag |= 0x80000000;
         v.x = pos.x;
         v.y = pos.y + 50000.0f;

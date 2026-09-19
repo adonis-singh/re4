@@ -704,7 +704,7 @@ void cCard::loadMain()
     switch (m_Rno1) {
     case 0:
         setMsgWindow(1, 1);
-        BitOn(pG->System_flg, 0x200);
+        SysFlagOn(pG, SYS_CARD_ACCESS);
         cardMesSet(0xD, 0, 0);
         if (m_SlotNo == 2) {
             m_Rno1 = 2;
@@ -725,15 +725,15 @@ void cCard::loadMain()
     case 2:
         if (m_SlotNo == 2) {
             int dbg = 1;
-            if (!(pG->System_flg & 0x20000)) {
+            if (!SysFlagChk(pG, SYS_SN_PC_READ)) {
                 dbg = 0;
             }
             if (DBIsDebuggerPresent()) {
-                BitOn(pG->System_flg, 0x20000);
+                SysFlagOn(pG, SYS_SN_PC_READ);
             }
             HDRead(name, pSaveBuf);
             if (dbg == 0) {
-                BitOff(pG->System_flg, 0x20000);
+                SysFlagOff(pG, SYS_SN_PC_READ);
             }
             m_Rno1++;
         } else {
@@ -782,7 +782,7 @@ void cCard::loadMain()
         GameSave.load(pSaveData);
         GameSaveSave(&GameSave, pSaveData, pG->SaveKind);
         BitOn(pG->CardStatus, 4);
-        BitOff(pG->System_flg, 0x200);
+        SysFlagOff(pG, SYS_CARD_ACCESS);
         setMsgWindow(1, 0);
                 m_Rno0++;
         m_Rno1 = 0;
@@ -812,7 +812,7 @@ void cCard::makeSaveData()
     }
     src = (u8*) d->CLUTHeader->data;
     memcpy(buf + SAVE_CLUT, src, 0x200);
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         sprintf((char*) buf, "biohazard4 FILE%02d", m_SaveNo + 1);
         sprintf((char*) buf + SAVE_COMMENT2, "%04d/%02d/%02d %02d:%02d:%02d \x8dX\x90V", cal.year, cal.mon + 1, cal.mday,
                 cal.hour, cal.min, cal.sec);
@@ -868,7 +868,7 @@ void cCard::makeSystemSaveData()
     }
     src = (u8*) d->CLUTHeader->data;
     memcpy(buf + SAVE_CLUT, src, 0x200);
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         sprintf((char*) buf, "biohazard4 \x83V\x83X\x83" "e\x83\x80\x83t\x83@\x83" "C\x83\x8b");
         sprintf((char*) buf + SAVE_COMMENT2, "%04d/%02d/%02d %02d:%02d:%02d \x8dX\x90V", cal.year, cal.mon + 1, cal.mday,
                 cal.hour, cal.min, cal.sec);
@@ -881,7 +881,7 @@ void cCard::makeSystemSaveData()
     d = TEXGet(tpl, i);
     src = (u8*) d->textureHeader->data;
     memcpy(buf + SAVE_BANNER, src, 0x1800);
-    *(SystemWork*) (buf + SYS_WORK) = *pSys;
+    *(SYSTEM_SAVE_WORK*) (buf + SYS_WORK) = *pSys;
     *(u32*) (buf + SYS_WORK + 4) |= sysFlags;
     *(u32*) (buf + SYS_CRC) = CRCCalc(buf, SYS_CRC);
     DCFlushRange(pSaveBuf, SYS_SIZE);
@@ -934,7 +934,7 @@ void cCard::saveMain()
     switch (m_Rno1) {
     case 0:
         setMsgWindow(1, 1);
-        BitOn(pG->System_flg, 0x200);
+        SysFlagOn(pG, SYS_CARD_ACCESS);
         if (isSystem == 0) {
             cardMesSet(0xB, 0, 0);
             m_Rno1 = 2;
@@ -1022,15 +1022,15 @@ void cCard::saveMain()
     case 6:
         if (m_SlotNo == 2) {
             int dbg = 1;
-            if (!(pG->System_flg & 0x20000)) {
+            if (!SysFlagChk(pG, SYS_SN_PC_READ)) {
                 dbg = 0;
             }
             if (DBIsDebuggerPresent()) {
-                BitOn(pG->System_flg, 0x20000);
+                SysFlagOn(pG, SYS_SN_PC_READ);
             }
             HDWrite_only(name, buf, blocks << 13);
             if (dbg == 0) {
-                BitOff(pG->System_flg, 0x20000);
+                SysFlagOff(pG, SYS_SN_PC_READ);
             }
             if (m_Rno0 == 3) {
                 // The zero stored into step shares `no`'s pseudo with the shift count: its `li` then
@@ -1111,7 +1111,7 @@ void cCard::saveMain()
         break;
     case 10:
         BitOn(m_Status, 1);
-        BitOff(pG->System_flg, 0x200);
+        SysFlagOff(pG, SYS_CARD_ACCESS);
         cardMesSet(0xC, 0, 0);
         if (Key.trg & (KEY_START | KEY_Z)) {
             deleteAllMes();
@@ -1127,7 +1127,7 @@ void cCard::saveMain()
         if (m_Timer == 0) {
             deleteAllMes();
             setMsgWindow(1, 0);
-            BitOff(pG->System_flg, 0x200);
+            SysFlagOff(pG, SYS_CARD_ACCESS);
             m_Rno0 = 4;
             m_Rno1 = 0;
             m_Rno2 = 0;
@@ -1478,7 +1478,7 @@ void cCard::errorDisp()
     if (m_SlotNo != 2) {
         probe = CARDProbeEx(m_SlotNo, 0, 0);
     }
-    BitOff(pG->System_flg, 0x200);
+    SysFlagOff(pG, SYS_CARD_ACCESS);
     switch (m_Rno1) {
     case 0:
         CoreSeCall(0x2A, 0, 0, 0, 0);
@@ -1758,11 +1758,11 @@ int cCard::initialize(int type)
     u32 addr;
 
     this->type = type;
-    if (pSys->region == 0) {
+    if (pSys->eff_country == 0) {
         idpath[12] = fileext[0];
-    } else if (pSys->region == 1) {
+    } else if (pSys->eff_country == 1) {
         idpath[12] = fileext[1];
-    } else if (isEurope(pSys->region)) {
+    } else if (isEurope(pSys->eff_country)) {
         idpath[12] = fileext[pSys->language];
     } else {
         idpath[12] = fileext[7];
@@ -1795,16 +1795,16 @@ int cCard::initialize(int type)
             }
             BitSet(m_DPFbak, pG->Disp_flg);
             BitSet(pG->Disp_flg, 0xFFFFFFFF);
-            BitOff(pG->Disp_flg, 0x800);
-            BitOff(pG->Disp_flg, 0x2000);
+            DpfFlagOff(pG, DPF_MESSAGE);
+            DpfFlagOff(pG, DPF_ID_SYSTEM);
         }
         if (m_DataSwap.SwapOut(addr, m_NeedMemSize, 0) == 0) {
             return 0;
         }
         BitSet(m_SPFbak, pG->Stop_flg);
         BitSet(pG->Stop_flg, 0xFFFFFFFF);
-        BitOff(pG->Stop_flg, 0x80000000);
-        BitOff(pG->Stop_flg, 0x40);
+        SpfFlagOff(pG, SPF_KEY);
+        SpfFlagOff(pG, SPF_ID_SYSTEM);
         if (initSub() == 0) {
             return 0;
         }
@@ -2095,9 +2095,9 @@ void cCard::firstCheck10()
         }
         break;
     case 2:
-        *pSys = *(SystemWork*) (buf + SYS_WORK);
+        *pSys = *(SYSTEM_SAVE_WORK*) (buf + SYS_WORK);
         BitOn(pGS->CardStatus, 1);
-        SndSetOutputMode(pSys->sound_mode, 1);
+        SndSetOutputMode(pSys->SndMode, 1);
         m_Rno1++;
         break;
     case 3:
@@ -2212,7 +2212,7 @@ void cCard::MainLoop(int arg)
 // memcard message layouts, runs MainLoop, tears everything down.
 void CardMainTask(int mode)
 {
-    BitOn(pG->System_flg, 0x1000);
+    SysFlagOn(pG, SYS_TYPEWRITER);
     pCard = new cCard;
     g_id = new CardID;
     if (pSys->language == 0) {
@@ -2234,7 +2234,7 @@ void CardMainTask(int mode)
     cMes.setLayout(0, 0);
     cMes.setLayout(1, 0);
     cMes.setLayout(2, 0);
-    BitOff(pG->System_flg, 0x1000);
+    SysFlagOff(pG, SYS_TYPEWRITER);
     TaskExit();
 }
 
@@ -2287,7 +2287,7 @@ void CardSysSave()
 // Boot: chains the first-check card screen.
 void CardFirstCheck()
 {
-    if (pRK->valid != 0 && pRK->card_checked == 1) {
+    if (pRK->reset_flag != 0 && pRK->MemcardCheckDone == 1) {
         BitOn(pG->CardStatus, 0x80000000);
         TaskExit();
     }
@@ -2582,7 +2582,7 @@ int cCard::saveFileCheck(u8* sub, CardSlot* s)
 
     switch (*sub) {
     case 0:
-        BitOff(pSys->flags, 0x02000000);
+        CfgFlagOff(pSys, CFG_06);
         m_SaveNo = 0;
         memclr_asm(s->fileFlag, sizeof(s->fileFlag));
         m_RetryCtr = 0;
@@ -2597,15 +2597,15 @@ int cCard::saveFileCheck(u8* sub, CardSlot* s)
         }
         if (s->chan == 2) {
             int dbg = 1;
-            if (!(pG->System_flg & 0x20000)) {
+            if (!SysFlagChk(pG, SYS_SN_PC_READ)) {
                 dbg = 0;
             }
             if (DBIsDebuggerPresent()) {
-                BitOn(pG->System_flg, 0x20000);
+                SysFlagOn(pG, SYS_SN_PC_READ);
             }
             sprintf(fileName, "d:\\bio4/room/savedata%02d.dat", m_SaveNo);
             if (file_exist(fileName)) {
-                BitOn(pSys->flags, 0x02000000);
+                CfgFlagOn(pSys, CFG_06);
                 s->fileFlag[m_SaveNo] |= 1;
                 bit = 1 << m_SaveNo;
                 if (DBG_CACHED & bit) {
@@ -2624,7 +2624,7 @@ int cCard::saveFileCheck(u8* sub, CardSlot* s)
                 memclr_asm(pDbgSaveInfo[m_SaveNo], 0x200);
             }
             if (dbg == 0) {
-                BitOff(pG->System_flg, 0x20000);
+                SysFlagOff(pG, SYS_SN_PC_READ);
             }
             m_SaveNo++;
         } else {
@@ -2633,7 +2633,7 @@ int cCard::saveFileCheck(u8* sub, CardSlot* s)
             if (r == 0) {
             } else if (r > 0) {
                 if (m_ResultCode == 0) {
-                    BitOn(pSys->flags, 0x02000000);
+                    CfgFlagOn(pSys, CFG_06);
                     s->fileFlag[m_SaveNo] |= 1;
                     s->flags |= 0x100;
                     if (type == 2) {
@@ -2861,16 +2861,16 @@ int cCard::sysfileRead(u8* sub, u8* sub2, int errMode)
     case 2:
         if (m_SlotNo == 2) {
             int dbg = 1;
-            if (!(pG->System_flg & 0x20000)) {
+            if (!SysFlagChk(pG, SYS_SN_PC_READ)) {
                 dbg = 0;
             }
             if (DBIsDebuggerPresent()) {
-                BitOn(pG->System_flg, 0x20000);
+                SysFlagOn(pG, SYS_SN_PC_READ);
             }
             sprintf(fileName, "d:\\bio4/room/sysdata.dat");
             r = HDRead(fileName, pSysBuf);
             if (dbg == 0) {
-                BitOff(pG->System_flg, 0x20000);
+                SysFlagOff(pG, SYS_SN_PC_READ);
             }
             if (r == 0) {
                 ret = -1;
@@ -2958,7 +2958,7 @@ void cCard::createSysfile()
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
             cardMesSet(0x27, 0, 0);
-            BitOn(pG->System_flg, 0x200);
+            SysFlagOn(pG, SYS_CARD_ACCESS);
             m_Rno1++;
             break;
         case 2:
@@ -3059,7 +3059,7 @@ void cCard::createSysfile()
     case 10:
         if (m_Timer == 0) {
             deleteAllMes();
-            BitOff(pG->System_flg, 0x200);
+            SysFlagOff(pG, SYS_CARD_ACCESS);
             m_Rno0 = 4;
             m_Rno1 = 0;
             m_Rno2 = 0;
@@ -3699,7 +3699,7 @@ void CardID::save(cCard* pCard)
 void CardID::quit()
 {
     m_IdSave.free();
-    if (!(pG->Status_flg[2] & 0x8000)) {
+    if (!StaFlagChk(pG, STA_TITLE)) {
         Cckpt.roomInit();
     }
 }

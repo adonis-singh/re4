@@ -91,10 +91,11 @@ struct Em38Work {
     Camera cam;           // 0x808 (0xBE8)  event camera of the escape scenes (em38EscapeCamMove)
 };
 
-#define EM38_WK(em) ((Em38Work*) &(em)->x3E0)
+#define EM38_WK(em) ((Em38Work*) (((cEm38*) (em))->free))
 
 class cEm38 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM38_WK)
     virtual void move();
     int ckHeadUp();
     void setAtkWait(int frames);

@@ -105,14 +105,14 @@ void Filter00Render()
         { 1, 4, 5, 0 }, { 1, 4, 1, 0 }, { 1, 1, 1, 0 }, { 1, 2, 1, 0 }, { 1, 2, 0, 0 }, { 1, 4, 3, 0 },
     };
 
-    if ((pG->Disp_flg & 0x100000) || (blur_rate == 0 && is_eff_spread_on == 0 && g_cont_level == 0)) {
-        pG->Status_flg[0] &= ~0x80000;
+    if (DpfFlagChk(pG, DPF_FILTER) || (blur_rate == 0 && is_eff_spread_on == 0 && g_cont_level == 0)) {
+        StaFlagOff(pG, STA_BLUR);
         return;
     }
     if (filter00_buff) {
         int zero = 0;
 
-        if (pG->Status_flg[0] & 0x80000) {
+        if (StaFlagChk(pG, STA_BLUR)) {
         col.r = col.g = col.b = zero;
         col.a = blur_rate;
         GXSetTevColor(1, col);
@@ -261,7 +261,7 @@ void Filter00Render()
     GXCopyTex(filter00_buff, 0);
     GXSetCopyFilter(Rmode.aa, Rmode.sample_pattern, 1, Rmode.vfilter);
     Filter00RenderContrast();
-    pG->Status_flg[0] |= 0x80000;
+    StaFlagOn(pG, STA_BLUR);
 }
 
 // Sets the contrast pass: level 0 off / 1..3 strength stages, pow = alpha, bias = colour bias.

@@ -14,10 +14,11 @@ struct Em2eWork {
     f32 footAng;          // 0x018 (0x3F8)  swing angle of parts 2 / 3 (em2eFootMove)
 };
 
-#define EM2E_WK(em) ((Em2eWork*) &(em)->x3E0)
+#define EM2E_WK(em) ((Em2eWork*) (((cEm2e*) (em))->free))
 
 class cEm2e : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM2E_WK)
     virtual void move();
 };
 

@@ -37,10 +37,11 @@ struct Em29Work {
     u8 atkHit;            // 0x0A0 (0x480)  the attack already hit (em29AtkCk)
 };
 
-#define EM29_WK(em) ((Em29Work*) &(em)->x3E0)
+#define EM29_WK(em) ((Em29Work*) (((cEm29*) (em))->free))
 
 class cEm29 : public cEm {
 public:
+    u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM29_WK)
     virtual void move();
 };
 

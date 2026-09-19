@@ -177,7 +177,7 @@ void cObjSpear::move()
     if (w->parent == 0) {
         return;
     }
-    if (w->parent->id == 0 && (pG->Status_flg[0] & 0x400)) {
+    if (w->parent->id == 0 && (StaFlagChk(pG, STA_BINOCULAR))) {
         be_flag &= ~2;
     }
 }
@@ -318,7 +318,7 @@ void obj1b_R1_Parent(cObjSpear* obj)
     } else if (parent && parent->id == 0x2F && w->estTimer) {
         w->estTimer--;
         if ((w->estTimer & 1) == 0) {
-            if (pG->Status_flg[1] & 0x00100000) {
+            if (StaFlagChk(pG, STA_WATER_CAMERA)) {
                 Vec p;
 
                 p.x = 0.0f;

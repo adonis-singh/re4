@@ -115,7 +115,7 @@ void R204Init()
     u32 i;
     u32 no;
 
-    BitOn(pG->Debug_flg[1], 0x20000);
+    DbgFlagOn(pG, DBG_EMW_ERR_NO_DISP);
     if (pG->JumpPoint == 1) {
         U16Set(pG->room_id_prev, 0x205);
         pG->Part = 1;
@@ -158,7 +158,7 @@ void R204Init()
     SceAtDataSet_exec(5, SCE_LEVEL10, 0, (TaskFunc) r204_EventChandelier1, 0, 1);
     SceAtDataSet_exec(6, SCE_LEVEL10, 0, (TaskFunc) r204_EventChandelier2, 0, 1);
     if ((pG->room_id_prev == 0x205 && pG->Part == 1) || DebugTrg(1)) {
-        BitOn(pG->Scenario_flg[0], 0x40000);
+        ScfFlagOn(pG, SCF_R204_ASHLEY_SPLIT);
         readEmList(1);
         if (!RsfCheck(G_ROOM_ID, 1)) {
             SceExec(0x12, (TaskFunc) r204_first_cut, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -256,7 +256,7 @@ void R204Init()
             EmMgr.destroy(em1);
         }
     }
-    if (pG->Scenario_flg[0] & 0x10000000) {
+    if (ScfFlagChk(pG, SCF_R206_ASHLEY_RESCUE)) {
         SceAtSetEnable(0x11, 0);
     }
     setTexRender();
@@ -264,7 +264,7 @@ void R204Init()
         EvtMgr.EvtReadAram("event/evd/r204s00.evd", 0, 0, 0, 0);
         EmReadSearch(0x14, 0, 0);
     }
-    if ((pG->System_flg & 0x100) && RsfCheck(G_ROOM_ID, 8)) {
+    if (SysFlagChk(pG, SYS_LOAD_GAME) && RsfCheck(G_ROOM_ID, 8)) {
         SceAtSetEnable(0xF, 1);
         SmdGetObjPtr(0x39)->be_flag |= 0x20;
         SmdGetObjPtr(0x39)->pos.y = 0.0f;
@@ -343,7 +343,7 @@ void R204Main()
             } else {
                 r204_work.p->cnt2 = 0;
             }
-            if (SceCkFindPL(0) == 1 || (pG->Room_flg[2] & 0x80000000) || (pG->Status_flg[0] & 0x800000)) {
+            if (SceCkFindPL(0) == 1 || (pG->Room_flg[2] & 0x80000000) || (StaFlagChk(pG, STA_PL_FIRE))) {
                 BitOn(pG->Room_flg[0], 0x40000000);
                 RsfSet(G_ROOM_ID, 2);
                 r204_work.p->cnt = 1;
@@ -492,8 +492,8 @@ static void r204_first_cut_exit()
 
     CamCtrl.Comeback(0);
     SceUpCutEnd();
-    BitOff(pG->Stop_flg, 0x10000000);
-    BitOff(pG->Stop_flg, 0x80000000);
+    SpfFlagOff(pG, SPF_PL);
+    SpfFlagOff(pG, SPF_KEY);
     for (i = 0; i <= 10; i++) {
         r204_work.p->em[i].setNoSuspend(0);
     }
@@ -508,8 +508,8 @@ static void r204_first_cut()
         r204_work.p->em[i].setNoSuspend(1);
     }
     SceUpCutStart();
-    BitOff(pG->Status_flg[1], 0x10000000);
-    BitOn(pG->Stop_flg, 0x10000000);
+    StaFlagOff(pG, STA_SUSPEND);
+    SpfFlagOn(pG, SPF_PL);
     KeyStop(0xEFCF0000ULL);
     SceSetEventCancel(1, (TaskFunc) r204_first_cut_exit, 0, -1, 0);
     CamCtrl.CutCall(2);
@@ -554,10 +554,10 @@ static void r204_nige_check()
                     BitOn(pG->Room_flg[0], 0x08000000);
                     SndStrReq(r204_work.p->str, 4, 200, 0);
                     SceUpCutStart();
-                    BitOff(pG->Status_flg[1], 0x10000000);
+                    StaFlagOff(pG, STA_SUSPEND);
                     pPL->dmg.set(0, 0x80);
-                    BitOn(pG->Stop_flg, 0x10000000);
-                    BitOn(pG->Disp_flg, 0x40000000);
+                    SpfFlagOn(pG, SPF_PL);
+                    DpfFlagOn(pG, DPF_PL);
                     PlEndCamera();
                     pl->Wep->m_pWep->setDisp(1, 1);
                     CamCtrl.CutCall(0xF);
@@ -570,13 +570,13 @@ static void r204_nige_check()
                     Vec ang;
 
                     r204_work.p->em[7].setGoto(&p1, 8);
-                    if (!(pG->Stop_flg & 0x10000000)) {
+                    if (!SpfFlagChk(pG, SPF_PL)) {
                         BitOn(pG->Room_flg[0], 0x08000000);
                         SceUpCutStart();
-                        BitOff(pG->Status_flg[1], 0x10000000);
+                        StaFlagOff(pG, STA_SUSPEND);
                         pPL->dmg.set(0, 0x80);
-                        BitOn(pG->Stop_flg, 0x10000000);
-                        BitOn(pG->Disp_flg, 0x40000000);
+                        SpfFlagOn(pG, SPF_PL);
+                        DpfFlagOn(pG, DPF_PL);
                         PlEndCamera();
                     }
                     CamCtrl.CutCall(0x10);
@@ -605,8 +605,8 @@ static void r204_nige_check()
                     }
                     CamCtrl.Comeback(0);
                     pPL->dmg.clear();
-                    BitOff(pG->Stop_flg, 0x10000000);
-                    BitOff(pG->Disp_flg, 0x40000000);
+                    SpfFlagOff(pG, SPF_PL);
+                    DpfFlagOff(pG, DPF_PL);
                     SceUpCutEnd();
                 }
             }
@@ -973,20 +973,20 @@ static void r204_EventChandelier2()
     })
 }
 
-// Area 2 once (Room_flg bit 0): Scenario_flg[0] 0x40000, event r204s00 (slot 0x14) with the BGM ducked,
+// Area 2 once (Room_flg bit 0): Scenario_flg[1] 0x40000, event r204s00 (slot 0x14) with the BGM ducked,
 // the partner (Ashley) removed from following, then chapter 3-1 ends (SceSetChapterEnd(CHAPTER_3_1))
 // and the terminal opens.
 static void r204_EventExec()
 {
     if (!RsfCheck(G_ROOM_ID, 0)) {
         RsfSet(G_ROOM_ID, 0);
-        BitOn(pG->Scenario_flg[0], 0x40000);
+        ScfFlagOn(pG, SCF_R204_ASHLEY_SPLIT);
         SndRoomStrVolSet(1, 200);
         EvtMgr.EvtReadExec("event/evd/r204s00.evd", 0x14, 0x10);
         SndRoomStrVolReset(500);
         if (pSubEm != 0) {
             EmMgr.destroy(pSubEm);
-            BitOff(pG->Status_flg[3], 0x04000000);
+            StaFlagOff(pG, STA_SUB_ASHLEY);
         }
         SceSetChapterEnd(CHAPTER_3_1, -1);
         r204_openTerm();
@@ -1100,8 +1100,8 @@ static void door_move()
     SceEventStart(1);
     pPL->setNoSuspend(1);
     r204_work.p->sw->setNoSuspend(1);
-    BitOn(pG->Stop_flg, 0x80000000);
-    BitOff(pG->Disp_flg, 0x40000000);
+    SpfFlagOn(pG, SPF_KEY);
+    DpfFlagOff(pG, DPF_PL);
     CamCtrl.CutCall(0xD);
     SceSleep(0x28);
     ((cEmBarred*) r204_work.p->barred[1])->setClosed();
@@ -1110,7 +1110,7 @@ static void door_move()
     CamCtrl.CutCall(0xE);
     SceSleep(0x28);
     CamCtrl.Comeback(0);
-    BitOff(pG->Stop_flg, 0x80000000);
+    SpfFlagOff(pG, SPF_KEY);
     SceEventEnd(0);
     pPL->setNoSuspend(0);
 }

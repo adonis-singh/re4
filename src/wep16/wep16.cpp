@@ -75,26 +75,26 @@ void ObjKnife_init(cObj* obj)
 // weapon hand model (right hand 1, bare left hand 0).
 void cObjKnife::setMotion(cPlayer* pl)
 {
-    PSet(pl->pMotTbl[0x00], WEP_ARC_PTR(0x08));
-    PSet(pl->pMotTbl[0x01], 0);
-    PSet(pl->pMotTbl[0x02], WEP_ARC_PTR(0x09));
-    PSet(pl->pMotTbl[0x03], WEP_ARC_PTR(0x1B));
-    PSet(pl->pMotTbl[0x04], WEP_ARC_PTR(0x09));
-    PSet(pl->pMotTbl[0x05], WEP_ARC_PTR(0x09));
-    PSet(pl->pMotTbl[0x06], WEP_ARC_PTR(0x0C));
-    PSet(pl->pMotTbl[0x07], WEP_ARC_PTR(0x1D));
-    PSet(pl->pMotTbl[0x08], WEP_ARC_PTR(0x0A));
-    PSet(pl->pMotTbl[0x09], WEP_ARC_PTR(0x1C));
-    PSet(pl->pMotTbl[0x0A], WEP_ARC_PTR(0x0A));
-    PSet(pl->pMotTbl[0x0B], WEP_ARC_PTR(0x0D));
-    PSet(pl->pMotTbl[0x0C], WEP_ARC_PTR(0x1E));
-    PSet(pl->pMotTbl[0x0D], WEP_ARC_PTR(0x0E));
-    PSet(pl->pMotTbl[0x0E], WEP_ARC_PTR(0x1F));
-    PSet(pl->pMotTbl[0x0F], WEP_ARC_PTR(0x0F));
-    PSet(pl->pMotTbl[0x10], WEP_ARC_PTR(0x20));
-    PSet(pl->pMotTbl[0x12], WEP_ARC_PTR(0x0C));
-    PSet(pl->pMotTbl[0x13], WEP_ARC_PTR(0x0C));
-    PSet(pl->pMotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
+    PSet(pl->m_MotTbl[0x00], WEP_ARC_PTR(0x08));
+    PSet(pl->m_MotTbl[0x01], 0);
+    PSet(pl->m_MotTbl[0x02], WEP_ARC_PTR(0x09));
+    PSet(pl->m_MotTbl[0x03], WEP_ARC_PTR(0x1B));
+    PSet(pl->m_MotTbl[0x04], WEP_ARC_PTR(0x09));
+    PSet(pl->m_MotTbl[0x05], WEP_ARC_PTR(0x09));
+    PSet(pl->m_MotTbl[0x06], WEP_ARC_PTR(0x0C));
+    PSet(pl->m_MotTbl[0x07], WEP_ARC_PTR(0x1D));
+    PSet(pl->m_MotTbl[0x08], WEP_ARC_PTR(0x0A));
+    PSet(pl->m_MotTbl[0x09], WEP_ARC_PTR(0x1C));
+    PSet(pl->m_MotTbl[0x0A], WEP_ARC_PTR(0x0A));
+    PSet(pl->m_MotTbl[0x0B], WEP_ARC_PTR(0x0D));
+    PSet(pl->m_MotTbl[0x0C], WEP_ARC_PTR(0x1E));
+    PSet(pl->m_MotTbl[0x0D], WEP_ARC_PTR(0x0E));
+    PSet(pl->m_MotTbl[0x0E], WEP_ARC_PTR(0x1F));
+    PSet(pl->m_MotTbl[0x0F], WEP_ARC_PTR(0x0F));
+    PSet(pl->m_MotTbl[0x10], WEP_ARC_PTR(0x20));
+    PSet(pl->m_MotTbl[0x12], WEP_ARC_PTR(0x0C));
+    PSet(pl->m_MotTbl[0x13], WEP_ARC_PTR(0x0C));
+    PSet(pl->m_MotTbl[0x3D], PL_ARC_PTR(pG->pPlayer, 0x5D));
     pl->Body->initWepHand((u32) WEP_ARC_PTR(0x7));
     pl->setRightHand(1);
     pl->setLeftHand(0);

@@ -229,9 +229,9 @@ void SubScreenRoomInit()
         wk->board_next = 0;
         wk->board_size = 0;
     }
-    BitOn(pG->Status_flg[0], 0x02000000);
-    BitOff(pG->Status_flg[0], 0x00040000);
-    BitOff(pG->Status_flg[2], 0x04000000);
+    StaFlagOn(pG, STA_SSCRN_ENABLE);
+    StaFlagOff(pG, STA_SUB_SCRN);
+    StaFlagOff(pG, STA_SSCRN_REQUEST);
     MapMgr.roomInit();
 }
 
@@ -255,7 +255,7 @@ void SubScreenCall()
     if (pSUB && pSUB->id == 3 && (s16) pG->ashley_life <= 0) {
         return;
     }
-    if (!(pG->Status_flg[0] & 0x02000000)) {
+    if (!StaFlagChk(pG, STA_SSCRN_ENABLE)) {
         return;
     }
     if (pPL->subScrCheck() == 1) {
@@ -267,16 +267,16 @@ void SubScreenCall()
         if (Key.trg & 0x100000) {
             SubScreenOpen(SS_OPEN_NORMAL, 0);
         } else if (Key.trg & 0x200000) {
-            if (!(pG->Status_flg[2] & 0x00200000)) {
+            if (!StaFlagChk(pG, STA_MAP_DISABLE)) {
                 SubScreenOpen(SS_OPEN_MAP, 0);
             }
         }
     }
     if (wk->type) {
-        pG->Status_flg[0] &= ~0x02000000;
+        StaFlagOff(pG, STA_SSCRN_ENABLE);
         if (TaskExec(1, SubScreenExec, 0) == 0) {
             SubScreenMiss();
-            pG->Status_flg[0] |= 0x02000000;
+            StaFlagOn(pG, STA_SSCRN_ENABLE);
         }
     }
 }
@@ -284,11 +284,11 @@ void SubScreenCall()
 // Map stage index from the story flags: 0 village, 1 after the church, 2 castle, 3 island.
 int sscrnStageNo()
 {
-    if (pG->Scenario_flg[0] & 0x00010000) {
+    if (ScfFlagChk(pG, SCF_ST3_IN)) {
         return 3;
-    } else if (pG->Scenario_flg[0] & 0x00800000) {
+    } else if (ScfFlagChk(pG, SCF_ST2_IN)) {
         return 2;
-    } else if (pG->Item_find_flg & 4) {
+    } else if (ScfFlagChk(pG, SCF_ST1_MAP_DAY)) {
         return 1;
     }
     return 0;
@@ -318,10 +318,10 @@ int SubScreenOpen(int type, int flags)
 {
     SubScreenWork* wk = &SubScreenWk;
 
-    if (pG->Status_flg[2] & 0x04000000) {
+    if (StaFlagChk(pG, STA_SSCRN_REQUEST)) {
         return 0;
     }
-    BitOn(pG->Status_flg[2], 0x04000000);
+    StaFlagOn(pG, STA_SSCRN_REQUEST);
     wk->type = type;
     wk->flags = flags;
     wk->close_flag = 0;
@@ -329,13 +329,13 @@ int SubScreenOpen(int type, int flags)
     if (flags & 1) {
         SceEventStart(0);
     } else {
-        if (pG->Status_flg[1] & 0x00200000) {
+        if (StaFlagChk(pG, STA_PL_BOAT)) {
             wk->flags = flags | 2;
         }
         wk->stop_bak = pG->Stop_flg;
         pG->Stop_flg = 0xFFFFFFFF;
         KeyStop(0xEFCF0000);
-        pG->Stop_flg &= ~0x40;
+        SpfFlagOff(pG, SPF_ID_SYSTEM);
     }
     return 1;
 }
@@ -352,7 +352,7 @@ void SubScreenMiss()
     }
     wk->flags = 0;
     wk->type = 0;
-    pG->Status_flg[2] &= ~0x04000000;
+    StaFlagOff(pG, STA_SSCRN_REQUEST);
 }
 
 // Sub screen task (slot 1): sounds down, fade to black, the room ids / effects hidden, the game
@@ -380,10 +380,10 @@ void SubScreenExec()
             } else {
                 wk->healing = 0;
             }
-            BitOn(pG->Status_flg[0], 0x00040000);
-            BitOff(pG->Status_flg[0], 0x100);
-            BitOn(pG->Stop_flg, 0x100);
-            BitOff(pG->Stop_flg, 0x08000000);
+            StaFlagOn(pG, STA_SUB_SCRN);
+            StaFlagOff(pG, STA_CAMERA);
+            SpfFlagOn(pG, SPF_ACTBTN);
+            SpfFlagOff(pG, SPF_ESP);
             MTX_COPY(pPL->mat, wk->pl_mat);
             if (pSUB) {
                 MTX_COPY(pSUB->mat, wk->sub_mat);
@@ -401,18 +401,18 @@ void SubScreenExec()
         case 2:
             pG->weapon_no = WeaponId2WeaponNo(ItemMgr.m_wep_id);
             pG->weapon_type = WeaponId2WeaponType(ItemMgr.m_wep_id);
-            if (pG->Status_flg[0] & 0x40) {
+            if (StaFlagChk(pG, STA_SCOPE_CAMERA)) {
                 CamCtrl.saveScopeParam();
                 CamCtrl.endScope();
                 wk->scope_flag = 1;
-                if (pG->Status_flg[1] & 0x04000000) {
+                if (StaFlagChk(pG, STA_THERMO_GRAPH)) {
                     wk->scope_flag = 2;
-                    pG->Status_flg[1] &= ~0x04000000;
+                    StaFlagOff(pG, STA_THERMO_GRAPH);
                 }
             } else {
                 wk->scope_flag = 0;
             }
-            if (pG->Status_flg[0] & 0x400) {
+            if (StaFlagChk(pG, STA_BINOCULAR)) {
                 CamCtrl.GetBinocularIDAddr(&wk->binoA, &wk->binoB);
                 CamCtrl.LowerBinocular();
                 wk->binocular_flag = 1;
@@ -435,17 +435,17 @@ void SubScreenExec()
                 }
             }
             {
-                u32 t = pG->Status_flg[1] & 0x10000000;
+                u32 t = StaFlagChk(pG, STA_SUSPEND);
                 wk->suspend_flag = t;
             }
-            BitOff(pG->Status_flg[1], 0x10000000);
+            StaFlagOff(pG, STA_SUSPEND);
             wk->disp_bak = pG->Disp_flg;
             BitSet(pG->Disp_flg, 0xFFFFFFFF);
-            BitOff(pG->Disp_flg, 0x10000);
-            BitOff(pG->Disp_flg, 0x2000);
-            BitOff(pG->Disp_flg, 0x800);
-            BitOff(pG->Disp_flg, 0x04000000);
-            BitOn(pG->Status_flg[1], 2);
+            DpfFlagOff(pG, DPF_COCKPIT);
+            DpfFlagOff(pG, DPF_ID_SYSTEM);
+            DpfFlagOff(pG, DPF_MESSAGE);
+            DpfFlagOff(pG, DPF_ESP);
+            StaFlagOn(pG, STA_ITEM_GET);
             cnt = 0;
             step++;
             break;
@@ -455,14 +455,14 @@ void SubScreenExec()
             }
             break;
         case 4:
-            if (pG->System_flg & 0x40000000) {
+            if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
                 IdTexRelease(TEX_OWNER_ID_EVENT);
             }
             Cckpt.getCountDown()->saveDisp();
             systemVISetBlack(1);
             ScreenReSize(640, 448);
             systemVISetBlack(0);
-            pG->Disp_flg |= 0x400;
+            DpfFlagOn(pG, DPF_TEX_RENDER);
             FadeKill(FADE_NO_SCENARIO);
             switch (wk->type) {
             case 2:
@@ -586,15 +586,15 @@ void SubScreenExec()
             wk->debugMode = pG->debug_mode;
             {
                 int v = 1;
-                if ((pG->Debug_flg[2] & 0x40000000) == 0) {
+                if (DbgFlagChk(pG, DBG_PROC_BAR) == 0) {
                     v = 0;
                 }
                 wk->debug_flg_bak = v;
             }
             step++;
-            pG->Debug_flg[2] &= ~0x40000000;
+            DbgFlagOff(pG, DBG_PROC_BAR);
         case 5:
-            pG->Stop_flg &= ~0x80000000;
+            SpfFlagOff(pG, SPF_KEY);
             TaskChain(wk->p_module->prolog, 0);
             break;
         }
@@ -605,7 +605,7 @@ void SubScreenExec()
 // Unlinks the Sscrn REL, swaps the game memory back and restarts the room REL.
 void SubScreenExitCore(SubScreenWork* wk)
 {
-    if (pG->Status_flg[0] & 0x00040000) {
+    if (StaFlagChk(pG, STA_SUB_SCRN)) {
         MapMgr.roomInit();
         DLL_Unlink(wk->p_module);
         wk->relAddr = 0;
@@ -617,7 +617,7 @@ void SubScreenExitCore(SubScreenWork* wk)
         RoomData.restartRelData();
         MGR_PTR(cModel::mm) = &ModInfoMgr;
         MGR_PTR(cModel::pm) = &PartsMgr;
-        pG->Status_flg[0] &= ~0x00040000;
+        StaFlagOff(pG, STA_SUB_SCRN);
     }
 }
 
@@ -675,7 +675,7 @@ void SubScreenExit()
             sscrnDataFilename(wk, "ss_pzzl.dat");
 #line 979 "D:/Bio4/Prog/sscrn.cpp"
             Dvd.ReadCheck(DVD_READ_N(wk->path, 0, SS_ARAM + wk->pzzlOfs, 0, 0, 9), 0, 0, 0);
-            pG->Disp_flg &= ~0x400;
+            DpfFlagOff(pG, DPF_TEX_RENDER);
             break;
         case 3:
             if (cnt++ > 0) {
@@ -721,11 +721,11 @@ void SubScreenExit()
             View.move();
             BitSet(pG->Disp_flg, wk->disp_bak);
             if (wk->binocular_flag == 0) {
-                pG->Stop_flg &= ~0x80000000;
+                SpfFlagOff(pG, SPF_KEY);
             }
-            BitOff(pG->Status_flg[1], 2);
+            StaFlagOff(pG, STA_ITEM_GET);
             if (wk->suspend_flag) {
-                pG->Status_flg[1] |= 0x10000000;
+                StaFlagOn(pG, STA_SUSPEND);
             }
             {
                 u32 i;
@@ -752,7 +752,7 @@ void SubScreenExit()
             {
                 u32 clear = 0;
                 cMes.roomInit();
-                if (pG->System_flg & 0x40000000) {
+                if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
                     mercId.set();
                 }
                 {
@@ -763,9 +763,9 @@ void SubScreenExit()
             }
             TaskSignal(0);
             SndSubScreenExit();
-            BitOn(pG->Status_flg[0], 0x02000000);
-            BitOn(pG->Status_flg[0], 0x100);
-            BitOff(pG->Status_flg[2], 0x04000000);
+            StaFlagOn(pG, STA_SSCRN_ENABLE);
+            StaFlagOn(pG, STA_CAMERA);
+            StaFlagOff(pG, STA_SSCRN_REQUEST);
             {
                 u32 mode;
                 if (wk->scope_flag == 2) {
@@ -786,7 +786,7 @@ void SubScreenExit()
             wk->flags = 0;
             pG->debug_mode = wk->debugMode;
             if (wk->debug_flg_bak) {
-                pG->Debug_flg[2] |= 0x40000000;
+                DbgFlagOn(pG, DBG_PROC_BAR);
             }
             step++;
         case 5:
@@ -870,7 +870,7 @@ void OpeSetOpenTerm(int no, f32 x, f32 y, f32 z, f32 ang)
         }
     }
     SceEventStart(0);
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     wk->pObjWep = 0;
     wk->opeMdtNo = no;
     OpeMdtSetInit();
@@ -880,7 +880,7 @@ void OpeSetOpenTerm(int no, f32 x, f32 y, f32 z, f32 ang)
     wk->sndId = SndStrPlayBlock(1, strTbl[no], 0.0f);
     MotionSetCore(pl, &pl->pMotion, PL_ARC_PTR(pG->pPlayer, 0x79), 0, 0, 0x201, 0);
     SceSleep(1);
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     for (i = 0; i <= 20; i++) {
         if (Key.trg & 0x20000000) {
             OpeSetOpenTermCancel();
@@ -929,7 +929,7 @@ END:
         pPL->setPos(&wk->posBak);
         pPL->setAng(&wk->angBak);
     }
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     SceEventEnd(0);
 }
 

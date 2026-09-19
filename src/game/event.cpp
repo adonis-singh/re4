@@ -307,8 +307,8 @@ int Event::Run()
     int wait;
 
     MesClear();
-    if ((pG->System_flg & 0x400) && (NowCut != 0 || NowFrame != 0)) {
-        pG->System_flg &= ~0x400;
+    if (SysFlagChk(pG, SYS_SCREEN_STOP) && (NowCut != 0 || NowFrame != 0)) {
+        SysFlagOff(pG, SYS_SCREEN_STOP);
     }
     while ((flg = IsExePacket()) != 0) {
         ChkCutZero();
@@ -322,7 +322,7 @@ int Event::Run()
         if (NowTotalFrame == MaxTotalFrame - 0x1E) {
             FadeSetW(2, 0x2D, 0, 0);
             IntSet(DelTimer, 0xF);
-            pG->Disp_flg &= ~0x800;
+            DpfFlagOff(pG, DPF_MESSAGE);
             EvtMesDeleteAll();
         }
     }
@@ -331,7 +331,7 @@ int Event::Run()
             if (NowTotalFrame == MaxTotalFrame - 0x1E || NowTotalFrame == MaxTotalFrame) {
                 SetDiedemoExec();
                 IntSet(DelTimer, 0xF);
-                pG->Disp_flg &= ~0x800;
+                DpfFlagOff(pG, DPF_MESSAGE);
                 EvtMesDeleteAll();
             }
         }
@@ -628,7 +628,7 @@ int Event::RunEvtCancel()
         }
     }
     BitOn(StatusFlag, 0x04000000);
-    pG->Status_flg[3] |= 0x01000000;
+    StaFlagOn(pG, STA_EVENT_CANCEL);
     EvtMesDeleteAll();
     FadeSetW(1, 1, 0, 0);
     TaskSleep(2);
@@ -644,8 +644,8 @@ int Event::RunEvtCancel()
             return 0;
         }
         if (NowCut >= MaxCut - 1) {
-            if (!(pG->Stop_flg & 0x10000000) && (pPL->be_flag & 0x20)
-                && (!(pG->Status_flg[1] & 0x10000000) || (pPL->be_flag & 0x800))) {
+            if (!SpfFlagChk(pG, SPF_PL) && (pPL->be_flag & 0x20)
+                && (!StaFlagChk(pG, STA_SUSPEND) || (pPL->be_flag & 0x800))) {
                 pPL->move();
             }
             if (PPl != 0) {
@@ -658,7 +658,7 @@ cancel_end:
     EvtMesDeleteAll();
     key = (u32*) Name;
     IntSet(TimerMes, 0);
-    pG->Disp_flg &= ~0x800;
+    DpfFlagOff(pG, DPF_MESSAGE);
     EvtMgr.EvtSndStrStop(key, 1, 1);
     ExeFunc(3, 0);
     if (EvtChk(StatusFlag, 0x10000000)) {
@@ -1215,7 +1215,7 @@ int Event::ExePacket_Pos(Event* evt)
             return 1;
         }
     }
-    if ((s32) pac->flag < 0) {
+    if (pac->flag & 0x80000000) {
         PSMTXMultVec(oya->mat, &pos, &pos);
         rot.x += oya->ang.x;
         rot.y += oya->ang.y;
@@ -1350,7 +1350,7 @@ int Event::ExePacket_Esp(Event* evt)
     rot.x = 0.0f;
     rot.y = 0.0f;
     rot.z = 0.0f;
-    if ((s32) pac->flag < 0) {
+    if (pac->flag & 0x80000000) {
         if (evt->PModOya == 0) {
             pLog->err(0, 0, "Event::ExePacket_Esp : oya failed");
             return 1;
@@ -1498,7 +1498,7 @@ int Event::ExePacket_Mes(Event* evt)
     if (EvtChk(EvtDebug.FlagEtc, 0x04000000)) {
         return 1;
     }
-    if (pG->Debug_flg[2] & 0x400) {
+    if (DbgFlagChk(pG, DBG_CAPTION_OFF)) {
         return 1;
     }
     pac = evt->pPacket;
@@ -1590,9 +1590,9 @@ void Event::ExeBeginEvt(Event* evt, int mode)
     } else {
         SceEventStart(0);
     }
-    BitOn(pG->Status_flg[2], 0x00080000);
-    BitOn(pG->Status_flg[2], 0x00010000);
-    BitOff(pG->Status_flg[3], 0x01000000);
+    StaFlagOn(pG, STA_EVENT_SYSYTEM);
+    StaFlagOn(pG, STA_EFFAREA_USE_CAM);
+    StaFlagOff(pG, STA_EVENT_CANCEL);
     cMes.loadEventFont();
     ExeFunc(0, 0);
     if (pG->pl_type == 0) {
@@ -1606,7 +1606,7 @@ void Event::ExeBeginEvt(Event* evt, int mode)
         EvtMgr.SetBin("etc/core/dummy.tpl", (void*) (pG->pArc->ofs_24 + (u32) pG->pArc), 0, 2);
     }
     EvtMesDeleteAll();
-    pG->System_flg |= 0x400;
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     if (!EvtChk(evt->pData->sndFlag, 0x80000000)) {
         SndEventInit();
     }
@@ -1684,20 +1684,20 @@ void Event::ExeEndEvt(Event* evt, u32 mode)
         CamCtrl.setMotionBaseMatPtr(0);
         CamCtrl.Comeback(0);
     }
-    pG->Disp_flg &= ~0x800;
+    DpfFlagOff(pG, DPF_MESSAGE);
     cMes.roomInit();
     EvtMesDeleteAll();
     ShadowMemClear();
     ExeFunc(2, 0);
     pPL->move();
-    pG->System_flg |= 0x40;
+    SysFlagOn(pG, SYS_START_EVT_SKIP);
     SubScreenWait(0xF);
     cMes.loadStageFont();
     if (!EvtChk(evt->pData->sndFlag, 0x80000000)) {
         SndEventEnd();
     }
-    BitOff(pG->Status_flg[2], 0x00080000);
-    BitOff(pG->Status_flg[2], 0x00010000);
+    StaFlagOff(pG, STA_EVENT_SYSYTEM);
+    StaFlagOff(pG, STA_EFFAREA_USE_CAM);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
 }
@@ -1941,9 +1941,9 @@ void Event::ExecActBtn()
     if (actBtnOn != 1) {
         return;
     }
-    pG->Disp_flg &= ~0x800;
+    DpfFlagOff(pG, DPF_MESSAGE);
     ActBtn.set(actBtnNo, 5, 0, 0, 2, 2, 0, 0);
-    pG->Stop_flg &= ~0x100;
+    SpfFlagOff(pG, SPF_ACTBTN);
     if (Key.trg & 0x80000) {
         actBtnCount++;
     }
@@ -1956,7 +1956,7 @@ void Event::MesSet(int no, int time, int x, int y)
     int i;
 
     if (pSys->language != 1) {
-        pG->Disp_flg &= ~0x800;
+        DpfFlagOff(pG, DPF_MESSAGE);
         if (no == -1) {
             cMes.WaitEnd(0);
         } else {
@@ -1981,7 +1981,7 @@ void Event::MesClear()
         TimerMes--;
         if (TimerMes <= 0) {
             IntSet(TimerMes, 0);
-            pG->Disp_flg |= 0x800;
+            DpfFlagOn(pG, DPF_MESSAGE);
         }
     }
     no = 0;
@@ -2100,7 +2100,7 @@ int Event::GetMod(void** mod, char* nm, u8* type, int* wkNo)
     if (wkNo != 0) {
         *wkNo = 0;
     }
-    if ((pG->Debug_flg[3] & 8) && strcmp(nm, "pl0200") == 0) {
+    if (DbgFlagChk(pG, DBG_ADA_OMAKE_EV) && strcmp(nm, "pl0200") == 0) {
         nm = "pl0300";
         if (ModTbl.GetDat(&m, &t, nm, &no) == 0) {
             goto err;
@@ -2322,7 +2322,7 @@ int EventMgr::EvtReadAram(char* nm, int em, int* out, int wait, u32 sz)
 {
     int ret = 0;
 
-    if (!(pG->Debug_flg[0] & 0x02000000)) {
+    if (!DbgFlagChk(pG, DBG_EVENT_TOOL)) {
         ret = EvtReadSub(nm, 1, em, out, wait, sz);
     }
     return ret;
@@ -2514,9 +2514,9 @@ int EventMgr::EvtReadExec(char* nm, int em, u32 flags)
     } else {
         SceEventStart(0);
     }
-    BitOn(pG->Status_flg[2], 0x00080000);
-    BitOn(pG->Status_flg[2], 0x00010000);
-    BitOn(pG->System_flg, 0x400);
+    StaFlagOn(pG, STA_EVENT_SYSYTEM);
+    StaFlagOn(pG, STA_EFFAREA_USE_CAM);
+    SysFlagOn(pG, SYS_SCREEN_STOP);
     if (em != 0) {
         SceSleep(2);
     }
@@ -2563,9 +2563,9 @@ int EventMgr::EvtReadExec(char* nm, int em, u32 flags)
         pLog->err(0, 0, "EventMgr::EvtReadExec : mem over");
         ret = 0;
     }
-    BitOff(pG->System_flg, 0x400);
-    BitOff(pG->Status_flg[2], 0x00080000);
-    BitOff(pG->Status_flg[2], 0x00010000);
+    SysFlagOff(pG, SYS_SCREEN_STOP);
+    StaFlagOff(pG, STA_EVENT_SYSYTEM);
+    StaFlagOff(pG, STA_EFFAREA_USE_CAM);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     return ret;
@@ -2619,10 +2619,10 @@ int EventMgr::SetEvt(void* data, u32* key)
     Event* evt;
     EvtHeader* hdr = (EvtHeader*) data;
 
-    if (pG->Stop_flg & 0x400) {
+    if (SpfFlagChk(pG, SPF_EVT)) {
         return 0;
     }
-    if (pG->Debug_flg[3] & 0x80) {
+    if (DbgFlagChk(pG, DBG_NO_EVENT)) {
         return 0;
     }
     if (key != 0) {
@@ -2657,10 +2657,10 @@ int EventMgr::SetEvt(char* nm, Event** out)
     void* evd;
     Event* evt;
 
-    if (pG->Stop_flg & 0x400) {
+    if (SpfFlagChk(pG, SPF_EVT)) {
         return 0;
     }
-    if (pG->Debug_flg[3] & 0x80) {
+    if (DbgFlagChk(pG, DBG_NO_EVENT)) {
         return 0;
     }
     if (out != 0) {
@@ -2711,7 +2711,7 @@ int EventMgr::DelEvt(void* evt_, int flag)
     case 0:
         evt->ExeEndEvt(evt, 0);
         if (flag == 1) {
-            pG->System_flg |= 0x400;
+            SysFlagOn(pG, SYS_SCREEN_STOP);
             evt->EndRNo3 = 0;
             evt->EndRNo2++;
             return 1;
@@ -2722,10 +2722,10 @@ int EventMgr::DelEvt(void* evt_, int flag)
         if (evt->EndRNo3 <= 0) {
             return 1;
         }
-        pG->System_flg &= ~0x400;
+        SysFlagOff(pG, SYS_SCREEN_STOP);
         break;
     }
-    pG->System_flg &= ~0x400;
+    SysFlagOff(pG, SYS_SCREEN_STOP);
     {
         char* p = nm;
         strcpy(p, evt->Name);
