@@ -8,7 +8,7 @@
 // grip()/gripBack() move the launcher between the back and the shoulder, launch happens in its
 // moveFire (mode 2) along launcher.from/to = the scope camera trajectory stored by the set state.
 // weapon_type 2 is the infinite launcher (kept after a shot, back to the scope or down); any other
-// type is the single-shot one, thrown away (r_no_2 6, wep.mode 5, stat bit10 = tube gone).
+// type is the single-shot one, thrown away (r_no_2 6, r_no_0 5, stat bit10 = tube gone).
 // The knife routine (0xB) shares the launcher grip: down step 3 / ready step 2 use the player
 // motion table 0x55..0x58 for the launcher <-> knife transitions. Weapon archive slots: 0x18
 // shoulder, 0xF/0x12/0x14 aim idle, 0x11/0x13/0x15 fire, 0x16 throw away, 0x19 unshoulder,
@@ -354,8 +354,8 @@ static void wep13_r3_fire00(cPlayer* pl)
     MotionMove(pl, 0);
     pl->Wep->m_pWep->setDisp(1, 1);
     obj = pl->Wep->m_pWep;
-    obj->mode = 2;
-    obj->step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
@@ -545,7 +545,7 @@ static void wep13_r3_down30(cPlayer* pl)
 }
 
 // r_no_2 == 6: throw the empty single-shot tube away: motion 0x16 with SE 2/2; at frame 18 the
-// launcher object drops (wep.mode 5, cObjLauncher::moveDrop), stat bit10 marks it gone, the
+// launcher object drops (r_no_0 5, cObjLauncher::moveDrop), stat bit10 marks it gone, the
 // player's motion table gets the hand motions back (setMotion) and the routine leaves to footwork
 // sub-routine 2.
 static void wep13_r2_throw(cPlayer* pl)
@@ -561,8 +561,8 @@ static void wep13_r2_throw(cPlayer* pl)
 
             pl->stat |= 0x400;
             obj = pl->Wep->m_pWep;
-            obj->mode = 5;
-            obj->step = 0;
+            obj->r_no_0 = 5;
+            obj->r_no_1 = 0;
             pl->Wep->m_pWep->setMotion(pl);
             EmRoutineSet(pl, 0, 0, 2, 0);
         }

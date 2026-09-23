@@ -3,7 +3,7 @@
 //
 // cObjCivilian is the cObjWep (game/objWep.cpp) of the weapon (a revolver: no cartridge ejection,
 // no empty-magazine motion, a long reload), hanging on the player's right hand (parts 10) and
-// driven by mode / step from the handgun routines (wep/pl_handgun.cpp). Its left hand
+// driven by r_no_0 / r_no_1 from the handgun routines (wep/pl_handgun.cpp). Its left hand
 // model comes from the weapon archive (0x9) instead of a player hand number.
 
 #include "wep_mod.h"
@@ -62,17 +62,17 @@ void cObjCivilian::init(cModel* parent)
 // Status_flg[0] bit23 (shot noise) and the muzzle flash 0x39; the motion's end returns to mode 0.
 void cObjCivilian::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x32), 0, 0, 0, 0);
         SndCall(2, 0, &pos, 0, 0, 0);
         SndCall(2, 2, &pos, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
         EstSet(this, -1, 0, 0, EFF_WEP05, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -83,7 +83,7 @@ void cObjCivilian::moveReload()
 {
     static const f32 reloadEnd[3] = { 75.0f, 48.0f, 28.0f };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -111,7 +111,7 @@ void cObjCivilian::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

@@ -6,7 +6,7 @@
 //
 // Entry: Wep17_init is the WeaponInitFunc, Wep17_move the WeaponMoveFunc (pl_R1_Weapon, r_no_1
 // == 6). r_no_2 is the weapon state (0 ready, 1 set, 2 fire, 4 reload, 5 next target, 6 out),
-// r_no_3 the step, mirrored into the weapon object's wep.mode / wep.step. The VP70 (0x11) fires a
+// r_no_3 the step, mirrored into the weapon object's r_no_0 / r_no_1. The VP70 (0x11) fires a
 // three-round burst while the trigger is held (m_Work4 counts); weapon 3 is the Red9 with this
 // module's motions (weapon_type 2 = the stock variant's fire / reload set). Weapon archive slots:
 // 0x11 draw, 0x12/0x17/0x19 aim idle down/level/up (mot3 pitch on m3r), 0x14/0x18/0x1A (Red9
@@ -214,7 +214,7 @@ int ckEmWep(cPlayer* pl)
 // object mode 1, its enemy collision (atari 0x200) on; the wall check (Status_flg[3] bit27 set,
 // stage > 1) probes 1 m ahead at head height and picks the free side (left: m_Work0 0, right: 1)
 // for the out routine, or turns to a visible enemy (ckEmWep, side from the stick). Otherwise the
-// lock-on resets and the draw motion 0x11 starts. Forms that matter: `md` (an int holding 1) is what wep.mode and the left tail's x3E4
+// lock-on resets and the draw motion 0x11 starts. Forms that matter: `md` (an int holding 1) is what r_no_0 and the left tail's x3E4
 // share (r23); the x3E0 store is written first in both tails: the later use of the same register is
 // the one the scheduler issues early (its REG_DEAD lowers the register weight), so the earlier store
 // ends up last, before the call.
@@ -241,8 +241,8 @@ static void wep17_r3_ready00(cPlayer* pl)
     SndCall(2, 9, &pl->getPartsPtr(0xA)->world, 0, 0, 0);
     obj = WEP_OBJ(pl);
     md = 1;
-    obj->mode = md;
-    obj->step = 0;
+    obj->r_no_0 = md;
+    obj->r_no_1 = 0;
     AtariFlagsOr(WEP_ATARI(pl), 0x200);
     if (pG->stage_no > 1 && pl->m_Work0 == 0 && (StaFlagChk(pG, STA_SLOW))) {
         Vec nrm;
@@ -599,8 +599,8 @@ static void wep17_r3_fire00(cPlayer* pl)
     PlWepHitCheck2(pl, &p0, &p1, pG->weapon_no, 0, 6000.0f);
     pl->m_Work4++;
     obj = WEP_OBJ(pl);
-    obj->mode = 2;
-    obj->step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -650,8 +650,8 @@ void wepDown(cPlayer* pl)
     }
     pl->motionMove();
     obj = WEP_OBJ(pl);
-    obj->mode = 3;
-    obj->step = 0;
+    obj->r_no_0 = 3;
+    obj->r_no_1 = 0;
     WEP_ATARI(pl)->clrFlag200();
     pl->ang.y = pl->ang.y - pl->Waist->set(0.0f, 0.4f);
 }
@@ -690,8 +690,8 @@ static void wep17_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = WEP_OBJ(pl);
-        obj->mode = 4;
-        obj->step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
         break;
     case 1:
         if (MotionMove(pl, 0)) {

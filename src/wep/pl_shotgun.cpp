@@ -5,7 +5,7 @@
 //
 // Entry: PlShotgunMove is the module's WeaponMoveFunc (pl_R1_Weapon, r_no_1 == 6). r_no_2 is the
 // weapon state (0 ready, 1 set, 2 fire, 4 reload), r_no_3 the step, mirrored into the weapon
-// object's wep.mode / wep.step. Weapon archive slots (pG->pWep): 0x18 draw, 0x1A/0x20/0x22 aim
+// object's r_no_0 / r_no_1. Weapon archive slots (pG->pWep): 0x18 draw, 0x1A/0x20/0x22 aim
 // idle down/level/up (mot3 pitch blend on m3r), 0x1E/0x21/0x23 fire, 0x1F holster, 0x2A/0x2C/0x2E
 // reload by weapon_lv_reload. weapon_no 7 is the shotgun, 8 the Striker (faster draw, shorter
 // recoil, 19 pellets instead of 13), 0x21 the wep33 pump shotgun.
@@ -428,8 +428,8 @@ static void wep07_r3_fire00(cPlayer* pl)
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = pl->Wep->m_pWep;
-    obj->mode = 2;
-    obj->step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -525,8 +525,8 @@ static void wep07_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = pl->Wep->m_pWep;
-        obj->mode = 4;
-        obj->step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
         break;
     }
     case 1:

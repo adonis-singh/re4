@@ -23,9 +23,9 @@ public:
     u32 m_EraseTime;      // 0x344  (PS2 m_EraseTime; setEraseTime is not in the GC code)
     cModel* m_pParent;    // 0x348  model the weapon hangs on (parentSet) (PS2 m_pParent)
     u16 itemId;           // 0x34C  weapon item id (cObjLauncher::init: 0x35) (PS2 ITEM_ID itemId)
-    u8 mode;              // 0x34E  0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop (move dispatch)
-    u8 step;              // 0x34F  step inside the mode
-    u8 disp;              // 0x350  bit0 draw the laser this frame, bit1 drawn last frame, bits 2-4 setDisp types 0/1/2
+    u8 r_no_0;            // 0x34E  0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop (move dispatch)
+    u8 r_no_1;            // 0x34F  step inside the mode
+    u8 flag;              // 0x350  bit0 draw the laser this frame, bit1 drawn last frame, bits 2-4 setDisp types 0/1/2
     u8 etcflag;           // 0x351  (PS2 etcflag)
     s8 m_EtcTimer;        // 0x352  (PS2 m_EtcTimer)
     u8 pad_2B;

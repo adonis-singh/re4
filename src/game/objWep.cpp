@@ -30,13 +30,13 @@ static inline void DispOff(u8& f, u8 b) { f &= ~b; }
 static inline int DispChk(u8 f, u8 b) { return f & b; }
 
 // Common weapon object setup: no collision, a 500-unit light, no motions yet, all three display
-// types (disp 0x1C) shown.
+// types (flag 0x1C) shown.
 cObjWep::cObjWep()
 {
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
-    disp = 0;
+    flag = 0;
     sub2B4.atari.throughOn();
     LightInfo.init2(1, 1, &p0, &p1, 1);
     Motion.pMot = 0;
@@ -44,16 +44,16 @@ cObjWep::cObjWep()
     motReset[0] = 0;
     m_pParent = 0;
     m_StopSeId = 0;
-    disp = 0x1C;
+    flag = 0x1C;
 }
 
 // Per-frame: dispatches mode (0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop) to the
 // module's move* virtuals, then moveAll(); hides the model unless all three display types are on
 // and the parent is drawn; follows the parent's transparency / ot_type; draws the laser sight if
-// disp bit0 was requested this frame (bit1 remembers it for the next).
+// flag bit0 was requested this frame (bit1 remembers it for the next).
 void cObjWep::move()
 {
-    switch (mode) {
+    switch (r_no_0) {
     default:
         moveStay();
         break;
@@ -74,7 +74,7 @@ void cObjWep::move()
         break;
     }
     moveAll();
-    if (DispChk(disp, 4) == 0 || DispChk(disp, 8) == 0 || DispChk(disp, 0x10) == 0 ||
+    if (DispChk(flag, 4) == 0 || DispChk(flag, 8) == 0 || DispChk(flag, 0x10) == 0 ||
         (m_pParent && (m_pParent->isTrans() == 0 || (DpfFlagChk(pG, DPF_PL))))) {
         be_flag &= ~2;
     } else {
@@ -90,42 +90,42 @@ void cObjWep::move()
     } else {
         matUpdate();
     }
-    if (disp & 1) {
+    if (flag & 1) {
         drawLaserSight(1, 0);
     }
-    DispOff(disp, 2);
-    if (DispChk(disp, 1)) {
-        disp |= 2;
+    DispOff(flag, 2);
+    if (DispChk(flag, 1)) {
+        flag |= 2;
     }
-    DispOff(disp, 1);
+    DispOff(flag, 1);
 }
 
-// Sets / clears one of the three display types (0 -> disp bit2, 1 -> bit3, 2 -> bit4); the model
+// Sets / clears one of the three display types (0 -> flag bit2, 1 -> bit3, 2 -> bit4); the model
 // is drawn only when all three are on.
 void cObjWep::setDisp(int level, int onoff)
 {
     if (onoff == 1) {
         switch (level) {
         case 0:
-            disp |= 4;
+            flag |= 4;
             break;
         case 1:
-            disp |= 8;
+            flag |= 8;
             break;
         case 2:
-            disp |= 0x10;
+            flag |= 0x10;
             break;
         }
     } else {
         switch (level) {
         case 0:
-            DispOff(disp, 4);
+            DispOff(flag, 4);
             break;
         case 1:
-            DispOff(disp, 8);
+            DispOff(flag, 8);
             break;
         case 2:
-            DispOff(disp, 0x10);
+            DispOff(flag, 0x10);
             break;
         }
     }
@@ -187,8 +187,8 @@ void cObjWep::resetMotion()
         SndStop(m_StopSeId, 0);
     }
     Motion.Seq_speed = 1.0f;
-    mode = 0;
-    step = 0;
+    r_no_0 = 0;
+    r_no_1 = 0;
 }
 
 // One shot: takes a round from the magazine (ItemMgr.trigger).
@@ -398,7 +398,7 @@ void cObjWep::interrupt()
     setDisp(1, 1);
     setDisp(2, 1);
     be_flag |= 2;
-    if (mode == 4) {
+    if (r_no_0 == 4) {
         endReload(0);
     }
     sub2B4.atari.clrFlag200();

@@ -96,20 +96,20 @@ void partsSet(cObjMine* obj)
 // step 3 holds (the player routine ends the mode).
 void cObjMine::moveReady()
 {
-    switch (step) {
+    switch (r_no_1) {
     case 0:
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x22), 0, 0, 0, 0);
         getPartsPtr(1)->pParent = pParts;
-        step = 1;
+        r_no_1 = 1;
     case 1:
         if (MotionGetState(this)) {
-            step = 2;
+            r_no_1 = 2;
         }
         break;
     case 2:
         partsSet(this);
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x20), 0, 0, 0, 0);
-        step = 3;
+        r_no_1 = 3;
         break;
     }
 }
@@ -119,7 +119,7 @@ void cObjMine::moveReady()
 // pad vibration; the normal type ejects a cartridge at frame 24; the motion's end returns to mode 0.
 void cObjMine::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         partsSet(this);
         setBullet();
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x1E), 0, 0, 0, 0);
@@ -129,7 +129,7 @@ void cObjMine::moveFire()
             EstSet(this, -1, 0, 0, EFF_WEP14, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         }
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 24.0f)) {
         if (pG->weapon_type == 0) {
@@ -137,8 +137,8 @@ void cObjMine::moveFire()
         }
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -189,16 +189,16 @@ void cObjMine::setBullet()
 // mode == 3 (down): plays the lower motion 0x23 with the dart back on the launcher, then mode 0.
 void cObjMine::moveDown()
 {
-    switch (step) {
+    switch (r_no_1) {
     case 0:
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x23), 0, 0, 0, 0);
         getPartsPtr(1)->pParent = pParts;
-        step = 1;
+        r_no_1 = 1;
         break;
     case 1:
         if (MotionGetState(this)) {
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
         break;
     }
@@ -210,7 +210,7 @@ void cObjMine::moveDown()
 // returns to mode 0.
 void cObjMine::moveReload()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         int se;
 
@@ -234,7 +234,7 @@ void cObjMine::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else {
         // reload frame (the mine change) by reload tune level
         static const f32 reloadFrame[2] = { 74.0f, 58.0f };
@@ -244,8 +244,8 @@ void cObjMine::moveReload()
         }
         if (MotionGetState(this)) {
             pParts->pParent = pPL->getPartsPtr(9);
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
@@ -288,8 +288,8 @@ void cObjMine::interrupt()
     cObjWep::interrupt();
     getPartsPtr(1)->pParent = pParts;
     resetMotion();
-    mode = 0;
-    step = 0;
+    r_no_0 = 0;
+    r_no_1 = 0;
     wep14changeRightHand(pPL, WEP_ARC_PTR(0x9));
     pPL->setLeftHand(4);
 }

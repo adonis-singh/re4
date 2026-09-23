@@ -1,7 +1,7 @@
 // wep44 module: Wesker's handgun (cObjGovernment, object id 0x31; routines wep/pl_handgun.cpp).
 //
 // Wesker's Killer7: the wep06 cObjGovernment without weapon types (one model 0x6, weapon list id
-// 0x2A), hanging on the player's right hand (parts 10) and driven by mode / step from the
+// 0x2A), hanging on the player's right hand (parts 10) and driven by r_no_0 / r_no_1 from the
 // handgun routines (mode 2 fire: slide motion, SEs, flash 0x3A, cartridge; mode 4 reload by tune
 // level, ItemMgr.reload at its frame; both ended by the player routine). Wep44_init is the
 // WeaponInitFunc, PlHandgunMove the WeaponMoveFunc.
@@ -76,7 +76,7 @@ void cObjGovernment::init(cModel* parent)
 // vibration; step 1 waits for the player routine.
 void cObjGovernment::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -93,7 +93,7 @@ void cObjGovernment::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP06, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
 }
 
@@ -104,7 +104,7 @@ void cObjGovernment::moveReload()
 {
     static const f32 reloadEnd[3] = { 44.0f, 37.0f, 22.0f };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -146,7 +146,7 @@ void cObjGovernment::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();

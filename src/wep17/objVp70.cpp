@@ -3,7 +3,7 @@
 //
 // cObjVp70 is the cObjWep (game/objWep.cpp) of Ada's / Krauser's VP70 (weapon list id 3, the
 // Red9-style small lock random), hanging on the player's right hand (parts 10) and driven by
-// mode / step from the module's own routines (wep17/wep17.cpp): mode 1 -> moveReady (the
+// r_no_0 / r_no_1 from the module's own routines (wep17/wep17.cpp): mode 1 -> moveReady (the
 // gun's draw motion), 2 -> moveFire, 4 -> moveReload (ItemMgr.reload at the tune level's frame).
 
 #include "wep_mod.h"
@@ -69,12 +69,12 @@ void cObjVp70::init(cModel* parent)
 // mode == 1 (ready): plays the gun's draw motion 0x39 once, then mode 0.
 void cObjVp70::moveReady()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x39), 0, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -83,7 +83,7 @@ void cObjVp70::moveReady()
 // step 1 waits for the player routine.
 void cObjVp70::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -97,7 +97,7 @@ void cObjVp70::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP17, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
 }
 
@@ -106,7 +106,7 @@ void cObjVp70::moveFire()
 // frame (33/27/19) ItemMgr.reload refills the magazine.
 void cObjVp70::moveReload()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -148,7 +148,7 @@ void cObjVp70::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &getPartsPtr(0)->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     {
         // reload frame (the magazine change) by reload tune level

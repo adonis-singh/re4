@@ -81,7 +81,7 @@ void cObjRuger::init(cModel* parent)
 // motion's end.
 void cObjRuger::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -119,11 +119,11 @@ void cObjRuger::moveFire()
         }
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -135,7 +135,7 @@ void cObjRuger::moveReload()
     static const f32 reloadEnd[3] = { 31.0f, 26.0f, 17.0f };
     void* m = WEP_ARC_PTR(0x3D);
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         u16 se;
 
         if (ItemMgr.bulletNum()) {
@@ -160,7 +160,7 @@ void cObjRuger::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

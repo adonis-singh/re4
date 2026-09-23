@@ -2,7 +2,7 @@
 // type, ready / fire / down motions, cartridge ejection, the two-step reload (magazine then pin).
 //
 // cObjMauser is the cObjWep (game/objWep.cpp) of the Red9 (weapon_no 3), hanging on the player's
-// right hand (parts 10) and driven by mode / step from the handgun routines
+// right hand (parts 10) and driven by r_no_0 / r_no_1 from the handgun routines
 // (wep/pl_handgun.cpp): mode 1 -> moveReady (the gun's own draw motion), 2 -> moveFire, 3 ->
 // moveDown, 4 -> moveReload (magazine at reloadFrame, the stripper pin ejected at pinFrame).
 // weapon_type 2 is the model with the stock (0x7, weapon list id 0x26, much smaller lock random).
@@ -85,12 +85,12 @@ void cObjMauser::init(cModel* parent)
 // back to mode 0.
 void cObjMauser::moveReady()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x3B), 0, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -99,7 +99,7 @@ void cObjMauser::moveReady()
 // vibration; the motion's end returns to mode 0.
 void cObjMauser::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -114,23 +114,23 @@ void cObjMauser::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP02, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
 // mode == 3 (down, set by wepDown): plays the gun's holster motion 0x3C once, then mode 0.
 void cObjMauser::moveDown()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x3C), 0, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -212,7 +212,7 @@ void cObjMauser::setCartridge()
 // pinFrame (55/51/39). The player routine ends the mode.
 void cObjMauser::moveReload()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -234,7 +234,7 @@ void cObjMauser::moveReload()
         }
         motionSet(m, 0, 0, 1, 0);
         m_StopSeId = SndCall(2, se, &getPartsPtr(0)->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, reloadFrame)) {
         ItemMgr.reload();

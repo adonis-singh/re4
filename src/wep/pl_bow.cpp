@@ -4,7 +4,7 @@
 //
 // Entry: PlBowMove is the wep28 module's WeaponMoveFunc (pl_R1_Weapon, r_no_1 == 6). r_no_2 is
 // the weapon state (0 ready, 1 set, 2 fire, 3 down; no reload: the arrow count is the ammo),
-// r_no_3 the step; wep.mode / wep.step of the bow object follow. The arrow shown on the bow
+// r_no_3 the step; r_no_0 / r_no_1 of the bow object follow. The arrow shown on the bow
 // (cObjBow::setDispAllow) and the arrow held in the right hand (pObj2 display type 1 plus
 // setRightHand(1)) are swapped as the draw / shoot motions play. Weapon archive slots: 0x1F draw,
 // 0x20 holster, 0x21/0x24/0x27 aim idle down/level/up (mot3 pitch on m3r), 0x22/0x25/0x28 shoot.
@@ -117,8 +117,8 @@ static void wep28_r3_ready00(cPlayer* pl)
     pl->Neck->init(0, 0, 0);
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     obj = pl->Wep->m_pWep;
-    obj->mode = 1;
-    obj->step = 0;
+    obj->r_no_0 = 1;
+    obj->r_no_1 = 0;
     hokan = 4;
     if (!(pl->stat & 0x40)) {
         hokan = 5;
@@ -285,8 +285,8 @@ static void wep28_r3_fire00(cPlayer* pl)
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = pl->Wep->m_pWep;
-    obj->mode = 2;
-    obj->step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pl->setRightHand(0);
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
@@ -329,8 +329,8 @@ static void wepDown(cPlayer* pl)
     pl->setRightHand(0);
     pl->Wep->m_pWepHand->setDisp(1, 0);
     obj = pl->Wep->m_pWep;
-    obj->mode = 3;
-    obj->step = 0;
+    obj->r_no_0 = 3;
+    obj->r_no_1 = 0;
     if (dmMotCk()) {
         pl->motionSet(WEP_ARC_PTR(0x20), 3, pl->r_no_3, 1, 0);
         EmRoutineSet(pl, 0, 0, 2, 0);

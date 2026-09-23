@@ -2,7 +2,7 @@
 // carries the class, the entry points and the handgun routine registration (wep/pl_handgun.cpp).
 //
 // cObjGovernment is the cObjWep (game/objWep.cpp) of the Matilda, hanging on the player's right
-// hand (parts 10) and driven by mode / step from the handgun routines: mode 2 -> moveFire
+// hand (parts 10) and driven by r_no_0 / r_no_1 from the handgun routines: mode 2 -> moveFire
 // (slide motion, SEs, flash, cartridge; the mode is left by the player routine, not by the motion
 // end), mode 4 -> moveReload. weapon_type 1 is the model with the stock (0x7, its own idle 0x39,
 // weapon list id 0x2B). Wep06_init is the WeaponInitFunc, PlHandgunMove the WeaponMoveFunc.
@@ -87,7 +87,7 @@ void cObjGovernment::init(cModel* parent)
 // vibration. Step 1 does nothing: the handgun routine's next state resets the mode.
 void cObjGovernment::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         int zero;
 
@@ -104,7 +104,7 @@ void cObjGovernment::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP06, 0, 0, ESP_CORE_KIND_PL_WEP, (void*) zero, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
 }
 
@@ -115,7 +115,7 @@ void cObjGovernment::moveReload()
 {
     static const f32 reloadEnd[3] = { 44.0f, 37.0f, 22.0f };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -157,7 +157,7 @@ void cObjGovernment::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();

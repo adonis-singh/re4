@@ -263,7 +263,7 @@ void cObjLauncher::loadRocket()
 // for the infinite launcher / debug infinite ammo; step 1 waits for the fire motion to end.
 void cObjLauncher::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         if (DbgFlagChk(pG, DBG_INF_BULLET) || (DbgFlagChk(pG, DBG_INF_BULLET2))) {
             if (pRocket == 0) {
                 loadRocket();
@@ -278,12 +278,12 @@ void cObjLauncher::moveFire()
                     loadRocket();
                 }
             }
-            step = 1;
+            r_no_1 = 1;
         }
     } else {
         if (MotionGetState(this)) {
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
@@ -335,9 +335,9 @@ void cObjLauncher::launch()
 // mode 5 (drop): the launcher is thrown away once.
 void cObjLauncher::moveDrop()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         drop(1);
-        step = 1;
+        r_no_1 = 1;
     }
 }
 
@@ -361,8 +361,8 @@ void cObjLauncher::drop(int se)
         w->pParts->ang.x = 0.0f;
         w->pParts->ang.y = 0.0f;
         w->pParts->ang.z = 0.0f;
-        w->mode = 5;
-        w->step = 1;
+        w->r_no_0 = 5;
+        w->r_no_1 = 1;
         a = w->pos;
         b.x = w->pos.x;
         b.y = w->pos.y - 10000.0f;

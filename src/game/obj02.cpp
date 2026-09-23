@@ -30,8 +30,8 @@ struct ObjScrRotWork {
 // New scroll object: no callback.
 cObjScr::cObjScr()
 {
-    attr = 0;
-    callBack = 0;
+    Attribute = 0;
+    CallBackFunc = 0;
 }
 
 // Per-frame: type mover, motion, matrix update, callback, light volume.
@@ -50,8 +50,8 @@ void cObjScr::move()
     } else {
         matUpdate();
     }
-    if (callBack) {
-        callBack(this);
+    if (CallBackFunc) {
+        CallBackFunc(this);
     }
     LightInfo.updateMatrix(this);
 }
@@ -107,5 +107,5 @@ void cObjScr::SetSwingRot(f32 amp, f32 period, f32 phase)
 // Installs the room's per-frame callback.
 void cObjScr::SetCallBack(void (*func)(cObj*))
 {
-    callBack = func;
+    CallBackFunc = func;
 }

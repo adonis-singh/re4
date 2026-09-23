@@ -2,7 +2,7 @@
 // without weapon types (fixed model / ability), cartridge ejection and level-dependent reload.
 //
 // cObjTompson (wep_mod.h) is the cObjWep of the Chicago Typewriter, hanging on the player's right
-// hand (parts 10) and driven by mode / step from the machine gun routines
+// hand (parts 10) and driven by r_no_0 / r_no_1 from the machine gun routines
 // (wep/pl_machine.cpp): mode 2 -> moveFire (one round: gun motion, flash 0x46, SEs, cartridge),
 // mode 4 -> moveReload (motion by tune level, ItemMgr.reload at its frame). Both modes are ended
 // by the player routine.
@@ -50,7 +50,7 @@ void cObjTompson::init(cModel* parent)
 // noise), a cartridge and the pad vibration; step 1 waits for the player routine.
 void cObjTompson::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* mot;
 
         if (ItemMgr.bulletNum()) {
@@ -65,7 +65,7 @@ void cObjTompson::moveFire()
         StaFlagOn(pG, STA_PL_FIRE);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0xA, 1);
-        step = 1;
+        r_no_1 = 1;
     }
 }
 
@@ -76,7 +76,7 @@ void cObjTompson::moveReload()
 {
     static const f32 reloadEnd[3] = { 40.0f, 34.0f, 28.0f };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* mot;
         u16 se;
 
@@ -104,7 +104,7 @@ void cObjTompson::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

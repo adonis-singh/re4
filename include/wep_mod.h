@@ -47,6 +47,8 @@ static inline void AtariFlagsAndV(cAtariInfo* at, u16 mask) { *(volatile u16*) &
 // Klauser MG and wep39 carry their own copies of the class in the module object).
 class cObjMachinegun : public cObjWep {
 public:
+    u8 ctr;               // 0x368  (PS2 ctr; unused by the GC machine gun)
+
     virtual void moveFire();
     virtual void moveReload();
     virtual void init(cModel* pMod);

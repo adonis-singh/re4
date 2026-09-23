@@ -51,19 +51,19 @@ void Wep28_init(cModel* m)
 // (player archive 0x73), the string SE 2/0 at frame 10; back to mode 0 at the motion's end.
 void cObjBow::moveReady()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x2E), 0, 0, 0, 0);
         if (pAllow) {
             pAllow->motionSet(PL_ARC_PTR(pG->pPlayer, 0x73), 0, 0, 1, 0);
         }
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 10.0f)) {
         SndCall(2, 0, &pParts->world, 0, 0, 0);
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -72,7 +72,7 @@ void cObjBow::moveReady()
 // at the motion's end.
 void cObjBow::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -84,11 +84,11 @@ void cObjBow::moveFire()
         setDispAllow(0);
         setAllow();
         SndCall(2, 1, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -96,14 +96,14 @@ void cObjBow::moveFire()
 // motion; mode 0 when that motion state reports done.
 void cObjBow::moveDown()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         setDispAllow(0);
         resetMotion();
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -233,8 +233,8 @@ void cObjBow::interrupt()
         pAllow->setDisp(1, 0);
     }
     resetMotion();
-    mode = 0;
-    step = 0;
+    r_no_0 = 0;
+    r_no_1 = 0;
 }
 
 // ObjInitFunc[0x11]: placement-constructs the bow in the work cObjMgr::construct hands over.

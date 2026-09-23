@@ -2,7 +2,7 @@
 // with cartridge ejection after the shot and the level-dependent reload motion.
 //
 // cObjSniper is the cObjWep (game/objWep.cpp) of the rifle (weapon_no 9), hanging on the player's
-// right hand (parts 10) and driven by mode / step from the rifle routines
+// right hand (parts 10) and driven by r_no_0 / r_no_1 from the rifle routines
 // (wep/pl_rifle.cpp): mode 2 -> moveFire is the bolt cycle (set by fire20 after the shot: the
 // gun's motion 0x21 with the cartridge ejected at frame 14), mode 4 -> moveReload (motion by tune
 // level, ItemMgr.reload at frame 10). The scope glass is display type 1 (setDisp in pl_rifle).
@@ -68,19 +68,19 @@ void cObjSniper::init(cModel* parent)
 // frame 14 and returns to mode 0 at the motion's end.
 void cObjSniper::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x21), 0, 0, 0, 0);
         Motion.Seq_speed = 1.0f;
         SndCall(2, 4, &getPartsPtr(0)->world, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
-        step = 1;
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, 14.0f)) {
             setCartridge();
         }
         if (MotionGetState(this)) {
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
@@ -121,7 +121,7 @@ void cObjSniper::setCartridge()
 // ItemMgr.reload refills. The player routine ends the mode.
 void cObjSniper::moveReload()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -149,7 +149,7 @@ void cObjSniper::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &getPartsPtr(0)->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 10.0f)) {
         EstSet(this, -1, 0, 0, EFF_WEP09, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);

@@ -1,7 +1,7 @@
 // wep33 module: the pump shotgun (cObjShotgun, object id 0x2B; routines wep/pl_shotgun.cpp).
 //
 // The mercenaries' build of wep07 (weapon_no 0x21): the same cObjShotgun hanging on the player's
-// right hand (parts 10), driven by mode / step from the shotgun routines (mode 2 fire
+// right hand (parts 10), driven by r_no_0 / r_no_1 from the shotgun routines (mode 2 fire
 // with the pump shell ejection at frame 20, mode 4 shell-by-shell reload; both end themselves),
 // with a slightly different motion table. Wep33_init is the WeaponInitFunc, PlShotgunMove the
 // WeaponMoveFunc.
@@ -79,7 +79,7 @@ void cObjShotgun::init(cModel* parent)
 // motion's end.
 void cObjShotgun::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -93,15 +93,15 @@ void cObjShotgun::moveFire()
         int type = 0;
         StaFlagOn(pG, STA_PL_FIRE);
         EstSet(this, -1, 0, 0, EFF_WEP07, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, 20.0f)) {
             setCartridge();
             SndCall(2, 2, &getPartsPtr(0)->world, 0, 0, 0);
         }
         if (MotionGetState(this)) {
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
@@ -115,7 +115,7 @@ void cObjShotgun::moveReload()
     static const f32 reloadSe[3] = { 66.0f, 60.0f, 40.0f };
     int lv = pG->weapon_lv_reload;
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         switch (lv) {
@@ -131,7 +131,7 @@ void cObjShotgun::moveReload()
         }
         motionSet(m, 0, 0, 0, 0);
         m_StopSeId = SndCall(2, 7, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, reloadEnd[lv])) {
             ItemMgr.reload();
@@ -140,8 +140,8 @@ void cObjShotgun::moveReload()
             m_StopSeId = SndCall(2, 2, &getPartsPtr(0)->world, 0, 0, 0);
         }
         if (MotionGetState(this)) {
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }

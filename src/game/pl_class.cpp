@@ -1403,13 +1403,13 @@ void cPlayer::moveEyeMotion()
     b->matUpdate();
 }
 
-// Updates the body / weapon matrices and lets the weapon object draw its laser (wep.disp bit1).
+// Updates the body / weapon matrices and lets the weapon object draw its laser (flag bit1).
 void cPlayer::setLaserSight(int draw, int noCalc)
 {
     Body->move();
     partsWorldCalc();
     Wep->m_pWep->partsWorldCalc();
-    Wep->m_pWep->disp |= 2;
+    Wep->m_pWep->flag |= 2;
     Wep->m_pWep->drawLaserSight(draw, noCalc);
 }
 

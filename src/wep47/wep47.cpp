@@ -2,7 +2,7 @@
 // routines wep/pl_rifle.cpp).
 //
 // Wesker's cObjHkSniper: the wep10 object without the shotFrame[0..2] table, hanging on the player's
-// right hand (parts 10), driven by mode / step from the rifle routines (mode 2 fire: SEs
+// right hand (parts 10), driven by r_no_0 / r_no_1 from the rifle routines (mode 2 fire: SEs
 // and vibration only, mode 4 reload by tune level, ItemMgr.reload at frame 34; both ended by the
 // player routine). Wep47_init is the WeaponInitFunc, PlRifleMove the WeaponMoveFunc.
 
@@ -74,13 +74,13 @@ void cObjHkSniper::init(cModel* parent)
 // SEs, sets Status_flg[0] bit23 (shot noise) and vibrates the pad; step 1 waits.
 void cObjHkSniper::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         Motion.pMot = 0;
         SndCall(2, 0, &pParts->world, 0, 0, 0);
         SndCall(2, 4, &pParts->world, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
 }
 
@@ -88,7 +88,7 @@ void cObjHkSniper::moveFire()
 // 0x26) with the level's SE (2/0x20/0x21); at frame 34 ItemMgr.reload refills the magazine.
 void cObjHkSniper::moveReload()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -116,7 +116,7 @@ void cObjHkSniper::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 34.0f)) {
         ItemMgr.reload();

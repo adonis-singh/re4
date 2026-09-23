@@ -2,7 +2,7 @@
 //
 // cObjStriker is the cObjWep (game/objWep.cpp) of the Striker (weapon_no 8, a semi-auto drum
 // shotgun: 19 pellets in pl_shotgun, no pump), hanging on the player's right hand (parts 10) and
-// driven by mode / step from the shotgun routines: mode 2 -> moveFire (recoil motion, the
+// driven by r_no_0 / r_no_1 from the shotgun routines: mode 2 -> moveFire (recoil motion, the
 // shell ejected at frame 21), mode 4 -> moveReload (one motion by tune level, ItemMgr.reload at
 // frame 35); both modes are ended by the player routine. Wep08_init is the WeaponInitFunc,
 // PlShotgunMove the WeaponMoveFunc; the module object carries the class and the entry points.
@@ -89,14 +89,14 @@ void cObjStriker::init(cModel* parent)
 // the shell at frame 21. The player routine's next state resets the mode.
 void cObjStriker::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x30), 0, 0, 0, 0);
         SndCall(2, 0, &pos, 0, 0, 0);
         SndCall(2, 4, &pos, 0, 0, 0);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
         StaFlagOn(pG, STA_PL_FIRE);
         EstSet(this, -1, 0, 0, EFF_WEP08, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, 21.0f)) {
         setCartridge();
     }
@@ -106,7 +106,7 @@ void cObjStriker::moveFire()
 // the level's SE (2/0x20/0x21); at frame 35 ItemMgr.reload refills the drum.
 void cObjStriker::moveReload()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -134,7 +134,7 @@ void cObjStriker::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, 35.0f)) {
         ItemMgr.reload();
     }

@@ -2,7 +2,7 @@
 // the entry points and the handgun routine registration (wep/pl_handgun.cpp).
 //
 // cObjXd9 is the cObjWep (game/objWep.cpp) hanging on the player's right hand (parts 10), driven
-// by mode / step from the handgun routines: mode 2 -> moveFire (slide motion by weapon
+// by r_no_0 / r_no_1 from the handgun routines: mode 2 -> moveFire (slide motion by weapon
 // type, SEs, flash, cartridge), mode 4 -> moveReload (motion by reload tune level, ItemMgr.reload
 // at its frame). weapon_type 1 is the upgraded model 0x7 (weapon list id 0x28). Wep04_init is the
 // module's WeaponInitFunc, PlHandgunMove its WeaponMoveFunc.
@@ -115,7 +115,7 @@ void cObjXd9::init(cModel* parent)
 // 1 for the upgraded model), a cartridge and the pad vibration; the motion's end returns to mode 0.
 void cObjXd9::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         int type;
         int zero;
@@ -154,10 +154,10 @@ void cObjXd9::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP04, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -168,7 +168,7 @@ void cObjXd9::moveReload()
 {
     static const f32 reloadEnd[3] = { 32.0f, 27.0f, 17.0f };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -210,7 +210,7 @@ void cObjXd9::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

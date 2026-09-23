@@ -3,7 +3,7 @@
 // wep38 carries its own build of the class (no weapon types).
 //
 // cObjRuger is the cObjWep (game/objWep.cpp) of the Punisher handgun, hanging on the player's
-// right hand (parts 10) and driven by mode / step from the handgun routines
+// right hand (parts 10) and driven by r_no_0 / r_no_1 from the handgun routines
 // (wep/pl_handgun.cpp): mode 2 -> moveFire (slide motion, SEs, flash, cartridge), mode 4 ->
 // moveReload (reload motion by tune level, ItemMgr.reload at its frame). weapon_type 1 is the
 // upgraded (exclusive) model 0x7 with the silenced-style SE. setMotion installs the Punisher
@@ -73,7 +73,7 @@ void cObjRuger::init(cModel* parent)
 // vibration; the motion's end returns to mode 0.
 void cObjRuger::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -93,11 +93,11 @@ void cObjRuger::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP02, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -109,7 +109,7 @@ void cObjRuger::moveReload()
 {
     static const f32 reloadEnd[3] = { 31.0f, 26.0f, 17.0f };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -151,7 +151,7 @@ void cObjRuger::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

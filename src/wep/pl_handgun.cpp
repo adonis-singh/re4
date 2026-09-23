@@ -5,8 +5,8 @@
 //
 // Entry: PlHandgunMove is the module's WeaponMoveFunc, called by pl_R1_Weapon (player.cpp) every
 // frame while r_no_1 == 6. r_no_2 selects the weapon state (0 ready, 1 set, 2 fire, 4 reload),
-// r_no_3 the step inside it; the routines mirror the state into the weapon object's wep.mode /
-// wep.step so cObjWep::move plays the matching weapon animation. Weapon archive slots (pG->pWep):
+// r_no_3 the step inside it; the routines mirror the state into the weapon object's r_no_0 /
+// r_no_1 so cObjWep::move plays the matching weapon animation. Weapon archive slots (pG->pWep):
 // 0x22/0x23 draw, 0x24/0x25 holster, 0x26..0x28 aim idle (down/level/up for the mot3 pitch blend),
 // 0x29..0x2B fire, 0x2D..0x2F reload by weapon_lv_reload. The aim pitch is m3r[] (player.h):
 // [1] target, [0] current, [2] mix; the waist twist is cPlWaist and the yaw of the lock-on turn
@@ -134,8 +134,8 @@ static void wep02_r3_ready00(cPlayer* pl)
     pl->m_Fwork0 = 0.0f;
     pl->Neck->init(0, 0, 0);
     obj = WEP_OBJ(pl);
-    obj->mode = 1;
-    obj->step = 0;
+    obj->r_no_0 = 1;
+    obj->r_no_1 = 0;
     if (pG->weapon_no == 2) {
         WEP_ATARI(pl)->setFlag200();
     }
@@ -382,8 +382,8 @@ static void wep02_r3_fire00(cPlayer* pl)
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = WEP_OBJ(pl);
-    obj->mode = 2;
-    obj->step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -442,8 +442,8 @@ void wepDown(cPlayer* pl)
     }
     pl->motionMove();
     obj = WEP_OBJ(pl);
-    obj->mode = 3;
-    obj->step = 0;
+    obj->r_no_0 = 3;
+    obj->r_no_1 = 0;
     WEP_ATARI(pl)->clrFlag200();
     pl->ang.y = pl->ang.y - pl->Waist->set(0.0f, 0.4f);
 }
@@ -477,8 +477,8 @@ static void wep02_r2_reload(cPlayer* pl)
         pl->motionMove();
         pl->r_no_3 = 1;
         obj = WEP_OBJ(pl);
-        obj->mode = 4;
-        obj->step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
         break;
     case 1:
         if (m3r < -0.1f || m3r > 0.1f) {

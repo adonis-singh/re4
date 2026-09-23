@@ -1,7 +1,7 @@
 // wep07 module: the shotgun (cObjShotgun, object id 0x2B; routines wep/pl_shotgun.cpp).
 //
 // cObjShotgun is the cObjWep (game/objWep.cpp) of the pump shotgun (weapon_no 7), hanging on the
-// player's right hand (parts 10) and driven by mode / step from the shotgun routines:
+// player's right hand (parts 10) and driven by r_no_0 / r_no_1 from the shotgun routines:
 // mode 2 -> moveFire (recoil motion, then the pump ejects the shell at frame 20), mode 4 ->
 // moveReload (shell-by-shell motion by tune level; the mode ends itself with the motion).
 // Wep07_init is the module's WeaponInitFunc, PlShotgunMove its WeaponMoveFunc; the module object
@@ -80,7 +80,7 @@ void cObjShotgun::init(cModel* parent)
 // motion's end.
 void cObjShotgun::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -93,15 +93,15 @@ void cObjShotgun::moveFire()
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
         StaFlagOn(pG, STA_PL_FIRE);
         EstSet(this, -1, 0, 0, EFF_WEP07, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, 20.0f)) {
             setCartridge();
             SndCall(2, 2, &getPartsPtr(0)->world, 0, 0, 0);
         }
         if (MotionGetState(this)) {
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
@@ -115,7 +115,7 @@ void cObjShotgun::moveReload()
     static const f32 reloadSe[3] = { 66.0f, 57.0f, 40.0f };
     int lv = pG->weapon_lv_reload;
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -143,7 +143,7 @@ void cObjShotgun::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, reloadEnd[lv])) {
             ItemMgr.reload();
@@ -152,8 +152,8 @@ void cObjShotgun::moveReload()
             SndCall(2, 2, &getPartsPtr(0)->world, 0, 0, 0);
         }
         if (MotionGetState(this)) {
-            mode = 0;
-            step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }

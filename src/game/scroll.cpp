@@ -172,7 +172,7 @@ int SmdSetParam(cObj* pObj, SmdWork* pSw)
 
     pObj->be_flag |= 4;
     pObj->be_flag &= ~0x20;
-    ((cObjScr*) pObj)->attr = pSw->b.attr;
+    ((cObjScr*) pObj)->Attribute = pSw->b.attr;
     if (pSmd->Version <= 0x1F && pSw->motNo == 0) {
         pSw->motNo = 0xFF;
     }
@@ -249,7 +249,7 @@ void SmxSetFlag(cObj* pObj, u32 flag)
         pObj->be_flag |= 0x8000;
     }
     if (flag & 0x20) {
-        ((cObjScr*) pObj)->attr |= 1;
+        ((cObjScr*) pObj)->Attribute |= 1;
     }
 }
 
@@ -274,7 +274,7 @@ int SmxGetFlag(cObj* pObj)
     if (be & 0x8000) {
         flags |= 0x10;
     }
-    if (((cObjScr*) pObj)->attr & 1) {
+    if (((cObjScr*) pObj)->Attribute & 1) {
         flags |= 0x20;
     }
     return flags;
@@ -390,7 +390,7 @@ cObj* SmdGetObjPtr(u32 idx)
         }
         return NULL;
     }
-    if (((cObjScr*) obj)->attr & 4) {
+    if (((cObjScr*) obj)->Attribute & 4) {
         pLog->err(0, 0, "SmdGetObjPtr(%d) GROUP -> SmdGetGroupObjPtr()", idx);
     }
     return scrObjTbl[idx];
@@ -602,7 +602,7 @@ cObj* SmdGetGroupObjPtr2(u32 idx)
 // Next member of a scroll group (attr bit2), NULL at the end.
 cObj* SmdGetGroupNext(cObj* pObj00)
 {
-    if (!(((cObjScr*) pObj00)->attr & 4)) {
+    if (!(((cObjScr*) pObj00)->Attribute & 4)) {
         return NULL;
     }
     return ObjMgr.getPrevWork(pObj00);

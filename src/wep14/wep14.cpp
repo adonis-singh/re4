@@ -5,7 +5,7 @@
 //
 // Entry: Wep14_init is the WeaponInitFunc, Wep14_move the WeaponMoveFunc (pl_R1_Weapon, r_no_1
 // == 6). r_no_2 is the weapon state (0 ready, 1 set, 2 fire, 3 down, 4 reload, 5 next target),
-// r_no_3 the step, mirrored into the cObjMine's wep.mode / wep.step (objMine.cpp plays the
+// r_no_3 the step, mirrored into the cObjMine's r_no_0 / r_no_1 (objMine.cpp plays the
 // launcher's own motions and launches the dart in mode 2). Weapon archive slots: 0x12 draw /
 // turn, 0x13/0x17/0x19 aim idle down/level/up (mot3 pitch on m3r), 0x14/0x18/0x1A fire, 0x15
 // holster, 0x16/0x1B reload by weapon_lv_reload, 0x9/0xA the two right-hand models.
@@ -118,8 +118,8 @@ static void wep14_r2_ready(cPlayer* pl)
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
             obj = WEP_OBJ(pl);
-            obj->mode = 3;
-            obj->step = 0;
+            obj->r_no_0 = 3;
+            obj->r_no_1 = 0;
         }
         wep14changeRightHand(pl, WEP_ARC_PTR(0x9));
     }
@@ -183,8 +183,8 @@ static void wep14_r3_ready00(cPlayer* pl)
     m3r.setDelay(zero);
     lockCtr = 0;
     obj = WEP_OBJ(pl);
-    obj->step = 0;
-    obj->mode = 1;
+    obj->r_no_1 = 0;
+    obj->r_no_0 = 1;
     pl->r_no_3 = 1;
 }
 
@@ -402,8 +402,8 @@ static void wep14_r3_fire00(cPlayer* pl)
     mot3.move(m3r);
     pl->motionMove();
     obj = WEP_OBJ(pl);
-    obj->mode = 2;
-    obj->step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -461,8 +461,8 @@ static void wep14_r2_down(cPlayer* pl)
         int md = 3;
 
         obj = WEP_OBJ(pl);
-        obj->mode = md;
-        obj->step = 0;
+        obj->r_no_0 = md;
+        obj->r_no_1 = 0;
     }
     AtariFlagsAndV(WEP_ATARI(pl), 0xFDFF);
     wep14changeRightHand(pl, WEP_ARC_PTR(0x9));
@@ -495,8 +495,8 @@ static void wep14_r2_reload(cPlayer* pl)
         wep14changeRightHand(pl, WEP_ARC_PTR(0xA));
         pl->r_no_3 = 1;
         obj = WEP_OBJ(pl);
-        obj->mode = 4;
-        obj->step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
     case 1:
         if (pl->motionMove()) {
             if (pG->weapon_type & 1) {

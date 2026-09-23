@@ -11,9 +11,11 @@
 class cObjScr : public cObj {
 public:
     u8 free[0x3D0 - 0x328];   // 0x328
-    u8 attr;                  // 0x3D0  SMD object attribute byte (db_work "ATTR"): bit0 lit by attribute-4 lights, bit2 group (PS2 Attribute)
-    u8 pad_3D1[3];
-    void (*callBack)(cObj*);  // 0x3D4  (PS2 CallBackFunc)
+    u8 Attribute;             // 0x3D0  SMD object attribute byte (db_work "ATTR"): bit0 lit by attribute-4 lights, bit2 group
+    u8 dummy71;
+    u8 dummy72;
+    u8 dummy73;
+    void (*CallBackFunc)(cObj*);  // 0x3D4
 
     cObjScr();
     virtual void move();

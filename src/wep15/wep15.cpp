@@ -1,7 +1,7 @@
 // wep15 module: the magnum (cObjMagnum, object id 0x2C; routines wep/pl_handgun.cpp).
 //
 // cObjMagnum is the cObjWep (game/objWep.cpp) of the Broken Butterfly revolver, hanging on the
-// player's right hand (parts 10) and driven by mode / step from the handgun routines:
+// player's right hand (parts 10) and driven by r_no_0 / r_no_1 from the handgun routines:
 // mode 2 -> moveFire (recoil motion, SEs, flash 0x49, strong vibration; no cartridge), mode 4 ->
 // moveReload (motion by tune level, ItemMgr.reload at frame 34). Both modes are ended by the
 // player routine. Wep15_init is the WeaponInitFunc, PlHandgunMove the WeaponMoveFunc; the module
@@ -83,14 +83,14 @@ void cObjMagnum::init(cModel* parent)
 // muzzle flash 0x49 and the strong pad vibration (pattern 7); step 1 waits for the player routine.
 void cObjMagnum::moveFire()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x32), 0, 0, 0, 0);
         SndCall(2, 0, &pos, 0, 0, 0);
         SndCall(2, 2, &pos, 0, 0, 0);
         SndCall(2, 4, &pos, 0, 0, 0);
         EstSet(this, -1, 0, 0, EFF_WEP15, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 7, 1);
-        step = 1;
+        r_no_1 = 1;
     }
 }
 
@@ -98,7 +98,7 @@ void cObjMagnum::moveFire()
 // 0x35) with the level's SE (0x16/0x20/0x18); at frame 34 ItemMgr.reload refills the cylinder.
 void cObjMagnum::moveReload()
 {
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -126,7 +126,7 @@ void cObjMagnum::moveReload()
             break;
         }
         m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, 34.0f)) {
         ItemMgr.reload();
     }

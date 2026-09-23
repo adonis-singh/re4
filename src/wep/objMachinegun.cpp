@@ -2,7 +2,7 @@
 // by weapon type, fire burst with cartridge ejection and reload motions.
 //
 // cObjMachinegun is the cObjWep (game/objWep.cpp) of the TMP: the model hanging on the player's
-// right hand (parts 10), driven by mode / step, which the player routines
+// right hand (parts 10), driven by r_no_0 / r_no_1, which the player routines
 // (wep/pl_machine.cpp) set: mode 2 fire -> moveFire (one shot's flash, SEs, cartridge and the
 // gun's own recoil motion), mode 4 reload -> moveReload (the gun motion, ItemMgr.reload at the
 // tune level's frame). weapon_type 0..3 selects the model (0x6..0x9: TMP with / without the stock
@@ -99,7 +99,7 @@ void cObjMachinegun::moveFire()
 {
     int type = 0;
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* mot;
 
         if (ItemMgr.bulletNum()) {
@@ -125,11 +125,11 @@ void cObjMachinegun::moveFire()
             break;
         }
         EstSet(this, -1, 0, 0, EFF_WEP11, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -173,7 +173,7 @@ void cObjMachinegun::moveReload()
 {
     static const int reloadEnd[3] = { 40, 33, 19 };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* mot;
 
         if (ItemMgr.bulletNum()) {
@@ -203,7 +203,7 @@ void cObjMachinegun::moveReload()
         }
         motionSet(mot, 0, 0, 1, 0);
         m_StopSeId = SndCall(2, 2, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, (f32) reloadEnd[pG->weapon_lv_reload])) {
         SndCall(2, 4, &pParts->world, 0, 0, 0);

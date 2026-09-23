@@ -2,7 +2,7 @@
 //
 // Ada's TMP: the wep27 build (fire motions / SEs per weapon_type: 0/2 loud, 1/3 suppressed) with
 // one model offset in her right hand (parts 10) and a single reload motion pair, driven by
-// mode / step from the machine gun routines (mode 2 fire, mode 4 reload). Wep39_init is
+// r_no_0 / r_no_1 from the machine gun routines (mode 2 fire, mode 4 reload). Wep39_init is
 // the WeaponInitFunc, PlMachineMove the WeaponMoveFunc.
 
 #include "wep_mod.h"
@@ -102,7 +102,7 @@ void cObjMachinegun::moveFire()
 {
     int type = 0;
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* mot;
 
         switch (pG->weapon_type) {
@@ -149,11 +149,11 @@ void cObjMachinegun::moveFire()
             break;
         }
         EstSet(this, -1, 0, 0, EFF_WEP11, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        mode = 0;
-        step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -195,7 +195,7 @@ void cObjMachinegun::moveReload()
 {
     static const int reloadEnd[3] = { 40, 33, 19 };
 
-    if (step == 0) {
+    if (r_no_1 == 0) {
         void* mot;
 
         if (ItemMgr.bulletNum()) {
@@ -205,7 +205,7 @@ void cObjMachinegun::moveReload()
         }
         motionSet(mot, 0, 0, 1, 0);
         m_StopSeId = SndCall(2, 2, &pParts->world, 0, 0, 0);
-        step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, (f32) reloadEnd[pG->weapon_lv_reload])) {
         SndCall(2, 4, &pParts->world, 0, 0, 0);

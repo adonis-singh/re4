@@ -4,7 +4,7 @@
 //
 // Entry: PlMachineMove is the module's WeaponMoveFunc (pl_R1_Weapon, r_no_1 == 6). r_no_2 is the
 // weapon state (0 ready, 1 set, 2 fire, 3 down, 4 reload), r_no_3 the step, mirrored into the
-// weapon object's wep.mode / wep.step. Full auto: the fire state loops step 1 -> 0 every 3 frames
+// weapon object's r_no_0 / r_no_1. Full auto: the fire state loops step 1 -> 0 every 3 frames
 // while the fire key is held and rounds remain. Weapon archive slots: 0x1A draw, 0x1B/0x1F/0x21
 // aim idle down/level/up (mot3 pitch blend on m3r), 0x1C/0x20/0x22 fire, 0x1D holster,
 // 0x1E/0x23/0x24 reload by weapon_lv_reload. weapon_no 0xB is the TMP (cocking SE on the draw).
@@ -326,8 +326,8 @@ static void wep11_r3_fire00(cPlayer* pl)
     PSVECAdd(&p0, &p1, &p1);
     PlWepHitCheck2(pl, &p0, &p1, pG->weapon_no, 0, 6000.0f);
     obj = pl->Wep->m_pWep;
-    obj->mode = 2;
-    obj->step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     pitch = m3r;
@@ -419,8 +419,8 @@ static void wep11_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = pl->Wep->m_pWep;
-        obj->mode = 4;
-        obj->step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
         break;
     }
     case 1:
