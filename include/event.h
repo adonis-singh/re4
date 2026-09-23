@@ -215,12 +215,13 @@ struct EvtDebugModel {
 // Event work (game/event.cpp): a cUnit managed by EventMgr, 0x13C bytes.
 class Event : public cUnit {
 public:
-    u8 EndRNo1;                 // 0x0C
-    s8 EndRNo2;            // 0x0D  DelEvt: 0 run ExeEndEvt, 1 wait `endWait` frames
-    s8 EndRNo3;            // 0x0E
-    u8 Id;                 // 0x0F
-    u8 Type;               // 0x10  constructor argument (EventMgr::construct id)
-    u8 pad_11[3];
+    u8 EndRNo0;                 // 0x0C
+    s8 EndRNo1;            // 0x0D  DelEvt: 0 run ExeEndEvt, 1 wait `endWait` frames
+    s8 EndRNo2;            // 0x0E
+    u8 EndRNo3;            // 0x0F
+    u8 Id;                 // 0x10  constructor argument (EventMgr::construct id)
+    u8 Type;               // 0x11
+    u8 pad_12[2];
     int effNo;             // 0x14  effect owner slot: -1 none, 0/1 -> EspDataLoad owner 0xC4 + effNo
     char Name[0x20];       // 0x18  event name ("r105s10")
     EvtHeader* pData;      // 0x38

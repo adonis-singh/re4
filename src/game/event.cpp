@@ -172,13 +172,13 @@ EventDebug EvtDebug;
 // Event unit constructor: only records the manager id.
 Event::Event(u32 t) : cUnit(1)
 {
-    Type = t;
+    Id = t;
 }
 
-// Clears the type; the model table is torn down by ExeEndEvt / DelEvt.
+// Clears the id; the model table is torn down by ExeEndEvt / DelEvt.
 Event::~Event()
 {
-    Type = 0;
+    Id = 0;
 }
 
 // Prepares an event from its loaded "event" header: first packet, a fresh 0x60-entry model table,
@@ -202,10 +202,10 @@ int Event::init(char* nm, EvtHeader* data)
     for (i = 0; i < 0x80; i++) {
         EspEvModList[i] = 0;
     }
+    EndRNo0 = 0;
     EndRNo1 = 0;
     EndRNo2 = 0;
     EndRNo3 = 0;
-    Id = 0;
     pPrevPacket = 0;
     PModOya = 0;
     NowTotalFrame = 0;
@@ -2658,19 +2658,19 @@ int EventMgr::DelEvt(void* pEvt, int delEvtFlag)
     int fade = EvtChk(evt->StatusFlag, EvtStfBit(EvtStfEvtCancelOn));
     int zero;
 
-    switch (evt->EndRNo2) {
+    switch (evt->EndRNo1) {
     case 0:
         evt->ExeEndEvt(evt, 0);
         if (delEvtFlag == 1) {
             SysFlagOn(pG, SYS_SCREEN_STOP);
-            evt->EndRNo3 = 0;
-            evt->EndRNo2++;
+            evt->EndRNo2 = 0;
+            evt->EndRNo1++;
             return 1;
         }
         break;
     case 1:
-        evt->EndRNo3++;
-        if (evt->EndRNo3 <= 0) {
+        evt->EndRNo2++;
+        if (evt->EndRNo2 <= 0) {
             return 1;
         }
         SysFlagOff(pG, SYS_SCREEN_STOP);
