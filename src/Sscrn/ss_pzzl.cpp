@@ -833,16 +833,6 @@ void pieceModelOrientation(SUB_SCREEN* wk, pzlPiece* p)
     m->partsWorldCalc();
 }
 
-// math_sub.h's VECNormalize with the log pointer read as a plain struct member (the pl0f/em27
-// form): the inline `cLogPtr::operator->` puts block notes between `high(pLog)` and its load, which
-// gives the high a loop.c lifetime of 3 and a pass-1 hoist; with lifetime 1 it is a pass-2 movable
-// emitted after the `&c` copy (`mr r30,r24; lis r20,pLog@ha` in the line loop's preheader).
-#define VECNormalizeP(src, dst)                                                         \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 // Frame around a piece model: type 0 corner lines, 1..3 tiles, 4 the whole piece (scaled).
 void pieceFrameDisp(cModel* m, u32 color, int type)
@@ -916,7 +906,7 @@ void pieceFrameDisp(cModel* m, u32 color, int type)
 
                 PSVECSubtract(&v[k], &v[i], &c);
 #line 1158 "D:/Bio4/Prog/ss_pzzl.cpp"
-                VECNormalizeP(&c, &c);
+                VECNormalize(&c, &c);
                 PSVECScale(&c, &c, frame_line_len);
                 PSVECAdd(&c, &v[i], &c);
                 ss_Draw_line3d(&v[i], &c, frame_line_col, frame_line_blend, 0, 1, frame_line_w_ot, frame_line_w_prio);

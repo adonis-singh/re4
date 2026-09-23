@@ -6226,16 +6226,8 @@ void em2bObaHitCk(cEm2b* em)
         if (d.x * d.x + d.z * d.z > 9000000.0f) {
             continue;
         }
-        // VECNormalize written out with `pLog.p->err`: the inline `operator->` adds two block notes
-        // between the `lis pLog@ha` and its use, which lets loop.c hoist the high (life 3 * 71 >= 89
-        // insns); the original keeps it in the error arm (life 1).
-        if (0.0f == d.x && 0.0f == d.y && 0.0f == d.z) {
 #line 9308 "D:/Bio4/Prog/em2b.cpp"
-            pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);
-            d.x = d.y = d.z = 0.0f;
-        } else {
-            PSVECNormalize(&d, &d);
-        }
+        VECNormalize(&d, &d);
         PSVECScale(&d, &d, 3000.0f);
         PSVECAdd(&e->pos, &d, &em->pos);
         PartsWorldPosCalc(em);

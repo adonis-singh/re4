@@ -54,13 +54,6 @@ static void em3d_R1_WarpMove(cEm3d* em);
 
 
 
-// math_sub.h's VECNormalize with the log pointer read as a plain struct member (em27.cpp).
-#define VECNormalizeP(src, dst)                                                         \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 // Radio message `no` at the bottom of the screen, held for 90 frames.
 static inline void em3dMesSet(Em3dWork* w, int no)
@@ -814,7 +807,7 @@ int em3dGetTargetEm(cEm3d* em)
 
     PSVECSubtract(&target, &em->pos, &dir);
 #line 1218 "D:/Bio4/Prog/em3d.cpp"
-    VECNormalizeP(&dir, &dir);
+    VECNormalize(&dir, &dir);
     a = em->pos;
     w->pTargetEm = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
@@ -846,7 +839,7 @@ int em3dGetTargetEm(cEm3d* em)
         }
         PSVECSubtract(&e->pos, &em->pos, &d);
 #line 1240 "D:/Bio4/Prog/em3d.cpp"
-        VECNormalizeP(&d, &d);
+        VECNormalize(&d, &d);
         if (acosf(PSVECDotProduct(&dir, &d)) > 0.5235988f) {
             continue;
         }

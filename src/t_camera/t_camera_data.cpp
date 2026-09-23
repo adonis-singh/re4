@@ -307,7 +307,7 @@ int tcDataImport(u8* buf)
             c->cam_no = s->camera_no;
             cnt[s->camera_no]++;
             if (cnt[s->camera_no] != 1) {
-                pLog.p->err(0, 0, "Camera[%02d] is duplicate.", s->camera_no);
+                pLog->err(0, 0, "Camera[%02d] is duplicate.", s->camera_no);
             }
             c->type = s->type;
             c->num = s->num;

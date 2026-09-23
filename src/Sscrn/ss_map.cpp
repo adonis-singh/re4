@@ -2037,7 +2037,7 @@ void mapModelInit(SUB_SCREEN* wk)
             u = id[col];
             if (info->be_flag & 2) {
                 info->be_flag &= ~2;
-                pLog.p->warn(0, 0, "mapModelInit(): R%1x%02x flag SHAPE_MODEL clear", 1, i);
+                pLog->warn(0, 0, "mapModelInit(): R%1x%02x flag SHAPE_MODEL clear", 1, i);
             }
             for (; info; info = info->pList) {
                 info->color[0] = u->col0[0];

@@ -633,7 +633,6 @@ static void pl0f_R1_Drop(cPl0f* em)
             }
             for (i = 0; i < 2; i++) {
                 Vec d;
-                f32 s = spd;
 
                 d = w->node[i].spd;
                 if (d.x != 0.0f && d.y != 0.0f && d.z != 0.0f) {
@@ -644,14 +643,8 @@ static void pl0f_R1_Drop(cPl0f* em)
                 }
 #line 806
                 VECNormalize(&d, &d);
-                PSVECScale(&d, &d, s);
+                PSVECScale(&d, &d, spd);
                 w->node[i].spd = d;
-                // Dead test (flow deletes the store, jump2 the branch): its insns keep the loop
-                // above loop.c's pass-2 threshold, so the VECNormalize string `lis` stays inside
-                // the loop like the target's.
-                if (w->Timer == 0) {
-                    s = 0.0f;
-                }
             }
         }
         break;
@@ -837,7 +830,7 @@ static void pl0f_R1_R10eOut2(cPl0f* em)
     len = d.x * d.x + d.z * d.z;                                                                   \
     if (len > (n)->maxLen * (n)->maxLen) {                                                         \
         if (0.0f == d.x && 0.0f == d.y && 0.0f == d.z) {                                           \
-            pLog.p->err(0, 0, "VECNormalize:[%s/%d]", "D:/Bio4/Prog/pl0f.cpp", line);              \
+            pLog->err(0, 0, "VECNormalize:[%s/%d]", "D:/Bio4/Prog/pl0f.cpp", line);              \
             d.x = d.y = d.z = 0.0f;                                                                \
         } else {                                                                                   \
             PSVECNormalize(&d, &d);                                                                \
@@ -1767,16 +1760,6 @@ void pl0fCrashAdjustSet(cPl0f* em, Vec* p, int away)
     }
 }
 
-// Pushes both nodes out of the scenario walls; the movement of the first hit node is applied to both.
-// pLog read as a plain struct member (no inline operator-> block notes): the high(pLog) then sits right
-// next to its load and loop.c's lifetime for the movable is 1, below the hoisting threshold of a
-// 130-insn loop with a call (ScrAdjust); the header macro's operator-> gives lifetime 3 (hoisted).
-#define PL0F_VECNORMALIZE(src, dst)                                                     \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 // Pushes both nodes out of the scenario walls (SatMgr.adjust, 600-unit radius); the correction of
 // the first node that hit is applied to both so the hull keeps its length. Skipped on the ferry
@@ -1821,7 +1804,7 @@ void pl0fScrAdjust(cPl0f* em)
             if (!(d.x == 0.0f && d.z == 0.0f)) {
                 len = SQRTF(d.x * d.x + d.z * d.z) * 1.2f;
 #line 2499
-                PL0F_VECNORMALIZE(&d, &d);
+                VECNormalize(&d, &d);
                 PSVECScale(&d, &d, len);
                 for (j = 0; j < 2; j++) {
                     Vec* wp = &w->node[j].wpos;

@@ -535,7 +535,7 @@ int cLightTool::move()
     {
         int x = (int) logx;
         int y = (int) logy;
-        cLog* l = pLog.p;
+        cLog* l = pLog;
         l->m_Bx = x;
         l->m_By = y;
     }
@@ -2797,13 +2797,8 @@ static void edit_light_type_spotlight()
             PSMTXRotAxisRad(m, rot, (f32) pTool->Pad1.stickY / 1000.0f);
             PSMTXMultVec(m, &sp->Normal, &sp->Normal);
         }
-        if (sp->Normal.x == 0.0f && sp->Normal.y == 0.0f && sp->Normal.z == 0.0f) {
 #line 2977 "D:/Bio4/Prog/db_light.cpp"
-            pLog->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);
-            sp->Normal.x = sp->Normal.y = sp->Normal.z = 0.0f;
-        } else {
-            PSVECNormalize(&sp->Normal, &sp->Normal);
-        }
+        VECNormalize(&sp->Normal, &sp->Normal);
         break;
     case 2: {
         step = (pTool->Pad1.on & JOY_A) ? 3.0f : 1.0f;
@@ -2927,15 +2922,8 @@ static void edit_light_type_direct()
             PSMTXRotAxisRad(m, r, (f32) pTool->Pad1.stickY / 1000.0f);
             PSMTXMultVec(m, &sp->Normal, &sp->Normal);
         }
-        if (sp->Normal.x == 0.0f && sp->Normal.y == 0.0f && sp->Normal.z == 0.0f) {
 #line 3099 "D:/Bio4/Prog/db_light.cpp"
-            pLog->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);
-            sp->Normal.z = 0.0f;
-            sp->Normal.y = 0.0f;
-            sp->Normal.x = 0.0f;
-        } else {
-            PSVECNormalize(&sp->Normal, &sp->Normal);
-        }
+        VECNormalize(&sp->Normal, &sp->Normal);
         drawLightInfo(cur, 0xFFFFFFFF);
         break;
     }

@@ -998,15 +998,9 @@ void drawScurve(DbSctrlWork* w)
         hnd.x = cosf(ang) * SCTRL_HANDLE_LEN + k->t;
         hnd.y = sinf(ang) * SCTRL_HANDLE_LEN + k->v;
         posGraph2World(w, &hnd, &wh);
-        // VECNormalize written out with `pLog.p->err` (no operator-> inline): the `lis pLog@ha` then has
-        // no BLOCK notes between it and its `lwz`, its loop.c lifetime drops from 6 to 2 and pass 1 no
-        // longer hoists it (32 * 2 * 2 < 204 insns); pass 2 does, after the `k` giv init, as the original
         PSVECSubtract(&wh, &wp, &dir);
-        if (0.0f == dir.x && 0.0f == dir.y && 0.0f == dir.z) {
-            pLog.p->err(0, 0, "VECNormalize:[%s/%d]", "D:/Bio4/Prog/db_sctrl.cpp", 1116);
-            dir.x = dir.y = dir.z = 0.0f;
-        } else
-            PSVECNormalize(&dir, &dir);
+#line 1116 "D:/Bio4/Prog/db_sctrl.cpp"
+        VECNormalize(&dir, &dir);
         PSVECScale(&dir, &dir, SCTRL_HANDLE_DRAW);
         PSVECAdd(&wp, &dir, &wh);
         Draw_sphere(&wh, 2.0f, 0xFFFFFFFF, 0, 0);
@@ -1017,11 +1011,8 @@ void drawScurve(DbSctrlWork* w)
         hnd.y = sinf(ang) * SCTRL_HANDLE_LEN + k->v;
         posGraph2World(w, &hnd, &wh);
         PSVECSubtract(&wh, &wp, &dir);
-        if (0.0f == dir.x && 0.0f == dir.y && 0.0f == dir.z) {
-            pLog.p->err(0, 0, "VECNormalize:[%s/%d]", "D:/Bio4/Prog/db_sctrl.cpp", 1133);
-            dir.x = dir.y = dir.z = 0.0f;
-        } else
-            PSVECNormalize(&dir, &dir);
+#line 1133 "D:/Bio4/Prog/db_sctrl.cpp"
+        VECNormalize(&dir, &dir);
         PSVECScale(&dir, &dir, SCTRL_HANDLE_DRAW);
         PSVECAdd(&wp, &dir, &wh);
         Draw_sphere(&wh, 2.0f, 0xFFFFFFFF, 0, 0);

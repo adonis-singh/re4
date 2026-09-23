@@ -46,16 +46,6 @@ static void em27_R1_Die_Normal(cEm27* em);
 
 
 
-// math_sub.h's VECNormalize with the log pointer read as a plain struct member: the inline
-// `cLogPtr::operator->` puts two block notes between `high(pLog)` and the load, which raises the
-// loop.c lifetime of the high pseudo from 1 to 3 and gets it hoisted out of the em27ObaHitCk loop
-// (the original keeps `lis pLog@ha` inside the loop).
-#define VECNormalizeP(src, dst)                                                         \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 
 // Module entry (SN loader): registers Em27Init as the DOL's enemy constructor (EmInitFunc).
@@ -938,7 +928,7 @@ void em27ObaHitCk(cEm27* em)
         }
         dist = SQRTF(dist) * 0.9f + 20.0f;
 #line 1315 "D:/Bio4/Prog/em27.cpp"
-        VECNormalizeP(&d, &d);
+        VECNormalize(&d, &d);
         PSVECScale(&d, &d, dist);
         PSVECAdd(&e->pos, &d, &em->pos);
     }

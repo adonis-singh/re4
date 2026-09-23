@@ -53,14 +53,6 @@ static void em29_R1_Die_Reset(cEm29* em);
 static void em29_R1_Die_FadeOut(cEm29* em);
 static void plem29_BatRush(cPlayer* pl);
 
-// math_sub.h's VECNormalize with the log pointer read as a plain struct member: the `lis pLog@ha`
-// is not hoisted out of the scan loop (em27.cpp).
-#define VECNormalizeP(src, dst)                                                         \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 
 
@@ -1165,7 +1157,7 @@ void em29ObaHitCk(cEm29* em)
         }
         len = SQRTF(len) * 0.9f + 20.0f;
 #line 1674 "D:/Bio4/Prog/em29.cpp"
-        VECNormalizeP(&d, &d);
+        VECNormalize(&d, &d);
         PSVECScale(&d, &d, len);
         PSVECAdd(&e->pos, &d, &em->pos);
         if (em->pos.y < 0.0f) {
@@ -1189,7 +1181,7 @@ void em29ObaHitCk(cEm29* em)
         return;
     }
 #line 1691 "D:/Bio4/Prog/em29.cpp"
-    VECNormalizeP(&d, &d);
+    VECNormalize(&d, &d);
     PSVECScale(&d, &d, r);
     em->pos.x = pPL->pos.x + d.x;
     em->pos.z = pPL->pos.z + d.z;

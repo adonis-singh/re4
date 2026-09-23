@@ -400,7 +400,7 @@ int move()
     {
         int x = (int) pWork->logX;
         int y = (int) pWork->logY;
-        cLog* l = pLog.p;
+        cLog* l = pLog;
 
         l->m_Bx = x;
         l->m_By = y;
