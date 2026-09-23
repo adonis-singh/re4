@@ -4,7 +4,7 @@
 #include "math_sub.h"
 
 // Plain box object: rebuilds its matrix from pos/rot/scale every frame.
-class cObjBox : public cObjUnion {
+class cObjBox : public cObj {
 public:
     cObjBox();
     virtual void move();

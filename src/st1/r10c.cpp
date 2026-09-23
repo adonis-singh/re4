@@ -15,6 +15,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj02.h"
 #include "em.h"
 #include "emhit.h"
 #include "em_set.h"
@@ -757,11 +758,11 @@ static void moveWheel()
     f32 spdA = 0.0f;
     f32 gateSpd = 0.0f;
     f32 poolSpd = 30.0f;
-    R10cRotWork* wheelA = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(6))->work;
-    R10cRotWork* wheelA2 = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(0xA))->work;
+    R10cRotWork* wheelA = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(6))->free;
+    R10cRotWork* wheelA2 = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(0xA))->free;
     R10cRotWork* wheelB;
-    R10cRotWork* wheelA3 = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(0x33))->work;
-    wheelB = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(8))->work;
+    R10cRotWork* wheelA3 = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(0x33))->free;
+    wheelB = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(8))->free;
     cObj* cogA;
     cObj* cogB;
     cObj* gate;

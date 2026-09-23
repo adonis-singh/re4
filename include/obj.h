@@ -53,9 +53,9 @@ enum OBJ18_TYPE {
     OBJ18_TYPE_NO3 = 24
 };
 
-// Map object work (game/obj.cpp), sizeof 0x3D8: the cModel (0x320; motion work `mot` / `Motion.pMot`
-// / `Motion.Seq_frame`.., `sub2B4.atari`, `sub2B4.pFsdTbl` are cModel members, see model.h), the
-// scroll block and the per-object work area. Per-object modules keep their state in `work`.
+// Map object (game/obj.cpp): the cModel (0x320; motion work `Motion`, `sub2B4.atari`, `sub2B4.pFsdTbl`
+// are cModel members, see model.h) and the scroll block. Each subclass declares its own fields from
+// 0x328, up to OBJ_WORK_SIZE.
 class cObj : public cModel {
 public:
     u8 pad_320[4];        // 0x320
@@ -67,23 +67,6 @@ public:
 
 // One pool block per object: the manager's stride is the largest cObj subclass.
 #define OBJ_WORK_SIZE 0x3D8
-
-// Transitional: the per-class work structs overlaid on the bytes after cObj, for the subclasses
-// that do not declare their own fields yet. A subclass moves off it once its fields are its own.
-class cObjUnion : public cObj {
-public:
-    // 0x328: per-object work area (Efm09Work runs to the end of the object: attr / callBack are
-    // inside the union so that they keep their offsets)
-    union {
-        u8 work[0x3D8 - 0x328];  // 0x328 per-object work area
-        struct {
-            u8 pad_work[0x3D0 - 0x328];
-            u8 attr;              // 0x3D0  SMD object attribute byte (db_work "ATTR"): bit0 lit by attribute-4 lights, bit2 group
-            u8 pad_3D1[3];
-            void (*callBack)(cObj*);  // 0x3D4
-        };
-    };
-};
 
 class cObjMgr : public cManager<cObj> {
 public:

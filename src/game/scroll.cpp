@@ -13,6 +13,7 @@
 #include "main_mem.h"
 #include "model.h"
 #include "obj.h"
+#include "obj02.h"
 #include "scroll.h"
 #include <string.h>
 #include "motion.h"
@@ -171,7 +172,7 @@ int SmdSetParam(cObj* pObj, SmdWork* pSw)
 
     pObj->be_flag |= 4;
     pObj->be_flag &= ~0x20;
-    ((cObjUnion*) pObj)->attr = pSw->b.attr;
+    ((cObjScr*) pObj)->attr = pSw->b.attr;
     if (pSmd->Version <= 0x1F && pSw->motNo == 0) {
         pSw->motNo = 0xFF;
     }
@@ -248,7 +249,7 @@ void SmxSetFlag(cObj* pObj, u32 flag)
         pObj->be_flag |= 0x8000;
     }
     if (flag & 0x20) {
-        ((cObjUnion*) pObj)->attr |= 1;
+        ((cObjScr*) pObj)->attr |= 1;
     }
 }
 
@@ -273,7 +274,7 @@ int SmxGetFlag(cObj* pObj)
     if (be & 0x8000) {
         flags |= 0x10;
     }
-    if (((cObjUnion*) pObj)->attr & 1) {
+    if (((cObjScr*) pObj)->attr & 1) {
         flags |= 0x20;
     }
     return flags;
@@ -339,7 +340,7 @@ void smxInit(cObj* obj, SmxWork* w)
             mi->flagsDC |= 1;
         }
     }
-    memcpy(((cObjUnion*) obj)->work, w->work, 0x78);
+    memcpy(((cObjScr*) obj)->free, w->work, 0x78);
     if (obj->type == 0xF) {
         pLog->err(0, 0, "smxInit() : mirror model used.");
     }
@@ -389,7 +390,7 @@ cObj* SmdGetObjPtr(u32 idx)
         }
         return NULL;
     }
-    if (((cObjUnion*) obj)->attr & 4) {
+    if (((cObjScr*) obj)->attr & 4) {
         pLog->err(0, 0, "SmdGetObjPtr(%d) GROUP -> SmdGetGroupObjPtr()", idx);
     }
     return scrObjTbl[idx];
@@ -601,7 +602,7 @@ cObj* SmdGetGroupObjPtr2(u32 idx)
 // Next member of a scroll group (attr bit2), NULL at the end.
 cObj* SmdGetGroupNext(cObj* pObj00)
 {
-    if (!(((cObjUnion*) pObj00)->attr & 4)) {
+    if (!(((cObjScr*) pObj00)->attr & 4)) {
         return NULL;
     }
     return ObjMgr.getPrevWork(pObj00);

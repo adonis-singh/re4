@@ -12,6 +12,8 @@
 #include "math_sub.h"
 #include "em.h"
 #include "obj.h"
+#include "obj02.h"
+#include "obj18.h"
 #include "scroll.h"
 #include "db_work.h"
 
@@ -130,7 +132,7 @@ void cDbWork::dispObj()
         y = 20;
         if (obj->id == 2) {
             int id;
-            eprintf(32, 280, 0, 0, "ATTR     %02X", ((cObjUnion*) obj)->attr);
+            eprintf(32, 280, 0, 0, "ATTR     %02X", ((cObjScr*) obj)->attr);
             y++;
             id = SmdGetWorkId(obj);
             if (id >= 0) {
@@ -140,7 +142,7 @@ void cDbWork::dispObj()
             }
         }
         if (obj->id == 0x18) {
-            DbObj18Work* w = (DbObj18Work*) ((cObjUnion*) obj)->work;
+            DbObj18Work* w = (DbObj18Work*) ((cObj18*) obj)->free;
             eprintf(x * 8, y * 14, 0, 0, "NAME     %s", w->name);
             y++;
             eprintf(x * 8, y * 14, 0, 0, "TYPE     %2d", w->type);

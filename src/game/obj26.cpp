@@ -1,4 +1,4 @@
-// game/obj26: object id 0x26, parts-2 attachment (D:/Bio4/Prog/OBJ26_WK(this)->cpp): a dummy-model object
+// game/obj26: object id 0x26, parts-2 attachment (D:/Bio4/Prog/obj26.cpp): a dummy-model object
 // that follows parts 2 of its parent, grows to a target scale (R1 0) and then shrinks/fades away
 // (R1 1) before destroying itself. Its creator was dead-stripped; the class stays for ObjMgr.
 #include "atari.h"

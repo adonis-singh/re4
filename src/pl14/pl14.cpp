@@ -48,7 +48,7 @@
 #define OARC(no) PL_ARC_PTR(owner->subArc, no)
 #define EM ((cEm*) this)
 #define OEM ((cEm*) owner)
-#define LITEM ((LuisItemWork*) work)
+#define LITEM ((LuisItemWork*) free)
 
 static inline void RoutineSet(cSubLuis* o, int r0)
 {

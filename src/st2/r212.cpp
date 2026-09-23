@@ -19,6 +19,7 @@ class cObjWep;
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj02.h"
 #include "em.h"
 #include "emhit.h"
 #include "emdoor.h"
@@ -748,8 +749,8 @@ static void r212_DrillMove()
     cObj* d0 = SmdGetObjPtr(0x2A);
     cObj* d1 = SmdGetObjPtr(0x2B);
     cObj* d2 = SmdGetObjPtr(0x2C);
-    R212DrillWork* w1 = (R212DrillWork*) &((cObjUnion*) d1)->work;
-    R212DrillWork* w2 = (R212DrillWork*) &((cObjUnion*) d2)->work;
+    R212DrillWork* w1 = (R212DrillWork*) &((cObjScr*) d1)->free;
+    R212DrillWork* w2 = (R212DrillWork*) &((cObjScr*) d2)->free;
 
     d0->be_flag |= 0x20;
     d1->be_flag |= 0x20;

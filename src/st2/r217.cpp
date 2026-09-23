@@ -15,6 +15,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj02.h"
 #include "em.h"
 #include "emhit.h"
 #include "em_wrap.h"
@@ -89,7 +90,7 @@ extern "C" int SwitchExec(cObj* obj, f32* spd, int no, f32 lim, f32 cur);
 
 
 // The scaffold objects keep their scale in the first Vec of the object work.
-#define R217_OBJ_VEC(o) ((Vec*) ((cObjUnion*) (o))->work)
+#define R217_OBJ_VEC(o) ((Vec*) ((cObjScr*) (o))->free)
 
 // Upper 16 bits of cEm::flags_324 set = dead.
 static inline int r217_emDead(cEm* e)

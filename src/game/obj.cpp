@@ -7,6 +7,7 @@
 #include "obj.h"
 #include "obj00.h"
 #include "obj01.h"
+#include "obj02.h"
 #include "obj03.h"
 #include "obj04.h"
 #include "obj05.h"
@@ -48,37 +49,32 @@ extern "C" {
 void objMove(cObj* p);
 }
 
-class cObjScr : public cObjUnion {
-public:
-    cObjScr();
-    virtual void move();
-};
-class cObjBox : public cObjUnion {
+class cObjBox : public cObj {
 public:
     cObjBox();
     virtual void move();
 };
-class cItemObj : public cObjUnion {
+class cItemObj : public cObj {
 public:
     cItemObj();
     virtual void move();
 };
-class cObjGrenade : public cObjUnion {
+class cObjGrenade : public cObj {
 public:
     cObjGrenade();
     virtual void move();
 };
-class cObjGreFire : public cObjUnion {
+class cObjGreFire : public cObj {
 public:
     cObjGreFire();
     virtual void move();
 };
-class cObjGreLight : public cObjUnion {
+class cObjGreLight : public cObj {
 public:
     cObjGreLight();
     virtual void move();
 };
-class cObjEgg : public cObjUnion {
+class cObjEgg : public cObj {
 public:
     cObjEgg();
     virtual void move();

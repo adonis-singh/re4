@@ -185,8 +185,10 @@ struct LuisItemWork {
     Vec acc;              // 0x10 (0x338)
 };
 
-class cObjLuisItem : public cObjUnion {
+class cObjLuisItem : public cObj {
 public:
+    u8 free[OBJ_WORK_SIZE - 0x328];   // 0x328  LuisItemWork
+
     virtual void move();
     void init(Vec* pos, f32 rotY);
 };

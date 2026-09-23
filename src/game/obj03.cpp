@@ -1,4 +1,4 @@
-// game/obj03: object id 3, path-following chain (D:/Bio4/Prog/OBJ03_WK(this)->cpp): a model whose parts are
+// game/obj03: object id 3, path-following chain (D:/Bio4/Prog/obj03.cpp): a model whose parts are
 // laid 40 units apart along an effect path (PathGetMatEm) and slide along it at `speed` per
 // frame (conveyor / chain links); flags bit 0 draws the path for debugging.
 #include "obj.h"

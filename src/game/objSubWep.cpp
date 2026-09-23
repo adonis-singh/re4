@@ -61,7 +61,7 @@ void cSubWep::move()
     (this->*funcTbl[r_no_0])();
 }
 
-// Flight frame: counts SUBWEP_WK(this)->life down (a timed grenade, type 0, explodes when it reaches 0;
+// Flight frame: counts the life down (a timed grenade, type 0, explodes when it reaches 0;
 // the others are only destroyed), moves by the speed / bounces (addSpeed) and spins parts 0 by
 // rotSpd.
 void cSubWep::moveNormal()
