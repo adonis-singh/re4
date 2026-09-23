@@ -528,7 +528,7 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
 // Fills an obj05 (scattering multi-parts model) work from the record: position/angle/rotation speed
 // with random spreads, scale, colours and fade timers, the scatter centre (Vec0 +- Vec2), bounce
 // (Vec1/10), pow/rangeStep/rnd/rotAmp from Work8, gravity (-xCC/10) and speed damping (1 - xD0/1000);
-// orientation from matrix m or the parent parts' matrix; each parts starts with efmStat 0.
+// orientation from matrix m or the parent parts' matrix; each parts starts with Kaboom_flg 0.
 cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m, int x, f32 rate)
 {
     Efm05Work* w = EFM05_WK((cObj05*) obj);
@@ -668,7 +668,7 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
         break;
     }
     for (p = obj->pParts, i = 0; i < obj->nParts; i++, p = p->pParts) {
-        p->efmStat = 0;
+        OBJ05_KABOOM(p)->Kaboom_flg = 0;
     }
     obj->matUpdate();
     if (w->Tool_flg & 4) {

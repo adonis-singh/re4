@@ -390,36 +390,31 @@ public:
     Vec speed;       // 0x104
     Vec pos_old;      // 0x110  position before the speed was added (obj04 collision segment)
     Vec Wall_norm;     // 0x11C  normal of the wall the scenario check pushed the model out of (atari scrAtCheckSphere), zero when none
-    union {
-        struct {
-            Vec* pFloor_norm;  // 0x128  player: floor normal the shoulder camera tilts with (cam_qfps setPlayerLocation)
-            u8 z_mode;         // 0x12C  (TexRenderModSet sets 2)
-            u8 TevScaleGroup;         // 0x12D  (pl_leon setModel sets 1)
-            u8 kindid;         // 0x12E  2 = scroll (Smd) object
-            u8 ot_type;         // 0x12F  scroll: SmxWork.type2 (3 by default)
-            void* pCldShMd;  // 0x130  child shadow model (db_work prints it as "pCldShMd": GC vendor name; PS2 pChildShadowModel)
-            u8 Shd_color;       // 0x134  (db_work "SHD COL")
-            u8 CullMode;         // 0x135  scroll: SmxWork.x3, db_work "CullMode"
-            u8 Shader_type;         // 0x136  TexRender: 2 while rendered to texture, 0 after
-            u8 Refract_pow;         // 0x137  TexRender: 0x10
-            u8 Refract_ratio;         // 0x138  TexRender: 0x90
-            u8 AddAmb_r;         // 0x139  mirror: 0xFF; trans_lit adds it to the ambient colour
-            u8 AddAmb_g;         // 0x13A  mirror: 0xFF; trans_lit adds it to the ambient colour
-            u8 AddAmb_b;         // 0x13B  mirror: 0xFF; trans_lit adds it to the ambient colour
-            int Fix_parts;    // 0x13C  parts index + 1 whose world position partsFixAdjust holds (partsFixMemory), 0 = none
-            Vec Fix_pos;      // 0x140  that parts' world position when it was fixed
-            u8 invisible_trg;         // 0x14C  (cModel::cModel: 0)
-            u8 invisible_old;         // 0x14D
-            u8 invisible_mode;         // 0x14E
-            u8 invisible_busy;         // 0x14F
-        };
-        // Effect model parts physics (obj05 cObj05::move runs its parts as loose particles).
-        struct {
-            int efmStat;     // 0x128  0 waiting, 1 flying, 2 at rest
-            Vec efmSpd;      // 0x12C
-            Vec efmRotSpd;   // 0x138
-        };
-    };
+    Vec* pFloor_norm;  // 0x128  player: floor normal the shoulder camera tilts with (cam_qfps setPlayerLocation)
+    u8 z_mode;         // 0x12C  (TexRenderModSet sets 2)
+    u8 TevScaleGroup;         // 0x12D  (pl_leon setModel sets 1)
+    u8 kindid;         // 0x12E  2 = scroll (Smd) object
+    u8 ot_type;         // 0x12F  scroll: SmxWork.type2 (3 by default)
+    void* pCldShMd;  // 0x130  child shadow model (db_work prints it as "pCldShMd": GC vendor name; PS2 pChildShadowModel)
+    u8 Shd_color;       // 0x134  (db_work "SHD COL")
+    u8 CullMode;         // 0x135  scroll: SmxWork.x3, db_work "CullMode"
+    u8 Shader_type;         // 0x136  TexRender: 2 while rendered to texture, 0 after
+    u8 Refract_pow;         // 0x137  TexRender: 0x10
+    u8 Refract_ratio;         // 0x138  TexRender: 0x90
+    u8 AddAmb_r;         // 0x139  mirror: 0xFF; trans_lit adds it to the ambient colour
+    u8 AddAmb_g;         // 0x13A  mirror: 0xFF; trans_lit adds it to the ambient colour
+    u8 AddAmb_b;         // 0x13B  mirror: 0xFF; trans_lit adds it to the ambient colour
+    int Fix_parts;    // 0x13C  parts index + 1 whose world position partsFixAdjust holds (partsFixMemory), 0 = none
+    Vec Fix_pos;      // 0x140  that parts' world position when it was fixed
+    u8 invisible_trg;         // 0x14C  (cModel::cModel: 0)
+    u8 invisible_old;         // 0x14D
+    u8 invisible_mode;         // 0x14E
+    u8 invisible_busy;         // 0x14F
+    // 0x128 on: a *parts* cModel (never the top-level model) reuses these same bytes for a
+    // different purpose depending on what kind of parts they are -- pendulum.cpp's PEN_WORK,
+    // motion.h's IK_PARTS, em3c.h's EM3C_BOMB and obj05.h's OBJ05_KABOOM all cast starting here
+    // (`&p->pFloor_norm` or a fixed offset) instead of naming a field for every use; none of
+    // these fields are meaningful on parts that aren't in one of those specific states.
     // 0x150..0x15C: on pendulum parts these three words are PenParts::speed (pendulum.h overlays the
     // parts' cModel from 0x128; obj14 adds the hit impulse there); the object itself keeps its alpha at 0x154.
     u32 invisible_timer;         // 0x150  (cModel::cModel clears it as a word)
