@@ -291,7 +291,7 @@ void ShadowTrans()
         ShadowLightWork* w;
 
         if (cnt != 0) {
-            l = (cLight*) l->pNext;
+            l = LightMgr.getNext(l);
             if (l == 0) {
                 break;
             }
@@ -335,7 +335,7 @@ void ShadowTrans()
     cnt2 = 0;
     while (em) {
         if (cnt2 != 0) {
-            em = (cEm*) em->pNext;
+            em = EmMgr.getNext(em);
             if (em == 0) {
                 break;
             }
@@ -389,7 +389,7 @@ void ShadowTrans()
     cnt2 = 0;
     while (obj) {
         if (cnt2 != 0) {
-            obj = (cObj*) obj->pNext;
+            obj = ObjMgr.getNext(obj);
             if (obj == 0) {
                 break;
             }
@@ -441,7 +441,7 @@ int Fit_ParallelShadowModelSet(cModel* m, int self)
         int inRange;
 
         if (cnt != 0) {
-            l = (cLight*) l->pNext;
+            l = LightMgr.getNext(l);
             if (l == 0) {
                 break;
             }
@@ -545,7 +545,7 @@ void FixShadowLightSet(cLight* l)
     cnt = 0;
     while (em) {
         if (cnt != 0) {
-            em = (cEm*) em->pNext;
+            em = EmMgr.getNext(em);
             if (em == 0) {
                 break;
             }
@@ -595,7 +595,7 @@ void FixShadowLightSet(cLight* l)
     cnt = 0;
     while (obj) {
         if (cnt != 0) {
-            obj = (cObj*) obj->pNext;
+            obj = ObjMgr.getNext(obj);
             if (obj == 0) {
                 break;
             }
@@ -1296,7 +1296,7 @@ void shadowScrModelRender(ShadowMng* mngs)
     cnt = 0;
     while (obj) {
         if (cnt != 0) {
-            obj = (cObj*) obj->pNext;
+            obj = ObjMgr.getNext(obj);
             if (obj == 0) {
                 break;
             }
@@ -1318,7 +1318,7 @@ void shadowScrModelRender(ShadowMng* mngs)
     cnt = 0;
     while (em) {
         if (cnt != 0) {
-            em = (cEm*) em->pNext;
+            em = EmMgr.getNext(em);
             if (em == 0) {
                 break;
             }

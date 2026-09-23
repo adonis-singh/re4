@@ -67,7 +67,7 @@ void cPlayer::weaponRelease()
     if (obj) {
         do {
             objCur = obj;
-            next = (cObj*) objCur->pNext;
+            next = ObjMgr.getNext(objCur);
             obj = next;
             if (objCur->id == 0xA) {
                 ObjMgr.destroy(objCur);

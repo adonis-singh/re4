@@ -1119,7 +1119,7 @@ void PlDataRelease()
     if (obj) {
         do {
             objCur = obj;
-            objNext = (cObj*) objCur->pNext;
+            objNext = ObjMgr.getNext(objCur);
             obj = objNext;
             switch (objCur->id) {
             case 0x1A:
@@ -1136,7 +1136,7 @@ void PlDataRelease()
     if (em) {
         do {
             emCur = em;
-            emNext = (cEm*) emCur->pNext;
+            emNext = EmMgr.getNext(emCur);
             em = emNext;
             if (emCur->id == 0x4F) {
                 EmMgr.destroy(emCur);

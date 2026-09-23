@@ -397,14 +397,14 @@ void SubScreenTask()
             m = mgr->getActiveWork();
             while (m) {
                 cModel* p = m;
-                m = (cModel*) m->pNext;
+                m = (cModel*) m->getNext();
                 func(p);
             }
             func = LightSetModel2;
             m = mgr->getActiveWork();
             while (m) {
                 cModel* p = m;
-                m = (cModel*) m->pNext;
+                m = (cModel*) m->getNext();
                 func(p);
             }
         }

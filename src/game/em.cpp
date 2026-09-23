@@ -223,20 +223,10 @@ int cEmMgr::arrayAlloc(u32 workNum)
 // not when Stop_flg 0x1000 freezes her too.
 void cEmMgr::move()
 {
-    cEm* p;
-    void (*func)(cEm*);
-
     dieCheck();
     RouteCk();
     if (!SpfFlagChk(pG, SPF_EM)) {
-        p = pAlive;
-        func = emMove;
-        while (p) {
-            cEm* cur = p;
-
-            p = (cEm*) p->pNext;
-            func(cur);
-        }
+        applyFuncAll(emMove);
     } else if (pSUB && !SpfFlagChk(pG, SPF_SUBCHAR)) {
         emMove(pSUB);
     }
@@ -258,19 +248,8 @@ void cEmMgr::destroy(cEm* pEm)
 // prompt rules).
 int cEmMgr::isBattle()
 {
-    cEm* p;
-    void (*func)(cEm*);
-
-    // reference store: keeps the pAlive load below it (global.h BitSet)
-    (battleCheckFlag = 0);
-    func = battleCheck;
-    p = pAlive;
-    while (p) {
-        cEm* cur = p;
-
-        p = (cEm*) p->pNext;
-        func(cur);
-    }
+    battleCheckFlag = 0;
+    applyFuncAll(battleCheck);
     return battleCheckFlag;
 }
 
@@ -293,17 +272,7 @@ void killEm(cEm* pEm)
 // Destroys every live character except the player (room change).
 void cEmMgr::destroyAll()
 {
-    cEm* p;
-    void (*func)(cEm*);
-
-    p = pAlive;
-    func = killEm;
-    while (p) {
-        cEm* cur = p;
-
-        p = (cEm*) p->pNext;
-        func(cur);
-    }
+    applyFuncAll(killEm);
 }
 
 // Next live character with `id` after `start` (from the head when start is NULL); NULL when none.

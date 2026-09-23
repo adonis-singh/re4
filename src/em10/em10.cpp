@@ -19760,11 +19760,11 @@ int em10LadderClimbCk(cEm10* em)
     o = (cObjLadder*) ObjMgr.getActiveWork();
     while (o) {
         if (o->id != 0x13) {
-            o = (cObjLadder*) o->pNext;
+            o = (cObjLadder*) ObjMgr.getNext(o);
             continue;
         }
         if (!o->ckClimb()) {
-            o = (cObjLadder*) o->pNext;
+            o = (cObjLadder*) ObjMgr.getNext(o);
             continue;
         }
         {
@@ -19772,12 +19772,12 @@ int em10LadderClimbCk(cEm10* em)
             f32 dy = em->pos_old.y - o->pos.y;
             f32 dz = em->pos_old.z - o->pos.z;
             if (dx * dx + dy * dy + dz * dz > 4000000.0f) {
-                o = (cObjLadder*) o->pNext;
+                o = (cObjLadder*) ObjMgr.getNext(o);
                 continue;
             }
         }
         if (fabsf(Muku(&em->pos_old, &o->pos, em->ang.y, 3.1415927f)) > 1.5707964f) {
-            o = (cObjLadder*) o->pNext;
+            o = (cObjLadder*) ObjMgr.getNext(o);
             continue;
         }
         PSMTXRotRad(m, 'y', o->ang.y);
@@ -19785,11 +19785,11 @@ int em10LadderClimbCk(cEm10* em)
         PSMTXInverse(m, m);
         PSMTXMultVec(m, &em->pos, &v);
         if (v.z > 1000.0f || v.z < -500.0f) {
-            o = (cObjLadder*) o->pNext;
+            o = (cObjLadder*) ObjMgr.getNext(o);
             continue;
         }
         if (v.x > 800.0f || v.x < -800.0f) {
-            o = (cObjLadder*) o->pNext;
+            o = (cObjLadder*) ObjMgr.getNext(o);
             continue;
         }
         if (!(fabsf(v.y) > 500.0f)) {
@@ -19798,7 +19798,7 @@ int em10LadderClimbCk(cEm10* em)
             em->setRno(1, 0x40, 0, 0);
             return 1;
         }
-        o = (cObjLadder*) o->pNext;
+        o = (cObjLadder*) ObjMgr.getNext(o);
     }
     return 0;
 }

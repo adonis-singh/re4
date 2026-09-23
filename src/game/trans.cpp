@@ -370,13 +370,13 @@ void Trans()
     func = objTrans;
     for (u = ObjMgr.getActiveWork(); u != 0;) {
         cUnit* cur = u;
-        u = u->pNext;
+        u = u->getNext();
         func((cModel*) cur);
     }
     func = emTrans;
     for (u = EmMgr.getActiveWork(); u != 0;) {
         cUnit* cur = u;
-        u = u->pNext;
+        u = u->getNext();
         func((cModel*) cur);
     }
     ProcessTickGet(5, "objTrans");

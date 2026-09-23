@@ -14,7 +14,9 @@ inline void* operator new(unsigned int, void* p) { return p; }
 class cUnit {
 public:
     u32 be_flag;  // 0x0  bit0: alive, bit9/10: reserved-alive bits (0x601 = in use)
-    cUnit* pNext;  // 0x4  active list link
+private:
+    cUnit* pNext;  // 0x4  active list link, read and written through getNext / setNext
+public:
     // 0x8 vptr
 
     cUnit() {}
@@ -114,7 +116,7 @@ public:
     u32 getArrayNum() { return nArray; }
     // Alive list: the first active work and the one after `p`.
     T* getActiveWork() { return pAlive; }
-    T* getNext(T* p) { return (T*)p->pNext; }
+    T* getNext(T* p) { return (T*)p->getNext(); }
     int deleteList(T* p) {
         T* q;
         if (!p->isAlive()) {
@@ -123,14 +125,14 @@ public:
         }
         q = pAlive;
         if (q == p) {
-            pAlive = (T*)p->pNext;
-            p->pNext = 0;
+            pAlive = (T*)p->getNext();
+            p->setNext(0);
             return 1;
         }
-        for (; q->pNext; q = (T*)q->pNext) {
-            if (q->pNext == p) {
-                q->pNext = p->pNext;
-                p->pNext = 0;
+        for (; q->getNext(); q = (T*)q->getNext()) {
+            if (q->getNext() == p) {
+                q->setNext(p->getNext());
+                p->setNext(0);
                 return 1;
             }
         }
@@ -139,18 +141,18 @@ public:
     }
     void addListFront(T* p) {
         T* q;
-        for (q = pAlive; q; q = (T*)q->pNext) {
+        for (q = pAlive; q; q = (T*)q->getNext()) {
             if (q == p) {
                 log("%s::addListFront() ERROR SET x2 0x%08X", name, p);
                 return;
             }
         }
-        p->pNext = pAlive;
+        p->setNext(pAlive);
         pAlive = p;
     }
     void addListBack(T* p) {
         T* q;
-        for (q = pAlive; q; q = (T*)q->pNext) {
+        for (q = pAlive; q; q = (T*)q->getNext()) {
             if (q == p) {
                 log("%s::addListBack() ERROR 0x%08X", name, p);
                 return;
@@ -161,11 +163,20 @@ public:
             pAlive = p;
             return;
         }
-        while (q->pNext) {
-            q = (T*)q->pNext;
+        while (q->getNext()) {
+            q = (T*)q->getNext();
         }
-        q->pNext = p;
+        q->setNext(p);
         p->setNext(0);
+    }
+    // func on every active work; the next link is read before the call, so func may destroy the work
+    void applyFuncAll(void (*func)(T*)) {
+        cUnit* pT = getActiveWork();
+        while (pT) {
+            cUnit* pTnow = pT;
+            pT = pT->getNext();
+            func((T*) pTnow);
+        }
     }
 };
 

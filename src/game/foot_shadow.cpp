@@ -70,7 +70,7 @@ void DrawFootShadow(cEm* pMod)
         f32 range;
 
         if (cnt != 0) {
-            l = (cLight*) l->pNext;
+            l = LightMgr.getNext(l);
             if (l == 0) {
                 break;
             }

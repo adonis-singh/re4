@@ -436,7 +436,7 @@ void BlockDestroy(int blkNo)
     if (p != NULL) {
         do {
             cur = p;
-            next = (cObj*) cur->pNext;
+            next = ObjMgr.getNext(cur);
             p = next;
             if (cur->kindid == 2 && cur->blk == blkNo) {
                 ObjMgr.destroy(cur);

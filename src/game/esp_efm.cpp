@@ -153,20 +153,10 @@ void EfmDeleteEventSub(cObj* pObj)
 // Destroys every Efm object in ObjMgr's alive list (filter cleared): room change / effect reset.
 void EfmArrayClear()
 {
-    void (*func)(cObj*);
-    cObj* p;
-    cObj* n;
-
     g_Core_flg = 0;
     g_Core_kind = 0;
     g_Core_pEm = 0;
-    func = EfmDeleteSub;
-    p = ObjMgr.getActiveWork();
-    while (p) {
-        n = p;
-        p = (cObj*) p->pNext;
-        func(n);
-    }
+    ObjMgr.applyFuncAll(EfmDeleteSub);
 }
 
 // Generator entry for an effect model record: resolves the parent (gen->Parent_no is a scroll object

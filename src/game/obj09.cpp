@@ -584,9 +584,6 @@ void cObj09::move()
     Vec n2;
     f32 h;
     f32 dist;
-    cObj* p;
-    cObj* q;
-    void (*func)(cObj*);
     u32 cnt;
     int i;
 
@@ -596,13 +593,7 @@ void cObj09::move()
         w->X.z = 8000.0f;
     }
     pObj_ck = this;
-    func = Obj09HitCheck;
-    p = (cObj*) ObjMgr.getActiveWork();
-    while (p) {
-        q = p;
-        p = (cObj*) p->pNext;
-        func(q);
-    }
+    ObjMgr.applyFuncAll(Obj09HitCheck);
 
     old = w->X;
     cnt = 0;

@@ -317,17 +317,10 @@ f32 cLightMgr::setElecPower(f32 d)
 int cLightMgr::setElecPower2(u8 id, u8 flag)
 {
     cCtrl* c;
-    cCtrl* n;
     LightCtrlWork* w;
     cLightPathData* path;
-    void (*func)(cCtrl*) = funcDelCtrl;
 
-    c = CtrlMgr.getActiveWork();
-    while (c) {
-        n = c;
-        c = (cCtrl*) c->pNext;
-        func(n);
-    }
+    CtrlMgr.applyFuncAll(funcDelCtrl);
     c = CtrlMgr.createBack(0);
     if (c == 0) {
         return 0;
@@ -413,10 +406,6 @@ int cLightMgr::roomLitCheck()
 // 0x200 (lights moved this frame).
 int cLightMgr::move()
 {
-    cLight* l;
-    cLight* n;
-    void (*func)(cLight*);
-
     if (ElecPower != 1.0f) {
         pLog->err(0, 0, "cLightMgr ElecPower != 1.0f");
     }
@@ -426,13 +415,7 @@ int cLightMgr::move()
     hokanMove();
     dieCheck();
     StaFlagOn(pG, STA_USE_CAST_SHADOW);
-    func = lightMove;
-    l = pAlive;
-    while (l) {
-        n = l;
-        l = (cLight*) l->pNext;
-        func(n);
-    }
+    applyFuncAll(lightMove);
     return 1;
 }
 

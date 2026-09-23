@@ -206,18 +206,8 @@ int cObjMgr::construct(cObj* pObj, u32 id)
 // Per-frame: die check, then objMove on every alive object.
 void cObjMgr::move()
 {
-    cObj* p;
-    cObj* n;
-    void (*func)(cObj*);
-
     dieCheck();
-    func = objMove;
-    p = pAlive;
-    while (p) {
-        n = p;
-        p = (cObj*) p->pNext;
-        func(n);
-    }
+    applyFuncAll(objMove);
 }
 
 // One object's frame: skips inactive objects (be_flag 0x20 clear) and, during an event

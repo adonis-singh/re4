@@ -2062,7 +2062,7 @@ void mapModelDisp(SUB_SCREEN* wk)
     while (m) {
         cModel* p = m;
 
-        m = (cModel*) m->pNext;
+        m = (cModel*) m->getNext();
         func(p);
     }
 }
