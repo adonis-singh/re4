@@ -76,7 +76,6 @@ cObj* SetFloatIsland(void* bin, void* tpl, Vec* pos, Vec* rot)
 void cObj1c::move()
 {
     IslandWork* w = ISLAND_WK(this);
-    u32 f;
 
     be_flag &= ~0x4000;
     if (w->Crash_wait) {
@@ -86,15 +85,14 @@ void cObj1c::move()
         w->Eff_wait2--;
     }
     Obj1c_R1_move_tbl[r_no_1](this);
-    f = be_flag;
-    if ((f & 0x201) == 1) {
+    if (isAlive()) {
         if (StaFlagChk(pG, STA_PL_SWIM_CAMERA)) {
-            be_flag = f & ~2;
+            be_flag &= ~2;
             EffectEspDelete(0, w->EffKindId, this, 0);
             EffectEspgenDelete(0, w->EffKindId, this);
             EffectEfmDelete(0, w->EffKindId, this);
         } else {
-            be_flag = f | 2;
+            be_flag |= 2;
         }
     }
 }

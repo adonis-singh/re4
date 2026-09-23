@@ -2732,11 +2732,11 @@ int cSubChar::checkBackEm()
     int n = EmMgr.getArrayNum();
 
     for (i = 0; i < n; i++) {
-        cEm* em = (cEm*) ((u8*) EmMgr.pArray + EmMgr.size * i);
+        cEm* em = EmMgr.fastAt(i);
         f32 d;
         f32 ang;
 
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->hp <= 0) {

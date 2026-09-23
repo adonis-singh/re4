@@ -92,7 +92,7 @@ void cObjMissile::move()
     MissileWork* w = MISSILE_WK(this);
 
     if (w->pEm_oya) {
-        if ((w->pEm_oya->be_flag & 0x201) != 1 || ((cEm*) w->pEm_oya)->hp <= 0) {
+        if (!w->pEm_oya->isAlive() || ((cEm*) w->pEm_oya)->hp <= 0) {
             if (w->pHit) {
                 EmMgr.destroy(w->pHit);
                 w->pHit = 0;

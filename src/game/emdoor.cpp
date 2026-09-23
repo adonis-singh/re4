@@ -2233,7 +2233,7 @@ int emDoorDoorAutoCloseCk(cEmDoor* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->checkStatus(EM_STATUS_ACTIVE) == 0) {
@@ -3232,7 +3232,7 @@ int cEmDoor::ckObj()
         cEm* e = (cEm*) ((u8*) m->pArray + ofs);
         FREE_EMRACK* rw = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x45) {
@@ -3379,7 +3379,7 @@ cEmDoor* DoorOpenCk(cModel* m)
         cEmDoor* em = (cEmDoor*) EmMgr.fastAt(i);
         EmDoorWork* w;
 
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->id != 0x41) {
@@ -3512,7 +3512,7 @@ void emDoorDropWeapon(cEmDoor* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEmWep* e = (cEmWep*) EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x42) {

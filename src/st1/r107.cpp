@@ -76,7 +76,7 @@ static void r107_setFish()
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if (em->id == 0x27 && (em->be_flag & 0x201) == 1) {
+        if (em->id == 0x27 && em->isAlive()) {
             ((cEm27*) em)->setWaterHeight(-13700.0f);
         }
     }

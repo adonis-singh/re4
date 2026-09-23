@@ -53,7 +53,7 @@ void cObjObaModel::move()
     ObaModelWork* w = OBAMODEL_WK(this);
 
     if (w->pEm) {
-        if ((w->pEm->be_flag & 0x201) != 1) {
+        if (!w->pEm->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }

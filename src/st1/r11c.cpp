@@ -549,7 +549,7 @@ static void r11c_EventBesiegedStart()
     err2 = W->evd1->waitLoadOk() == 0;
     for (i = 0; i < n; i++) {
         e = em[i];
-        if ((e->be_flag & 0x201) == 1) {
+        if (e->isAlive()) {
             EmMgr.destroy(e);
         }
     }

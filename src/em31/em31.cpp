@@ -3561,7 +3561,7 @@ void em31SearchBody(cEm31* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm31* p = (cEm31*) EmMgr.fastAt(i);
 
-        if ((p->be_flag & 0x201) == 1 && p->id == 0x31 && p != em && p->type == 0) {
+        if (p->isAlive() && p->id == 0x31 && p != em && p->type == 0) {
             w->pBody = p;
             EM31_WK(p)->pTen = em;
             return;
@@ -4299,7 +4299,7 @@ int em31PillarCk(cEm31* em)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             PSMTXMultVec(inv, &o->pos, &lp);
             if (lp.x > -3500.0f && lp.x < 3500.0f && lp.y > -500.0f && lp.y < 500.0f && lp.z > 0.0f &&
                 lp.z < 4000.0f) {
@@ -4335,7 +4335,7 @@ int em31PillarCk2(cEm31* em)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             PSMTXMultVec(inv, &o->pos, &lp);
             if (lp.x > 0.0f && lp.x < 2500.0f && lp.y > -500.0f && lp.y < 500.0f && lp.z > -1500.0f &&
                 lp.z < 3500.0f) {
@@ -4360,7 +4360,7 @@ void em31PillarAtkCk(cEm31* em, Vec* pos)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             if ((pos->x - o->pos.x) * (pos->x - o->pos.x) + (pos->z - o->pos.z) * (pos->z - o->pos.z) <
                 1000000.0f) {
                 if (w->pBody) {
@@ -4411,7 +4411,7 @@ int em31JumpCk(cEm31* em)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             PSMTXMultVec(m, &o->pos, &lp);
             if (lp.x > -3500.0f && lp.x < 3500.0f && lp.z > 0.0f && lp.z * lp.z < em->l_pl) {
                 return 0;

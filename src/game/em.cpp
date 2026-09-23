@@ -242,11 +242,11 @@ void cEmMgr::move()
     }
 }
 
-// Releases a character work: validates the pointer and its live flags (be_flag 0x201 == 1),
+// Releases a character work: validates the pointer and that the work is alive,
 // runs the work's push() cleanup and returns it to the pool.
 void cEmMgr::destroy(cEm* pEm)
 {
-    if ((u32) pEm < 0x80000000 || (u32) pEm > 0x82FFFFFF || (pEm->be_flag & 0x201) != 1) {
+    if ((u32) pEm < 0x80000000 || (u32) pEm > 0x82FFFFFF || !pEm->isAlive()) {
         pLog->err(0, 0, "cEmMgr::destroy() WORK IS ALREADY DEAD. %08X", pEm);
         return;
     }
@@ -313,15 +313,15 @@ cEm* cEmMgr::getEmPtr(int id, cEm* pEm)
 
     p = pEm;
     if (p) {
-        p = (cEm*) p->pNext;
+        p = getNext(p);
     } else {
-        p = pAlive;
+        p = getActiveWork();
     }
     while (p) {
         if (p->id == id) {
             return p;
         }
-        p = (cEm*) p->pNext;
+        p = getNext(p);
     }
     return 0;
 }
@@ -390,7 +390,7 @@ void emMove(cEm* pEm)
     f32 dx;
     f32 dz;
 
-    if ((pEm->be_flag & 0x201) != 1) {
+    if (!pEm->isAlive()) {
         pLog->err(2, 0, "emMove() DEAD WORK CALLED %08X(ID:%02X)", pEm, pEm->id);
         EmMgr.destroy(pEm);
         return;
@@ -410,7 +410,7 @@ void emMove(cEm* pEm)
     pEm->l_sub = 1e16f;
     pEm->dmg.move();
     pEm->move();
-    if ((pEm->be_flag & 0x201) != 1) {
+    if (!pEm->isAlive()) {
         return;
     }
     pEm->be_flag &= ~0x20000000;

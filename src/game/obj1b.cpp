@@ -131,12 +131,12 @@ void cObjSpear::move()
 {
     SpearWork* w = SPEAR_WK(this);
 
-    if (w->pEm_oya && (w->pEm_oya->be_flag & 0x201) != 1) {
+    if (w->pEm_oya && !w->pEm_oya->isAlive()) {
         ObjMgr.destroy(this);
         return;
     }
     Obj1b_R1_move_tbl[r_no_1](this);
-    if ((be_flag & 0x201) != 1) {
+    if (!isAlive()) {
         return;
     }
     if (w->pEm_oya == 0) {

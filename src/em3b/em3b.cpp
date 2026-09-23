@@ -857,7 +857,7 @@ void em3bRunDownCkTruck(cEm3b* em)
         cEm* e = EmMgr.fastAt(i);
         int zero = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -908,7 +908,7 @@ void em3bRunDownCkCart(cEm3b* em)
         cEm* e = EmMgr.fastAt(i);
         int zero = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {

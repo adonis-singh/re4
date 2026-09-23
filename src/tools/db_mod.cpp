@@ -3012,7 +3012,7 @@ void dbModMotionMove()
             continue;
         }
         model = em->pEm;
-        if ((model->be_flag & 0x201) != 1) {
+        if (!model->isAlive()) {
             continue;
         }
         noMotion = 1;
@@ -3153,7 +3153,7 @@ void dbModMotionMove()
             continue;
         }
         model = em->pEm;
-        if ((model->be_flag & 0x201) != 1) {
+        if (!model->isAlive()) {
             continue;
         }
         parent = dbModSlot[n].pEm;

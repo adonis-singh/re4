@@ -379,7 +379,7 @@ int cEmWrap::setPtr(cEm* em, int errOn)
 {
     this->errOn = errOn;
     if (em != 0) {
-        int a = (em->be_flag & 0x201) == 1;
+        int a = em->isAlive();
 
         if (a == 1) {
             alive = a;
@@ -412,7 +412,7 @@ int cEmWrap::isAlive()
     if (pEm == 0) {
         return 0;
     }
-    return (pEm->be_flag & 0x201) == 1;
+    return pEm->isAlive();
 }
 
 // 1 when alive and the enemy reports EM_STATUS_ACTIVE (not suspended / not dead).

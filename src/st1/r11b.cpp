@@ -431,7 +431,7 @@ static void r11b_str_check()
             for (i = 0; i < EmMgr.getArrayNum(); i++) {
                 cEm* em = EmMgr.fastAt(i);
 
-                if (em->id == 0x22 && em->hp > 0 && (em->be_flag & 0x201) == 1) {
+                if (em->id == 0x22 && em->hp > 0 && em->isAlive()) {
                     n++;
                 }
             }

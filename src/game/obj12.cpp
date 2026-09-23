@@ -48,7 +48,7 @@ void cObj12::move()
         PSMTXCopy(l_mat, mat);
     }
     if (w->pEm_oya) {
-        if ((w->pEm_oya->be_flag & 0x201) != 1) {
+        if (!w->pEm_oya->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }
@@ -122,7 +122,7 @@ void cObj12::move()
     }
     throwMove();
     fallMove();
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         if (!(w->be_flag & 6)) {
             partsMatCalc();
         }

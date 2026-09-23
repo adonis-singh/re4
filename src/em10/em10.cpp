@@ -5624,7 +5624,7 @@ static void em10_R1_R100Cliff(cEm10* em)
             }
             for (i = 0; i < EmMgr.getArrayNum(); i++) {
                 cEm* e = EmMgr.fastAt(i);
-                if ((e->be_flag & 0x201) != 1) {
+                if (!e->isAlive()) {
                     continue;
                 }
                 if (e->id <= 0xF) {
@@ -13466,7 +13466,7 @@ static void subem10_TakeAway(cSubChar* sub)
         break;
     }
     s->Catch_at_adj = s->pos;
-    if ((s->pEmCatch->be_flag & 0x201) != 1) {
+    if (!s->pEmCatch->isAlive()) {
         s->pos.y = SatMgr.getFloor(&s->pos, 0, 600.0f, 100000.0f, 0);
         EndSubDamage();
     }
@@ -16812,7 +16812,7 @@ extern "C" int em10GetGoSub(cEm10* em)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -19291,7 +19291,7 @@ int em10DoorOpenCk(cEm10* em, int kick)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEmDoor* e = (cEmDoor*) EmMgr.fastAt(i);
         EmDoorWork* dw;
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x41) {
@@ -19859,7 +19859,7 @@ int em10VLadderClimbCk(cEm10* em)
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* o = EmMgr.fastAt(i);
-        if ((o->be_flag & 0x201) != 1) {
+        if (!o->isAlive()) {
             continue;
         }
         if (o->id <= 0xF) {
@@ -21518,7 +21518,7 @@ extern "C" int em10SomebodyFindNowCk(cEm10* em)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -21569,7 +21569,7 @@ extern "C" int em10SomebodyDamageNowCk(cEm10* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
         int dm;
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -21623,7 +21623,7 @@ int em10SomebodyNearCk(cEm10* em)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -21661,7 +21661,7 @@ void em10FindNotify(cEm10* em)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -22886,7 +22886,7 @@ extern "C" int em10DashCk(cEm10* em)
     cnt = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* o = EmMgr.fastAt(i);
-        if ((o->be_flag & 0x201) != 1) {
+        if (!o->isAlive()) {
             continue;
         }
         if (o->id <= 0xF) {
@@ -23005,7 +23005,7 @@ extern "C" int em10StayCk(cEm10* em)
     n = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) == 1 && e->id > 0xF && e->id <= 0x20 && e->hp > 0 && e != em &&
+        if (e->isAlive() && e->id > 0xF && e->id <= 0x20 && e->hp > 0 && e != em &&
             e->checkStatus(EM_STATUS_ACTIVE) && EM10_WK(e)->L_pl_route < w->L_pl_route) {
             n++;
         }
@@ -23058,7 +23058,7 @@ extern "C" int em10GoSubStayCk(cEm10* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
         Em10Work* ew;
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -23661,7 +23661,7 @@ void em10DragonFireCk(cEm10* em)
         cEm10* e = (cEm10*) EmMgr.fastAt(i);
         int dead;
         cDmgInfo* d;
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->hp <= 0) {
@@ -24797,7 +24797,7 @@ void em10ActEvtSetTrade(cEm10* em)
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -25212,7 +25212,7 @@ extern "C" int em10DootAtkCk(cEm10* em)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -25262,7 +25262,7 @@ extern "C" int em10ThrowNearCk(cEm10* em)
     PSMTXInverse(m, m);
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -26064,7 +26064,7 @@ extern "C" cModel* em10SearchTruck(cEm10* em)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x3B) {
+        if (e->isAlive() && e->id == 0x3B) {
             EM3B_WK(e)->pDriver = em;
             w->pTruck = e;
             return (cModel*) 1;
@@ -26082,7 +26082,7 @@ extern "C" int em10SearchParasite(cEm10* em)
     w->pParasite = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEmPartner* e = (cEmPartner*) EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x25) {
@@ -26460,7 +26460,7 @@ int em10GotoPosCk(cEm10* em)
         cnt = 0;
         for (j = 0; j < EmMgr.getArrayNum(); j++) {
             cEm* o = EmMgr.fastAt(j);
-            if ((o->be_flag & 0x201) != 1) {
+            if (!o->isAlive()) {
                 continue;
             }
             if (o->id <= 0xF) {

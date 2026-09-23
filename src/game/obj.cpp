@@ -248,7 +248,7 @@ void objMove(cObj* pObj)
 // Destroys an object: releases its model/parts (push) when it was alive, then the manager slot.
 void cObjMgr::destroy(cObj* pObj)
 {
-    if ((pObj->be_flag & 0x201) != 1) {
+    if (!pObj->isAlive()) {
         return;
     }
     pObj->push();

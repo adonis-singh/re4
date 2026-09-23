@@ -176,11 +176,11 @@ void cObj16::move()
     const f32 decRate = 0.9f;
     const f32 addRate = 0.1f;
 
-    if (w->pEm && (w->pEm->be_flag & 0x201) != 1) {
+    if (w->pEm && !w->pEm->isAlive()) {
         OBJ16_LOST(this, w);
         return;
     }
-    if (w->pOya && (w->pOya->be_flag & 0x201) != 1) {
+    if (w->pOya && !w->pOya->isAlive()) {
         OBJ16_LOST(this, w);
         return;
     }

@@ -49,7 +49,7 @@ static cObj* SetObj26(cObj* parent, Vec* scale)
 void cObj26::move()
 {
     if (OBJ26_WK(this)->pEm) {
-        if ((OBJ26_WK(this)->pEm->be_flag & 0x201) != 1) {
+        if (!OBJ26_WK(this)->pEm->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }

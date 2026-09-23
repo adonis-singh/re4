@@ -370,7 +370,7 @@ void cEmShield::move()
 
     emShieldDmCk(this);
     EmShield_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         if (w->pParent) {
             invisible_factor = w->pParent->invisible_factor;
             invisible_factor2 = w->pParent->invisible_factor2;
@@ -396,7 +396,7 @@ void cEmShield::move()
             if (((cEm*) w->pParent)->hp <= 0) {
                 hp = 0;
             }
-            if (w->pParent && (w->pParent->be_flag & 0x201) != 1) {
+            if (w->pParent && !w->pParent->isAlive()) {
                 EmMgr.destroy(this);
             }
         }

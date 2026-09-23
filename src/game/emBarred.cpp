@@ -1020,7 +1020,7 @@ int emBarredNearCk(cEmBarred* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id > 0x3F) {
@@ -1135,7 +1135,7 @@ int emBarredUnderCk(cEmBarred* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id > 0x3F) {

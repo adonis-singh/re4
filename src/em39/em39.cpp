@@ -7049,9 +7049,7 @@ int em39JumpUpCk(cEm39* em)
     }
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
-        int alive = o->be_flag & 0x201;
-
-        if (alive != 1) {
+        if (!o->isAlive()) {
             continue;
         }
         if (o->id != 0x13) {
@@ -7069,7 +7067,7 @@ int em39JumpUpCk(cEm39* em)
         if (!(fabsf(Muku(&em->pos, &a, em->ang.y, PI)) > 1.0471976f)) {
             w->Target_dir = GetXZAngle(&em->pos, &a);
             w->Target_pos = a;
-            EmRoutineSet(em, alive, 0x14, 0, 0);
+            EmRoutineSet(em, 1, 0x14, 0, 0);
             return 1;
         }
     }
@@ -7936,7 +7934,7 @@ int em39DoorOpenCk(cEm39* em)
         f32 ang;
         u32 st;
 
-        if ((d->be_flag & 0x201) != 1) {
+        if (!d->isAlive()) {
             continue;
         }
         if (d->id != 0x41) {

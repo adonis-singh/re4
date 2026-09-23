@@ -1220,7 +1220,7 @@ u32 GetWepTargetList2(Vec* p0, Vec* p1, WepTarget* list, u32 max, Vec* hit, Vec*
         do {
         em = EmMgr.at(i);
 
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->id != 0x41 && em->id != 0x4E) {
@@ -1653,7 +1653,7 @@ int GetWepTargetPos(Vec* pPos, Vec* pPos2, int mode, int wep_no, cEm** ppEm, u32
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         em = EmMgr.fastAt(i);
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->be_flag & 0x10000000) {
@@ -2536,7 +2536,7 @@ int EmRackCk(cEm* pEm, Vec* pPos, f32 dir)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         off = EmMgr.size * i;
         e = (cEm*) ((u8*) EmMgr.pArray + off);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x45) {
@@ -3377,7 +3377,7 @@ int TrolleyItemSetCk(Vec* pPos, ITEM_ID item_id, int item_num)
     }
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         obj = ObjMgr.fastAt(i);
-        if ((obj->be_flag & 0x201) != 1) {
+        if (!obj->isAlive()) {
             continue;
         }
         if (obj->id != 0x3B) {
@@ -3404,7 +3404,7 @@ int BullItemSetCk(Vec* pPos, ITEM_ID item_id, int item_num)
     }
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         obj = ObjMgr.fastAt(i);
-        if ((obj->be_flag & 0x201) != 1) {
+        if (!obj->isAlive()) {
             continue;
         }
         if (obj->id != 0x3E) {

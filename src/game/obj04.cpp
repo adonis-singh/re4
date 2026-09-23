@@ -31,7 +31,7 @@ void cObj04::move()
     static f32 obj04_gnd_ratio = 0.0f;
 
     if (w->pMod) {
-        if ((w->pMod->be_flag & 0x201) != 1) {
+        if (!w->pMod->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }

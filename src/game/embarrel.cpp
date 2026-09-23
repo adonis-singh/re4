@@ -499,7 +499,7 @@ void cEmBarrel::move()
     }
     be_flag &= ~0x4000;
     EmBarrel_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         EmAtCheck(this);
         atari.move();
         emBarrelEatSet(this);
@@ -967,7 +967,7 @@ void emBarrelRunDownCk(cEmBarrel* pEm)
     PSMTXInverse(pEm->mat, inv);
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {

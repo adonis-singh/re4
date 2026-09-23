@@ -112,7 +112,7 @@ public:
 
 inline int cSat::isAlive()
 {
-    if ((be_flag & 0x201) == 1 && isEnable()) {
+    if (cUnit::isAlive() && isEnable()) {
         return 1;
     }
     return 0;

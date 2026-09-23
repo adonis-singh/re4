@@ -141,7 +141,7 @@ static void r311_checkEmMoveCtrl()
         for (i = 0; i < EmMgr.getArrayNum(); i++) {
             cEm* p = EmMgr.fastAt(i);
 
-            if (p->id >= 0x10 && p->id <= 0x20 && (p->be_flag & 0x201) == 1) {
+            if (p->id >= 0x10 && p->id <= 0x20 && p->isAlive()) {
                 em.setPtr(p, 1);
                 if (n & 1) {
                     SceAtGetCenterPos(&pos, 0xC);

@@ -694,7 +694,7 @@ int SubLadderClimbCk(cEm* pEm)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObjLadder* obj = (cObjLadder*) ObjMgr.fastAt(i);
 
-        if ((obj->be_flag & 0x201) == 1 && obj->id == 0x13 && obj->ckClimb()) {
+        if (obj->isAlive() && obj->id == 0x13 && obj->ckClimb()) {
             if ((pEm->pos.x - obj->pos.x) * (pEm->pos.x - obj->pos.x) + (pEm->pos.y - obj->pos.y) * (pEm->pos.y - obj->pos.y) +
                     (pEm->pos.z - obj->pos.z) * (pEm->pos.z - obj->pos.z) >
                 distLim) {
@@ -725,7 +725,7 @@ int SubLadderClimbCk2(cEm* pEm)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObjLadder* obj = (cObjLadder*) ObjMgr.fastAt(i);
 
-        if ((obj->be_flag & 0x201) == 1 && obj->id == 0x13 && obj->getStatus() != 0) {
+        if (obj->isAlive() && obj->id == 0x13 && obj->getStatus() != 0) {
             f32 dy = pEm->pos.y - obj->pos.y;
 
             if ((pEm->pos.x - obj->pos.x) * (pEm->pos.x - obj->pos.x) + dy * dy +
@@ -1204,7 +1204,7 @@ int LadderNearCk(Vec* pPos)
         cObjLadder* obj = (cObjLadder*) ObjMgr.fastAt(i);
         LadderWork* w = LADDER_WK(obj);
 
-        if ((obj->be_flag & 0x201) == 1 && obj->id == 0x13 && w->Status == 0 && !(LADDER_WK(obj)->be_flag & 2)) {
+        if (obj->isAlive() && obj->id == 0x13 && w->Status == 0 && !(LADDER_WK(obj)->be_flag & 2)) {
             PSMTXRotRad(m, 'y', obj->ang.y);
             v.x = 0.0f;
             v.y = (f32) w->Ladder_num * 533.3329f;
@@ -1230,7 +1230,7 @@ void LadderEventTrans(int flag)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObjLadder* obj = (cObjLadder*) ObjMgr.fastAt(i);
 
-        if ((obj->be_flag & 0x201) == 1 && obj->id == 0x13) {
+        if (obj->isAlive() && obj->id == 0x13) {
             if (flag == 1) {
                 obj->getTransOld();
             } else {
@@ -1263,7 +1263,7 @@ void cObjLadder::breakWindow()
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEmWindow* em = (cEmWindow*) EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1 && em->id == 0x46 && em->hp > 0 && (em->ChkStatus() & 1) == 0) {
+        if (em->isAlive() && em->id == 0x46 && em->hp > 0 && (em->ChkStatus() & 1) == 0) {
             if ((em->pos.x - v.x) * (em->pos.x - v.x) + (em->pos.y - v.y) * (em->pos.y - v.y) + (em->pos.z - v.z) * (em->pos.z - v.z) <
                 4000000.0f) {
                 em->SetBreakAll(&v, 0, 0);

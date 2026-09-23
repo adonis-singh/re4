@@ -577,7 +577,7 @@ void emMineSearchEm(cEmMine* pEm, int mode)
         cEm* e = EmMgr.fastAt(i);
         cParts* parts;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->hp <= 0) {
@@ -781,7 +781,7 @@ void emMine_R1_Parent(cEmMine* pEm)
     EmMineWork* w = EMMINE_WK(pEm);
     cEm* parent = w->pEm_oya;
 
-    if ((parent->be_flag & 0x201) != 1) {
+    if (!parent->isAlive()) {
         w->pEm_oya = 0;
         parent = 0;
     }

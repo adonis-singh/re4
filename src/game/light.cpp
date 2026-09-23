@@ -31,7 +31,6 @@ extern f32 lod_bias;
 
 // pointer to game memory (0x80000000 .. 0x82FFFFFF)
 #define IN_RANGE(p) ((u32) (p) - 0x80000000 <= 0x02FFFFFF)
-#define IS_ALIVE(p) (((p)->be_flag & 0x201) == 1)
 
 void funcDelCtrl(cCtrl* pCtr);
 
@@ -160,7 +159,7 @@ cLight* cLightMgr::create(cLightWork* pLw)
     if (l == 0) {
         return 0;
     }
-    if (!IS_ALIVE(l)) {
+    if (!l->isAlive()) {
         return 0;
     }
     *l = *pLw;
@@ -468,8 +467,8 @@ void lightMove(cLight* pLi)
     cModel* p = pLi->pParent;
     cModel* em;
 
-    if (p != 0 && !IS_ALIVE(p) && !DbgFlagChk(pG, DBG_TEST_MODE)) {
-        if (IS_ALIVE(pLi)) {
+    if (p != 0 && !p->isAlive() && !DbgFlagChk(pG, DBG_TEST_MODE)) {
+        if (pLi->isAlive()) {
             LightMgr.destroy(pLi);
         }
         return;
@@ -1199,7 +1198,7 @@ cLightWork& cLightWork::operator=(cLight& l)
 // 1 when this is an alive room light (be_flag 4).
 int cLight::checkScr()
 {
-    if (IS_ALIVE(this)) {
+    if (isAlive()) {
         if (be_flag & 4) {
             return 1;
         }
@@ -1291,7 +1290,7 @@ cCoord* cLight::getCoord()
     cModel* p = pParent;
     int partsNo = parent.partsNo;
 
-    if (p != 0 && IS_ALIVE(p) && partsNo < p->nParts) {
+    if (p != 0 && p->isAlive() && partsNo < p->nParts) {
         return p->getPartsPtr(partsNo);
     }
     return 0;
@@ -1350,7 +1349,7 @@ int cLight::calcPos(Vec* pLiPos, Vec* pPos)
             if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "Lit:calcPos() %d-%d ETCMODEL PARENT NOT FOUND", no, partsNo);
             }
-        } else if (p != 0 && IS_ALIVE(p) && partsNo < p->nParts) {
+        } else if (p != 0 && p->isAlive() && partsNo < p->nParts) {
             PSMTXMultVec(p->getPartsPtr(partsNo)->mat, pLiPos, pPos);
         }
         break;
@@ -1379,7 +1378,7 @@ int cLight::getNormal(Vec* pInNorm, Vec* pNorm)
         u32 pid = ParentNo;
         partsNo = pid >> 16;
         p = EmMgr.getEmPtr((u8) pid, 0);
-        if (!(VALID_PTR(p) && IS_ALIVE(p) && partsNo < p->nParts)) {
+        if (!(VALID_PTR(p) && p->isAlive() && partsNo < p->nParts)) {
             if (!(ParentType == 1 && parent.no == 3)) {
                 if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                     pLog->err(0, 0, "cLight::getNormal() FAILED.");
@@ -1402,7 +1401,7 @@ int cLight::getNormal(Vec* pInNorm, Vec* pNorm)
             *pNorm = *pInNorm;
             return 0;
         }
-        if (IS_ALIVE(p) && partsNo < p->nParts) {
+        if (p->isAlive() && partsNo < p->nParts) {
             PSMTXMultVecSR(p->getPartsPtr(partsNo)->mat, pInNorm, pNorm);
             if (pNorm->x == 0.0f && pNorm->y == 0.0f && pNorm->z == 0.0f) {
                 pNorm->x = 0.001f;
@@ -1430,7 +1429,7 @@ int cLight::getNormal(Vec* pInNorm, Vec* pNorm)
         no = pid & 0xFFFF;
         partsNo = pid >> 16;
         p = ObjMgrWork(no);
-        if (!(VALID_PTR(p) && IS_ALIVE(p) && partsNo < p->nParts)) {
+        if (!(VALID_PTR(p) && p->isAlive() && partsNo < p->nParts)) {
             if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "cLight::getNormal() FAILED.");
             }

@@ -32,7 +32,7 @@ cCtrl* GetCtrlCtrl11()
 
     for (i = 0; i < n; i++) {
         c = CtrlMgr.at(i);
-        if ((c->be_flag & 0x201) == 1 && c->Id == 0x11) {
+        if (c->isAlive() && c->Id == 0x11) {
             return c;
         }
     }

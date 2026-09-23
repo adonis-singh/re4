@@ -726,7 +726,7 @@ void cObjRobo::SatMove(cObjRobo* pObj, Vec* pPosOld, int armNo)
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         em = EmMgr.fastAt(i);
-        if ((em->be_flag & 0x201) == 1 && em->id > 0xF && em->id <= 0x20) {
+        if (em->isAlive() && em->id > 0xF && em->id <= 0x20) {
             SatMoveSub(em, &a, &d);
         }
     }

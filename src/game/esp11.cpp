@@ -48,7 +48,7 @@ void cEsp11::move()
     if (w->ToolState != 0) {
         EffSetToolState(w->ToolState);
     }
-    if (w->pLi != NULL && (w->pLi->be_flag & 0x201) != 1) {
+    if (w->pLi != NULL && !w->pLi->isAlive()) {
         w->pLi = NULL;
         PushEsp(this);
     } else if (w->Type == 1) {
@@ -74,7 +74,7 @@ void cEsp11::Destruct()
 {
     cLight* l = m_Free.pLi;
 
-    if (l != NULL && (l->be_flag & 0x201) == 1) {
+    if (l != NULL && l->isAlive()) {
         LightMgr.destroy(l);
     }
 }

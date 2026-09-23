@@ -4766,7 +4766,7 @@ int em2bSearchTree(cEm2b* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEmTree* e = (cEmTree*) EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x49) {
@@ -5052,7 +5052,7 @@ void em2bDashScrCk(cEm2b* em, Vec* pos, f32 rad)
         cEmRock* e = (cEmRock*) EmMgr.fastAt(i);
         cParts* p;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x4A) {
@@ -5447,7 +5447,7 @@ int em2bSearchDog(cEm2b* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x21) {
@@ -6166,7 +6166,7 @@ int em2bStayCk(cEm2b* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x2B) {
@@ -6207,7 +6207,7 @@ void em2bObaHitCk(cEm2b* em)
         cEm* e = EmMgr.fastAt(i);
         Vec d;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x2B) {
@@ -6280,7 +6280,7 @@ int em2bFriendCk(cEm2b* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x2B) {
@@ -6353,7 +6353,7 @@ void em2bYaguraSearch(cEm2b* em)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) != 1) {
+        if (!o->isAlive()) {
             continue;
         }
         if (o->id != 0x39) {

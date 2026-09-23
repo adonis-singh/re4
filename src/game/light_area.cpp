@@ -101,7 +101,7 @@ void LightAreaUpdate()
         cEm* em = EmMgr.fastAt(i);
         int type;
 
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->litArea.chk(1) != 1) {

@@ -2864,7 +2864,7 @@ void em22DoorOpenCk(cEm22* em)
         cEmDoor* door = (cEmDoor*) EmMgr.fastAt(i);
         EmDoorWork* dw;
 
-        if ((door->be_flag & 0x201) != 1) {
+        if (!door->isAlive()) {
             continue;
         }
         if (door->id != 0x41) {

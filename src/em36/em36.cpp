@@ -4279,7 +4279,7 @@ void em36DoorOpenCk(cEm36* em)
         EmDoorWork* dw;
         f32 ang;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x41) {

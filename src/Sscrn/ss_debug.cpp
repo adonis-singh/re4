@@ -433,7 +433,7 @@ int cManager<T>::dispWorkNum(int x, int y, int col, int sub)
     n = 0;
     for (i = 0; i < nArray; i++) {
         T* p = fastAt(i);
-        if (p->be_flag & 0x601) {
+        if (!p->isEmpty()) {
             n++;
         }
     }

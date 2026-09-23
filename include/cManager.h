@@ -28,11 +28,13 @@ public:
     // size_t is `unsigned int` for this compiler; with u32 (unsigned long) GCC 2.95 would not
     // treat this as the usual deallocation function.
     void operator delete(void*, unsigned int) {}
+    // PS2 declares setAlive, isDieRequest and isDieRequest2 but no PS2 code calls them, so these
+    // three masks are unconfirmed
     int setAlive() { return be_flag |= 1; }
     int isEmpty() { return !(be_flag & 0x601); }
-    // die requests: cManager::dieCheck turns 0x200 into 0x400, and 0x400 destroys the work
-    int setDieRequest() { return be_flag |= 0x200; }
-    int setDieRequest2() { return be_flag |= 0x400; }
+    // cManager::dieCheck deletes a work with 0x400 set and turns 0x200 into 0x400 for the next pass
+    int setDieRequest() { return be_flag |= 0x600; }
+    int setDieRequest2() { return be_flag |= 0x200; }
     int isDieRequest() { return be_flag & 0x200; }
     int isDieRequest2() { return be_flag & 0x400; }
     cUnit* getNext() { return pNext; }
@@ -240,7 +242,7 @@ int cManager<T>::dieCheck()
     u32 i;
     for (i = 0; i < nArray; i++) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (p->be_flag & 0x601) {
+        if (!p->isEmpty()) {
             if (p->be_flag & 0x400) {
                 delete p;
                 p->be_flag = 0;
@@ -259,7 +261,7 @@ u32 cManager<T>::countActiveWork()
     u32 i;
     for (i = 0; i < nArray; i++) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (p->be_flag & 0x601) {
+        if (!p->isEmpty()) {
             n++;
         }
     }
@@ -278,7 +280,7 @@ T* cManager<T>::create(int id)
     u32 i;
     for (i = 0; i < nArray; i++) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (!(p->be_flag & 0x601)) {
+        if (p->isEmpty()) {
             memClear(p, size);
             if (construct(p, id) == 0) {
                 log("create()->construct() failed. %s id:%d", name, id);
@@ -306,7 +308,7 @@ T* cManager<T>::create(int id, u32 no)
         return 0;
     }
     T* p = (T*)((u8*)pArray + size * no);
-    if (p->be_flag & 0x601) {
+    if (!p->isEmpty()) {
         log("create() failed %s id:%d", name, id);
         return 0;
     }
@@ -384,10 +386,10 @@ inline void cManager<T>::destroy(T* p)
         p->be_flag = 0;
         break;
     case 1:
-        p->be_flag |= 0x600;
+        p->setDieRequest();
         break;
     case 2:
-        p->be_flag |= 0x200;
+        p->setDieRequest2();
         break;
     default:
         log("%s::destroy() INVALID ID %d", name, flag);
@@ -412,7 +414,7 @@ T* cManager<T>::createBack(int id)
     int i;
     for (i = nArray - 1; i >= 0; i--) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (!(p->be_flag & 0x601)) {
+        if (p->isEmpty()) {
             memClear(p, size);
             if (construct(p, id) == 0) {
                 log("create()->construct() failed. %s id:%d", name, id);

@@ -652,7 +652,7 @@ void objTrolleyMoveAdjustEM(cObjTrolley* pObj)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1) {
+        if (em->isAlive()) {
             if (em->id == 0x42) {
                 ((cEmWep*) em)->setParentMatCalc(1);
             } else if (em->id > 0xF) {
@@ -764,7 +764,7 @@ void objTrolleyFallEM(cObjTrolley* pObj)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1 && em->id > 0xF && em->id <= 0x20 && em->hp > 0) {
+        if (em->isAlive() && em->id > 0xF && em->id <= 0x20 && em->hp > 0) {
             em->hp = 0;
             TROLLEY_EM_WK(em)->yaw = em->ang.y;
             em->be_flag |= 0x10000;
@@ -784,7 +784,7 @@ void objTrolleyLostEM(cObjTrolley* pObj)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1 && em->id > 0xF && em->id <= 0x20 && (em->be_flag & 2)) {
+        if (em->isAlive() && em->id > 0xF && em->id <= 0x20 && (em->be_flag & 2)) {
             ((cEmRoom*) em)->setTrolleyLost();
         }
     }

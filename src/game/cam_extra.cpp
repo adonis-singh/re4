@@ -960,7 +960,7 @@ void CameraPushObject::move()
     plpos.x = inv[0][3]; plpos.y = inv[1][3]; plpos.z = inv[2][3];
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = (cModel*) EmMgr.fastAt(i);
-        if ((e->id == 0x41 || e->id == 0x44 || e->id == 0x46) && (e->be_flag & 0x201) == 1) {
+        if ((e->id == 0x41 || e->id == 0x44 || e->id == 0x46) && e->isAlive()) {
             PSMTXMultVec(m, &e->pos, &em_pos);
             // negated tests: `blt` / `cror so,eq,gt; bso` (a positive `>=`/`<=` gives cror + bns)
             if (!(em_pos.z < 0.0f) && !(PSVECMag(&em_pos) >= 4000.0f)) {

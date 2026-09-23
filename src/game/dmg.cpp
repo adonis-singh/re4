@@ -47,7 +47,7 @@ void cDmgMgr::move()
     for (i = 0; i < nArray; i++) {
         cDmg* p = fastAt(i);
         dieCheck();
-        if ((p->be_flag & 0x201) == 1) {
+        if (p->isAlive()) {
             if (--p->m_Time == 0) {
                 destroy(p);
             }
@@ -97,7 +97,7 @@ int cDmgMgr::hitCheck(Vec* pPos, Vec* pFrom)
 
     for (i = 0; i < nArray; i++) {
         cDmg* p = fastAt(i);
-        if ((p->be_flag & 0x201) == 1) {
+        if (p->isAlive()) {
             if (p->hitCheck(pPos, pFrom)) {
                 return p->m_Type;
             }

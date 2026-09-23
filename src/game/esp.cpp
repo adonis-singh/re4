@@ -251,7 +251,7 @@ int EspMove()
         if (esp->parent != pEffParentWorld) {
             cModel* m = esp->m_pMod;
             if (m != NULL) {
-                if ((m->be_flag & 0x201) != 1 || m->guid != esp->m_Guid_pMod) {
+                if (!m->isAlive() || m->guid != esp->m_Guid_pMod) {
                     PushEsp(esp);
                     continue;
                 }

@@ -129,7 +129,7 @@ void espgen00_Update(EspgenWork* pEspgen)
     cModel* model = p->pMod;
 
     if (model != NULL) {
-        if ((model->be_flag & 0x201) != 1 || model->guid != p->Guid_pMod) {
+        if (!model->isAlive() || model->guid != p->Guid_pMod) {
             PushEspgen(pEspgen);
             return;
         }

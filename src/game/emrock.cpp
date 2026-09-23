@@ -241,7 +241,7 @@ void cEmRock::move()
 
     emRockDmCk(this);
     EmRock_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) != 1) {
+    if (!isAlive()) {
         return;
     }
     EmAtCheck(this);
@@ -2083,7 +2083,7 @@ void emRockRunDownCk(cEmRock* pEm)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -2154,7 +2154,7 @@ void emRockPushCk(cEmRock* pEm, int frame)
     n = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -2303,7 +2303,7 @@ int emRockDropHitCkEm2b(cEmRock* pEm)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x2B) {

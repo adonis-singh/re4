@@ -650,7 +650,7 @@ int ObjHitCheck(Vec* ret_cross, Vec* ret_norm, Vec* pos0, Vec* pos1, u32 flag)
         *ret_cross = *pos1;
     }
     for (o = ObjMgr.getActiveWork(); o != 0; o = ObjMgr.getNext(o)) {
-        if ((o->be_flag & 0x201) != 1) {
+        if (!o->isAlive()) {
             continue;
         }
         if (o->id == 2) {

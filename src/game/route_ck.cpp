@@ -69,7 +69,7 @@ void RouteCk()
 
     for (i = 0; i < n; i++) {
         cEm* em = EmMgr.fastAt(i);
-        if ((em->be_flag & 0x201) == 1) {
+        if (em->isAlive()) {
             em->RckStat = 0;
         }
     }

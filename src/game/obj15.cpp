@@ -117,7 +117,7 @@ void cObjGatling::move()
     GatlingWork* w = GATLING_WK(this);
 
     if (w->pEm) {
-        if ((w->pEm->be_flag & 0x201) != 1) {
+        if (!w->pEm->isAlive()) {
             w->pEm = 0;
         }
         if (w->pEm) {

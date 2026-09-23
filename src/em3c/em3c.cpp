@@ -479,7 +479,7 @@ void cEm3c::move()
                 break;
             }
         }
-        if (w->pCore && w->pCore->pList && (w->pCore->be_flag & 0x201) == 1) {
+        if (w->pCore && w->pCore->pList && w->pCore->isAlive()) {
             Mtx inv;
             Vec v;
             cParts* p;
@@ -2345,7 +2345,7 @@ int em3cStayCk(cEm3c* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x3C && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE)
+        if (e->isAlive() && e->id == 0x3C && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE)
             && EM3C_WK(e)->L_pl_route < w->L_pl_route) {
             cnt++;
         }
@@ -2437,7 +2437,7 @@ void em3cDoorOpenCk(cEm3c* em)
         cEmDoor* e = (cEmDoor*) EmMgr.fastAt(i);
         EmDoorWork* dw;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x41) {
@@ -2512,7 +2512,7 @@ void em3cAtkSuspend(cEm3c* em, int on)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x3C && e != em && e->r_no_0 == 1 && e->r_no_1 <= 1) {
+        if (e->isAlive() && e->id == 0x3C && e != em && e->r_no_0 == 1 && e->r_no_1 <= 1) {
             if (on) {
                 e->setNoSuspend(1);
             } else {

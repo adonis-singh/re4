@@ -139,7 +139,7 @@ void cWepItem::move00()
         }
     }
     if (w->pEm) {
-        if ((w->pEm->be_flag & 0x201) != 1) {
+        if (!w->pEm->isAlive()) {
             w->pEm = 0;
         }
     }

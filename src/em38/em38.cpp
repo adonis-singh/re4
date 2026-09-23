@@ -1734,7 +1734,7 @@ void em38SearchParts(cEm38* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm38* p = (cEm38*) EmMgr.fastAt(i);
 
-        if ((p->be_flag & 0x201) == 1 && p->id == 0x38 && p != em) {
+        if (p->isAlive() && p->id == 0x38 && p != em) {
             switch (p->type) {
             case 0:
                 if (w->pBody == 0) {

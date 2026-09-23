@@ -1595,7 +1595,7 @@ int em3aBossCk(cEm3a* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x39 && e->hp > 0 && (e->be_flag & 2)) {
+        if (e->isAlive() && e->id == 0x39 && e->hp > 0 && (e->be_flag & 2)) {
             PSMTXMultVec(inv, &e->pos, &lp);
             if (lp.x > -4000.0f && lp.x < 4000.0f && lp.z > 0.0f && lp.z < 30000.0f) {
                 return 1;
@@ -1616,7 +1616,7 @@ int em3aBossNearCk(cEm3a* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x39 && e->hp > 0
+        if (e->isAlive() && e->id == 0x39 && e->hp > 0
             && (em->pos.x - e->pos.x) * (em->pos.x - e->pos.x) + (em->pos.y - e->pos.y) * (em->pos.y - e->pos.y)
                     + (em->pos.z - e->pos.z) * (em->pos.z - e->pos.z)
                 < 16000000.0f) {

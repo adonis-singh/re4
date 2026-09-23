@@ -291,7 +291,7 @@ void cObj18::move()
         PSMTXCopy(l_mat, mat);
     }
     if (w->pEm_oya) {
-        if ((w->pEm_oya->be_flag & 0x201) != 1) {
+        if (!w->pEm_oya->isAlive()) {
             w->pEm_oya = 0;
         }
     }

@@ -511,7 +511,7 @@ int chkAliveGanadeNum()
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && (em->be_flag & 0x201) == 1) {
+        if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->isAlive()) {
             cnt++;
         }
     }
@@ -938,7 +938,7 @@ static void chkReaderMove()
                     r206_work->em[7].setGoto(&pSUB->pos, 8);
                 }
                 if ((r206_work->gotoNo == 0 && cnt == 0x1A4)
-                    || (cnt > 0x257 && (em->be_flag & 0x201) == 1 && em->checkStatus(EM_STATUS_ACTIVE) == 1
+                    || (cnt > 0x257 && em->isAlive() && em->checkStatus(EM_STATUS_ACTIVE) == 1
                         && EmDeadCk(em))) {
                     timer = 0x5A;
                 }

@@ -2143,7 +2143,7 @@ void sndSurroundCalc()
         case 1:
             sit = Snd_get_sit_adrs(w->blk, w->no);
             if (w->obj != NULL) {
-                if ((w->obj->be_flag & 0x201) == 0x1) {
+                if (w->obj->isAlive()) {
                     getCam2SndAngle(&pan, 0, &dist, w->ppos);
                     w->pos.x = w->ppos->x;
                     w->pos.y = w->ppos->y;

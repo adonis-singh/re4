@@ -512,7 +512,7 @@ void em_destroy()
             hi = 0x10;
         }
         id = em->id;
-        if (id >= lo && id <= hi && (em->be_flag & 0x201) == 1) {
+        if (id >= lo && id <= hi && em->isAlive()) {
             if (((cEmGanado*) em)->ckResetEnable()) {
                 EmMgr.destroy(em);
             }

@@ -839,7 +839,7 @@ void objBullMoveAdjustEM(cObjBull* pObj)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1) {
+        if (em->isAlive()) {
             if (em->id == 0x42) {
                 ((cEmWep*) em)->setParentMatCalc(1);
             } else if (em->id == 3) {
@@ -1333,7 +1333,7 @@ int SubCkNearEm()
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1 && em->id > 0xF && em->id <= 0x20 && em->hp > 0 && (em->be_flag & 2)) {
+        if (em->isAlive() && em->id > 0xF && em->id <= 0x20 && em->hp > 0 && (em->be_flag & 2)) {
             PSMTXMultVec(inv, &em->pos, &v);
             if (v.x < -2000.0f) {
                 continue;

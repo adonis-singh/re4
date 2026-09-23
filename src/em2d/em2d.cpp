@@ -5512,7 +5512,7 @@ int em2dStayCk(cEm2d* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
+        if (e->isAlive() && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
             (EM2D_WK(e)->flags & 0x200) && e->l_pl < em->l_pl) {
             cnt++;
         }
@@ -5750,7 +5750,7 @@ void em2dDoorOpenCk(cEm2d* em)
         cEmDoor* e = (cEmDoor*) EmMgr.fastAt(i);
         EmDoorWork* dw;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x41) {
@@ -6329,7 +6329,7 @@ int em2dSomebodyFindCk(cEm2d* em)
         cEm* e = EmMgr.fastAt(i);
         f32 d;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x2D) {
@@ -6503,7 +6503,7 @@ void em2dHumSeMove(cEm2d* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
+        if (e->isAlive() && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
             (EM2D_WK(e)->flags & 0x40000) &&
             (cam->param.pos.x - e->pos.x) * (cam->param.pos.x - e->pos.x) +
                     (cam->param.pos.y - e->pos.y) * (cam->param.pos.y - e->pos.y) +

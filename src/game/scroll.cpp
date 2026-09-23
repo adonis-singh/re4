@@ -307,7 +307,7 @@ void smxInit(cObj* obj, SmxWork* w)
         pLog->err(0, 0, "SmdInit() SMX WORK NUM ERR %d", w->id);
         return;
     }
-    if ((u32) obj < 0x80000000 || (u32) obj > 0x82FFFFFF || (obj->be_flag & 0x201) != 1) {
+    if ((u32) obj < 0x80000000 || (u32) obj > 0x82FFFFFF || !obj->isAlive()) {
         pLog->err(0, 0, "SmdInit() SMX UNUSED cObj SELECT %d", w->id);
         return;
     }

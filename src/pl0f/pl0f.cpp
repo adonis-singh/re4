@@ -1686,7 +1686,7 @@ int pl0fCrashCk(cPl0f* em)
     for (n = 0; n < EmMgr.getArrayNum(); n++) {
         cEm* e = EmMgr.fastAt(n);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x2F && (s16) e->hp > 0) {
+        if (e->isAlive() && e->id == 0x2F && (s16) e->hp > 0) {
             for (i = 0; i < 2; i++) {
                 if (EmYarareContactCk(e, &w->node[i].wpos, 800.0f, &hit)) {
                     int away = 0;
@@ -1706,7 +1706,7 @@ int pl0fCrashCk(cPl0f* em)
     for (n = 0; n < ObjMgr.getArrayNum(); n++) {
         cObj* o = ObjMgr.fastAt(n);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1C) {
+        if (o->isAlive() && o->id == 0x1C) {
             f32 r = o->scale.x * 1800.0f;
 
             for (i = 0; i < 2; i++) {
@@ -3345,7 +3345,7 @@ int testSearchEm2f(cPl0f* em)
     for (n = 0; n < EmMgr.getArrayNum(); n++) {
         cEm* e = EmMgr.fastAt(n);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x2F && (s16) e->hp > 0 && e->set == 1) {
+        if (e->isAlive() && e->id == 0x2F && (s16) e->hp > 0 && e->set == 1) {
             Vec v;
             f32 len;
             int i;

@@ -1082,33 +1082,32 @@ void tBlockArea_dispBlockModel(int on)
 
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* obj = ObjMgr.fastAt(i);
-        u32 be = obj->be_flag;
         int blk;
 
-        if ((be & 0x201) != 1) continue;
+        if (!obj->isAlive()) continue;
         blk = obj->blk;
         if (blk < 0) continue;
         if (obj->id != 2) continue;
         if (on == 1) {
             if (blk == pW->connect[pW->connectNo].blockNo) {
-                obj->be_flag = be | 2;
+                obj->be_flag |= 2;
             } else if (FlagChkVar(&pW->mram, (u32) blk)) {
                 if (pW->blink & 4) {
-                    obj->be_flag = be | 2;
+                    obj->be_flag |= 2;
                 } else {
-                    obj->be_flag = be & ~2;
+                    obj->be_flag &= ~2;
                 }
             } else if (FlagChkVar(&pW->aram, (u32) blk)) {
                 if (pW->blink & 0x10) {
-                    obj->be_flag = be | 2;
+                    obj->be_flag |= 2;
                 } else {
-                    obj->be_flag = be & ~2;
+                    obj->be_flag &= ~2;
                 }
             } else {
-                obj->be_flag = be & ~2;
+                obj->be_flag &= ~2;
             }
         } else {
-            obj->be_flag = be | 2;
+            obj->be_flag |= 2;
         }
     }
 }
@@ -1147,7 +1146,7 @@ void tBlockArea_dispBlockBox(u8 no, u32 col)
         Vec box[8];
         Vec c;
 
-        if ((obj->be_flag & 0x201) != 1) continue;
+        if (!obj->isAlive()) continue;
         if (obj->blk != no) continue;
         if (obj->id != 2) continue;
         info = obj->pModelInfo;

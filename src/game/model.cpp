@@ -1297,12 +1297,12 @@ cParts* cPartsMgr::createSequential(u32 n)
     for (i = 0; lim = n + 1, i < nArray - lim; i++) {
         int ok;
 
-        if (PartsMgrWork(this, i)->be_flag & 0x601) {
+        if (!PartsMgrWork(this, i)->isEmpty()) {
             continue;
         }
         ok = 1;
         for (j = 0; j < n; j++) {
-            if (PartsMgrWork(this, i + j)->be_flag & 0x601) {
+            if (!PartsMgrWork(this, i + j)->isEmpty()) {
                 ok = 0;
             }
         }

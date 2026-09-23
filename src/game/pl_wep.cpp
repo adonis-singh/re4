@@ -687,7 +687,7 @@ int lockEmCk(cEm* pEm, Vec* pPos)
 {
     Vec v;
 
-    if ((pEm->be_flag & 0x201) != 1) {
+    if (!pEm->isAlive()) {
         return 0;
     }
     if (!(pEm->be_flag & 0x20)) {

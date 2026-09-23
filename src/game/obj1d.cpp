@@ -61,7 +61,7 @@ void cObjChain::move()
     ChainWork* w = CHAIN_WK(this);
 
     if (w->pEm_oya) {
-        if ((w->pEm_oya->be_flag & 0x201) != 1) {
+        if (!w->pEm_oya->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }
@@ -70,7 +70,7 @@ void cObjChain::move()
         MotionMove(this, 0);
     }
     Obj1d_R1_move_tbl[r_no_1](this);
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         chainMove();
     }
 }

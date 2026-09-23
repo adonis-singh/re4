@@ -735,7 +735,7 @@ static void r224_str_check()
         for (i = 0; i < EmMgr.getArrayNum(); i++) {
             cEm* em = EmMgr.fastAt(i);
 
-            if (em->id == 0x2B && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && (em->be_flag & 0x201) == 1) {
+            if (em->id == 0x2B && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && em->isAlive()) {
                 found = 1;
             }
         }

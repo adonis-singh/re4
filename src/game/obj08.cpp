@@ -100,7 +100,7 @@ void SetObj08Spd(cObj* obj, Vec* spd, int life, f32 grav, f32 rad)
     if (obj == 0) {
         return;
     }
-    if ((obj->be_flag & 0x201) != 1) {
+    if (!obj->isAlive()) {
         return;
     }
     if (obj->id != 8) {
@@ -125,7 +125,7 @@ void SetObj08Est(cObj* obj, int no0, int prm0, int no1, int prm1, int no2, int p
     if (obj == 0) {
         return;
     }
-    if ((obj->be_flag & 0x201) != 1) {
+    if (!obj->isAlive()) {
         return;
     }
     if (obj->id != 8) {
@@ -151,7 +151,7 @@ void SetObj08Se(cObj* obj, u16 blk, u16 no)
     if (obj == 0) {
         return;
     }
-    if ((obj->be_flag & 0x201) != 1) {
+    if (!obj->isAlive()) {
         return;
     }
     if (obj->id != 8) {

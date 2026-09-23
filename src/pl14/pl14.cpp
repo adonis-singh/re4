@@ -889,7 +889,7 @@ void cAction::moveAttack(cAnalysis* an, cRoutine* rt)
         if (rt->eor()) {
             if (an->pEmNear) {
                 if (an->pEmNear != rt->pTarget && an->pEmNearDist < 2000.0f) rt->pTarget = an->pEmNear;
-                if (!(rt->pTarget && (rt->pTarget->be_flag & 0x201) == 1 && rt->pTarget->hp > 0)) {
+                if (!(rt->pTarget && rt->pTarget->isAlive() && rt->pTarget->hp > 0)) {
                     rt->pTarget = an->pEmNear;
                 }
                 rno1 = 3;
@@ -1195,7 +1195,7 @@ int doorHitCheck(Vec* a, Vec* b)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
-        if (em && (em->be_flag & 0x201) == 1 && em->hp > 0 && (em->id == 0x41 || em->id == 0x4E) &&
+        if (em && em->isAlive() && em->hp > 0 && (em->id == 0x41 || em->id == 0x4E) &&
             emLineAtCk(em, a, b, 1e16f, 0)) {
             return 1;
         }
@@ -1726,7 +1726,7 @@ int isTarget(cSubLuis* luis, cEm* em)
         pLog->err(0, 0, "LUIS isTarget() INVALIED PTR 0x%08x", em);
         return 0;
     }
-    if (!VALID_PTR(em) || (em->be_flag & 0x201) != 1 || em->hp <= 0 || em->id <= 0xF || em->checkStatus(EM_STATUS_LOCKOFF) ||
+    if (!VALID_PTR(em) || !em->isAlive() || em->hp <= 0 || em->id <= 0xF || em->checkStatus(EM_STATUS_LOCKOFF) ||
         EatMgr.hitCheck(&luis->pList->world, &em->pList->world, 0, 0, 0, 0x400000) ||
         doorHitCheck(&luis->pList->world, &em->pList->world)) {
         return 0;

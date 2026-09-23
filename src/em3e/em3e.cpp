@@ -268,7 +268,7 @@ int countOldMark(cEmMark* self, int age)
         if (em == self) {
             continue;
         }
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->id != 0x3E) {

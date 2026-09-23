@@ -161,7 +161,7 @@ void cEmTree::move()
     Motion.Mot_flag &= ~0x40000000;
     emTreeDmCk(this);
     EmTree_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         EmAtCheck(this);
         atari.move();
         if (w->pParent) {

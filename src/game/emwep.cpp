@@ -344,7 +344,7 @@ void cEmWep::move()
 
     emWepDmCk(this);
     EmWep_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) != 1) {
+    if (!isAlive()) {
         return;
     }
     moveCloth();
@@ -379,7 +379,7 @@ void cEmWep::move()
             }
         }
     }
-    if (w->pEm_oya && (w->pEm_oya->be_flag & 0x201) != 1) {
+    if (w->pEm_oya && !w->pEm_oya->isAlive()) {
         EmMgr.destroy(this);
     }
 }
@@ -2527,7 +2527,7 @@ int emWepShotHitVaseCk(Vec* pPos, Vec* pPos2)
         cEm* e = EmMgr.fastAt(i);
         YARARE_INFO* part;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->hp <= 0) {
@@ -2602,7 +2602,7 @@ int emWepShotHitWindowCk(Vec* pPos, Vec* pPos2)
         cEm* e = EmMgr.fastAt(i);
         YARARE_INFO* part = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->hp <= 0) {
@@ -2681,7 +2681,7 @@ void cEmWep::moveCloth()
     Mtx inv;
 
     if (w->Be_flg & 4) {
-        if (w->Cloth.pEm_at && (w->Cloth.pEm_at->be_flag & 0x201) != 1) {
+        if (w->Cloth.pEm_at && !w->Cloth.pEm_at->isAlive()) {
             w->Cloth.pEm_at = 0;
         }
         PenClothMove2(this, &w->Cloth);
