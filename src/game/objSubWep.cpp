@@ -67,9 +67,9 @@ void cSubWep::move()
 void cSubWep::moveNormal()
 {
 
-    if (SUBWEP_WK(this)->life >= 0) {
-        if (SUBWEP_WK(this)->life > 0) {
-            SUBWEP_WK(this)->life--;
+    if (timer >= 0) {
+        if (timer > 0) {
+            timer--;
         } else {
             if (type == 0) {
                 scrAdjust();
@@ -83,7 +83,7 @@ void cSubWep::moveNormal()
     {
         cModel* parts = getPartsPtr(0);
         if (parts) {
-            PSVECAdd(&parts->ang, &SUBWEP_WK(this)->rotSpd, &parts->ang);
+            PSVECAdd(&parts->ang, &rot_spd, &parts->ang);
             parts->ang.x = LIMIT_ANGLE(parts->ang.x);
             parts->ang.y = LIMIT_ANGLE(parts->ang.y);
             parts->ang.z = LIMIT_ANGLE(parts->ang.z);
@@ -100,13 +100,13 @@ void cSubWep::moveNormal()
 void cSubWep::moveWater()
 {
 
-    SUBWEP_WK(this)->life--;
-    if (SUBWEP_WK(this)->life > 0) {
+    timer--;
+    if (timer > 0) {
         return;
     }
-    if (!(SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1)) {
-        EstSet(0, -1, &pos, 0, SUBWEP_WK(this)->effNo, SUBWEP_WK(this)->effPrm, 0, ESP_CORE_KIND_NONE, 0, 0);
-        if (SUBWEP_WK(this)->effNo == 0 && SUBWEP_WK(this)->effPrm == 0x15) {
+    if (!(effType == 0xD2 && effId == 1)) {
+        EstSet(0, -1, &pos, 0, effType, effId, 0, ESP_CORE_KIND_NONE, 0, 0);
+        if (effType == 0 && effId == 0x15) {
             Vec a;
             Vec b;
             Vec nrm;
@@ -229,8 +229,8 @@ void cSubWep::addSpeed()
 
     VehicleAdjust(&pos);
     old = pos;
-    SUBWEP_WK(this)->spd.y -= SUBWEP_WK(this)->grav;
-    PSVECAdd(&pos, &SUBWEP_WK(this)->spd, &pos);
+    spd.y -= gravity;
+    PSVECAdd(&pos, &spd, &pos);
     EatMgr.hitCheck(&old, &pos, &hit, 0, 0, 0x4000);
     if (GetWaterHeight(&pos, &wh) && pos.y <= wh && hit.y < wh) {
         pos.y = wh + 20.0f;
@@ -240,32 +240,32 @@ void cSubWep::addSpeed()
             pLog->err(0, 0, "  PLEASE SET EatMgr.registEffInfo()");
             return;
         }
-        SUBWEP_WK(this)->attr = info->flag;
+        effFlag = info->flag;
         switch (type) {
         case 0:
         default:
-            SUBWEP_WK(this)->effNo = info->eff13[0];
-            SUBWEP_WK(this)->effPrm = info->eff13[1];
+            effType = info->eff13[0];
+            effId = info->eff13[1];
             break;
         case 1:
-            SUBWEP_WK(this)->effNo = info->eff16[0];
-            SUBWEP_WK(this)->effPrm = info->eff16[1];
+            effType = info->eff16[0];
+            effId = info->eff16[1];
             break;
         case 2:
-            SUBWEP_WK(this)->effNo = info->eff17[0];
-            SUBWEP_WK(this)->effPrm = info->eff17[1];
+            effType = info->eff17[0];
+            effId = info->eff17[1];
             break;
         case 3:
-            SUBWEP_WK(this)->effNo = info->eff17[0];
-            SUBWEP_WK(this)->effPrm = info->eff17[1];
+            effType = info->eff17[0];
+            effId = info->eff17[1];
             break;
         case 4:
-            SUBWEP_WK(this)->effNo = info->eff17[0];
-            SUBWEP_WK(this)->effPrm = info->eff17[1];
+            effType = info->eff17[0];
+            effId = info->eff17[1];
             break;
         case 5:
-            SUBWEP_WK(this)->effNo = info->eff17[0];
-            SUBWEP_WK(this)->effPrm = info->eff17[1];
+            effType = info->eff17[0];
+            effId = info->eff17[1];
             break;
         }
         if (type > 2) {
@@ -288,7 +288,7 @@ void cSubWep::addSpeed()
             r_no_0 = 1;
             be_flag &= ~2;
         } else {
-            SUBWEP_WK(this)->life = 1;
+            timer = 1;
             moveWater();
         }
         return;
@@ -296,32 +296,32 @@ void cSubWep::addSpeed()
     nrm.x = 0.0f;
     nrm.y = 0.0f;
     nrm.z = 0.0f;
-    EatMgr.adjust(&nrm, &pos_old, &pos, SUBWEP_WK(this)->rad * 0.5f, 0x2001, 0x4000);
+    EatMgr.adjust(&nrm, &pos_old, &pos, r * 0.5f, 0x2001, 0x4000);
     if (nrm.x == 0.0f && nrm.y == 0.0f && nrm.z == 0.0f) {
         return;
     }
     info = EatMgr.getEffInfo(getEffectType());
     if (info) {
-        SUBWEP_WK(this)->attr = info->flag | 0x80000000;
+        effFlag = info->flag | 0x80000000;
         switch (type) {
         case 0:
         default:
-            SUBWEP_WK(this)->effNo = info->eff13[0];
-            SUBWEP_WK(this)->effPrm = info->eff13[1];
+            effType = info->eff13[0];
+            effId = info->eff13[1];
             break;
         case 1:
-            SUBWEP_WK(this)->effNo = info->eff16[0];
-            SUBWEP_WK(this)->effPrm = info->eff16[1];
+            effType = info->eff16[0];
+            effId = info->eff16[1];
             break;
         case 2:
-            SUBWEP_WK(this)->effNo = info->eff17[0];
-            SUBWEP_WK(this)->effPrm = info->eff17[1];
+            effType = info->eff17[0];
+            effId = info->eff17[1];
             break;
         }
     } else {
-        SUBWEP_WK(this)->attr = 0;
+        effFlag = 0;
     }
-    if (SUBWEP_WK(this)->attr & 1) {
+    if (effFlag & 1) {
         if (type > 2) {
             if (info->eff0[0] != 0xD2) {
                 EstSet(0, -1, &pos, 0, info->eff0[0], (u8) info->eff0[1], 0, ESP_CORE_KIND_NONE, 0, 0);
@@ -341,7 +341,7 @@ void cSubWep::addSpeed()
             r_no_0 = 1;
             be_flag &= ~2;
         } else {
-            SUBWEP_WK(this)->life = 1;
+            timer = 1;
             moveWater();
         }
     } else {
@@ -361,33 +361,33 @@ void cSubWep::bounce(Vec* norm)
     const f32 rate = 0.5f;
     const f32 rotRate = -0.8f;
 
-    len = RootSumSquare3(&SUBWEP_WK(this)->spd);
-    C_VECReflect(&SUBWEP_WK(this)->spd, norm, &ref);
-    PSVECScale(&ref, &SUBWEP_WK(this)->spd, len * rate);
+    len = RootSumSquare3(&spd);
+    C_VECReflect(&spd, norm, &ref);
+    PSVECScale(&ref, &spd, len * rate);
     if (norm->y > 0.0f && norm->y < lim) {
-        if (SUBWEP_WK(this)->spd.y < minSpd) {
-            SUBWEP_WK(this)->spd.y = minSpd;
+        if (spd.y < minSpd) {
+            spd.y = minSpd;
         }
     }
-    PSVECScale(&SUBWEP_WK(this)->rotSpd, &SUBWEP_WK(this)->rotSpd, rotRate);
+    PSVECScale(&rot_spd, &rot_spd, rotRate);
     if (norm->y > lim) {
-        if (fabsf(SUBWEP_WK(this)->spd.y) > 10.0f) {
-            if (SUBWEP_WK(this)->flags & 1) {
+        if (fabsf(spd.y) > 10.0f) {
+            if (Flag & 1) {
                 scrAdjust();
                 explode();
                 ObjMgr.destroy(this);
-            } else if (SUBWEP_WK(this)->seCnt0 <= 3) {
+            } else if (se_count <= 3) {
                 SndCall(5, 6, &pos, 0, 0, 0);
-                SUBWEP_WK(this)->seCnt0++;
+                se_count++;
             }
         }
-    } else if ((SUBWEP_WK(this)->flags & 2) || (type == 1 && norm->y > lim)) {
-        SUBWEP_WK(this)->flags |= 0x10;
+    } else if ((Flag & 2) || (type == 1 && norm->y > lim)) {
+        Flag |= 0x10;
         explode();
         ObjMgr.destroy(this);
-    } else if (SUBWEP_WK(this)->seCnt1 <= 3) {
+    } else if (se_count_w <= 3) {
         SndCall(1, 0x21, &pos, 0, 0, 0);
-        SUBWEP_WK(this)->seCnt1++;
+        se_count_w++;
     }
 }
 
@@ -398,7 +398,7 @@ int cSubWep::getEffectType()
     u32 attr;
 
 #line 484 "D:/Bio4/Prog/objSubWep.cpp"
-    VECNormalize(&SUBWEP_WK(this)->spd, &d);
+    VECNormalize(&spd, &d);
     PSVECScale(&d, &d, 3000.0f);
     PSVECAdd(&d, &pos, &d);
     attr = EatMgr.hitCheck(&pos, &d, 0, 0, 0, 0);
@@ -416,21 +416,21 @@ cSubWep::cSubWep()
 
     sub2B4.atari.throughOn();
     LightInfo.init2(0, 1, &p0, &p1, 4);
-    SUBWEP_WK(this)->seCnt0 = 0;
-    SUBWEP_WK(this)->seCnt1 = 0;
-    SUBWEP_WK(this)->flags = 0;
-    SUBWEP_WK(this)->grav = 20.0f;
-    SUBWEP_WK(this)->rad = 50.0f;
-    SUBWEP_WK(this)->life = 10;
-    SUBWEP_WK(this)->x7C = 3;
-    SUBWEP_WK(this)->rotSpd.x = fRand0_1() * 0.19634955f + 0.09817477f;
-    SUBWEP_WK(this)->rotSpd.y = 0.0f;
-    SUBWEP_WK(this)->rotSpd.z = fRand0_1() * 0.09817477f + 0.09817477f;
+    se_count = 0;
+    se_count_w = 0;
+    Flag = 0;
+    gravity = 20.0f;
+    r = 50.0f;
+    timer = 10;
+    Bound_se_ck = 3;
+    rot_spd.x = fRand0_1() * 0.19634955f + 0.09817477f;
+    rot_spd.y = 0.0f;
+    rot_spd.z = fRand0_1() * 0.09817477f + 0.09817477f;
     if (Rnd() & 1) {
-        SUBWEP_WK(this)->rotSpd.x = -SUBWEP_WK(this)->rotSpd.x;
+        rot_spd.x = -rot_spd.x;
     }
     if (Rnd() & 1) {
-        SUBWEP_WK(this)->rotSpd.z = -SUBWEP_WK(this)->rotSpd.z;
+        rot_spd.z = -rot_spd.z;
     }
 }
 
@@ -491,25 +491,25 @@ int cSubWep::init(Vec* angS, f32 rx)
     }
     setPos(&p);
     this->ang = *angS;
-    setThrowSpeed(&SUBWEP_WK(this)->spd, rx);
+    setThrowSpeed(&spd, rx);
     switch (type) {
     case 0:
-        SUBWEP_WK(this)->life = 45;
+        timer = 45;
         break;
     case 1:
-        SUBWEP_WK(this)->life = 300;
+        timer = 300;
         break;
     case 2:
-        SUBWEP_WK(this)->life = 300;
+        timer = 300;
         break;
     case 3:
-        SUBWEP_WK(this)->life = 300;
+        timer = 300;
         break;
     case 4:
-        SUBWEP_WK(this)->life = 300;
+        timer = 300;
         break;
     case 5:
-        SUBWEP_WK(this)->life = 300;
+        timer = 300;
         break;
     }
     return 1;
@@ -583,12 +583,12 @@ void cObjGrenade::explode()
         AddWaterPower(pos, 1.0f);
         SndCall(1, 0x17, &pos, 0, 0, 0);
     } else {
-        if (SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1) {
+        if (effType == 0xD2 && effId == 1) {
             return;
         }
-        if (SUBWEP_WK(this)->attr < 0 && SUBWEP_WK(this)->effNo != 0xD2) {
-            no = (u8) SUBWEP_WK(this)->effNo;
-            prm = SUBWEP_WK(this)->effPrm;
+        if (effFlag < 0 && effType != 0xD2) {
+            no = (u8) effType;
+            prm = effId;
         } else {
             Vec a;
             Vec b;
@@ -632,7 +632,7 @@ void cObjGrenade::waterExplode()
 // Incendiary: explodes on the first floor hit (flags bit0).
 cObjGreFire::cObjGreFire()
 {
-    SUBWEP_WK(this)->flags |= 1;
+    Flag |= 1;
 }
 
 // Incendiary burst: surface effect (default 0x0B fire, plus 0x26 burning floor when within 200 of
@@ -650,12 +650,12 @@ void cObjGreFire::explode()
         AddWaterPower(pos, 1.0f);
         SndCall(1, 0x17, &pos, 0, 0, 0);
     } else {
-        if (SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1) {
+        if (effType == 0xD2 && effId == 1) {
             return;
         }
-        if (SUBWEP_WK(this)->attr < 0 && SUBWEP_WK(this)->effNo != 0xD2) {
-            no = (u8) SUBWEP_WK(this)->effNo;
-            prm = SUBWEP_WK(this)->effPrm;
+        if (effFlag < 0 && effType != 0xD2) {
+            no = (u8) effType;
+            prm = effId;
         } else {
             Vec a;
             Vec b;
@@ -696,7 +696,7 @@ void cObjGreFire::waterExplode()
 // Flash grenade: explodes on the first floor hit (flags bit0).
 cObjGreLight::cObjGreLight()
 {
-    SUBWEP_WK(this)->flags |= 1;
+    Flag |= 1;
 }
 
 // Flash: screen flash 0x3F plus the 0x0C effect, flash SE, and the 0x17 (flash) hit check in a
@@ -712,12 +712,12 @@ void cObjGreLight::explode()
         AddWaterPower(pos, 1.0f);
         SndCall(1, 0x17, &pos, 0, 0, 0);
     } else {
-        if (SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1) {
+        if (effType == 0xD2 && effId == 1) {
             return;
         }
-        if (SUBWEP_WK(this)->attr < 0 && SUBWEP_WK(this)->effNo != 0xD2) {
-            no = (u8) SUBWEP_WK(this)->effNo;
-            prm = SUBWEP_WK(this)->effPrm;
+        if (effFlag < 0 && effType != 0xD2) {
+            no = (u8) effType;
+            prm = effId;
         } else {
             EstSet(0, -1, 0, 0, EFF_CORE, 0x3F, 0, ESP_CORE_KIND_NONE, 0, 0);
             no = 0;
@@ -742,7 +742,7 @@ void cObjGreLight::waterExplode()
 // Egg: breaks on the first floor or wall hit (flags bits 0 and 1).
 cObjEgg::cObjEgg()
 {
-    SUBWEP_WK(this)->flags |= 3;
+    Flag |= 3;
 }
 
 // Egg splat: effect 0x42 (0x43 on a wall), SE, and the 0x19 (egg) hit check in a 2000 radius.
@@ -753,7 +753,7 @@ void cObjEgg::explode()
     if (GetWaterHeight(&pos, &wh) && pos.y <= wh) {
         AddWaterPower(pos, 1.0f);
     } else {
-        if (SUBWEP_WK(this)->flags & 0x10) {
+        if (Flag & 0x10) {
             EstSet(0, -1, &pos, 0, EFF_CORE, 0x43, 0, ESP_CORE_KIND_NONE, 0, 0);
         } else {
             EstSet(0, -1, &pos, 0, EFF_CORE, 0x42, 0, ESP_CORE_KIND_NONE, 0, 0);

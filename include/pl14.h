@@ -179,15 +179,11 @@ public:
     void neckMove();
 };
 
-struct LuisItemWork {
-    int timer;            // 0x00 (0x328)
-    Vec spd;              // 0x04 (0x32C)
-    Vec acc;              // 0x10 (0x338)
-};
-
 class cObjLuisItem : public cObj {
 public:
-    u8 free[OBJ_WORK_SIZE - 0x328];   // 0x328  LuisItemWork
+    int timer;            // 0x328
+    Vec v;                // 0x32C  velocity
+    Vec a;                // 0x338  acceleration
 
     virtual void move();
     void init(Vec* pos, f32 rotY);

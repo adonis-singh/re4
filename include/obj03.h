@@ -5,30 +5,23 @@
 #include "vec.h"
 #include "obj.h"
 
-// Per-object work layouts (game/obj03.cpp ...), all overlaid at cObj+0x328.
-struct Obj03Work {
-    u8 x0;        // 0x00
-    u8 x1;        // 0x01
-    u8 x2;        // 0x02
-    u8 x3;        // 0x03
-    f32 length;   // 0x04 path length
-    f32 t;        // 0x08 current position on the path
-    f32 speed;    // 0x0C
-    u32 flags;    // 0x10 bit0: debug draw
-    cModel* data; // 0x14  the path follower (PathGetMatEm pMod)
-    void* path;   // 0x18
-};
-
 // Path object: every parts is placed along a path, spaced 40 units apart.
 class cObj03 : public cObj {
 public:
-    u8 free[OBJ_WORK_SIZE - 0x328];   // 0x328  Obj03Work
+    u8 r0;                // 0x328
+    u8 r1;                // 0x329
+    u8 r2;                // 0x32A
+    u8 r3;                // 0x32B
+    f32 pathLen;          // 0x32C  path length
+    f32 pathPos;          // 0x330  current position on the path
+    f32 speed;            // 0x334
+    u32 flag;             // 0x338  bit0: debug draw
+    cModel* pPathParent;  // 0x33C  the path follower (PathGetMatEm pMod)
+    void* path;           // 0x340  (PS2 pPath; cModel's anonymous-union pPath takes the name here)
 
     cObj03();
     virtual void move();
     int init();
 };
-
-#define OBJ03_WK(o) ((Obj03Work*) (o)->free)
 
 #endif

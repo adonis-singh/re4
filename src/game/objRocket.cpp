@@ -63,7 +63,7 @@ void cObjRocket::move()
         Vec hit;
         Vec sc;
 
-        ROCKET_WK(this)->oldPos = pos;
+        oldPos = pos;
         motionMove();
         if (GetWaterHeight(&pos, &wh) && pos.y <= wh) {
             AtEffInfo* info;
@@ -94,17 +94,17 @@ void cObjRocket::move()
             }
             AddWaterPower(pos, 1.0f);
             SndCall(1, 0x17, &pos, 0, 0, 0);
-            PlWepHitCheck2(0, &ROCKET_WK(this)->oldPos, &pos, 0x12, 0, blastDmWidth);
+            PlWepHitCheck2(0, &oldPos, &pos, 0x12, 0, blastDmWidth);
             r_no_0 = 2;
         } else {
             u32 res;
 
-            res = PlWepHitCheck2(0, &ROCKET_WK(this)->oldPos, &pos, 0xD, 1, 3000.0f);
+            res = PlWepHitCheck2(0, &oldPos, &pos, 0xD, 1, 3000.0f);
             if (res) {
                 StaFlagOn(pG, STA_SE_BURST);
                 pG->SeInfo.pos = pos;
                 pG->SeInfo.type = 1;
-                PlWepHitCheck2(0, &ROCKET_WK(this)->oldPos, &pos, 0x12, 0, blastDmWidth);
+                PlWepHitCheck2(0, &oldPos, &pos, 0x12, 0, blastDmWidth);
                 EstSet(0, -1, &pos, 0, EFF_CORE, 0x27, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
                 SndCall(1, 0x14, &pos, 0, 0, 0);
                 r_no_0 = 2;
@@ -114,7 +114,7 @@ void cObjRocket::move()
                 Vec a;
                 Vec b;
 
-                attr = EatMgr.hitCheck(&ROCKET_WK(this)->oldPos, &pos, &hit, &nrm, 0, 0);
+                attr = EatMgr.hitCheck(&oldPos, &pos, &hit, &nrm, 0, 0);
                 if (attr) {
                     AtEffInfo* info;
 
@@ -146,7 +146,7 @@ void cObjRocket::move()
                     pG->SeInfo.pos = pos;
                     pG->SeInfo.type = 1;
                     SndCall(1, 0x14, &pos, 0, 0, 0);
-                    PlWepHitCheck2(0, &ROCKET_WK(this)->oldPos, &pos, 0x12, 0, blastDmWidth);
+                    PlWepHitCheck2(0, &oldPos, &pos, 0x12, 0, blastDmWidth);
                     r_no_0 = 2;
                 }
             }
@@ -154,8 +154,8 @@ void cObjRocket::move()
         if (Motion.Seq_frame >= (f32) (Motion.Seq_frame_num - 1)) {
             r_no_0 = 2;
         }
-        ROCKET_WK(this)->timer--;
-        if (ROCKET_WK(this)->timer < 0) {
+        endTimer--;
+        if (endTimer < 0) {
             r_no_0 = 2;
         }
         break;
@@ -173,7 +173,7 @@ void cObjRocket::fire()
     MotionSetCore(this, &Motion, PL_ARC_PTR(pG->pPlayer, 0x74), 0, 0, 1, 0);
     MotionMove(this, 0);
     EstSet(this, -1, 0, 0, EFF_CORE, 0x29, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-    ROCKET_WK(this)->timer = 300;
+    endTimer = 300;
     type = 1;
     r_no_0 = 1;
 }

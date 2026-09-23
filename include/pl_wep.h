@@ -71,17 +71,12 @@ public:
     void satCheck();
 };
 
-// Rocket work (game/objRocket.cpp `cObjRocket`).
-struct RocketWork {
-    Vec oldPos;           // 0x00 (0x328)  position before this frame's motion (hit line start)
-    int timer;            // 0x0C (0x334)  flight frames left (300)
-};
-
 // Rocket (game/objRocket.cpp): hangs on the launcher, flies with its motion and explodes on the
 // scenario / water / player weapon target line (`rocket`, obj.h).
 class cObjRocket : public cObj {
 public:
-    u8 free[OBJ_WORK_SIZE - 0x328];   // 0x328  RocketWork
+    Vec oldPos;           // 0x328  position before this frame's motion (hit line start)
+    int endTimer;         // 0x334  flight frames left (300)
 
     virtual ~cObjRocket() {}
     virtual void beginEvent(u32 flag);
@@ -91,8 +86,6 @@ public:
     static const Vec lightPos;   // light set origin / range shared with the launcher (objRocket.cpp)
     static const Vec lightSize;
 };
-
-#define ROCKET_WK(o) ((RocketWork*) (o)->free)
 
 // Rocket launcher (game/objRocket.cpp): carries a cObjRocket it launches.
 class cObjLauncher : public cObjWep {

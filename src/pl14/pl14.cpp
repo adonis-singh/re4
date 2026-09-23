@@ -48,7 +48,6 @@
 #define OARC(no) PL_ARC_PTR(owner->subArc, no)
 #define EM ((cEm*) this)
 #define OEM ((cEm*) owner)
-#define LITEM ((LuisItemWork*) free)
 
 static inline void RoutineSet(cSubLuis* o, int r0)
 {
@@ -1631,12 +1630,12 @@ void cObjLuisItem::init(Vec* p, f32 rotY)
     ang.x = 0.0f;
     ang.z = 0.0f;
     EstSet(this, -1, 0, 0, EFF_CORE, 0x2D, 0, ESP_CORE_KIND_LUIS_ITEM, this, 0);
-    PSVECSubtract(&pPL->pos, &pos, &LITEM->spd);
-    PSVECScale(&LITEM->spd, &LITEM->spd, 0.07f);
-    LITEM->acc.x = 0.0f;
-    LITEM->acc.y = -fabsf(LITEM->spd.y) * 0.03f;
-    LITEM->acc.z = 0.0f;
-    LITEM->timer = 0;
+    PSVECSubtract(&pPL->pos, &pos, &v);
+    PSVECScale(&v, &v, 0.07f);
+    a.x = 0.0f;
+    a.y = -fabsf(v.y) * 0.03f;
+    a.z = 0.0f;
+    timer = 0;
 }
 
 // Thrown item update: r_no_0 0 flies (pushed off walls, dropped to the floor on a hit; gone after
@@ -1652,8 +1651,8 @@ void cObjLuisItem::move()
 
     switch (r_no_0) {
     case 0:
-        PSVECAdd(&pos, &LITEM->spd, &pos);
-        PSVECAdd(&LITEM->spd, &LITEM->acc, &LITEM->spd);
+        PSVECAdd(&pos, &v, &pos);
+        PSVECAdd(&v, &a, &v);
         if (SatMgr.hitCheck(&pos_old, &pos, &hit, &nrm, 0, 0)) {
             if (nrm.y < 0.5f && nrm.y > -0.5f) {
                 PSVECScale(&nrm, &nrm, 200.0f);
@@ -1662,8 +1661,8 @@ void cObjLuisItem::move()
             pos.y = SatMgr.getFloor(&pos, 0, 600.0f, 100000.0f, 0);
             r_no_0 = 1;
         }
-        LITEM->timer++;
-        if (LITEM->timer > 150) {
+        timer++;
+        if (timer > 150) {
             EffectEspDelete(0, ESP_CORE_KIND_LUIS_ITEM, this, 0);
             EffectEspgenDelete(0, ESP_CORE_KIND_LUIS_ITEM, this);
             EffectEfmDelete(0, ESP_CORE_KIND_LUIS_ITEM, this);
