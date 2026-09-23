@@ -76,16 +76,10 @@ u8 GetEfmMoveId(u32 id)
 // when the value is 0). Used to remove the effect models an enemy/effect owner spawned.
 void EfmDelete(int a, int b, void* c)
 {
-    cObjMgr* m = &ObjMgr;
-    void (*func)(cObj*) = EfmDeleteSub;
-    u32 i;
-
     g_Core_flg = a;
     g_Core_kind = b;
     g_Core_pEm = (cModel*) c;
-    for (i = 0; i < m->nArray; i++) {
-        func(m->fastAt(i));
-    }
+    ObjMgr.applyFunc(EfmDeleteSub);
 }
 
 // Per-object test for EfmDelete: destroys obj04/05/09 works whose core matches the g_Core_* filter.
@@ -118,13 +112,7 @@ void EfmDeleteSub(cObj* pObj)
 // called when an event ends to drop the effect models it left behind.
 void EfmDeleteEvent()
 {
-    cObjMgr* m = &ObjMgr;
-    void (*func)(cObj*) = EfmDeleteEventSub;
-    u32 i;
-
-    for (i = 0; i < m->nArray; i++) {
-        func(m->fastAt(i));
-    }
+    ObjMgr.applyFunc(EfmDeleteEventSub);
 }
 
 // Per-object test for EfmDeleteEvent.

@@ -169,6 +169,23 @@ public:
         q->setNext(p);
         p->setNext(0);
     }
+    // Index of `p` in the work array, -1 when it is not one of them.
+    int getWorkNo(T* p) {
+        u32 i;
+        for (i = 0; i < nArray; i++) {
+            if (fastAt(i) == p) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    // func on every work of the array, active or not
+    void applyFunc(void (*func)(T*)) {
+        u32 i;
+        for (i = 0; i < nArray; i++) {
+            func(fastAt(i));
+        }
+    }
     // func on every active work; the next link is read before the call, so func may destroy the work
     void applyFuncAll(void (*func)(T*)) {
         cUnit* pT = getActiveWork();

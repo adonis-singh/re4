@@ -4,7 +4,7 @@
 // tool state; DatTbl is the name -> data slot table both use.
 // 147/147 byte-identical, all sections equal (2026-09-10). Register/layout idioms used here:
 //  - EventMgr::construct: `return 1` inside the err arm creates the BARRIER after the err call that
-//    loop.c's find_and_verify_loops needs to move the `return i` block of the inlined EvtWorkNo loop
+//    loop.c's find_and_verify_loops needs to move the `return i` block of the inlined getWorkNo loop
 //    behind it (the target's `mr r0,r9; b` after the `bl err; b`).
 //  - GetMod: the "pl0300" arm tests its own GetDat result and `goto err`s into the else arm's err
 //    body (then arm `bl; cmpwi; beq err; b ok`, no cross-jump of the call).
@@ -101,19 +101,6 @@ static inline cModel* EspEvModGet(int no)
         return EspEvModList[no];
     }
     return 0;
-}
-
-// Index of an Event in the manager's array (its effect owner slot), -1 when not found.
-// Index of `e` in the manager's work array (-1 when it is not one of them).
-static inline int EvtWorkNo(EventMgr* mgr, Event* e)
-{
-    u32 i;
-    for (i = 0; i < mgr->nArray; i++) {
-        if ((Event*) ((u8*) mgr->pArray + i * mgr->size) == e) {
-            return i;
-        }
-    }
-    return -1;
 }
 
 // One Hermite curve of the fog / focus data (64 keys).
@@ -2129,7 +2116,7 @@ int EventMgr::construct(Event* pEvt, u32 id)
 
     e = new (pEvt) Event(id);
     if (e) {
-        no = EvtWorkNo(this, e);
+        no = getWorkNo(e);
         e->effNo = no;
         if (no == -1 || no > 1) {
             pLog->err(0, 0, "EventMgr::construct : getWorkNo failed");
