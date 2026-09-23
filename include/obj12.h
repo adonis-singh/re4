@@ -17,7 +17,7 @@ struct Obj12Work {
     int oya_parts;          // 0x14
     f32 oya_hokan;             // 0x18  blend rate (1.0 = parent matrix)
     f32 oya_hokan_add;          // 0x1C
-    s16 fallSpd[3][3];    // 0x20  rope point speeds * 10 (fallSpd[0] is the throw speed)
+    s16 spd[3][3];         // 0x20  rope point speeds * 10 (spd[0] is the throw speed)
     u8 pad_32[2];
     Mtx hokan_mat;              // 0x34  previous parent matrix
     int Lost_wait;             // 0x64  frames before the fade out

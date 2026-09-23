@@ -22,7 +22,7 @@ struct GondolaWork {
     class cEm* pEm[5]; // 0x20
     class cSat* pSat[5];   // 0x34
     class cSat* pEat[5];  // 0x48
-    struct MotionWork* subWork;  // 0x5C  sub (vibration / break) motion work (setSubMotion)
+    struct MotionWork* pMot_info;  // 0x5C  sub (vibration / break) motion work (setSubMotion)
     void* Sub_mot1;         // 0x60  vibration motion (setVib)
     void* Sub_mot2;       // 0x64  break motion (R0_Break)
 };

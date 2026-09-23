@@ -50,16 +50,16 @@ cObj* SetFloatIsland(void* bin, void* tpl, Vec* pos, Vec* rot)
 
     obj->sub2B4.atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    w->x00 = 0;
-    w->estTimer = (u8) ((u32) Rnd() % 30);
-    w->crashEstWait = 0;
+    w->Be_flg = 0;
+    w->Eff_wait = (u8) ((u32) Rnd() % 30);
+    w->Eff_wait2 = 0;
     w->motIdle = 0;
     w->motCrash = 0;
-    w->home = obj->pos;
-    w->spd.x = 0.0f;
-    w->spd.y = 0.0f;
-    w->spd.z = 0.0f;
-    w->espKind = EspPullCoreKind();
+    w->St_pos = obj->pos;
+    w->Spd.x = 0.0f;
+    w->Spd.y = 0.0f;
+    w->Spd.z = 0.0f;
+    w->EffKindId = EspPullCoreKind();
     obj->r_no_1 = 0;
     obj->r_no_0 = 1;
     obj->r_no_2 = 0;
@@ -79,20 +79,20 @@ void cObj1c::move()
     u32 f;
 
     be_flag &= ~0x4000;
-    if (w->crashTimer) {
-        w->crashTimer--;
+    if (w->Crash_wait) {
+        w->Crash_wait--;
     }
-    if (w->crashEstWait) {
-        w->crashEstWait--;
+    if (w->Eff_wait2) {
+        w->Eff_wait2--;
     }
     Obj1c_R1_move_tbl[r_no_1](this);
     f = be_flag;
     if ((f & 0x201) == 1) {
         if (StaFlagChk(pG, STA_PL_SWIM_CAMERA)) {
             be_flag = f & ~2;
-            EffectEspDelete(0, w->espKind, this, 0);
-            EffectEspgenDelete(0, w->espKind, this);
-            EffectEfmDelete(0, w->espKind, this);
+            EffectEspDelete(0, w->EffKindId, this, 0);
+            EffectEspgenDelete(0, w->EffKindId, this);
+            EffectEfmDelete(0, w->EffKindId, this);
         } else {
             be_flag = f | 2;
         }
@@ -105,12 +105,12 @@ void obj1c_R1_Set(cObj1c* pObj)
     IslandWork* w = ISLAND_WK(pObj);
 
     obj1cSpdMove(pObj);
-    if (w->estTimer) {
-        w->estTimer--;
+    if (w->Eff_wait) {
+        w->Eff_wait--;
     } else {
-        w->estTimer = 30;
+        w->Eff_wait = 30;
         if (pObj->be_flag & 2) {
-            EstSet(pObj, -1, 0, 0, EFF_ROOM, 0, 0, w->espKind, pObj, 0);
+            EstSet(pObj, -1, 0, 0, EFF_ROOM, 0, 0, w->EffKindId, pObj, 0);
         }
     }
     if (pObj->Motion.pMot) {
@@ -214,9 +214,9 @@ void cObj1c::setCrash()
         r_no_1 = 1;
         r_no_3 = 0;
     }
-    if (w->crashEstWait == 0) {
-        w->crashEstWait = 15;
-        EstSet(this, -1, 0, 0, EFF_ROOM, 1, 0, w->espKind, this, 0);
+    if (w->Eff_wait2 == 0) {
+        w->Eff_wait2 = 15;
+        EstSet(this, -1, 0, 0, EFF_ROOM, 1, 0, w->EffKindId, this, 0);
     }
 }
 
@@ -235,7 +235,7 @@ void cObj1c::setCrashBig(Vec* pPos)
 #line 345 "D:/Bio4/Prog/obj1c.cpp"
         VECNormalize(&dir, &dir);
     }
-    PSVECScale(&dir, &w->spd, 300.0f);
+    PSVECScale(&dir, &w->Spd, 300.0f);
     if (w->motCrash) {
         if (scale.x >= 1.5f) {
             MotionSetCore(this, &Motion, w->motCrashBig, 0, 0, 1, 0);
@@ -247,17 +247,17 @@ void cObj1c::setCrashBig(Vec* pPos)
         r_no_2 = 0;
         r_no_3 = 0;
     }
-    if (w->crashEstWait == 0) {
-        w->crashEstWait = 15;
-        EstSet(this, -1, 0, 0, EFF_ROOM, 1, 0, w->espKind, this, 0);
+    if (w->Eff_wait2 == 0) {
+        w->Eff_wait2 = 15;
+        EstSet(this, -1, 0, 0, EFF_ROOM, 1, 0, w->EffKindId, this, 0);
     }
-    w->crashTimer = 15;
+    w->Crash_wait = 15;
 }
 
 // 1 during the 15 frames after a big crash (the room throws the player off).
 int cObj1c::ckCrash()
 {
-    if (ISLAND_WK(this)->crashTimer) {
+    if (ISLAND_WK(this)->Crash_wait) {
         return 1;
     }
     return 0;
@@ -270,8 +270,8 @@ void obj1cSpdMove(cObj1c* pObj)
     IslandWork* w = ISLAND_WK(pObj);
     Vec d;
 
-    if (w->spd.x == 0.0f || w->spd.z == 0.0f) {
-        PSVECSubtract(&w->home, &pObj->pos, &d);
+    if (w->Spd.x == 0.0f || w->Spd.z == 0.0f) {
+        PSVECSubtract(&w->St_pos, &pObj->pos, &d);
         if (d.x * d.x + d.z * d.z > 2500.0f) {
 #line 408 "D:/Bio4/Prog/obj1c.cpp"
             VECNormalize(&d, &d);
@@ -279,12 +279,12 @@ void obj1cSpdMove(cObj1c* pObj)
             PSVECAdd(&pObj->pos, &d, &pObj->pos);
         }
     } else {
-        if (w->spd.x * w->spd.x + w->spd.z * w->spd.z < 2500.0f) {
-            w->spd.x = 0.0f;
-            w->spd.z = 0.0f;
+        if (w->Spd.x * w->Spd.x + w->Spd.z * w->Spd.z < 2500.0f) {
+            w->Spd.x = 0.0f;
+            w->Spd.z = 0.0f;
         } else {
-            PSVECAdd(&pObj->pos, &w->spd, &pObj->pos);
-            PSVECScale(&w->spd, &w->spd, 0.9f);
+            PSVECAdd(&pObj->pos, &w->Spd, &pObj->pos);
+            PSVECScale(&w->Spd, &w->Spd, 0.9f);
         }
     }
 }

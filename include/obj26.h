@@ -8,7 +8,7 @@
 // Fading attachment work (game/obj26.cpp): scales toward `tgtScale`, then shrinks and fades out.
 struct Obj26Work {
     u8 pad_0[8];
-    cObj* parent;         // 0x08  followed parts 2 of this object
+    cObj* pEm;         // 0x08  followed parts 2 of this object
     u8 pad_C[0xC];
     Vec Scale;         // 0x18
 };

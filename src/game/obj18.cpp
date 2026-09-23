@@ -198,10 +198,10 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
         if (pG->game_costume == 0) {
             if (EvtMgr.GetBin(&cbin, "em/pl02/pl020f.bin", 0)) {
                 if (EvtMgr.GetBin(&ctpl, "em/pl02/pl020a.tpl", 0)) {
-                    w->child = (cObj*) AdaRibbonSet(obj, &Evt_adaRibbon, cbin, ctpl);
-                    if (w->child) {
-                        w->child->setNoSuspend(1);
-                        w->child->LightInfo.EnableMask = obj->LightInfo.EnableMask;
+                    w->pObjChain = (cObj*) AdaRibbonSet(obj, &Evt_adaRibbon, cbin, ctpl);
+                    if (w->pObjChain) {
+                        w->pObjChain->setNoSuspend(1);
+                        w->pObjChain->LightInfo.EnableMask = obj->LightInfo.EnableMask;
                     }
                 }
             }
@@ -249,9 +249,9 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
             pLog->err(0, 0, "Event::ExePacket_Mot : dat failed");
             return 0;
         }
-        w->child = (cObj*) Em2bShortRopeSet(obj, &Obj18Cloth1, cbin, ctpl);
-        if (w->child) {
-            w->child->setNoSuspend(1);
+        w->pObjChain = (cObj*) Em2bShortRopeSet(obj, &Obj18Cloth1, cbin, ctpl);
+        if (w->pObjChain) {
+            w->pObjChain->setNoSuspend(1);
         }
         break;
     }
@@ -265,8 +265,8 @@ int DelObj18(cObj* pObj)
         pLog->err(0, 0, "Evt_SetElgiganteRope : pointer failed");
         return 0;
     }
-    if (OBJ18_WK((cObj18*) pObj)->child) {
-        ObjMgr.destroy(OBJ18_WK((cObj18*) pObj)->child);
+    if (OBJ18_WK((cObj18*) pObj)->pObjChain) {
+        ObjMgr.destroy(OBJ18_WK((cObj18*) pObj)->pObjChain);
     }
     return 1;
 }

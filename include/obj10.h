@@ -17,7 +17,7 @@ struct WepItemWork {
     f32 gravity;             // 0x24
     f32 r;              // 0x28  bounce radius
     int timer;             // 0x2C  frames until the explosion (0 = now)
-    cModel* hold;         // 0x30  model holding it (follows `holdParts`)
+    cModel* pEm;           // 0x30  model holding it (follows `holdParts`)
     int parts_no;        // 0x34
     Vec offset;          // 0x38
     Vec ang;          // 0x44

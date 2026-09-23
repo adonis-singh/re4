@@ -152,7 +152,7 @@ void cObjRobo::R0Init(cObjRobo* pObj)
 
         smd = SetObjSmd((void*) (pG->pCore->ofs_20 + (u32) pG->pCore), (void*) (pG->pCore->ofs_24 + (u32) pG->pCore),
                         &pos2, &rot2, 0x10, 1);
-        w->smd[i] = smd;
+        w->pObjScr[i] = smd;
         if (smd) {
             if (i == 0) {
                 SceAtSetParent(SCEAT_ITEMPARENT_L, smd, 0);
@@ -736,8 +736,8 @@ void cObjRobo::SatMove(cObjRobo* pObj, Vec* pPosOld, int armNo)
     if (w->pEat[armNo]) {
         w->pEat[armNo]->setCoord(&a, &b);
     }
-    if (w->smd[armNo]) {
-        w->smd[armNo]->setPos(&a);
+    if (w->pObjScr[armNo]) {
+        w->pObjScr[armNo]->setPos(&a);
     }
 }
 

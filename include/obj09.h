@@ -6,21 +6,21 @@
 #include "obj.h"
 
 // Rigid body effect model work (game/obj09.cpp, set up by esp_efm EfmSetObj09): a box of
-// `size` with mass / moments of inertia, pushed by `spd` (momentum). Extends to cObj+0x3D8.
+// `size` with mass / moments of inertia, pushed by `V` (momentum). Extends to cObj+0x3D8.
 struct Efm09Work {
-    EfmCore core;         // 0x00
-    f32 mass;             // 0x0C  size.x * size.y * size.z / 1e9 * mass_mul
-    Vec moment;           // 0x10  moments of inertia: moment_mul * mass * (size.y^2 + size.z^2) / 12, ... (obj09 dwdt; PS2 OBJ09_FREE Ig)
+    EfmCore Eff_core;    // 0x00
+    f32 m;               // 0x0C  size.x * size.y * size.z / 1e9 * mass_mul
+    Vec Ig;              // 0x10  moments of inertia: moment_mul * m * (size.y^2 + size.z^2) / 12, ... (obj09 dwdt)
     u8 pad_1C[4];
-    Vec pos;              // 0x20  = basePos at set up
-    Vec basePos;          // 0x2C  EspGenWork x0C + random (y + 0.0001)
-    Mtx mat;              // 0x38  identity at set up
-    Vec spd;              // 0x68  EspGenWork x24 + random, * mass * 100 (obj09: velocity)
-    Vec w;                // 0x74  0 at set up (obj09: world angular velocity, mat * rotSpd) (PS2 OBJ09_FREE w)
-    Vec size;             // 0x80  EspGenWork xD8..xE0 * 100 + 250
-    Vec force;            // 0x8C  force accumulated by AddForce, cleared every CalcVel
-    Vec torque;           // 0x98  torque accumulated by AddForce
-    Vec rotSpd;           // 0xA4  EspGenWork x70 + random (overlaps cObj attr / callBack): local angular velocity
+    Vec prev_X;          // 0x20  = X at set up
+    Vec X;               // 0x2C  EspGenWork x0C + random (y + 0.0001)
+    Mtx R;               // 0x38  identity at set up
+    Vec V;               // 0x68  EspGenWork x24 + random, * m * 100 (obj09: velocity)
+    Vec w;               // 0x74  0 at set up (obj09: world angular velocity, R * wg)
+    Vec size;            // 0x80  EspGenWork xD8..xE0 * 100 + 250
+    Vec F;               // 0x8C  force accumulated by AddForce, cleared every CalcVel
+    Vec Tq;              // 0x98  torque accumulated by AddForce
+    Vec wg;              // 0xA4  EspGenWork x70 + random (overlaps cObj attr / callBack): local angular velocity
 };
 
 // Rigid body effect model (Efm09): a box with mass and moments of inertia, integrated with a

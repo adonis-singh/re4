@@ -11,7 +11,7 @@ struct MissileWork {
     u32 Be_flg;              // 0x00
     int Timer;            // 0x04  fire wait / flight frames
     int Timer2;          // 0x08  frames before the hit checks start
-    cModel* parent;       // 0x0C
+    cModel* pEm_oya;       // 0x0C
     int oya_parts;          // 0x10
     int scale_mode;      // 0x14  keep the parent parts matrix as it is
     Vec Target;           // 0x18

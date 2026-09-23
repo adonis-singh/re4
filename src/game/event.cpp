@@ -708,16 +708,16 @@ void Event::ControlTransFlag()
             }
             if (m->kindid == 1 && m->id == cObjMgr::ID_EVENT) {
                 w = OBJ18_WK((cObj18*) m);
-                if (w->obj18_type == OBJ18_TYPE_ADA && w->child != 0 && !(OBJ18_WK((cObj18*) m)->ObjChainFlagCommon & 0x04000000)) {
+                if (w->obj18_type == OBJ18_TYPE_ADA && w->pObjChain != 0 && !(OBJ18_WK((cObj18*) m)->ObjChainFlagCommon & 0x04000000)) {
                     if ((m->be_flag & 0x20) == 0) {
-                        w->child->be_flag &= ~0x20;
+                        w->pObjChain->be_flag &= ~0x20;
                     } else {
-                        w->child->be_flag |= 0x20;
+                        w->pObjChain->be_flag |= 0x20;
                     }
                     if (m->isTrans() == 0) {
-                        w->child->be_flag &= ~2;
+                        w->pObjChain->be_flag &= ~2;
                     } else {
-                        w->child->be_flag |= 2;
+                        w->pObjChain->be_flag |= 2;
                     }
                 }
                 if (obj18GetOya(&oya, (cObj*) m) == 1) {
@@ -1257,8 +1257,8 @@ int Event::ExePacket_Mot(Event* pEvt)
             || t == 0xB) {
             m->be_flag |= 0x00200000;
         }
-        if (w->obj18_type == 3 && w->child != 0) {
-            w->child->be_flag |= 0x00200000;
+        if (w->obj18_type == 3 && w->pObjChain != 0) {
+            w->pObjChain->be_flag |= 0x00200000;
         }
     }
     return 1;

@@ -1115,7 +1115,7 @@ static void playerRunMovePassage(cPlayer* pl)
         } else {
             int hit = 0;
 
-            switch ((u32) rw->pillar) {
+            switch ((u32) rw->ActBtnType) {
             case 0:
             default:
                 ActBtn.set(ACT_GUARD, 5, 0, 0, ACTCTR_ENFORCE_EXEC | ACTCTR_EXACT_KEY, DISP_L_R, ACT_FUNC_SCE, 0);
@@ -1452,7 +1452,7 @@ extern "C" void playerPillarDownCk__FP8cObjRoboiUlif(cObjRobo* robo, int smdNo, 
 
         if (o) {
             if (pPL->pos.x < o->pos.x + dist) {
-                rw->pillar = idx;
+                rw->ActBtnType = idx;
                 SceExec(0x12, (TaskFunc) playerPillarDownTask, smdNo, 6, SCE_PRIO_DEF_2, 0);
                 FlagOnVar(&pG->Room_flg, (u32) flagNo);
             }

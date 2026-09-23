@@ -118,9 +118,9 @@ cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, 
     w->Scale.y = 1.0f;
     w->Scale.z = 1.0f;
     w->pCtrlGroup = GetCtrlCtrl12();
-    w->body = body;
+    w->pOya = body;
     w->parts_no = partsNo;
-    w->target = target;
+    w->pEm = target;
     w->Se_wait = 60;
     w->Seid = 0;
     w->Eff_wait = 0;
@@ -144,7 +144,7 @@ cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, 
     w->Mot_pl_dm = 0;
     w->Seq_pl_dm = 0;
     w->mot[3] = 0;
-    w->x6C = 0;
+    w->Mot_no = 0;
     w->Atk_wait = 0;
     w->Atk_timer = 0;
     w->Wait_mode = 0;
@@ -184,11 +184,11 @@ void cObj16::move()
     const f32 decRate = 0.9f;
     const f32 addRate = 0.1f;
 
-    if (w->target && (w->target->be_flag & 0x201) != 1) {
+    if (w->pEm && (w->pEm->be_flag & 0x201) != 1) {
         OBJ16_LOST(this, w);
         return;
     }
-    if (w->body && (w->body->be_flag & 0x201) != 1) {
+    if (w->pOya && (w->pOya->be_flag & 0x201) != 1) {
         OBJ16_LOST(this, w);
         return;
     }
@@ -209,7 +209,7 @@ void cObj16::move()
         }
         break;
     }
-    if (w->target) {
+    if (w->pEm) {
         switch (type) {
         case 6:
         case 8:
@@ -219,7 +219,7 @@ void cObj16::move()
             break;
         default:
             if (!(w->Be_flag & 1)) {
-                if (((cEm*) w->target)->hp > 0) {
+                if (((cEm*) w->pEm)->hp > 0) {
                     w->Lost_wait = 90;
                 }
             }
@@ -238,7 +238,7 @@ void cObj16::move()
             break;
         default:
             if (!(w->Be_flag & 1)) {
-                if (((cEm*) w->target)->hp > 0) {
+                if (((cEm*) w->pEm)->hp > 0) {
                     alive = 1;
                 }
             }
@@ -261,8 +261,8 @@ void cObj16::move()
     if (w->Appear_timer) {
         w->Appear_timer--;
     }
-    if (w->body && type == 1) {
-        if (((cEm*) w->body)->x39D) {
+    if (w->pOya && type == 1) {
+        if (((cEm*) w->pOya)->x39D) {
             w->Scale.x = 0.5f;
             w->Scale.y = 0.5f;
             w->Scale.z = 0.5f;
@@ -274,23 +274,23 @@ void cObj16::move()
     }
     w->Atk_enable = 0;
     Obj16_R1_move_tbl[r_no_1](this);
-    if (w->target) {
+    if (w->pEm) {
         switch (type) {
         case 2:
         case 3:
-            if (((cEm*) w->target)->hp > 0) {
+            if (((cEm*) w->pEm)->hp > 0) {
                 if (w->Se_wait) {
                     w->Se_wait--;
                 } else {
                     w->Se_wait = 29;
-                    w->Seid = SndCall(8, 0x13, &w->target->pos, w->target->id, 0, 0);
+                    w->Seid = SndCall(8, 0x13, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
             } else {
                 SndStop(w->Seid, 0);
             }
             break;
         }
-        if (w->target) {
+        if (w->pEm) {
             switch (type) {
             case 2:
             case 3:
@@ -391,8 +391,8 @@ void cObj16::move()
         }
         break;
     }
-    if (w->target) {
-        if (w->target->be_flag & 0x800) {
+    if (w->pEm) {
+        if (w->pEm->be_flag & 0x800) {
             setNoSuspend(1);
         } else {
             setNoSuspend(0);
@@ -474,7 +474,7 @@ void obj16_R1_CoreMove(cObj16* obj)
                 w->Timer--;
             } else {
                 w->Timer = (u8) ((u32) Rnd() % 5) + 15;
-                SndCall(8, 0x10, &w->target->pos, w->target->id, 0, 0);
+                SndCall(8, 0x10, &w->pEm->pos, w->pEm->id, 0, 0);
             }
         }
         if (obj->type == 0xB && w->Wait_mode) {
@@ -483,7 +483,7 @@ void obj16_R1_CoreMove(cObj16* obj)
                 w->Timer--;
             } else {
                 w->Timer = (u8) ((u32) Rnd() % 5) + 15;
-                SndCall(8, 0x21, &w->target->pos, w->target->id, 0, 0);
+                SndCall(8, 0x21, &w->pEm->pos, w->pEm->id, 0, 0);
             }
         }
         break;
@@ -609,10 +609,10 @@ void obj16_R1_Atk(cObj16* obj)
             }
         }
         if (obj->type == 2) {
-            SndCall(8, 9, &w->target->pos, w->target->id, 0, 0);
+            SndCall(8, 9, &w->pEm->pos, w->pEm->id, 0, 0);
         }
         if (obj->type == 0xB) {
-            SndCall(8, 0x1E, &w->target->pos, w->target->id, 0, 0);
+            SndCall(8, 0x1E, &w->pEm->pos, w->pEm->id, 0, 0);
         }
         obj->r_no_2++;
     case 3:
@@ -625,10 +625,10 @@ void obj16_R1_Atk(cObj16* obj)
             if (w->Timer) {
                 if (--w->Timer == 0) {
                     if (obj->type == 2) {
-                        SndCall(8, 0xA, &w->target->pos, w->target->id, 0, 0);
+                        SndCall(8, 0xA, &w->pEm->pos, w->pEm->id, 0, 0);
                     }
                     if (obj->type == 0xB) {
-                        SndCall(8, 0x1F, &w->target->pos, w->target->id, 0, 0);
+                        SndCall(8, 0x1F, &w->pEm->pos, w->pEm->id, 0, 0);
                     }
                 }
             } else {
@@ -639,10 +639,10 @@ void obj16_R1_Atk(cObj16* obj)
             }
             if (obj->Motion.Seq_frame > 44.7f && obj->Motion.Seq_frame < 45.3f) {
                 if (obj->type == 2) {
-                    SndCall(8, 0xF, &w->target->pos, w->target->id, 0, 0);
+                    SndCall(8, 0xF, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
                 if (obj->type == 0xB) {
-                    SndCall(8, 0x20, &w->target->pos, w->target->id, 0, 0);
+                    SndCall(8, 0x20, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
             }
         }
@@ -683,11 +683,11 @@ void obj16_R1_Critical(cObj16* obj)
         MotionSetCore(obj, &obj->Motion, w->mot[9], 0, 3, 0, 0);
         if (obj->type == 3) {
             EstSet(obj, -1, 0, 0, EFF_EM10, 0x5F, 0, ESP_CORE_KIND_NONE, obj, 0);
-            SndCall(8, 9, &w->target->pos, w->target->id, 0, 0);
+            SndCall(8, 9, &w->pEm->pos, w->pEm->id, 0, 0);
         }
         if (obj->type == 0xD) {
             EstSet(obj, -1, 0, 0, EFF_EM3C, 0x1B, 0, ESP_CORE_KIND_NONE, obj, 0);
-            SndCall(8, 0x28, &w->target->pos, w->target->id, 0, 0);
+            SndCall(8, 0x28, &w->pEm->pos, w->pEm->id, 0, 0);
         }
         w->Timer = 0;
         obj->r_no_2++;
@@ -704,9 +704,9 @@ void obj16_R1_Critical(cObj16* obj)
         // local-allocated, so the worldPos copy's address register is not tied to r3
         p = pPL->getPartsPtr(3);
         tgt = p->world;
-        if (pSUB && w->body) {
-            d = VEC_DIST(&w->body->pos, &pPL->pos);
-            if (d > VEC_DIST(&w->body->pos, &pSUB->pos) +
+        if (pSUB && w->pOya) {
+            d = VEC_DIST(&w->pOya->pos, &pPL->pos);
+            if (d > VEC_DIST(&w->pOya->pos, &pSUB->pos) +
                         3000.0f) {
                 p = pSUB->getPartsPtr(3);
                 tgt = p->world;
@@ -732,11 +732,11 @@ void obj16_R1_Critical(cObj16* obj)
         }
         if (obj->type == 3) {
             EstSet(obj, -1, 0, 0, EFF_EM10, 0x5D, 0, ESP_CORE_KIND_NONE, obj, 0);
-            SndCall(8, 0xA, &w->target->pos, w->target->id, 0, 0);
+            SndCall(8, 0xA, &w->pEm->pos, w->pEm->id, 0, 0);
         }
         if (obj->type == 0xD) {
             EstSet(obj, -1, 0, 0, EFF_EM3C, 0xB, 0, ESP_CORE_KIND_NONE, obj, 0);
-            SndCall(8, 0x29, &w->target->pos, w->target->id, 0, 0);
+            SndCall(8, 0x29, &w->pEm->pos, w->pEm->id, 0, 0);
         }
         obj->r_no_2++;
     case 3:
@@ -753,18 +753,18 @@ void obj16_R1_Critical(cObj16* obj)
             }
             if (obj->Motion.Seq_frame > 9.7f && obj->Motion.Seq_frame < 10.3f) {
                 if (obj->type == 3) {
-                    SndCall(8, 0xAB, &w->target->pos, w->target->id, 0, 0);
+                    SndCall(8, 0xAB, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
                 if (obj->type == 0xD) {
-                    SndCall(8, 0x2B, &w->target->pos, w->target->id, 0, 0);
+                    SndCall(8, 0x2B, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
             }
             if (obj->Motion.Seq_frame > 41.7f && obj->Motion.Seq_frame < 42.3f) {
                 if (obj->type == 3) {
-                    SndCall(8, 0xF, &w->target->pos, w->target->id, 0, 0);
+                    SndCall(8, 0xF, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
                 if (obj->type == 0xD) {
-                    SndCall(8, 0x2A, &w->target->pos, w->target->id, 0, 0);
+                    SndCall(8, 0x2A, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
             }
         }
@@ -802,12 +802,12 @@ void obj16_R1_Damage(cObj16* obj)
             w->Scale.y = 0.3f;
             w->Scale.z = 0.3f;
         }
-        if (w->target && (obj->type == 2 || obj->type == 3)) {
-            SndCall(8, 0x88, &w->target->pos, w->target->id, 0, 0);
+        if (w->pEm && (obj->type == 2 || obj->type == 3)) {
+            SndCall(8, 0x88, &w->pEm->pos, w->pEm->id, 0, 0);
         }
         if (obj->type == 3) {
-            if (w->body) {
-                EstSet(w->body, -1, 0, 0, EFF_EM10, 0x86, 0, ESP_CORE_KIND_NONE, w->body, 0);
+            if (w->pOya) {
+                EstSet(w->pOya, -1, 0, 0, EFF_EM10, 0x86, 0, ESP_CORE_KIND_NONE, w->pOya, 0);
             }
         }
         w->Timer = 30;
@@ -824,22 +824,22 @@ void obj16_R1_Damage(cObj16* obj)
             }
         }
         if (obj->type == 4) {
-            if (w->target) {
+            if (w->pEm) {
                 if (w->Timer2) {
                     w->Timer2--;
                 } else {
                     w->Timer2 = 29;
-                    w->Seid = SndCall(8, 0x13, &w->target->pos, w->target->id, 0, 0);
+                    w->Seid = SndCall(8, 0x13, &w->pEm->pos, w->pEm->id, 0, 0);
                 }
             }
         }
         if (MotionMove(obj, 0)) {
             if (obj->type == 4) {
-                if (w->target) {
+                if (w->pEm) {
                     SndStop(w->Seid, 0);
                 }
             }
-            if (w->body && ((cEm*) w->body)->hp > 0 && (u8) ((u32) Rnd() % 10) > 5 && obj->type == 2) {
+            if (w->pOya && ((cEm*) w->pOya)->hp > 0 && (u8) ((u32) Rnd() % 10) > 5 && obj->type == 2) {
                 obj->r_no_0 = 1;
                 obj->r_no_1 = 2;
                 obj->r_no_2 = 0;
@@ -872,8 +872,8 @@ void obj16MatCalc(cObj16* obj)
     Obj16Work* w = OBJ16_WK(obj);
     cModel* p;
 
-    if (w->body) {
-        p = w->body->getPartsPtr(w->parts_no);
+    if (w->pOya) {
+        p = w->pOya->getPartsPtr(w->parts_no);
         RotMatrix(obj->mat, &obj->ang);
         TransMatrix(obj->mat, &obj->pos);
         ScaleMatrix(obj->mat, &obj->scale);
@@ -941,7 +941,7 @@ void cObj16::setMotData(void* m0, void* m1, void* m2, void* m3, void* m4, void* 
     } else {
         MotionSetCore(this, &Motion, m0, 0, 0, 4, 0);
     }
-    w->x6C = 0;
+    w->Mot_no = 0;
     if (type == 3) {
         EstSet(this, -1, 0, 0, EFF_EM10, 0x5C, 0, w->EffKindId, this, 0);
         EstSet(this, -1, 0, 0, EFF_EM10, 0x70, 0, w->EffKindId2, this, 0);
@@ -1016,7 +1016,7 @@ static inline int PlIsDead()
 int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
 {
     Obj16Work* w = OBJ16_WK(obj);
-    cModel* body = w->body;
+    cModel* body = w->pOya;
     cModel* p;
     Vec* pp;
     Vec plPos;
@@ -1063,15 +1063,15 @@ int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
                 EmPlBloodSet2(obj, pp, 1, 0x10, 0x6D);
             }
             Ctrl12Set(w->pCtrlGroup, CTRL12_ID_EM10_NOT_NEAR, 0x1E);
-            if (obj->type == 2 && w->target) {
-                SndCall(8, 0x3E, &w->target->pos, w->target->id, 0, 0);
+            if (obj->type == 2 && w->pEm) {
+                SndCall(8, 0x3E, &w->pEm->pos, w->pEm->id, 0, 0);
             }
-            if (obj->type == 0xB && w->target) {
-                SndCall(8, 0x12, &w->target->pos, w->target->id, 0, 0);
+            if (obj->type == 0xB && w->pEm) {
+                SndCall(8, 0x12, &w->pEm->pos, w->pEm->id, 0, 0);
             }
             VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 7, 1);
             QuakeExec(0, 0, 5, 22.0f, 2);
-            if (w->Mot_pl_dm && (s16) pG->pl_life > 0 && w->body) {
+            if (w->Mot_pl_dm && (s16) pG->pl_life > 0 && w->pOya) {
                 if (obj->type == 2) {
                     EstSet(pPL, -1, 0, 0, EFF_EM10, 0x74, 0, ESP_CORE_KIND_NONE, pPL, 0);
                 }
@@ -1079,12 +1079,12 @@ int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
                     EstSet(pPL, -1, 0, 0, EFF_EM3C, 9, 0, ESP_CORE_KIND_NONE, pPL, 0);
                 }
                 SetPlDamage((cEm*) obj, plemDmMStar);
-                if (fabsf(Muku(&pPL->pos, &w->body->pos, pPL->ang.y, PI)) < PI / 2) {
-                    ang = Muku(&pPL->pos, &w->body->pos, pPL->ang.y, PI);
+                if (fabsf(Muku(&pPL->pos, &w->pOya->pos, pPL->ang.y, PI)) < PI / 2) {
+                    ang = Muku(&pPL->pos, &w->pOya->pos, pPL->ang.y, PI);
                     pPL->ang.y = pPL->ang.y + ang;
                     pPL->r_no_3 = 0;
                 } else {
-                    ang = Muku(&w->body->pos, &pPL->pos, pPL->ang.y, PI);
+                    ang = Muku(&w->pOya->pos, &pPL->pos, pPL->ang.y, PI);
                     pPL->ang.y = pPL->ang.y + ang;
                     pPL->r_no_3 = 1;
                 }
@@ -1102,11 +1102,11 @@ int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
                 EmPlBloodSet2(obj, pp, 1, 0x10, 0x6E);
             }
             Ctrl12Set(w->pCtrlGroup, CTRL12_ID_EM10_NOT_NEAR, 0x1E);
-            if (obj->type == 2 && w->target) {
-                SndCall(8, 0x3E, &w->target->pos, w->target->id, 0, 0);
+            if (obj->type == 2 && w->pEm) {
+                SndCall(8, 0x3E, &w->pEm->pos, w->pEm->id, 0, 0);
             }
-            if (obj->type == 0xB && w->target) {
-                SndCall(8, 0x12, &w->target->pos, w->target->id, 0, 0);
+            if (obj->type == 0xB && w->pEm) {
+                SndCall(8, 0x12, &w->pEm->pos, w->pEm->id, 0, 0);
             }
             VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 7, 1);
             QuakeExec(0, 0, 5, 22.0f, 2);
@@ -1123,11 +1123,11 @@ int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
                 EmPlBloodSet2(obj, pp, 1, 0x31, 7);
             }
             Ctrl12Set(w->pCtrlGroup, CTRL12_ID_EM10_NOT_NEAR, 0x1E);
-            if (obj->type == 2 && w->target) {
-                SndCall(8, 0x3E, &w->target->pos, w->target->id, 0, 0);
+            if (obj->type == 2 && w->pEm) {
+                SndCall(8, 0x3E, &w->pEm->pos, w->pEm->id, 0, 0);
             }
-            if (obj->type == 0xB && w->target) {
-                SndCall(8, 0x12, &w->target->pos, w->target->id, 0, 0);
+            if (obj->type == 0xB && w->pEm) {
+                SndCall(8, 0x12, &w->pEm->pos, w->pEm->id, 0, 0);
             }
             VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 7, 1);
             QuakeExec(0, 0, 5, 22.0f, 2);
@@ -1168,8 +1168,8 @@ void obj16PlHeadLost(cObj16* obj)
     region = pSys->eff_country;
     if (region == 0) {
         PlSetDamageSe(0xD);
-        if (w->body) {
-            switch (w->body->id) {
+        if (w->pOya) {
+            switch (w->pOya->id) {
             case 0x10 ... 0x17:
             case 0x19 ... 0x20:
                 EstSet(pPL, -1, 0, 0, EFF_EM10, 0x57, 0, ESP_CORE_KIND_NONE, pPL, 0);
@@ -1181,8 +1181,8 @@ void obj16PlHeadLost(cObj16* obj)
         }
     } else {
         pPL->setHead(0);
-        if (w->body) {
-            switch (w->body->id) {
+        if (w->pOya) {
+            switch (w->pOya->id) {
             case 0x10 ... 0x17:
             case 0x19 ... 0x20:
                 EstSet(pPL, -1, 0, 0, EFF_EM10, 0x45, 0, ESP_CORE_KIND_NONE, pPL, 0);
@@ -1202,7 +1202,7 @@ void obj16PlHeadLost(cObj16* obj)
 static void obj16NeckMove(cObj16* obj)
 {
     Obj16Work* w = OBJ16_WK(obj);
-    cModel* body = w->body;
+    cModel* body = w->pOya;
     Vec tgt;
     Vec dir;
     f32 ang;
@@ -1245,8 +1245,8 @@ static void obj16NeckMove(cObj16* obj)
         p->rot.y = ang;
         p->flags |= 0x40000000;
         p->rot.z = 0.0f;
-        if (w->body) {
-            cModel* bp = w->body->getPartsPtr(w->parts_no);
+        if (w->pOya) {
+            cModel* bp = w->pOya->getPartsPtr(w->parts_no);
             dir.x = 0.0f;
             dir.y = 0.0f;
             dir.z = 1.0f;

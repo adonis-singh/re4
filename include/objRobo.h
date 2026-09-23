@@ -150,12 +150,12 @@ struct RoboWork {
     s8 r_no_0;           // 0x00  R0Tbl index
     s8 r_no_1;              // 0x01
     u8 pad_2[6];
-    int pillar;           // 0x08  r226: index of the bridge pillar being pushed over (playerPillarDownCk)
+    int ActBtnType;           // 0x08  r226: index of the bridge pillar being pushed over (playerPillarDownCk)
     class cSat* pSat[2];   // 0x0C  scenario pieces (front / back)
     class cSat* pEat[2];   // 0x14  effect pieces
     class cEmHit* pEmHitTbl[14];  // 0x1C
     class cSat* pEatBody;     // 0x54  effect piece at the model position
-    cObj* smd[2];         // 0x58  scroll objects following the feet (SetObjSmd)
+    cObj* pObjScr[2];         // 0x58  scroll objects following the feet (SetObjSmd)
     f32 FallSpdY;         // 0x60
     int FallTimer;              // 0x64
     int BridgeTimer[6];        // 0x68  frames each bridge piece has been hit

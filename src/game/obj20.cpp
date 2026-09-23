@@ -38,9 +38,9 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
     obj->sub2B4.atari.clrFlag100();
     obj->sub2B4.atari.setPriority(PRI_LV1);
     obj->be_flag &= ~2;
-    w->parent = parent;
-    w->ofs = *ofs;
-    w->partsNo = partsNo;
+    w->pEm = parent;
+    w->Offset = *ofs;
+    w->Parts_no = partsNo;
     obj->move();
     return obj;
 }
@@ -52,22 +52,22 @@ void cObjObaModel::move()
 {
     ObaModelWork* w = OBAMODEL_WK(this);
 
-    if (w->parent) {
-        if ((w->parent->be_flag & 0x201) != 1) {
+    if (w->pEm) {
+        if ((w->pEm->be_flag & 0x201) != 1) {
             ObjMgr.destroy(this);
             return;
         }
         if (type == 0) {
-            cModel* parts = w->parent->getPartsPtr(w->partsNo);
-            PSMTXMultVec(parts->mat, &w->ofs, &pos);
-            if (pos.y < w->parent->pos.y + 2000.0f) {
-                pos.y = w->parent->pos.y;
+            cModel* parts = w->pEm->getPartsPtr(w->Parts_no);
+            PSMTXMultVec(parts->mat, &w->Offset, &pos);
+            if (pos.y < w->pEm->pos.y + 2000.0f) {
+                pos.y = w->pEm->pos.y;
             }
         }
         if (type == 1) {
-            PSMTXMultVec(w->parent->mat, &w->ofs, &pos);
+            PSMTXMultVec(w->pEm->mat, &w->Offset, &pos);
         }
-        if (w->parent->sub2B4.atari.m_flag & 0x200) {
+        if (w->pEm->sub2B4.atari.m_flag & 0x200) {
             sub2B4.atari.m_flag |= 0x200;
         } else {
             sub2B4.atari.m_flag &= ~0x200;

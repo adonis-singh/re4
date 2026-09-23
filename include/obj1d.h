@@ -8,15 +8,15 @@
 // Chain link work (game/obj1d.cpp): hangs between two parts of a parent model, fades out when
 // the parent is lost.
 struct ChainWork {
-    u32 flags;            // 0x00  bit1: keep the parent parts matrices as they are (no axis normalize)
-    int timer;            // 0x04  frames before the fade-out (LostWait)
+    u32 Be_flg;            // 0x00  bit1: keep the parent parts matrices as they are (no axis normalize)
+    int Timer;            // 0x04  frames before the fade-out (LostWait)
     u8 pad_8[4];
-    cModel* parent;       // 0x0C
-    int parts1;           // 0x10
-    int parts2;           // 0x14
-    Vec ofs1;             // 0x18  offset in parts1
-    Vec ofs2;             // 0x24  offset in parts2
-    struct PenCloth* cloth;  // 0x30
+    cModel* pEm_oya;       // 0x0C
+    int Parts1;           // 0x10
+    int Parts2;           // 0x14
+    Vec Offset1;             // 0x18  offset in parts1
+    Vec Offset2;             // 0x24  offset in parts2
+    struct PenCloth* pCloth;  // 0x30
 };
 
 // Chain link: a model hung between two parts of a parent (the interpolated orientation and

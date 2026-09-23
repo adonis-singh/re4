@@ -91,8 +91,8 @@ void cObjMissile::move()
 {
     MissileWork* w = MISSILE_WK(this);
 
-    if (w->parent) {
-        if ((w->parent->be_flag & 0x201) != 1 || ((cEm*) w->parent)->hp <= 0) {
+    if (w->pEm_oya) {
+        if ((w->pEm_oya->be_flag & 0x201) != 1 || ((cEm*) w->pEm_oya)->hp <= 0) {
             if (w->pHit) {
                 EmMgr.destroy(w->pHit);
                 w->pHit = 0;
@@ -118,7 +118,7 @@ void objMissile_R0_Parent(cObjMissile* pObj)
     Vec v0;
     Vec v1;
     Vec v2;
-    cModel* parent = w->parent;
+    cModel* parent = w->pEm_oya;
 
     RotMatrix(pObj->mat, &pObj->ang);
     TransMatrix(pObj->mat, &pObj->pos);
@@ -180,7 +180,7 @@ void objMissile_R0_FireWait(cObjMissile* pObj)
     Vec v0;
     Vec v1;
     Vec v2;
-    cModel* parent = w->parent;
+    cModel* parent = w->pEm_oya;
 
     switch (pObj->r_no_2) {
     case 0:
@@ -303,7 +303,7 @@ void objMissile_R0_Fire(cObjMissile* pObj)
             break;
         }
         PSMTXMultVecSR(pObj->mat, &w->Spd, &w->Spd);
-        w->parent = 0;
+        w->pEm_oya = 0;
         pObj->r_no_2++;
     }
     Vec hit;
@@ -380,7 +380,7 @@ void cObjMissile::setParent(cModel* parent, int partsNo, int noNormalize)
 {
     MissileWork* w = MISSILE_WK(this);
 
-    w->parent = parent;
+    w->pEm_oya = parent;
     w->oya_parts = partsNo;
     w->scale_mode = noNormalize;
     r_no_0 = 1;

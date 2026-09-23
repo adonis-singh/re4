@@ -22,19 +22,19 @@ u32 Obj18CmfGet(cObj* pObj);
 struct Obj18Work {
     u32 be_flag;            // 0x00  bit3: blending toward the parent, bit6: cloth simulation off
     u8 pad_4[0xC];
-    cModel* pEm_oya;          // 0x10  parent
+    cModel* pEm_oya;        // 0x10  parent
     int oya_parts;          // 0x14
-    f32 oya_hokan;             // 0x18  blend rate (1.0 = parent matrix)
-    f32 oya_hokan_add;          // 0x1C
+    f32 oya_hokan;          // 0x18  blend rate (1.0 = parent matrix)
+    f32 oya_hokan_add;      // 0x1C
     u8 pad_20[0x14];
-    Mtx hokan_mat;              // 0x34  previous parent matrix
-    u32 x64;              // 0x64
-    u32 obj18_type;             // 0x68  OBJ18_TYPE (SetObj18 type, cloth set)
-    u32 CommonFlag;              // 0x6C  Obj18CmfSet/Get flag bits
-    cObj* child;          // 0x70  ribbon / rope object created by SetObj18
-    int ObjChainFlagCommon;              // 0x74  bit26 (0x04000000): event ControlTransFlag skips the child flags
-    char NameMod[12];     // 0x78  event model name of the packet that created it (event ExePacket_SetOm; PS2 NameMod)
-    u8 DebugFlag;         // 0x84
+    Mtx hokan_mat;          // 0x34  previous parent matrix
+    u8 pad_64[4];           // 0x64  fall_se_id/no/em_id/se_ck on PS2, unused here
+    u32 obj18_type;         // 0x68  OBJ18_TYPE (SetObj18 type, cloth set)
+    u32 CommonFlag;         // 0x6C  Obj18CmfSet/Get flag bits
+    cObj* pObjChain;        // 0x70  ribbon / rope object created by SetObj18
+    int ObjChainFlagCommon; // 0x74  bit26 (0x04000000): event ControlTransFlag skips the child flags
+    char NameMod[12];       // 0x78  event model name of the packet that created it (event ExePacket_SetOm; PS2 NameMod)
+    u8 DebugFlag;           // 0x84
     u8 pad_85[3];
 };
 

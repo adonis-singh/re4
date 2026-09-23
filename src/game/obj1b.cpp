@@ -76,35 +76,35 @@ cObj* SetSpear(void* bin, void* tpl, Vec* pos, Vec* rot)
 
     obj->sub2B4.atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
-    w->flags = 0;
-    w->parentTimer = 0;
-    w->estTimer = 0;
-    w->x50 = 0;
-    w->type = 0;
-    w->seBlk = 0xFF;
-    w->seNo = 0xFF;
-    w->seId = 0;
-    w->sePlayed = 0;
-    w->se2Blk = 0xFF;
-    w->se2No = 0xFF;
-    w->se2Id = 0;
-    w->se3Blk = 0xFF;
-    w->se3No = 0xFF;
-    w->se3Id = 0;
-    w->throwSeBlk = 0xFF;
-    w->throwSeNo = 0xFF;
-    w->throwSeId = 0;
-    w->estNo = 0xFF;
-    w->estPrm = 0xFF;
-    // Store order read off the scheduler: the last RTL use of the 0xFF register (x6D) is the
-    // dying store and is issued first among the 0xFF stores, the rest follow in RTL order with
-    // x6C last; espId's `li 50` is issued late so its store leads the block. xFD/xFE/xFF ascending
-    // gives the target's 255, 253, 254 issue order.
-    w->x6E = 0xFF;
-    w->x6F = 0xFF;
-    w->x6C = 0xFF;
-    w->x6D = 0xFF;
-    w->espId = 0x32;
+    w->Be_flg = 0;
+    w->Lost_wait = 0;
+    w->Eff_timer = 0;
+    w->pAtk = 0;
+    w->fall_type = 0;
+    w->se_id_fall = 0xFF;
+    w->se_no_fall = 0xFF;
+    w->em_id_fall = 0;
+    w->se_ck_fall = 0;
+    w->se_id_hit = 0xFF;
+    w->se_no_hit = 0xFF;
+    w->em_id_hit = 0;
+    w->se_id_dm = 0xFF;
+    w->se_no_dm = 0xFF;
+    w->em_id_dm = 0;
+    w->se_id_throw = 0xFF;
+    w->se_no_throw = 0xFF;
+    w->em_id_throw = 0;
+    w->eff_id_fall = 0xFF;
+    w->est_id_fall = 0xFF;
+    // Store order read off the scheduler: the last RTL use of the 0xFF register (est_id_hit) is
+    // the dying store and is issued first among the 0xFF stores, the rest follow in RTL order with
+    // eff_id_hit last; EffKindId's `li 50` is issued late so its store leads the block. xFD/xFE/xFF
+    // ascending gives the target's 255, 253, 254 issue order.
+    w->eff_id_dm = 0xFF;
+    w->est_id_dm = 0xFF;
+    w->eff_id_hit = 0xFF;
+    w->est_id_hit = 0xFF;
+    w->EffKindId = 0x32;
     obj->r_no_0 = 1;
     obj->r_no_1 = 0;
     obj->r_no_2 = 0;
@@ -120,7 +120,7 @@ cObj* SetSpear(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Event start: a loose spear (no parent) is removed.
 void cObjSpear::beginEvent(u32 flag)
 {
-    if (SPEAR_WK(this)->parent == 0) {
+    if (SPEAR_WK(this)->pEm_oya == 0) {
         ObjMgr.destroy(this);
     }
 }
@@ -131,7 +131,7 @@ void cObjSpear::move()
 {
     SpearWork* w = SPEAR_WK(this);
 
-    if (w->parent && (w->parent->be_flag & 0x201) != 1) {
+    if (w->pEm_oya && (w->pEm_oya->be_flag & 0x201) != 1) {
         ObjMgr.destroy(this);
         return;
     }
@@ -139,26 +139,26 @@ void cObjSpear::move()
     if ((be_flag & 0x201) != 1) {
         return;
     }
-    if (w->parent == 0) {
+    if (w->pEm_oya == 0) {
         return;
     }
-    if (w->parent->LightInfo.EnableMask & 2) {
+    if (w->pEm_oya->LightInfo.EnableMask & 2) {
         LightInfo.EnableMask = (LightInfo.EnableMask & ~0x10) | 2;
     }
-    if (w->parent == 0) {
+    if (w->pEm_oya == 0) {
         return;
     }
-    invisible_factor = w->parent->invisible_factor;
-    invisible_factor2 = w->parent->invisible_factor2;
-    if (w->parent->be_flag & 2) {
+    invisible_factor = w->pEm_oya->invisible_factor;
+    invisible_factor2 = w->pEm_oya->invisible_factor2;
+    if (w->pEm_oya->be_flag & 2) {
         be_flag |= 2;
     } else {
         be_flag &= ~2;
     }
-    if (w->parent == 0) {
+    if (w->pEm_oya == 0) {
         return;
     }
-    if (w->parent->id == 0 && (StaFlagChk(pG, STA_BINOCULAR))) {
+    if (w->pEm_oya->id == 0 && (StaFlagChk(pG, STA_BINOCULAR))) {
         be_flag &= ~2;
     }
 }
@@ -186,10 +186,10 @@ void obj1b_R1_LostWait(cObjSpear* pObj)
 
     switch (pObj->r_no_2) {
     case 0:
-        w->timer = 120;
+        w->Timer = 120;
         pObj->r_no_2++;
     case 1:
-        if (w->timer == 0) {
+        if (w->Timer == 0) {
             pObj->invisible_factor -= 0.1f;
             if (pObj->invisible_factor <= 0.0f) {
                 pObj->invisible_factor = 0.0f;
@@ -200,7 +200,7 @@ void obj1b_R1_LostWait(cObjSpear* pObj)
                 break;
             }
         } else {
-            w->timer--;
+            w->Timer--;
         }
         p = pObj->pos;
         GetScreenPos(&p, &scr);
@@ -236,7 +236,7 @@ void obj1b_R1_Lost(cObjSpear* pObj)
 void obj1b_R1_Parent(cObjSpear* pObj)
 {
     SpearWork* w = SPEAR_WK(pObj);
-    cModel* parent = w->parent;
+    cModel* parent = w->pEm_oya;
 
     RotMatrix(pObj->mat, &pObj->ang);
     TransMatrix(pObj->mat, &pObj->pos);
@@ -246,10 +246,10 @@ void obj1b_R1_Parent(cObjSpear* pObj)
         Vec v0;
         Vec v1;
         Vec v2;
-        cModel* parts = parent->getPartsPtr(w->partsNo);
+        cModel* parts = parent->getPartsPtr(w->oya_parts);
 
         PSMTXConcat(parts->mat, pObj->mat, m);
-        if (!(w->flags & 1)) {
+        if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];
             v0.y = m[1][0];
             v0.z = m[2][0];
@@ -294,11 +294,11 @@ void obj1b_R1_Parent(cObjSpear* pObj)
         pObj->partsMatCalc();
     }
     pObj->partsWorldCalc();
-    if (w->parentTimer != 0 && --w->parentTimer == 0) {
+    if (w->Lost_wait != 0 && --w->Lost_wait == 0) {
         pObj->setFall(0, 0);
-    } else if (parent && parent->id == 0x2F && w->estTimer) {
-        w->estTimer--;
-        if ((w->estTimer & 1) == 0) {
+    } else if (parent && parent->id == 0x2F && w->Eff_timer) {
+        w->Eff_timer--;
+        if ((w->Eff_timer & 1) == 0) {
             if (StaFlagChk(pG, STA_WATER_CAMERA)) {
                 Vec p;
 
@@ -353,7 +353,7 @@ void obj1b_R1_Fall(cObjSpear* obj)
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        PSMTXMultVec(obj->mat, &ofs[w->type][i], &p->pos);
+        PSMTXMultVec(obj->mat, &ofs[w->fall_type][i], &p->pos);
         p->old = p->pos;
     }
     for (i = 0; i < 3; i++) {
@@ -405,19 +405,19 @@ void obj1b_R1_Fall(cObjSpear* obj)
             n = &node[i + 1];
         }
         if (p->reflect) {
-            if (w->sePlayed == 0 && p->spd.y < -50.0f) {
-                w->sePlayed = 1;
-                if (w->seBlk != 0xFF) {
-                    SndCall(w->seBlk, w->seNo, &obj->pos, w->seId, 0, 0);
+            if (w->se_ck_fall == 0 && p->spd.y < -50.0f) {
+                w->se_ck_fall = 1;
+                if (w->se_id_fall != 0xFF) {
+                    SndCall(w->se_id_fall, w->se_no_fall, &obj->pos, w->em_id_fall, 0, 0);
                 }
-                if (w->estNo != 0xFF && w->estPrm != 0xFF) {
-                    EstSet(obj, -1, 0, 0, w->estNo, w->estPrm, 0, ESP_CORE_KIND_NONE, obj, 0);
+                if (w->eff_id_fall != 0xFF && w->est_id_fall != 0xFF) {
+                    EstSet(obj, -1, 0, 0, w->eff_id_fall, w->est_id_fall, 0, ESP_CORE_KIND_NONE, obj, 0);
                 }
-                EffectEspDelete(0, w->espId, obj, 0);
-                EffectEspgenDelete(0, w->espId, obj);
-                EffectEfmDelete(0, w->espId, obj);
+                EffectEspDelete(0, w->EffKindId, obj, 0);
+                EffectEspgenDelete(0, w->EffKindId, obj);
+                EffectEfmDelete(0, w->EffKindId, obj);
             }
-            switch (w->type) {
+            switch (w->fall_type) {
             default:
                 p->spd.x *= fRand0_1() * 0.2f + 0.5f;
                 p->spd.y *= -(fRand0_1() * 0.2f + 0.5f);
@@ -461,7 +461,7 @@ void obj1b_R1_Fall(cObjSpear* obj)
     obj->mat[0][2] = vz.x;
     obj->mat[1][2] = vz.y;
     obj->mat[2][2] = vz.z;
-    PSVECScale(&ofs[w->type][0], &d, -1.0f);
+    PSVECScale(&ofs[w->fall_type][0], &d, -1.0f);
     TransMatrix(obj->mat, &node[0].pos);
     PSMTXMultVec(obj->mat, &d, &d);
     TransMatrix(obj->mat, &d);
@@ -495,30 +495,30 @@ void obj1b_R1_Throw(cObjSpear* pObj)
 
     switch (pObj->r_no_2) {
     case 0:
-        w->timer = 0;
-        w->timer2 = 60;
+        w->Timer = 0;
+        w->Timer2 = 60;
         pObj->r_no_2++;
     case 1:
-        if (w->timer) {
-            w->timer--;
+        if (w->Timer) {
+            w->Timer--;
         } else {
-            w->timer = 4;
-            if (w->throwSeBlk != 0xFF && w->throwSeNo != 0xFF) {
-                SndCall(w->throwSeBlk, w->throwSeNo, &pObj->pos, w->throwSeId, 0, 0);
+            w->Timer = 4;
+            if (w->se_id_throw != 0xFF && w->se_no_throw != 0xFF) {
+                SndCall(w->se_id_throw, w->se_no_throw, &pObj->pos, w->em_id_throw, 0, 0);
             }
         }
-        if (w->timer2 == 0) {
+        if (w->Timer2 == 0) {
             pObj->r_no_0 = 1;
             pObj->r_no_1 = 2;
             pObj->r_no_2 = 0;
             pObj->r_no_3 = 0;
             return;
         }
-        w->timer2--;
+        w->Timer2--;
         break;
     }
-    w->throwSpd.y -= 15.0f;
-    PSVECAdd(&pObj->pos, &w->throwSpd, &pObj->pos);
+    w->throw_v.y -= 15.0f;
+    PSVECAdd(&pObj->pos, &w->throw_v, &pObj->pos);
     if (EatMgr.hitCheck(&pObj->pos_old, &pObj->pos, &hit, 0, 0, 0)) {
         pObj->pos = hit;
         SndCall(6, 1, &pObj->pos, 0, 0, 0);
@@ -615,9 +615,9 @@ int obj1bHitCk(cObjSpear* pObj)
             EstSet(pObj, -1, 0, 0, EFF_EM2F, 0, 0, ESP_CORE_KIND_NONE, pObj, &opt);
             EstSet(pObj, -1, 0, 0, EFF_EM2F, 5, 0, ESP_CORE_KIND_NONE, pObj, 0);
             SndCall(8, 4, &pObj->pos_old, em->id, 0, 0);
-            w->estTimer = 600;
+            w->Eff_timer = 600;
         }
-        w->parentTimer = 1800;
+        w->Lost_wait = 1800;
         return 1;
     }
     return 0;
@@ -628,12 +628,12 @@ void cObjSpear::setParent(cModel* pEm, int oya_parts, int mode)
 {
     SpearWork* w = SPEAR_WK(this);
 
-    w->parent = pEm;
-    w->partsNo = oya_parts;
+    w->pEm_oya = pEm;
+    w->oya_parts = oya_parts;
     if (mode) {
-        w->flags |= 1;
+        w->Be_flg |= 1;
     } else {
-        w->flags &= ~1;
+        w->Be_flg &= ~1;
     }
     r_no_0 = 1;
     r_no_1 = 3;
@@ -693,8 +693,8 @@ void cObjSpear::setFall(u8 type, Vec* pSpd)
             break;
         }
     }
-    w->type = type;
-    w->parent = 0;
+    w->fall_type = type;
+    w->pEm_oya = 0;
     pos.x = mat[0][3];
     pos.y = mat[1][3];
     pos.z = mat[2][3];
@@ -713,18 +713,18 @@ void cObjSpear::setThrow(Vec* pSpd)
     f32 len;
 
     if (pSpd) {
-        w->throwSpd.x = pSpd->x;
-        w->throwSpd.y = pSpd->y;
-        w->throwSpd.z = pSpd->z;
+        w->throw_v.x = pSpd->x;
+        w->throw_v.y = pSpd->y;
+        w->throw_v.z = pSpd->z;
     } else {
         d.x = 0.0f;
         d.y = 0.0f;
         d.z = 1000.0f;
-        PSMTXMultVecSR(mat, &d, &w->throwSpd);
+        PSMTXMultVecSR(mat, &d, &w->throw_v);
     }
     len = SQRTF(d.x * d.x + d.z * d.z);
     ang.x = -atan2f(d.y, len);
-    ang.y = atan2f(w->throwSpd.x, w->throwSpd.z);
+    ang.y = atan2f(w->throw_v.x, w->throw_v.z);
     ang.z = 0.0f;
     pos.x = mat[0][3];
     pos.y = mat[1][3];
@@ -732,7 +732,7 @@ void cObjSpear::setThrow(Vec* pSpd)
     pos_old = pos;
     RotMatrix(mat, &ang);
     TransMatrix(mat, &pos);
-    w->parent = 0;
+    w->pEm_oya = 0;
     r_no_0 = 1;
     r_no_1 = 5;
     r_no_2 = 0;

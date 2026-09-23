@@ -116,10 +116,10 @@ cObj* SetBull(void* bin, void* tpl, Vec* pos, Vec* rot, u32 type)
     for (i = 0; i < 12; i++) {
         *p++ = 0;
     }
-    w->break1st = 1;
-    w->break2nd = 3;
-    w->break4th = 3;
-    w->break3rd = 1;
+    w->Barrier_hp[0] = 1;
+    w->Barrier_hp[1] = 3;
+    w->Barrier_hp[3] = 3;
+    w->Barrier_hp[2] = 1;
     w->Start_point = type;
     w->Move_point = type;
     w->Ride_mode = 1;
@@ -157,7 +157,7 @@ void objBull_R0_Set(cObjBull* pObj)
 }
 
 // Rno0 == 1: first barrier: sound, the partner starts operating (Sub_bull_operation), the bump
-// motion mot[0] repeated break1st times (Be_flg 2 when broken), riders carried along, enemy hit
+// motion mot[0] repeated Barrier_hp[0] times (Be_flg 2 when broken), riders carried along, enemy hit
 // check in front of the blade.
 void objBull_R0_Break1st(cObjBull* pObj)
 {
@@ -181,13 +181,13 @@ void objBull_R0_Break1st(cObjBull* pObj)
         break;
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[0], 0, 0, 0x8001, 0);
-        if (w->break1st == 0 || --w->break1st == 0) {
+        if (w->Barrier_hp[0] == 0 || --w->Barrier_hp[0] == 0) {
             BULL_WK(pObj)->Be_flg |= 2;
         }
         pObj->r_no_2++;
     case 3:
         if (MotionMove(pObj, 0)) {
-            if (w->break1st == 0) {
+            if (w->Barrier_hp[0] == 0) {
                 pObj->r_no_0 = 2;
                 pObj->r_no_1 = 0;
                 pObj->r_no_2 = 0;
@@ -243,7 +243,7 @@ void objBull_R0_To2nd(cObjBull* pObj)
     w->Move_frame2++;
 }
 
-// Rno0 == 3: second barrier (mot[2], break2nd hits, Be_flg 4).
+// Rno0 == 3: second barrier (mot[2], Barrier_hp[1] hits, Be_flg 4).
 void objBull_R0_Break2nd(cObjBull* pObj)
 {
     BullWork* w = BULL_WK(pObj);
@@ -266,13 +266,13 @@ void objBull_R0_Break2nd(cObjBull* pObj)
         break;
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[2], 0, 0, 0x8001, 0);
-        if (w->break2nd == 0 || --w->break2nd == 0) {
+        if (w->Barrier_hp[1] == 0 || --w->Barrier_hp[1] == 0) {
             BULL_WK(pObj)->Be_flg |= 4;
         }
         pObj->r_no_2++;
     case 3:
         if (MotionMove(pObj, 0)) {
-            if (w->break2nd == 0) {
+            if (w->Barrier_hp[1] == 0) {
                 pObj->r_no_0 = 4;
                 pObj->r_no_1 = 0;
                 pObj->r_no_2 = 0;
@@ -445,7 +445,7 @@ void objBull_R0_To3rd(cObjBull* pObj)
     w->Move_frame2++;
 }
 
-// Rno0 == 8: third barrier (mot[6], break3rd hits, Be_flg 8).
+// Rno0 == 8: third barrier (mot[6], Barrier_hp[2] hits, Be_flg 8).
 void objBull_R0_Break3rd(cObjBull* pObj)
 {
     BullWork* w = BULL_WK(pObj);
@@ -468,13 +468,13 @@ void objBull_R0_Break3rd(cObjBull* pObj)
         break;
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[6], 0, 0, 0x8001, 0);
-        if (w->break3rd == 0 || --w->break3rd == 0) {
+        if (w->Barrier_hp[2] == 0 || --w->Barrier_hp[2] == 0) {
             BULL_WK(pObj)->Be_flg |= 8;
         }
         pObj->r_no_2++;
     case 3:
         if (MotionMove(pObj, 0)) {
-            if (w->break3rd == 0) {
+            if (w->Barrier_hp[2] == 0) {
                 pObj->r_no_0 = 9;
                 pObj->r_no_1 = 0;
                 pObj->r_no_2 = 0;
@@ -530,7 +530,7 @@ void objBull_R0_To4th(cObjBull* pObj)
     w->Move_frame2++;
 }
 
-// Rno0 == 10: fourth barrier (mot[8], break4th hits, Be_flg 0x10).
+// Rno0 == 10: fourth barrier (mot[8], Barrier_hp[3] hits, Be_flg 0x10).
 void objBull_R0_Break4th(cObjBull* pObj)
 {
     BullWork* w = BULL_WK(pObj);
@@ -553,13 +553,13 @@ void objBull_R0_Break4th(cObjBull* pObj)
         break;
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[8], 0, 0, 0x8001, 0);
-        if (w->break4th == 0 || --w->break4th == 0) {
+        if (w->Barrier_hp[3] == 0 || --w->Barrier_hp[3] == 0) {
             BULL_WK(pObj)->Be_flg |= 0x10;
         }
         pObj->r_no_2++;
     case 3:
         if (MotionMove(pObj, 0)) {
-            if (w->break4th == 0) {
+            if (w->Barrier_hp[3] == 0) {
                 pObj->r_no_0 = 0xB;
                 pObj->r_no_1 = 0;
                 pObj->r_no_2 = 0;
@@ -595,7 +595,7 @@ void objBull_R0_Collision(cObjBull* pObj)
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[9], 0, 0, 0x8001, 0);
         SndCall(6, 8, &(pObj->pList)[2].world, 0, 0, pObj);
         SndCall(6, 9, &(pObj->pList)[2].world, 0, 0, pObj);
-        w->frame = (*(u16*) w->Mot_tbl[9] & 0x3FFF) - 30;
+        w->Timer = (*(u16*) w->Mot_tbl[9] & 0x3FFF) - 30;
         BULL_WK(pObj)->Be_flg |= 0x40;
         w->Act_ck = 0;
         w->Truck_down = 0;

@@ -31,7 +31,7 @@ void cObj01::move()
 // Rno0 == 0: counts `life` down (not for type 2, which detonates on impact) and on 0 detonates by
 // eff_action: 1 hand grenade (blast effect or water burst, PlWepHitCheck2 radius 6000, rings the
 // bell), 2 flash grenade (two effects, flash damage 4/5), 3 incendiary (fire effect attached to
-// the object), 0/4 nothing; then Rno0 = 1. Plays the pending motion; while held (w->hold) follows the parts
+// the object), 0/4 nothing; then Rno0 = 1. Plays the pending motion; while held (w->pEm) follows the parts
 // and releases after release_timer (snapping out of the wall); otherwise obj01AddSpeed moves it
 // (destroyed when it says so) and the spin is applied to parts 0.
 void cObj01::move00()
@@ -109,7 +109,7 @@ void cObj01::move00()
     if (w->be_flag & 2) {
         MotionMove(this, 0);
     }
-    if (w->hold) {
+    if (w->pEm) {
         if (w->release_timer) {
             w->release_timer--;
             if (w->release_timer == 0) {
@@ -117,7 +117,7 @@ void cObj01::move00()
                 Vec hit;
                 Vec dir;
 
-                parts = GetPartsAddr(w->hold->pParts, 0);
+                parts = GetPartsAddr(w->pEm->pParts, 0);
                 if (SatMgr.hitCheck(&parts->world, &pos, &hit, 0, 0, 0)) {
                     PSVECSubtract(&parts->world, &hit, &dir);
 #line 172 "D:/Bio4/Prog/obj01.cpp"
@@ -128,10 +128,10 @@ void cObj01::move00()
                     TransMatrix(mat, &pos);
                 }
                 pos_old = pos;
-                w->hold = 0;
+                w->pEm = 0;
             }
         }
-        if (w->hold == 0) {
+        if (w->pEm == 0) {
             if (obj01AddSpeed(this)) {
                 ObjMgr.destroy(this);
                 return;
@@ -142,7 +142,7 @@ void cObj01::move00()
         return;
     }
     if (w->be_flag & 8) {
-        if (w->hold == 0) {
+        if (w->pEm == 0) {
             cModel* parts = GetPartsAddr(pParts, 0);
             if (parts) {
                 PSVECAdd(&parts->ang, &w->rot_spd, &parts->ang);
@@ -155,21 +155,21 @@ void cObj01::move00()
             }
         }
     }
-    if (w->hold) {
-        if ((w->hold->be_flag & 0x201) != 1) {
-            w->hold = 0;
+    if (w->pEm) {
+        if ((w->pEm->be_flag & 0x201) != 1) {
+            w->pEm = 0;
         }
     }
-    if (w->hold) {
-        cModel* parts = w->hold->getPartsPtr(w->parts_no);
+    if (w->pEm) {
+        cModel* parts = w->pEm->getPartsPtr(w->parts_no);
         RotMatrix(mat, &w->ang);
         TransMatrix(mat, &w->offset);
         ScaleMatrix(mat, &scale);
         PSMTXMultVec(parts->mat, &w->offset, &pos);
         PSMTXConcat(parts->mat, mat, mat);
         TransMatrix(mat, &pos);
-        invisible_factor = w->hold->invisible_factor;
-        invisible_factor2 = w->hold->invisible_factor2;
+        invisible_factor = w->pEm->invisible_factor;
+        invisible_factor2 = w->pEm->invisible_factor2;
     } else {
         RotMatrix(l_mat, &ang);
         TransMatrix(l_mat, &pos);
@@ -341,7 +341,7 @@ cObj* SetObj01(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
     w->gravity = grav;
     w->r = rad;
     w->timer = life;
-    w->hold = 0;
+    w->pEm = 0;
     w->eff = -1;
     w->est = -1;
     w->eff2 = -1;

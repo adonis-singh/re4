@@ -30,12 +30,12 @@ void cObj04::move()
     int hit;
     static f32 obj04_gnd_ratio = 0.0f;
 
-    if (w->parent) {
-        if ((w->parent->be_flag & 0x201) != 1) {
+    if (w->pMod) {
+        if ((w->pMod->be_flag & 0x201) != 1) {
             ObjMgr.destroy(this);
             return;
         }
-        if (w->parent->guid != w->parentSerial) {
+        if (w->pMod->guid != w->Guid_pMod) {
             ObjMgr.destroy(this);
             return;
         }
@@ -44,86 +44,86 @@ void cObj04::move()
     if ((li->Flag & 3) == 2) {
         li->updateMatrix(this);
     }
-    if (w->flags & 8) {
+    if (w->Tool_flg & 8) {
         MotionMove(this, 0);
     }
-    if (w->parentWorld != pEffParentWorld) {
-        if (w->rotFrame != 0xFF && w->rotFrame <= w->frame) {
-            Efm04RotMatrix(this, w->parentWorld->mat);
-            w->parentWorld = pEffParentWorld;
+    if (w->pParts != pEffParentWorld) {
+        if (w->Release_time != 0xFF && w->Release_time <= w->Life_time) {
+            Efm04RotMatrix(this, w->pParts->mat);
+            w->pParts = pEffParentWorld;
         }
-        if (w->parentWorld != pEffParentWorld && w->parent) {
-            if (!(w->parent->be_flag & 2)) {
+        if (w->pParts != pEffParentWorld && w->pMod) {
+            if (!(w->pMod->be_flag & 2)) {
                 be_flag &= ~2;
             } else {
                 be_flag |= 2;
             }
         }
     }
-    if (w->moveStart <= w->frame) {
+    if (w->Pos_start_cnt <= w->Life_time) {
         pos_old = pos;
         PSVECAdd(&pos, &speed, &pos);
-        PSVECAdd(&speed, &w->acc, &speed);
-        PSVECScale(&speed, &speed, w->spdDamp);
+        PSVECAdd(&speed, &w->Speed_plus, &speed);
+        PSVECScale(&speed, &speed, w->D_speed);
     }
-    if (w->scaleStart <= w->frame) {
-        w->scale += w->scaleSpd;
-        w->scaleSpd *= w->scaleDamp;
-        if (w->scale <= 0.0f) {
+    if (w->Size_start_cnt <= w->Life_time) {
+        w->Size_mul += w->Size_plus;
+        w->Size_plus *= w->D_size_plus;
+        if (w->Size_mul <= 0.0f) {
             ObjMgr.destroy(this);
             return;
         }
     }
-    PSVECAdd(&ang, &w->rotSpd, &ang);
-    if (w->fadeStart < w->frame) {
-        if (w->fadeStart + w->fadeLen <= w->frame) {
-            w->r *= w->rMul;
-            w->g *= w->gMul;
-            w->b *= w->bMul;
-            w->a *= w->aMul;
-            if (w->r > 255.0f) {
-                w->r = 255.0f;
+    PSVECAdd(&ang, &w->Ang_plus, &ang);
+    if (w->Col_max_cnt < w->Life_time) {
+        if (w->Col_max_cnt + w->Col_start_cnt <= w->Life_time) {
+            w->Col_r *= w->Col_d_r;
+            w->Col_g *= w->Col_d_g;
+            w->Col_b *= w->Col_d_b;
+            w->Col_a *= w->Col_d_a;
+            if (w->Col_r > 255.0f) {
+                w->Col_r = 255.0f;
             }
-            if (w->g > 255.0f) {
-                w->g = 255.0f;
+            if (w->Col_g > 255.0f) {
+                w->Col_g = 255.0f;
             }
-            if (w->b > 255.0f) {
-                w->b = 255.0f;
+            if (w->Col_b > 255.0f) {
+                w->Col_b = 255.0f;
             }
-            if (w->a > 255.0f) {
-                w->a = 255.0f;
+            if (w->Col_a > 255.0f) {
+                w->Col_a = 255.0f;
             }
-            if (w->a < 4.0f) {
+            if (w->Col_a < 4.0f) {
                 ObjMgr.destroy(this);
                 return;
             }
         }
-    } else if (w->fadeStart != 0) {
-        f32 ratio = (f32) w->frame / (f32) w->fadeStart;
-        w->a = (f32) w->a0 * ratio;
+    } else if (w->Col_max_cnt != 0) {
+        f32 ratio = (f32) w->Life_time / (f32) w->Col_max_cnt;
+        w->Col_a = (f32) w->Col_start_a * ratio;
     }
     if (ot_type != 2) {
-        if (w->a < 250.0f) {
+        if (w->Col_a < 250.0f) {
             ot_type = 1;
         } else {
             ot_type = 0;
         }
     }
-    if (w->life != 0 && w->life <= w->frame) {
+    if (w->Life_max != 0 && w->Life_max <= w->Life_time) {
         ObjMgr.destroy(this);
         return;
     }
-    w->frame++;
-    pModelInfo->color[0] = (u8) w->r;
-    pModelInfo->color[1] = (u8) w->g;
-    pModelInfo->color[2] = (u8) w->b;
+    w->Life_time++;
+    pModelInfo->color[0] = (u8) w->Col_r;
+    pModelInfo->color[1] = (u8) w->Col_g;
+    pModelInfo->color[2] = (u8) w->Col_b;
     pModelInfo->color[3] = 0xFF;
-    invisible_factor = w->a * (1.0f / 255.0f);
-    scale.y = w->scaleY * w->scale;
-    scale.z = scale.x = w->scaleXZ * w->scale;
-    if (!(w->stopped & 1)) {
+    invisible_factor = w->Col_a * (1.0f / 255.0f);
+    scale.y = w->Size_base_y * w->Size_mul;
+    scale.z = scale.x = w->Size_base_x * w->Size_mul;
+    if (!(w->Flg & 1)) {
         hit = 0;
-        if (w->flags & 2) {
+        if (w->Tool_flg & 2) {
             if (SatMgr.hitCheck(&pos_old, &pos, &hitPos, &nrm, 0, 0)) {
                 pos = hitPos;
                 hit = 1;
@@ -133,12 +133,12 @@ void cObj04::move()
                 neg.y = -nrm.y;
                 neg.z = -nrm.z;
                 C_VECReflect(&speed, &neg, &ref);
-                PSVECScale(&ref, &speed, len * w->bounce.y);
-                PSVECScale(&w->rotSpd, &w->rotSpd, -0.8f);
+                PSVECScale(&ref, &speed, len * w->RefRate.y);
+                PSVECScale(&w->Ang_plus, &w->Ang_plus, -0.8f);
             }
-        } else if (w->flags & 1) {
+        } else if (w->Tool_flg & 1) {
             f32 floor = EatMgr.getFloor(&pos, &attr, 600.0f, 100000.0f, 0);
-            f32 ofs = w->groundOfs;
+            f32 ofs = w->Pt_hit_size;
 
             if (DbgFlagChk(pG, DBG_TEST_MODE)) {
                 if (!DbgFlagChk(pG, DBG_ESPTOOL_ONSCR)) {
@@ -146,27 +146,27 @@ void cObj04::move()
                 }
             }
             if (pos.y - ofs < floor) {
-                speed.x = speed.x * w->bounce.x;
-                speed.y = speed.y * -w->bounce.y;
-                speed.z = speed.z * w->bounce.x;
+                speed.x = speed.x * w->RefRate.x;
+                speed.y = speed.y * -w->RefRate.y;
+                speed.z = speed.z * w->RefRate.x;
                 pos.y = floor + ofs;
                 hit = 1;
-                PSVECScale(&w->rotSpd, &w->rotSpd, obj04_gnd_ratio);
+                PSVECScale(&w->Ang_plus, &w->Ang_plus, obj04_gnd_ratio);
             }
         }
         if (hit) {
             if (PSVECMag(&speed) < 15.0f) {
                 PSVECScale(&speed, &speed, 0.0f);
-                PSVECScale(&w->acc, &w->acc, 0.0f);
-                w->stopped = 1;
+                PSVECScale(&w->Speed_plus, &w->Speed_plus, 0.0f);
+                w->Flg = 1;
             }
         }
     }
     RotMatrix(mat, &ang);
     TransMatrix(mat, &pos);
     ScaleMatrix(mat, &scale);
-    if (w->parentWorld != pEffParentWorld) {
-        PSMTXConcat(w->parentWorld->mat, mat, mat);
+    if (w->pParts != pEffParentWorld) {
+        PSMTXConcat(w->pParts->mat, mat, mat);
     }
     partsWorldCalc();
 }
@@ -179,7 +179,7 @@ void Efm04RotMatrix(cObj* pObj, Mtx pMat)
 
     PSMTXMultVec(pMat, &pObj->pos, &pObj->pos);
     PSMTXMultVecSR(pMat, &pObj->speed, &pObj->speed);
-    PSMTXMultVecSR(pMat, &EFM04_WK((cObj04*) pObj)->acc, &EFM04_WK((cObj04*) pObj)->acc);
+    PSMTXMultVecSR(pMat, &EFM04_WK((cObj04*) pObj)->Speed_plus, &EFM04_WK((cObj04*) pObj)->Speed_plus);
     RotMatrix(tmp, &pObj->ang);
     PSMTXConcat(pMat, tmp, tmp);
     Matrix2AxisAngle(tmp, &pObj->ang);

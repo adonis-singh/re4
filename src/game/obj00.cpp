@@ -117,7 +117,7 @@ void MotSetObj00(cObj* obj, void* mot, int prm, int a)
     }
     w->pMot = mot;
     w->mot_attr = prm;
-    w->motA = a;
+    w->pSeq = a;
     MotionSetCore(obj, &obj->Motion, mot, (void*) a, 0, (u16) w->mot_attr, 0);
 }
 
@@ -150,7 +150,7 @@ static void obj00SetRate(cObj* obj, u32 rate)
 // Fall simulation (be_flag bit 2): three rope nodes 300 units around the object fall under gravity
 // (20/frame), keep their mutual distances (30 relaxation passes), bounce on y = 30 (playing the
 // fall sound once) and give the object its new orientation and centre. Node speeds persist in
-// Obj00Work::fallSpd (1/10 units).
+// Obj00Work::spd (1/10 units).
 void obj00FallMove(cObj00* obj)
 {
     Obj00Work* w = OBJ00_WK(obj);
@@ -172,9 +172,9 @@ void obj00FallMove(cObj00* obj)
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        p->spd.x = (f32) w->fallSpd[i][0] * 0.1f;
-        p->spd.y = (f32) w->fallSpd[i][1] * 0.1f;
-        p->spd.z = (f32) w->fallSpd[i][2] * 0.1f;
+        p->spd.x = (f32) w->spd[i][0] * 0.1f;
+        p->spd.y = (f32) w->spd[i][1] * 0.1f;
+        p->spd.z = (f32) w->spd[i][2] * 0.1f;
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
@@ -245,9 +245,9 @@ void obj00FallMove(cObj00* obj)
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        w->fallSpd[i][0] = (s16) (p->spd.x * 10.0f);
-        w->fallSpd[i][1] = (s16) (p->spd.y * 10.0f);
-        w->fallSpd[i][2] = (s16) (p->spd.z * 10.0f);
+        w->spd[i][0] = (s16) (p->spd.x * 10.0f);
+        w->spd[i][1] = (s16) (p->spd.y * 10.0f);
+        w->spd[i][2] = (s16) (p->spd.z * 10.0f);
         asm("" : "=m"(pG) : "r"(junk));
     }
     }

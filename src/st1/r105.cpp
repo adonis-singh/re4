@@ -781,9 +781,9 @@ extern "C" void Evt_R105S10_Func(Event* e)
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
                     Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
-                    if (w && w->child) {
+                    if (w && w->pObjChain) {
                         OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;
-                        w->child->be_flag &= ~2;
+                        w->pObjChain->be_flag &= ~2;
                     }
                 }
             }
@@ -792,9 +792,9 @@ extern "C" void Evt_R105S10_Func(Event* e)
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
                     Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
-                    if (w && w->child) {
+                    if (w && w->pObjChain) {
                         OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon &= ~0x04000000;
-                        w->child->be_flag |= 2;
+                        w->pObjChain->be_flag |= 2;
                     }
                 }
             }

@@ -245,23 +245,23 @@ void cObj12::setFall(Vec* pSpd, u8 type)
         if (pSpd) {
             if (i == 0) {
                 r = fRand0_1();
-                w->fallSpd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r) * 10.0f);
+                w->spd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r) * 10.0f);
+                w->spd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r) * 10.0f);
+                w->spd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r) * 10.0f);
             } else {
                 r = fRand0_1();
-                w->fallSpd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r * 2.0f) * 10.0f);
+                w->spd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r * 2.0f) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r * 2.0f) * 10.0f);
+                w->spd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r * 2.0f) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r * 2.0f) * 10.0f);
+                w->spd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r * 2.0f) * 10.0f);
             }
         } else {
-            w->fallSpd[i][0] = (s16) (fRand1_1() * 100.0f);
-            w->fallSpd[i][1] = (s16) (fRand1_1() * 100.0f) + 500;
-            w->fallSpd[i][2] = (s16) (fRand1_1() * 100.0f);
+            w->spd[i][0] = (s16) (fRand1_1() * 100.0f);
+            w->spd[i][1] = (s16) (fRand1_1() * 100.0f) + 500;
+            w->spd[i][2] = (s16) (fRand1_1() * 100.0f);
         }
     }
     w->be_flag |= 0x200;
@@ -315,9 +315,9 @@ void cObj12::fallMove()
     floor = EatMgr.getFloor(&pos, 0, 600.0f, 100000.0f, 0) + 50.0f;
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        p->spd.x = (f32) w->fallSpd[i][0] * 0.1f;
-        p->spd.y = (f32) w->fallSpd[i][1] * 0.1f;
-        p->spd.z = (f32) w->fallSpd[i][2] * 0.1f;
+        p->spd.x = (f32) w->spd[i][0] * 0.1f;
+        p->spd.y = (f32) w->spd[i][1] * 0.1f;
+        p->spd.z = (f32) w->spd[i][2] * 0.1f;
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
@@ -402,9 +402,9 @@ void cObj12::fallMove()
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        w->fallSpd[i][0] = (s16) (p->spd.x * 10.0f);
-        w->fallSpd[i][1] = (s16) (p->spd.y * 10.0f);
-        w->fallSpd[i][2] = (s16) (p->spd.z * 10.0f);
+        w->spd[i][0] = (s16) (p->spd.x * 10.0f);
+        w->spd[i][1] = (s16) (p->spd.y * 10.0f);
+        w->spd[i][2] = (s16) (p->spd.z * 10.0f);
     }
     if (w->fall_type != 4) {
         PSVECSubtract(&node[0].pos, &node[1].pos, &vz);
@@ -458,9 +458,9 @@ static void obj12ThrowSet(cObj* obj, Vec* spd)
     Obj12Work* w = OBJ12_WK((cObj12*) obj);
     f32 ang;
 
-    w->fallSpd[0][0] = (s16) (spd->x * 10.0f);
-    w->fallSpd[0][1] = (s16) (spd->y * 75.0f);
-    w->fallSpd[0][2] = (s16) (spd->z * 350.0f);
+    w->spd[0][0] = (s16) (spd->x * 10.0f);
+    w->spd[0][1] = (s16) (spd->y * 75.0f);
+    w->spd[0][2] = (s16) (spd->z * 350.0f);
     ang = atan2f(spd->x, spd->z);
     if (ang < 0.0f) {
         ang += 1.5707964f;
@@ -485,10 +485,10 @@ void cObj12::throwMove()
     }
     static EmAtkInfo obj12Atk = { 300.0f, PL_DM_AUTO, 400, 0, 10, 0 };
 
-    w->fallSpd[0][1] -= 15;
-    spd.x = (f32) w->fallSpd[0][0];
-    spd.y = (f32) w->fallSpd[0][1];
-    spd.z = (f32) w->fallSpd[0][2];
+    w->spd[0][1] -= 15;
+    spd.x = (f32) w->spd[0][0];
+    spd.y = (f32) w->spd[0][1];
+    spd.z = (f32) w->spd[0][2];
     PSVECAdd(&pos, &spd, &pos);
     if (EatMgr.hitCheck(&pos_old, &pos, 0, 0, 0, 0)) {
         w->be_flag &= ~0x100;

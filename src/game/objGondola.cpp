@@ -97,7 +97,7 @@ cObj* SetGondola(void* bin, void* tpl, Vec* pos, Vec* rot)
     }
     w->Ride_pl = 0;
     w->Ride_sub = 0;
-    w->subWork = 0;
+    w->pMot_info = 0;
     w->Sub_mot1 = 0;
     w->Sub_mot2 = 0;
     obj->r_no_0 = 0;
@@ -293,11 +293,11 @@ void objGondola_R0_Break(cObjGondola* pObj)
         if (w->Timer) {
             w->Timer--;
             if (w->Timer == 0) {
-                if (w->subWork && w->Sub_mot2) {
-                    ((GondolaMotWork*) w->subWork)->flags2 |= 0x10000000;
-                    MotionSetCore(pObj, w->subWork, w->Sub_mot2, 0, 0, 0, 0);
-                    ((GondolaMotWork*) w->subWork)->flags2 &= ~0x10000000;
-                    pObj->Motion.blend = w->subWork;
+                if (w->pMot_info && w->Sub_mot2) {
+                    ((GondolaMotWork*) w->pMot_info)->flags2 |= 0x10000000;
+                    MotionSetCore(pObj, w->pMot_info, w->Sub_mot2, 0, 0, 0, 0);
+                    ((GondolaMotWork*) w->pMot_info)->flags2 &= ~0x10000000;
+                    pObj->Motion.blend = w->pMot_info;
                     ((GondolaMotWork*) pObj->Motion.blend)->blendRate = 1.0f;
                     ((GondolaMotWork*) pObj->Motion.blend)->flags2 |= 0x80000000;
                 }
@@ -640,7 +640,7 @@ void cObjGondola::setSubMotion(MotionWork* work, void* mot, void* breakMot)
 {
     GondolaWork* w = GONDOLA_WK(this);
 
-    w->subWork = work;
+    w->pMot_info = work;
     w->Sub_mot1 = mot;
     w->Sub_mot2 = breakMot;
 }
@@ -650,11 +650,11 @@ void cObjGondola::setVib()
 {
     GondolaWork* w = GONDOLA_WK(this);
 
-    if (w->subWork && w->Sub_mot1) {
-        ((GondolaMotWork*) w->subWork)->flags2 |= 0x10000000;
-        MotionSetCore(this, w->subWork, w->Sub_mot1, 0, 0, 0, 0);
-        ((GondolaMotWork*) w->subWork)->flags2 &= ~0x10000000;
-        Motion.blend = w->subWork;
+    if (w->pMot_info && w->Sub_mot1) {
+        ((GondolaMotWork*) w->pMot_info)->flags2 |= 0x10000000;
+        MotionSetCore(this, w->pMot_info, w->Sub_mot1, 0, 0, 0, 0);
+        ((GondolaMotWork*) w->pMot_info)->flags2 &= ~0x10000000;
+        Motion.blend = w->pMot_info;
         ((GondolaMotWork*) Motion.blend)->blendRate = 1.0f;
         ((GondolaMotWork*) Motion.blend)->flags2 |= 0x80000000;
         QuakeExec(0, 0, 10, 30.0f, 2);

@@ -1636,13 +1636,13 @@ void R332ScrTrans(int on)
         if ((e)->GetMod(&mod, "pl0200", 0, 0) == 1) {                 \
             Obj18Work* w = OBJ18_WK((cObj18*) mod);                       \
                                                                       \
-            if (w && w->child) {                                      \
+            if (w && w->pObjChain) {                                      \
                 if ((on) == 0) {                                      \
                     OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;\
-                    w->child->be_flag &= ~2;                          \
+                    w->pObjChain->be_flag &= ~2;                          \
                 } else {                                              \
                     OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon &= ~0x04000000;\
-                    w->child->be_flag |= 2;                           \
+                    w->pObjChain->be_flag |= 2;                           \
                 }                                                     \
             }                                                         \
         }                                                             \

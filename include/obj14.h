@@ -9,9 +9,9 @@
 // Bell work (PS2 FREE_OBJ14) in cObjBell::free: a hit-receiving enemy plus a pendulum chain for the swing.
 struct BellWork {
     u8 pad_0[0xA];
-    u16 ringTimer;        // 0x0A  frames the "rung" state is reported to pG (90 after a hit)
-    class cEmHit* pEmHit; // 0x0C
-    struct PenCloth cloth;  // 0x10 .. 0x70
+    u16 Bell_timer;        // 0x0A  frames the "rung" state is reported to pG (90 after a hit)
+    class cEmHit* pHit; // 0x0C
+    struct PenCloth Cloth;  // 0x10 .. 0x70
 };
 
 // Bell: a pendulum model with a hit-receiving enemy work; a shot swings it, rings it (reported to

@@ -18,8 +18,8 @@ struct Obj16Work {
     int Timer;            // 0x04  routine step timer
     int Timer2;         // 0x08  R1_Atk: attack frames left
     u8 pad_C[4];
-    cModel* target;       // 0x10  enemy whose position / id the SEs use (SetObj16 3rd argument)
-    cModel* body;         // 0x14  enemy the head is attached to (SetObj16 4th argument)
+    cModel* pEm;       // 0x10  enemy whose position / id the SEs use (SetObj16 3rd argument)
+    cModel* pOya;         // 0x14  enemy the head is attached to (SetObj16 4th argument)
     int parts_no;          // 0x18  parts of `body` the head follows
     int Se_wait;          // 0x1C  frames between the type 2 / 3 loop SEs
     u32 Seid;         // 0x20  SndCall handle of the loop SE (SndStop)
@@ -31,7 +31,7 @@ struct Obj16Work {
     void* mot[11];        // 0x38  setMotData: 0-2 idle, 3-6 bite, 7-9 (unused), 10 ...
     void* Mot_pl_dm;          // 0x64  setPlDmgMot: player damage motion (plemDmMStar)
     void* Seq_pl_dm;         // 0x68  its MotionSetCore 4th argument (PS2 u32 Seq_pl_dm)
-    int x6C;              // 0x6C
+    int Mot_no;              // 0x6C
     s16 At_hit_wait;          // 0x70  frames the kind 2 attack is disabled after a hit (90)
     u8 Eff_wait3;               // 0x72
     u8 Atk_wait;               // 0x73

@@ -38,7 +38,7 @@ static cObj* SetObj26(cObj* parent, Vec* scale)
     static const Vec p1 = { 1000.0f, 1000.0f, 1000.0f };
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    OBJ26_WK((cObj26*) obj)->parent = parent;
+    OBJ26_WK((cObj26*) obj)->pEm = parent;
     OBJ26_WK((cObj26*) obj)->Scale = *scale;
     obj->scale.x = obj->scale.y = obj->scale.z = 0.0f;
     obj->invisible_factor = 1.0f;
@@ -48,8 +48,8 @@ static cObj* SetObj26(cObj* parent, Vec* scale)
 // Per-frame: dies with the parent, R1 routine, destroyed once fully faded.
 void cObj26::move()
 {
-    if (OBJ26_WK(this)->parent) {
-        if ((OBJ26_WK(this)->parent->be_flag & 0x201) != 1) {
+    if (OBJ26_WK(this)->pEm) {
+        if ((OBJ26_WK(this)->pEm->be_flag & 0x201) != 1) {
             ObjMgr.destroy(this);
             return;
         }
@@ -105,8 +105,8 @@ void obj26_R1_Die(cObj26* pObj)
 // Places the object under parts 2 of the parent (or free) and updates its parts.
 void obj26MatCalc(cObj26* pObj)
 {
-    if (OBJ26_WK(pObj)->parent) {
-        cModel* parts = OBJ26_WK(pObj)->parent->getPartsPtr(2);
+    if (OBJ26_WK(pObj)->pEm) {
+        cModel* parts = OBJ26_WK(pObj)->pEm->getPartsPtr(2);
         RotMatrix(pObj->mat, &pObj->ang);
         TransMatrix(pObj->mat, &pObj->pos);
         ScaleMatrix(pObj->mat, &pObj->scale);

@@ -67,7 +67,7 @@ cObj* SetObj08(cModel* parent, void* bin, void* tpl, Vec* pos, Vec* rot, int fla
 
     obj->sub2B4.atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
-    w->parent = parent;
+    w->pEm = parent;
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
@@ -88,7 +88,7 @@ cObj* SetObj08(cModel* parent, void* bin, void* tpl, Vec* pos, Vec* rot, int fla
         w->be_flag |= 0x20;
     }
     w->pAtk = (EmAtkInfo*) atk;
-    w->atkFlags = flags & 0xFFFF;
+    w->wep_id = flags & 0xFFFF;
     return obj;
 }
 
@@ -132,14 +132,14 @@ void SetObj08Est(cObj* obj, int no0, int prm0, int no1, int prm1, int no2, int p
         return;
     }
     w = OBJ08_WK((cObj08*) obj);
-    w->estNo[0] = no0;
-    w->estNo[1] = no1;
-    w->estNo[2] = no2;
-    w->estNo[3] = no3;
-    w->estPrm[0] = prm0;
-    w->estPrm[1] = prm1;
-    w->estPrm[2] = prm2;
-    w->estPrm[3] = prm3;
+    w->eff1 = no0;
+    w->eff2 = no1;
+    w->eff3 = no2;
+    w->eff4 = no3;
+    w->est1 = prm0;
+    w->est2 = prm1;
+    w->est3 = prm2;
+    w->est4 = prm3;
     w->hit_type = flag;
 }
 
@@ -170,8 +170,8 @@ void cObj08::move()
     Obj08Work* w = OBJ08_WK(this);
 
     if (w->timer == 0) {
-        if (w->estNo[1] && w->estPrm[1]) {
-            EstSet(0, -1, &pos, &ang, w->estNo[1], (u8) w->estPrm[1], 0, ESP_CORE_KIND_NONE, 0, 0);
+        if (w->eff2 && w->est2) {
+            EstSet(0, -1, &pos, &ang, w->eff2, (u8) w->est2, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         ObjMgr.destroy(this);
         return;
@@ -224,25 +224,25 @@ int obj08ScrHitCk(cObj08* pObj)
     if (EatMgr.hitCheck(&pObj->pos_old, &pObj->pos, &hit, &nrm, 0, 0x4000)) {
         if (w->blk_no != 0xFFFF) {
             int id = 0;
-            if (w->parent) {
-                id = w->parent->id;
+            if (w->pEm) {
+                id = w->pEm->id;
             }
             SndCall(w->blk_no, w->call_no, &pObj->pos, id, 0, 0);
         }
         if (nrm.y > 0.7f) {
-            if (w->estNo[2] && w->estPrm[2]) {
+            if (w->eff3 && w->est3) {
                 est.x = 0.0f;
                 est.y = pObj->ang.y;
                 est.z = 0.0f;
                 hit.y += 10.0f;
-                EstSet(0, -1, &hit, &est, w->estNo[2], (u8) w->estPrm[2], 0, ESP_CORE_KIND_NONE, 0, 0);
+                EstSet(0, -1, &hit, &est, w->eff3, (u8) w->est3, 0, ESP_CORE_KIND_NONE, 0, 0);
             }
-        } else if (w->estNo[1] && w->estPrm[1]) {
+        } else if (w->eff2 && w->est2) {
             f32 len = SQRTF(nrm.x * nrm.x + nrm.z * nrm.z);
             est.x = -atan2f(-nrm.y, len);
             est.y = atan2f(-nrm.x, -nrm.z);
             est.z = 0.0f;
-            EstSet(0, -1, &hit, &est, w->estNo[1], (u8) w->estPrm[1], 0, ESP_CORE_KIND_NONE, 0, 0);
+            EstSet(0, -1, &hit, &est, w->eff2, (u8) w->est2, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         ObjMgr.destroy(pObj);
         return 1;
@@ -266,7 +266,7 @@ int obj08ToEmHitCk(cObj08* pObj)
     if (!(w->be_flag & 0x10)) {
         return 0;
     }
-    if (w->atkFlags == 0) {
+    if (w->wep_id == 0) {
         return 0;
     }
     ang.x = 0.0f;
@@ -308,14 +308,14 @@ int obj08ToEmHitCk(cObj08* pObj)
     if (DbgFlagChk(pG, DBG_YARARE_DISP)) {
         Draw_box(box, 0x20FFFFFF, 0);
     }
-    n = GetWepTargetList(box, &pObj->pos, list, 3, (u16) w->atkFlags);
+    n = GetWepTargetList(box, &pObj->pos, list, 3, (u16) w->wep_id);
     if (n == 0) {
         return 0;
     }
     for (i = 0; i < n; i++) {
         YARARE_INFO* part = list[i].part;
-        list[i].em->dmg.set(0, 10, (u8) w->atkFlags, &pObj->pos, part->len, part);
-        if (w->estNo[3] && w->estPrm[3]) {
+        list[i].em->dmg.set(0, 10, (u8) w->wep_id, &pObj->pos, part->len, part);
+        if (w->eff4 && w->est4) {
             obj08DmEstSet(pObj, pPL, &pObj->pos_old, part);
         }
     }
@@ -330,13 +330,13 @@ int obj08ToPlHitCk(cObj08* pObj)
     Obj08Work* w = OBJ08_WK(pObj);
     int hit;
 
-    if (w->parent == 0) {
+    if (w->pEm == 0) {
         return 0;
     }
     if (w->pAtk && (w->be_flag & 0x20)) {
         hit = EmAtkHitCk(w->pAtk, &pObj->pos, &pObj->pos_old, 0);
         if (hit) {
-            if (w->estNo[3] && w->estPrm[3]) {
+            if (w->eff4 && w->est4) {
                 if (hit & 1) {
                     obj08DmEstSet(pObj, pPL, &pObj->pos_old, &pPL->hitInfo);
                 }
@@ -348,8 +348,8 @@ int obj08ToPlHitCk(cObj08* pObj)
             } else {
                 if (w->blk_no != 0xFFFF) {
                     int id = 0;
-                    if (w->parent) {
-                        id = w->parent->id;
+                    if (w->pEm) {
+                        id = w->pEm->id;
                     }
                     SndCall(w->blk_no, w->call_no, &pObj->pos, id, 0, 0);
                 }
@@ -376,13 +376,13 @@ void obj08DmEstSet(cObj08* pObj, cModel* pEm, Vec* pPos, YARARE_INFO* pAt)
 
     if (w->blk_no != 0xFFFF) {
         int id = 0;
-        if (w->parent) {
-            id = w->parent->id;
+        if (w->pEm) {
+            id = w->pEm->id;
         }
         SndCall(w->blk_no, w->call_no, &pObj->pos, id, 0, 0);
     }
     if (w->hit_type) {
-        EstSet(pEm, -1, 0, 0, w->estNo[3], (u8) w->estPrm[3], 0, ESP_CORE_KIND_NONE, pEm, 0);
+        EstSet(pEm, -1, 0, 0, w->eff4, (u8) w->est4, 0, ESP_CORE_KIND_NONE, pEm, 0);
         return;
     }
     if (pAt->parts_no != 0) {
@@ -407,5 +407,5 @@ void obj08DmEstSet(cObj08* pObj, cModel* pEm, Vec* pPos, YARARE_INFO* pAt)
     o.y = dy;
     o.z = pAt->radius * 0.5f;
     PSMTXMultVec(m, &o, &o);
-    EstSet(0, -1, &o, &rot, w->estNo[3], (u8) w->estPrm[3], 0, ESP_CORE_KIND_NONE, 0, 0);
+    EstSet(0, -1, &o, &rot, w->eff4, (u8) w->est4, 0, ESP_CORE_KIND_NONE, 0, 0);
 }

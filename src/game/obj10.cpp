@@ -92,7 +92,7 @@ void cWepItem::move00()
     if (w->be_flag & 2) {
         MotionMove(this, 0);
     }
-    if (w->hold) {
+    if (w->pEm) {
         if (w->release_timer) {
             w->release_timer--;
             if (w->release_timer == 0) {
@@ -100,7 +100,7 @@ void cWepItem::move00()
                 Vec hit;
                 Vec dir;
 
-                parts = GetPartsAddr(w->hold->pParts, 0);
+                parts = GetPartsAddr(w->pEm->pParts, 0);
                 if (SatMgr.hitCheck(&parts->world, &pos, &hit, 0, 0, 0)) {
                     PSVECSubtract(&parts->world, &hit, &dir);
 #line 167 "D:/Bio4/Prog/obj10.cpp"
@@ -111,10 +111,10 @@ void cWepItem::move00()
                     TransMatrix(mat, &pos);
                 }
                 pos_old = pos;
-                w->hold = 0;
+                w->pEm = 0;
             }
         }
-        if (w->hold == 0) {
+        if (w->pEm == 0) {
             if (obj10AddSpeed(this)) {
                 ObjMgr.destroy(this);
                 return;
@@ -125,7 +125,7 @@ void cWepItem::move00()
         return;
     }
     if (w->be_flag & 8) {
-        if (w->hold == 0) {
+        if (w->pEm == 0) {
             cModel* parts = GetPartsAddr(pParts, 0);
             if (parts) {
                 PSVECAdd(&parts->ang, &w->rot_spd, &parts->ang);
@@ -138,21 +138,21 @@ void cWepItem::move00()
             }
         }
     }
-    if (w->hold) {
-        if ((w->hold->be_flag & 0x201) != 1) {
-            w->hold = 0;
+    if (w->pEm) {
+        if ((w->pEm->be_flag & 0x201) != 1) {
+            w->pEm = 0;
         }
     }
-    if (w->hold) {
-        cModel* parts = w->hold->getPartsPtr(w->parts_no);
+    if (w->pEm) {
+        cModel* parts = w->pEm->getPartsPtr(w->parts_no);
         RotMatrix(mat, &w->ang);
         TransMatrix(mat, &w->offset);
         ScaleMatrix(mat, &scale);
         PSMTXMultVec(parts->mat, &w->offset, &pos);
         PSMTXConcat(parts->mat, mat, mat);
         TransMatrix(mat, &pos);
-        invisible_factor = w->hold->invisible_factor;
-        invisible_factor2 = w->hold->invisible_factor2;
+        invisible_factor = w->pEm->invisible_factor;
+        invisible_factor2 = w->pEm->invisible_factor2;
     } else {
         RotMatrix(l_mat, &ang);
         TransMatrix(l_mat, &pos);
@@ -346,7 +346,7 @@ cObj* SetObj10(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
     w->gravity = grav;
     w->r = rad;
     w->timer = life;
-    w->hold = 0;
+    w->pEm = 0;
     w->eff = -1;
     w->est = -1;
     w->eff2 = -1;

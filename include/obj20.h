@@ -16,9 +16,9 @@ cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h, u8 type);
 // Obstacle model work (game/obj20.cpp `SetObaModel`).
 struct ObaModelWork {
     u8 pad_0[0xC];
-    Vec ofs;              // 0x0C  position relative to the parent (parts) matrix
-    int partsNo;          // 0x18  parts of the parent followed by type 0
-    cObj* parent;         // 0x1C
+    Vec Offset;              // 0x0C  position relative to the parent (parts) matrix
+    int Parts_no;          // 0x18  parts of the parent followed by type 0
+    cObj* pEm;         // 0x1C
 };
 
 // Obstacle model (Oba): an invisible collision model attached to a parent object (type 0: to

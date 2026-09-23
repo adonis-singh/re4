@@ -8,42 +8,42 @@
 // Effect model with loose parts (game/obj05.cpp `Efm05`): the obj04 scale / colour fade with the
 // parts burst parameters; each parts keeps its own state in its cModel (efmStat / efmSpd / efmRotSpd).
 struct Efm05Work {
-    EfmCore core;         // 0x00
-    Vec rotSpd;           // 0x0C  added to rot every frame
-    f32 scaleXZ;          // 0x18
-    f32 scaleY;           // 0x1C
-    f32 scale;            // 0x20  scale = scale + scaleSpd, scaleSpd *= scaleDamp
-    f32 scaleSpd;         // 0x24
-    f32 scaleDamp;        // 0x28
-    u8 r0;                // 0x2C  start colour (EspGenWork x9C..x9F; PS2 OBJ05_FREE Col_start_r..a)
-    u8 g0;                // 0x2D
-    u8 b0;                // 0x2E
-    u8 a0;                // 0x2F  alpha at the end of the fade-in
-    f32 r;                // 0x30
-    f32 g;                // 0x34
-    f32 b;                // 0x38
-    f32 a;                // 0x3C
-    f32 rMul;             // 0x40  fade-out multipliers
-    f32 gMul;             // 0x44
-    f32 bMul;             // 0x48
-    f32 aMul;             // 0x4C
-    u16 fadeStart;        // 0x50
-    u16 fadeLen;          // 0x52
-    u16 Pos_start_cnt;    // 0x54  (PS2 OBJ05_FREE Pos_start_cnt)
-    u16 scaleStart;       // 0x56
-    u16 life;             // 0x58  0 = forever
-    u16 frame;            // 0x5A
-    u32 flags;            // 0x5C  bit0: floor collision, bit1: scenario collision, bit3: parts tip over
-    Vec center;           // 0x60  burst centre relative to pos (Efm05RotMatrix rotates it)
-    u8 pow;               // 0x6C  burst speed (* 4096 / range)
-    u8 rangeStep;         // 0x6D  burst range growth per frame (0xFF: everything at once)
-    u8 rnd;               // 0x6E  speed random (/ 32)
-    u8 rotAmp;            // 0x6F  rotation speed random (* 0.005)
-    f32 grav;             // 0x70  added to the parts speed y
-    f32 spdDamp;          // 0x74  parts speed *= spdDamp
-    u32 groundOfs;        // 0x78
-    Vec bounce;           // 0x7C  x/z: horizontal, y: vertical rebound rate (EfmSetObj05: EspGenWork xE4 * 0.1; PS2 OBJ05_FREE RefRate)
-    u32 seed;             // 0x88  fRandSeed1_1 seed
+    EfmCore Eff_core;       // 0x00
+    Vec Ang_plus;           // 0x0C  added to rot every frame
+    f32 Size_base_x;        // 0x18
+    f32 Size_base_y;        // 0x1C
+    f32 Size_mul;           // 0x20  Size_mul += Size_plus, Size_plus *= D_size_plus
+    f32 Size_plus;          // 0x24
+    f32 D_size_plus;        // 0x28
+    u8 Col_start_r;         // 0x2C  start colour (EspGenWork x9C..x9F)
+    u8 Col_start_g;         // 0x2D
+    u8 Col_start_b;         // 0x2E
+    u8 Col_start_a;         // 0x2F  alpha at the end of the fade-in
+    f32 Col_r;              // 0x30
+    f32 Col_g;              // 0x34
+    f32 Col_b;              // 0x38
+    f32 Col_a;              // 0x3C
+    f32 Col_d_r;            // 0x40  fade-out multipliers
+    f32 Col_d_g;            // 0x44
+    f32 Col_d_b;            // 0x48
+    f32 Col_d_a;            // 0x4C
+    u16 Col_max_cnt;        // 0x50
+    u16 Col_start_cnt;      // 0x52
+    u16 Pos_start_cnt;      // 0x54  (PS2 OBJ05_FREE Pos_start_cnt)
+    u16 Size_start_cnt;     // 0x56
+    u16 Life_max;           // 0x58  0 = forever
+    u16 Life_time;          // 0x5A
+    u32 Tool_flg;           // 0x5C  bit0: floor collision, bit1: scenario collision, bit3: parts tip over
+    Vec Kaboom_pos;         // 0x60  burst centre relative to pos (Efm05RotMatrix rotates it)
+    u8 Kaboom_pow;          // 0x6C  burst speed (* 4096 / range)
+    u8 Kaboom_spd;          // 0x6D  burst range growth per frame (0xFF: everything at once)
+    u8 Kaboom_rnd;          // 0x6E  speed random (/ 32)
+    u8 Kaboom_rot;          // 0x6F  rotation speed random (* 0.005)
+    f32 Kaboom_gravity;     // 0x70  added to the parts speed y
+    f32 Kaboom_d_spd;       // 0x74  parts speed *= Kaboom_d_spd
+    u32 Pt_hit_size;        // 0x78
+    Vec RefRate;            // 0x7C  x/z: horizontal, y: vertical rebound rate (EfmSetObj05: EspGenWork xE4 * 0.1; PS2 OBJ05_FREE RefRate)
+    u32 Rand_seed;          // 0x88  fRandSeed1_1 seed
 };
 
 // Effect model with loose parts (Efm05): the model scales and fades like obj04 while each parts

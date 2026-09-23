@@ -43,10 +43,10 @@ cObjChain* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot)
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
-    w->parent = 0;
-    w->parts1 = 0;
-    w->parts2 = 0;
-    w->cloth = 0;
+    w->pEm_oya = 0;
+    w->Parts1 = 0;
+    w->Parts2 = 0;
+    w->pCloth = 0;
     obj->r_no_0 = 1;
     obj->r_no_1 = 0;
     obj->r_no_2 = 0;
@@ -60,8 +60,8 @@ void cObjChain::move()
 {
     ChainWork* w = CHAIN_WK(this);
 
-    if (w->parent) {
-        if ((w->parent->be_flag & 0x201) != 1) {
+    if (w->pEm_oya) {
+        if ((w->pEm_oya->be_flag & 0x201) != 1) {
             ObjMgr.destroy(this);
             return;
         }
@@ -96,10 +96,10 @@ void obj1d_R1_LostWait(cObjChain* pObj)
 
     switch (pObj->r_no_2) {
     case 0:
-        w->timer = 90;
+        w->Timer = 90;
         pObj->r_no_2++;
     case 1:
-        if (w->timer == 0) {
+        if (w->Timer == 0) {
             pObj->invisible_factor -= 0.1f;
             if (pObj->invisible_factor <= 0.0f) {
                 pObj->invisible_factor = 0.0f;
@@ -110,7 +110,7 @@ void obj1d_R1_LostWait(cObjChain* pObj)
                 break;
             }
         } else {
-            w->timer--;
+            w->Timer--;
         }
         {
             Vec scr;
@@ -161,7 +161,7 @@ void obj1d_R1_Parent(cObjChain* pObj)
     Vec pa;
     Vec pb;
     Vec p;
-    cModel* parent = w->parent;
+    cModel* parent = w->pEm_oya;
     cModel* partsA;
     cModel* partsB;
 
@@ -169,11 +169,11 @@ void obj1d_R1_Parent(cObjChain* pObj)
     TransMatrix(pObj->mat, &pObj->pos);
     ScaleMatrix(pObj->mat, &pObj->scale);
     if (parent && parent->pParts) {
-        partsA = parent->getPartsPtr(w->parts1);
+        partsA = parent->getPartsPtr(w->Parts1);
         PSMTXConcat(partsA->mat, pObj->mat, ma);
-        partsB = parent->getPartsPtr(w->parts2);
+        partsB = parent->getPartsPtr(w->Parts2);
         PSMTXConcat(partsB->mat, pObj->mat, mb);
-        if (!(w->flags & 2)) {
+        if (!(w->Be_flg & 2)) {
             v0.x = ma[0][0];
             v0.y = ma[1][0];
             v0.z = ma[2][0];
@@ -245,8 +245,8 @@ void obj1d_R1_Parent(cObjChain* pObj)
         C_QUATMtx(&qb, mb);
         C_QUATSlerp(&qa, &qb, &q, 0.5f);
         PSMTXQuat(pObj->mat, &q);
-        PSMTXMultVec(partsA->mat, &w->ofs1, &pa);
-        PSMTXMultVec(partsB->mat, &w->ofs2, &pb);
+        PSMTXMultVec(partsA->mat, &w->Offset1, &pa);
+        PSMTXMultVec(partsB->mat, &w->Offset2, &pb);
         PosToPos(&pa, &pb, &p, 0.5f);
         TransMatrix(pObj->mat, &p);
     }
@@ -264,15 +264,15 @@ void cObjChain::setParent(cModel* parent, int parts, Vec* ofs, int flag)
 {
     ChainWork* w = CHAIN_WK(this);
 
-    w->parent = parent;
-    w->parts1 = parts;
-    w->parts2 = parts;
-    w->ofs1 = *ofs;
-    w->ofs2 = *ofs;
+    w->pEm_oya = parent;
+    w->Parts1 = parts;
+    w->Parts2 = parts;
+    w->Offset1 = *ofs;
+    w->Offset2 = *ofs;
     if (flag) {
-        w->flags |= 2;
+        w->Be_flg |= 2;
     } else {
-        w->flags &= ~2;
+        w->Be_flg &= ~2;
     }
     r_no_0 = 1;
     r_no_1 = 3;
@@ -285,15 +285,15 @@ void cObjChain::setParent2(cModel* pEm, int parts1, Vec* pPos1, int parts2, Vec*
 {
     ChainWork* w = CHAIN_WK(this);
 
-    w->parent = pEm;
-    w->parts1 = parts1;
-    w->parts2 = parts2;
-    w->ofs1 = *pPos1;
-    w->ofs2 = *pPos2;
+    w->pEm_oya = pEm;
+    w->Parts1 = parts1;
+    w->Parts2 = parts2;
+    w->Offset1 = *pPos1;
+    w->Offset2 = *pPos2;
     if (mode) {
-        w->flags |= 2;
+        w->Be_flg |= 2;
     } else {
-        w->flags &= ~2;
+        w->Be_flg &= ~2;
     }
     r_no_0 = 1;
     r_no_1 = 3;
@@ -304,7 +304,7 @@ void cObjChain::setParent2(cModel* pEm, int parts1, Vec* pPos1, int parts2, Vec*
 // Attaches a pendulum cloth to the link.
 void cObjChain::setChain(PenCloth* pCloth)
 {
-    CHAIN_WK(this)->cloth = pCloth;
+    CHAIN_WK(this)->pCloth = pCloth;
     if (pCloth) {
         PenClothSet(this, pCloth, 100.0f);
     }
@@ -313,8 +313,8 @@ void cObjChain::setChain(PenCloth* pCloth)
 // Steps the pendulum cloth; clears the shadow/cull flags 0x00E00000.
 void cObjChain::chainMove()
 {
-    if (CHAIN_WK(this)->cloth) {
-        PenClothMove(this, CHAIN_WK(this)->cloth);
+    if (CHAIN_WK(this)->pCloth) {
+        PenClothMove(this, CHAIN_WK(this)->pCloth);
         be_flag &= ~0x00E00000;
     }
 }

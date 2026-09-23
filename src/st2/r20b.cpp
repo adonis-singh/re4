@@ -886,9 +886,9 @@ extern "C" void Evt_R20BS00_Func(Event* e)
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
                     Obj18Work* w = OBJ18_WK((cObj18*) mod2);
 
-                    if (w && w->child) {
+                    if (w && w->pObjChain) {
                         OBJ18_WK((cObj18*) mod2)->ObjChainFlagCommon |= 0x04000000;
-                        w->child->be_flag &= ~2;
+                        w->pObjChain->be_flag &= ~2;
                     }
                 }
             }
@@ -898,9 +898,9 @@ extern "C" void Evt_R20BS00_Func(Event* e)
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
                     Obj18Work* w = OBJ18_WK((cObj18*) mod2);
 
-                    if (w && w->child) {
+                    if (w && w->pObjChain) {
                         OBJ18_WK((cObj18*) mod2)->ObjChainFlagCommon &= ~0x04000000;
-                        w->child->be_flag |= 2;
+                        w->pObjChain->be_flag |= 2;
                     }
                 }
             }
