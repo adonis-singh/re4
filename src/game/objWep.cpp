@@ -22,7 +22,7 @@
 extern "C" {
 void Draw_line3d_local_222(Vec* p0, Vec* p1, Mtx mtx, u32 color, int blend);
 void Draw_line3d_222(Vec* p0, Vec* p1, u32 color, int blend);
-void drawPoint(Vec* lpos, Vec* lcross);
+void drawPoint(Vec& lpos, Vec& lcross);
 }
 
 static inline void DispOff(u8& f, u8 b) { f &= ~b; }
@@ -269,7 +269,7 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
         }
         case 2:
             if (draw && dist > 250000.0f) {
-                drawPoint(&lpos, &lcross);
+                drawPoint(lpos, lcross);
             }
             break;
         }
@@ -307,14 +307,15 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
 
 // Laser dot (esp 0x50) at p1, scaled with the camera distance (bigger in the 22C/228 rooms / when
 // Status_flg[3] 0x02000000); red-tinted while Status_flg[1] bit0.
-void drawPoint(Vec* p0, Vec* p1)
+void drawPoint(Vec& lpos, Vec& lcross)
 {
     static f32 laset_max_dist = 8000.0f;
     static f32 laset_max_size = 3.0f;
     static f32 laset_base_size = 0.8f;
     Vec d;
     cEsp* esp;
-    f32 size;
+    f32 dist;
+    f32 mul;
 
     if (DbgFlagChk(pG, DBG_NO_LASER_LINE)) {
         return;
@@ -322,30 +323,25 @@ void drawPoint(Vec* p0, Vec* p1)
     if (EspEstSetSelect(EFF_CORE, 0x50, 0, &esp, 1) != 1) {
         return;
     }
-    PSVECSubtract(&pG->Camera.param.pos, p1, &d);
-    size = PSVECMag(&d);
+    PSVECSubtract(&pG->Camera.param.pos, &lcross, &d);
+    dist = PSVECMag(&d);
     if (StaFlagChk(pG, STA_BIG_MARKER) || pG->stage_no == 2 && pG->room_no == 0x2C ||
         pG->stage_no == 2 && pG->room_no == 0x28) {
-        size = size * 0.00033333333f + 1.0f;
-        if (size > 6.0f) {
-            size = 6.0f;
+        mul = dist * 0.00033333333f + 1.0f;
+        if (mul > 6.0f) {
+            mul = 6.0f;
         }
     } else {
-        size = size * (1.0f / laset_max_dist) + laset_base_size;
-        if (size > laset_max_size) {
-            size = laset_max_size;
+        mul = dist * (1.0f / laset_max_dist) + laset_base_size;
+        if (mul > laset_max_size) {
+            mul = laset_max_size;
         }
     }
-    esp->m_Pos = *p1;
-    esp->m_Size_base_x = esp->m_Size_base_x * size;
-    esp->m_Size_base_y = esp->m_Size_base_y * size;
+    esp->m_Pos = lcross;
+    esp->m_Size_base_x = esp->m_Size_base_x * mul;
+    esp->m_Size_base_y = esp->m_Size_base_y * mul;
     if (StaFlagChk(pG, STA_LASERSITE_NOADD)) {
-        // COMPILER-DIFF: #17. `esp` is address-taken, so each store reloads it; the original's first
-        // reload sits in r11 (r9 was still held by the previous reload at its sched1 position), ours
-        // in r9. Pinned, no code emitted.
-        register cEsp* e asm("r11");
-        e = esp;
-        e->m_Blend_mode = 1;
+        esp->m_Blend_mode = 1;
         esp->m_Src_factor = 4;
         esp->m_Dst_factor = 5;
         esp->m_Logic_op = 0;

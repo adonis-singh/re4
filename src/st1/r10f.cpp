@@ -110,11 +110,8 @@ void R10fInit()
             if (r10f_work->gondola[i] != 0) {
                 r10f_work->gondola[i]->setMoveMotion(ROOM_ARC_PTR(pG->pRoom, 0x26), (u16) (i * 0x1C2));
                 if (m != 0) {
-                    // COMPILER-DIFF: candidate #17 (value-carrying pin): the pG temp of the setSubMotion block is
-                    // r10 in the original (its qty ahead of the work pointer's; ours reverses the two).
-                    register GlobalWork* g2 asm("r10");
-                    g2 = pG;
-                    r10f_work->gondola[i]->setSubMotion((MotionWork*) m++, ROOM_ARC_PTR(g2->pRoom, 0x30), ROOM_ARC_PTR(g2->pRoom, 0x31));
+                    r10f_work->gondola[i]->setSubMotion((MotionWork*) m, ROOM_ARC_PTR(pG->pRoom, 0x30), ROOM_ARC_PTR(pG->pRoom, 0x31));
+                    m++;
                 }
             }
         }

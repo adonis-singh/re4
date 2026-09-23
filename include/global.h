@@ -1323,16 +1323,21 @@ enum EXT_FLAG {
     EXT_1f = 31,
 };
 
-#define DbgFlagChk(g, n) FlagChk(&(g)->Debug_flg, n)
-#define StaFlagChk(g, n) FlagChk(&(g)->Status_flg, n)
-#define SysFlagChk(g, n) FlagChk(&(g)->System_flg, n)
-#define SpfFlagChk(g, n) FlagChk(&(g)->Stop_flg, n)
-#define DpfFlagChk(g, n) FlagChk(&(g)->Disp_flg, n)
-#define ScfFlagChk(g, n) FlagChk(&(g)->Scenario_flg, n)
-#define ItfFlagChk(g, n) FlagChk(&(g)->Item_flg, n)
-#define KyfFlagChk(g, n) FlagChk(&(g)->Key_flg, n)
+// The per-field tests go through a real inline rather than the FlagChk macro: the flag number
+// arrives as a parameter, which changes how sched1 orders the constants that follow the test
+// (objWep drawPoint and esp_app EspDrawLaserLine only match this way).
+static inline u32 FlagBitChk(u32* flg, u32 no) { return flg[no >> 5] & (0x80000000 >> (no & 31)); }
+
+#define DbgFlagChk(g, n) FlagBitChk((g)->Debug_flg, n)
+#define StaFlagChk(g, n) FlagBitChk((g)->Status_flg, n)
+#define SysFlagChk(g, n) FlagBitChk(&(g)->System_flg, n)
+#define SpfFlagChk(g, n) FlagBitChk(&(g)->Stop_flg, n)
+#define DpfFlagChk(g, n) FlagBitChk(&(g)->Disp_flg, n)
+#define ScfFlagChk(g, n) FlagBitChk((g)->Scenario_flg, n)
+#define ItfFlagChk(g, n) FlagBitChk((g)->Item_flg, n)
+#define KyfFlagChk(g, n) FlagBitChk((g)->Key_flg, n)
 // Room_flg: the bit numbers are per room, see the R<xxx>_FLAG enum at the top of the room source.
-#define RmfFlagChk(g, n) FlagChk(&(g)->Room_flg, n)
+#define RmfFlagChk(g, n) FlagBitChk((g)->Room_flg, n)
 
 // Set and clear, against the same base and index as FlagChk.
 #define FlagOn(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) |= (0x80000000 >> ((no) & 31)))
@@ -1369,10 +1374,10 @@ enum EXT_FLAG {
 #define KyfFlagOff(g, n) FlagOff(&(g)->Key_flg, n)
 #define RmfFlagOn(g, n) FlagOn(&(g)->Room_flg, n)
 #define RmfFlagOff(g, n) FlagOff(&(g)->Room_flg, n)
-#define CfgFlagChk(g, n) FlagChk(&(g)->Config_flg, n)
+#define CfgFlagChk(g, n) FlagBitChk(&(g)->Config_flg, n)
 #define CfgFlagOn(g, n) FlagOn(&(g)->Config_flg, n)
 #define CfgFlagOff(g, n) FlagOff(&(g)->Config_flg, n)
-#define ExtFlagChk(g, n) FlagChk(&(g)->Extra_flg, n)
+#define ExtFlagChk(g, n) FlagBitChk(&(g)->Extra_flg, n)
 #define ExtFlagOn(g, n) FlagOn(&(g)->Extra_flg, n)
 #define ExtFlagOff(g, n) FlagOff(&(g)->Extra_flg, n)
 

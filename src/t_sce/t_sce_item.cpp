@@ -1697,10 +1697,9 @@ void loadItemIdName(const char* path, char* names, char* names2)
     int sys;
     {
         // The original allocates `e`/`no` to r30 and `p` to r31 although e outranks p in global-alloc
-        // priority: r30 was ever-live before global-alloc there.  Two codeless asms make r30
+        // priority: r30 was ever-live before global-alloc there.  A codeless asm reading r30 makes it
         // used-so-far, so e/no take it in pass 0 and p falls to r31 in pass 1.
         register int pin asm("r30"); // COMPILER-DIFF: candidate #17
-        asm("" : "=r"(pin));
         asm("" : : "r"(pin));
     }
 

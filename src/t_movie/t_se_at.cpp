@@ -171,10 +171,9 @@ void seAtInit()
         Snd.pSeAtData = NULL;
         Snd.pSeAtHeader = NULL;
         // the original's `lwz pW` waits for the four stores (ours floats it to the block top:
-        // alias.c separates the symbol bases); codeless memory-input anchors give the load that
+        // alias.c separates the symbol bases); a codeless memory-input anchor gives the load that
         // dependence
         seAtSaveHead = head;
-        asm("" : "=m"(seAtWk) : "m"(seAtSaveHead)); // COMPILER-DIFF: #13 (memory anchor)
         seAtSaveList = list;
         asm("" : "=m"(seAtWk) : "m"(Snd.pSeAtHeader), "m"(Snd.pSeAtData)); // COMPILER-DIFF: #13 (memory anchor)
     }
