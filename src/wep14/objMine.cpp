@@ -3,8 +3,8 @@
 //
 // cObjMine is the cObjWep (game/objWep.cpp) of the mine thrower (weapon_no 0x14): the launcher
 // body hangs on the player's left hand (parts 9), its parts 1 is the loaded mine dart, re-parented
-// to the right hand (parts 10) while the player handles it (partsSet). Driven by wep.mode /
-// wep.step from the module's own routines (wep14/wep14.cpp): mode 1 ready (raise + load), 2 fire
+// to the right hand (parts 10) while the player handles it (partsSet). Driven by mode /
+// step from the module's own routines (wep14/wep14.cpp): mode 1 ready (raise + load), 2 fire
 // (setBullet launches a cEmMine), 3 down, 4 reload. weapon_type bit0 = the scope version (the
 // dart flies along the camera trajectory), pG->bullet_type picks the dart speed, weapon_lv_power
 // 3 the exclusive (homing) dart.
@@ -55,7 +55,7 @@ void cObjMine::init(cModel* parent)
 {
     cAtariInfo* at;
 
-    wep.itemId = 0x36;
+    itemId = 0x36;
     if (modelInit(WEP_ARC_PTR(0x8), WEP_ARC_PTR(0x7)) == 0) {
         pLog->err(0, 0, "cObjMine::init() failed.");
         return;
@@ -70,8 +70,8 @@ void cObjMine::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x21);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x21);
     resetMotion();
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
@@ -91,35 +91,35 @@ void partsSet(cObjMine* obj)
     p->ang.z = 0.0f;
 }
 
-// wep.mode == 1 (ready, set by the wep14 ready00): step 0/1 play the raise motion 0x22 with the
+// mode == 1 (ready, set by the wep14 ready00): step 0/1 play the raise motion 0x22 with the
 // dart on the launcher; step 2 moves the dart to the right hand and starts the aim idle 0x20;
 // step 3 holds (the player routine ends the mode).
 void cObjMine::moveReady()
 {
-    switch (wep.step) {
+    switch (step) {
     case 0:
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x22), 0, 0, 0, 0);
         getPartsPtr(1)->pParent = pParts;
-        wep.step = 1;
+        step = 1;
     case 1:
         if (MotionGetState(this)) {
-            wep.step = 2;
+            step = 2;
         }
         break;
     case 2:
         partsSet(this);
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x20), 0, 0, 0, 0);
-        wep.step = 3;
+        step = 3;
         break;
     }
 }
 
-// wep.mode == 2 (fire): step 0 launches the dart (setBullet), starts the fire motion 0x1E, the
+// mode == 2 (fire): step 0 launches the dart (setBullet), starts the fire motion 0x1E, the
 // shot SE, Status_flg[0] bit23 (shot noise), the muzzle effect 0x48 (normal type only) and the
 // pad vibration; the normal type ejects a cartridge at frame 24; the motion's end returns to mode 0.
 void cObjMine::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         partsSet(this);
         setBullet();
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x1E), 0, 0, 0, 0);
@@ -129,7 +129,7 @@ void cObjMine::moveFire()
             EstSet(this, -1, 0, 0, EFF_WEP14, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         }
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        step = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 24.0f)) {
         if (pG->weapon_type == 0) {
@@ -137,8 +137,8 @@ void cObjMine::moveFire()
         }
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        mode = 0;
+        step = 0;
     }
 }
 
@@ -186,31 +186,31 @@ void cObjMine::setBullet()
     SetMine(PLA_ARC_PTR(0x72), PLA_ARC_PTR(0x73), pos, &spd, pG->weapon_lv_power == 3);
 }
 
-// wep.mode == 3 (down): plays the lower motion 0x23 with the dart back on the launcher, then mode 0.
+// mode == 3 (down): plays the lower motion 0x23 with the dart back on the launcher, then mode 0.
 void cObjMine::moveDown()
 {
-    switch (wep.step) {
+    switch (step) {
     case 0:
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x23), 0, 0, 0, 0);
         getPartsPtr(1)->pParent = pParts;
-        wep.step = 1;
+        step = 1;
         break;
     case 1:
         if (MotionGetState(this)) {
-            wep.mode = 0;
-            wep.step = 0;
+            mode = 0;
+            step = 0;
         }
         break;
     }
 }
 
-// wep.mode == 4 (reload): step 0 puts the dart in the right hand and starts the reload motion of
+// mode == 4 (reload): step 0 puts the dart in the right hand and starts the reload motion of
 // the tune level (0x1F, level 1: 0x25) with the reload effect 0x48/1 and the level's SE; step 1
 // refills at frame 74/58, and at the motion's end re-hangs the launcher on the left hand and
 // returns to mode 0.
 void cObjMine::moveReload()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
         int se;
 
@@ -233,8 +233,8 @@ void cObjMine::moveReload()
             se = 0x20;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        step = 1;
     } else {
         // reload frame (the mine change) by reload tune level
         static const f32 reloadFrame[2] = { 74.0f, 58.0f };
@@ -244,8 +244,8 @@ void cObjMine::moveReload()
         }
         if (MotionGetState(this)) {
             pParts->pParent = pPL->getPartsPtr(9);
-            wep.mode = 0;
-            wep.step = 0;
+            mode = 0;
+            step = 0;
         }
     }
 }
@@ -288,8 +288,8 @@ void cObjMine::interrupt()
     cObjWep::interrupt();
     getPartsPtr(1)->pParent = pParts;
     resetMotion();
-    wep.mode = 0;
-    wep.step = 0;
+    mode = 0;
+    step = 0;
     wep14changeRightHand(pPL, WEP_ARC_PTR(0x9));
     pPL->setLeftHand(4);
 }

@@ -241,8 +241,8 @@ static void wep17_r3_ready00(cPlayer* pl)
     SndCall(2, 9, &pl->getPartsPtr(0xA)->world, 0, 0, 0);
     obj = WEP_OBJ(pl);
     md = 1;
-    obj->wep.mode = md;
-    obj->wep.step = 0;
+    obj->mode = md;
+    obj->step = 0;
     AtariFlagsOr(WEP_ATARI(pl), 0x200);
     if (pG->stage_no > 1 && pl->m_Work0 == 0 && (StaFlagChk(pG, STA_SLOW))) {
         Vec nrm;
@@ -599,8 +599,8 @@ static void wep17_r3_fire00(cPlayer* pl)
     PlWepHitCheck2(pl, &p0, &p1, pG->weapon_no, 0, 6000.0f);
     pl->m_Work4++;
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -650,8 +650,8 @@ void wepDown(cPlayer* pl)
     }
     pl->motionMove();
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 3;
-    obj->wep.step = 0;
+    obj->mode = 3;
+    obj->step = 0;
     WEP_ATARI(pl)->clrFlag200();
     pl->ang.y = pl->ang.y - pl->Waist->set(0.0f, 0.4f);
 }
@@ -690,8 +690,8 @@ static void wep17_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = WEP_OBJ(pl);
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->mode = 4;
+        obj->step = 0;
         break;
     case 1:
         if (MotionMove(pl, 0)) {

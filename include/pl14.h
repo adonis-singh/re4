@@ -146,7 +146,7 @@ public:
     cAction action;       // 0x540 .. 0x564
     cAnalysis analysis;   // 0x564 .. 0x584
     void (*m_pFunc)();     // 0x584  routine 4 (event): the scenario's function
-    cObjLuisItem* pItem;  // 0x588  the weapon object (ObjMgr id 0xB) / thrown item
+    cObj* pWep;           // 0x588  his gun (ObjMgr id 0xB, equipWeapon)
     s8 flags;             // 0x58C  bit0 damaged, bit1 dead, bit2 upstairs, bit3 neck set this frame, bit6 damage from an enemy
     u8 pad58D[3];
     int thankCtr;              // 0x590  frames of the damage reaction voice

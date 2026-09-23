@@ -2,7 +2,7 @@
 // wep/pl_rifle.cpp).
 //
 // Ada's cObjHkSniper: model 0xA or 0xB by weapon_type, offset in her right hand (parts 10), driven
-// by wep.mode / wep.step from the rifle routines (mode 2 fire: SEs and vibration only, mode 4
+// by mode / step from the rifle routines (mode 2 fire: SEs and vibration only, mode 4
 // reload: one motion, ItemMgr.reload at frame 34; both ended by the player routine). Wep40_init
 // is the WeaponInitFunc, PlRifleMove the WeaponMoveFunc.
 
@@ -53,7 +53,7 @@ cObjWep* equipWeapon(cPlayer* pl)
     return obj;
 }
 
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
 extern const u8 hksniper_tbl[3];
 const u8 hksniper_tbl[3] = { 0x14, 0xA, 0 };
 
@@ -64,7 +64,7 @@ void cObjHkSniper::init(cModel* parent)
 {
     void* bin;
 
-    wep.itemId = 0x2F;
+    itemId = 0x2F;
     if (pG->weapon_type == 0) {
         bin = WEP_ARC_PTR(0xA);
     } else {
@@ -86,37 +86,37 @@ void cObjHkSniper::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.shotFrame[0] = hksniper_tbl[0];
-    wep.shotFrame[1] = hksniper_tbl[1];
-    wep.shotFrame[2] = hksniper_tbl[2];
-    wep.motReset[0] = WEP_ARC_PTR(0x22);
+    m_pParent = parent;
+    shotFrame[0] = hksniper_tbl[0];
+    shotFrame[1] = hksniper_tbl[1];
+    shotFrame[2] = hksniper_tbl[2];
+    motReset[0] = WEP_ARC_PTR(0x22);
     resetMotion();
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire, set by the rifle fire00): step 0 drops the gun's motion, plays the shot
+// mode == 2 (fire, set by the rifle fire00): step 0 drops the gun's motion, plays the shot
 // SEs, sets Status_flg[0] bit23 (shot noise) and vibrates the pad; step 1 waits.
 void cObjHkSniper::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         Motion.pMot = 0;
         SndCall(2, 0, &pParts->world, 0, 0, 0);
         SndCall(2, 4, &pParts->world, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        step = 1;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the gun's reload motion 0x25 with the magazine SE; at
+// mode == 4 (reload): step 0 starts the gun's reload motion 0x25 with the magazine SE; at
 // frame 34 ItemMgr.reload refills the magazine.
 void cObjHkSniper::moveReload()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x25), 0, 0, 0, 0);
-        wep.m_StopSeId = SndCall(2, 2, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, 2, &pParts->world, 0, 0, 0);
+        step = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 34.0f)) {
         ItemMgr.reload();

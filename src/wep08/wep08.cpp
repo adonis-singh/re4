@@ -2,7 +2,7 @@
 //
 // cObjStriker is the cObjWep (game/objWep.cpp) of the Striker (weapon_no 8, a semi-auto drum
 // shotgun: 19 pellets in pl_shotgun, no pump), hanging on the player's right hand (parts 10) and
-// driven by wep.mode / wep.step from the shotgun routines: mode 2 -> moveFire (recoil motion, the
+// driven by mode / step from the shotgun routines: mode 2 -> moveFire (recoil motion, the
 // shell ejected at frame 21), mode 4 -> moveReload (one motion by tune level, ItemMgr.reload at
 // frame 35); both modes are ended by the player routine. Wep08_init is the WeaponInitFunc,
 // PlShotgunMove the WeaponMoveFunc; the module object carries the class and the entry points.
@@ -58,7 +58,7 @@ void ObjStriker_init(cObj* obj)
 }
 
 // cObjWep::init override (parent = the player): model 0x5 / texture 0x6, atari bits 8/9 off,
-// hung on the right hand, light area, weapon list id 0x2D, idle motion 0x31, wep.shotFrame[0..2] = 0x2E,
+// hung on the right hand, light area, weapon list id 0x2D, idle motion 0x31, shotFrame[0..2] = 0x2E,
 // default lock spread.
 void cObjStriker::init(cModel* parent)
 {
@@ -74,39 +74,39 @@ void cObjStriker::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.itemId = 0x2D;
-    wep.motReset[0] = WEP_ARC_PTR(0x31);
+    m_pParent = parent;
+    itemId = 0x2D;
+    motReset[0] = WEP_ARC_PTR(0x31);
     resetMotion();
-    wep.shotFrame[0] = 0x2E;
-    wep.shotFrame[1] = 0x2E;
-    wep.shotFrame[2] = 0x2E;
+    shotFrame[0] = 0x2E;
+    shotFrame[1] = 0x2E;
+    shotFrame[2] = 0x2E;
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire, set by the shotgun fire00): step 0 starts the recoil motion 0x30, the shot
+// mode == 2 (fire, set by the shotgun fire00): step 0 starts the recoil motion 0x30, the shot
 // SEs, pad vibration, Status_flg[0] bit23 (shot noise) and the muzzle flash 0x3C; step 1 ejects
 // the shell at frame 21. The player routine's next state resets the mode.
 void cObjStriker::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x30), 0, 0, 0, 0);
         SndCall(2, 0, &pos, 0, 0, 0);
         SndCall(2, 4, &pos, 0, 0, 0);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
         StaFlagOn(pG, STA_PL_FIRE);
         EstSet(this, -1, 0, 0, EFF_WEP08, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        wep.step = 1;
+        step = 1;
     } else if (MotionCheckCrossFrame(&Motion, 21.0f)) {
         setCartridge();
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the tune level (0x2B/0x2D/0x2F) with
+// mode == 4 (reload): step 0 starts the reload motion of the tune level (0x2B/0x2D/0x2F) with
 // the level's SE (2/0x20/0x21); at frame 35 ItemMgr.reload refills the drum.
 void cObjStriker::moveReload()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
         u16 se;
 
@@ -133,8 +133,8 @@ void cObjStriker::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        step = 1;
     } else if (MotionCheckCrossFrame(&Motion, 35.0f)) {
         ItemMgr.reload();
     }

@@ -134,8 +134,8 @@ static void wep02_r3_ready00(cPlayer* pl)
     pl->m_Fwork0 = 0.0f;
     pl->Neck->init(0, 0, 0);
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 1;
-    obj->wep.step = 0;
+    obj->mode = 1;
+    obj->step = 0;
     if (pG->weapon_no == 2) {
         WEP_ATARI(pl)->setFlag200();
     }
@@ -382,8 +382,8 @@ static void wep02_r3_fire00(cPlayer* pl)
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -442,8 +442,8 @@ void wepDown(cPlayer* pl)
     }
     pl->motionMove();
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 3;
-    obj->wep.step = 0;
+    obj->mode = 3;
+    obj->step = 0;
     WEP_ATARI(pl)->clrFlag200();
     pl->ang.y = pl->ang.y - pl->Waist->set(0.0f, 0.4f);
 }
@@ -477,8 +477,8 @@ static void wep02_r2_reload(cPlayer* pl)
         pl->motionMove();
         pl->r_no_3 = 1;
         obj = WEP_OBJ(pl);
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->mode = 4;
+        obj->step = 0;
         break;
     case 1:
         if (m3r < -0.1f || m3r > 0.1f) {

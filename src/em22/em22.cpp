@@ -2562,7 +2562,7 @@ int em22LockCk(cEm22* em)
     if (fabsf(Muku(&em->pos, &pPL->pos, em->ang.y, PI)) > 1.0471976f) {
         return 0;
     }
-    if (pPL->Wep->m_pWep->wep.m_SightEm && pPL->Wep->m_pWep->wep.m_SightEm == em) {
+    if (pPL->Wep->m_pWep->m_SightEm && pPL->Wep->m_pWep->m_SightEm == em) {
         return 1;
     }
     PSMTXInverse(pPL->getPartsPtr(10)->mat, inv);

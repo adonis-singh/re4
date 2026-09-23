@@ -326,8 +326,8 @@ static void wep11_r3_fire00(cPlayer* pl)
     PSVECAdd(&p0, &p1, &p1);
     PlWepHitCheck2(pl, &p0, &p1, pG->weapon_no, 0, 6000.0f);
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     pitch = m3r;
@@ -419,8 +419,8 @@ static void wep11_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = pl->Wep->m_pWep;
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->mode = 4;
+        obj->step = 0;
         break;
     }
     case 1:

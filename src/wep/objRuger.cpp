@@ -3,11 +3,11 @@
 // wep38 carries its own build of the class (no weapon types).
 //
 // cObjRuger is the cObjWep (game/objWep.cpp) of the Punisher handgun, hanging on the player's
-// right hand (parts 10) and driven by wep.mode / wep.step from the handgun routines
+// right hand (parts 10) and driven by mode / step from the handgun routines
 // (wep/pl_handgun.cpp): mode 2 -> moveFire (slide motion, SEs, flash, cartridge), mode 4 ->
 // moveReload (reload motion by tune level, ItemMgr.reload at its frame). weapon_type 1 is the
 // upgraded (exclusive) model 0x7 with the silenced-style SE. setMotion installs the Punisher
-// footwork motions into the player's table; ruger_tbl fills wep.shotFrame[0..2].
+// footwork motions into the player's table; ruger_tbl fills shotFrame[0..2].
 
 #include "wep_mod.h"
 #include "item.h"
@@ -28,7 +28,7 @@ public:
     void setCartridge();
 };
 
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
 extern const u8 ruger_tbl[3];
 const u8 ruger_tbl[3] = { 0x10, 0xE, 0xC };
 
@@ -41,7 +41,7 @@ void ObjRuger_init(cObj* obj)
 #endif
 
 // cObjWep::init override (cPlayer::weaponInit, parent = the player): model 0x6 (type 1: 0x7,
-// weapon list id wep.itemId 0x23 / 0x24), a 100-unit box atari with bits 8/9 off, hung on the
+// weapon list id itemId 0x23 / 0x24), a 100-unit box atari with bits 8/9 off, hung on the
 // player's right hand, light area, idle motions 0x36 (normal) / 0x3B (empty), the three
 // ruger_tbl bytes and the default lock random spread.
 void cObjRuger::init(cModel* parent)
@@ -50,10 +50,10 @@ void cObjRuger::init(cModel* parent)
 
     if (pG->weapon_type != 1) {
         bin = WEP_ARC_PTR(0x6);
-        wep.itemId = 0x23;
+        itemId = 0x23;
     } else {
         bin = WEP_ARC_PTR(0x7);
-        wep.itemId = 0x24;
+        itemId = 0x24;
     }
     if (modelInit(bin, WEP_ARC_PTR(0x5)) == 0) {
         pLog->err(0, 0, "cObjWep::init() failed.");
@@ -68,23 +68,23 @@ void cObjRuger::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x36);
-    wep.motReset[1] = WEP_ARC_PTR(0x3B);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x36);
+    motReset[1] = WEP_ARC_PTR(0x3B);
     resetMotion();
-    wep.shotFrame[0] = ruger_tbl[0];
-    wep.shotFrame[1] = ruger_tbl[1];
-    wep.shotFrame[2] = ruger_tbl[2];
+    shotFrame[0] = ruger_tbl[0];
+    shotFrame[1] = ruger_tbl[1];
+    shotFrame[2] = ruger_tbl[2];
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire, set by the handgun fire00): step 0 starts the slide motion (0x34, 0x39 on
+// mode == 2 (fire, set by the handgun fire00): step 0 starts the slide motion (0x34, 0x39 on
 // the last round = slide locked back), plays the shot SEs (type 0: three SEs and Status_flg[0]
 // bit23 shot noise; type 1: the single SE 0x18), muzzle flash 0x36, a cartridge and the pad
 // vibration; the motion's end returns to mode 0.
 void cObjRuger::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -104,15 +104,15 @@ void cObjRuger::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP02, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        step = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        mode = 0;
+        step = 0;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the reload tune level (0x38/0x3E/
+// mode == 4 (reload): step 0 starts the reload motion of the reload tune level (0x38/0x3E/
 // 0x3F, or 0x35/0x3C/0x3D from an empty magazine) with the level's reload SE (0x16/0x20/0x21);
 // at the level's frame (31/26/17) ItemMgr.reload refills the magazine. The player routine ends
 // the mode.
@@ -120,7 +120,7 @@ void cObjRuger::moveReload()
 {
     static const f32 reloadEnd[3] = { 31.0f, 26.0f, 17.0f };
 
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
         u16 se;
 
@@ -161,8 +161,8 @@ void cObjRuger::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        step = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

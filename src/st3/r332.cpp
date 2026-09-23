@@ -1019,8 +1019,8 @@ static void R332RocketShootMain(int type)
             lau->LightInfo.EnableMask |= 1;
             lau->LightInfo.EnableMask &= ~0x10;
             lau->grip(1);
-            ObjMgr.destroy(lau->launcher.rocket);
-            lau->launcher.rocket = 0;
+            ObjMgr.destroy(lau->pRocket);
+            lau->pRocket = 0;
         }
         pPL->Wep->m_pWep->setNoSuspend(1);
         {

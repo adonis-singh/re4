@@ -5787,7 +5787,7 @@ static void plem39_CliffAtk(cPlayer* pl)
             em39CliffObj.p->atari.m_flag &= 0xFCFF;
             em39CliffObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
             em39CliffObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            ((cObjUnion*) em39CliffObj.p)->wep.parent = pPL;
+            ((cObjWep*) em39CliffObj.p)->m_pParent = pPL;
             em39CliffObj.p->setNoSuspend(1);
         }
         pl->Wep->setTrans(0, 0);
@@ -6746,7 +6746,7 @@ int em39LockCk(cEm39* em)
     if (ItemMgr.bulletNumCurrent() == 0) {
         return 0;
     }
-    if (pPL->Wep->m_pWep->wep.m_SightEm && pPL->Wep->m_pWep->wep.m_SightEm == em) {
+    if (pPL->Wep->m_pWep->m_SightEm && pPL->Wep->m_pWep->m_SightEm == em) {
         return 1;
     }
     if (em->l_pl > 144000000.0f) {

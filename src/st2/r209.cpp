@@ -511,7 +511,7 @@ extern "C" int r209_GanadoSnipeCheck(cEmWrap* w)
     if (w->isActive()) {
         cEm* em = w->getPtr();
 
-        if (pPL->Wep->m_pWep->wep.m_SightEm == em) {
+        if (pPL->Wep->m_pWep->m_SightEm == em) {
             return 1;
         }
     }

@@ -3022,7 +3022,7 @@ static void plem31_Climb(cPlayer* pl)
             em31CatchObj.p->atari.m_flag &= 0xFCFF;
             em31CatchObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
             em31CatchObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            ((cObjUnion*) em31CatchObj.p)->wep.parent = pPL;
+            ((cObjWep*) em31CatchObj.p)->m_pParent = pPL;
             em31CatchObj.p->be_flag &= ~2;
             EstSet(pl, -1, 0, 0, EFF_EM31, 0x31, 0, ESP_CORE_KIND_NONE, pl, 0);
         }

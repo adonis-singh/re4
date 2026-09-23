@@ -118,8 +118,8 @@ static void wep14_r2_ready(cPlayer* pl)
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
             obj = WEP_OBJ(pl);
-            obj->wep.mode = 3;
-            obj->wep.step = 0;
+            obj->mode = 3;
+            obj->step = 0;
         }
         wep14changeRightHand(pl, WEP_ARC_PTR(0x9));
     }
@@ -183,8 +183,8 @@ static void wep14_r3_ready00(cPlayer* pl)
     m3r.setDelay(zero);
     lockCtr = 0;
     obj = WEP_OBJ(pl);
-    obj->wep.step = 0;
-    obj->wep.mode = 1;
+    obj->step = 0;
+    obj->mode = 1;
     pl->r_no_3 = 1;
 }
 
@@ -402,8 +402,8 @@ static void wep14_r3_fire00(cPlayer* pl)
     mot3.move(m3r);
     pl->motionMove();
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -461,8 +461,8 @@ static void wep14_r2_down(cPlayer* pl)
         int md = 3;
 
         obj = WEP_OBJ(pl);
-        obj->wep.mode = md;
-        obj->wep.step = 0;
+        obj->mode = md;
+        obj->step = 0;
     }
     AtariFlagsAndV(WEP_ATARI(pl), 0xFDFF);
     wep14changeRightHand(pl, WEP_ARC_PTR(0x9));
@@ -495,8 +495,8 @@ static void wep14_r2_reload(cPlayer* pl)
         wep14changeRightHand(pl, WEP_ARC_PTR(0xA));
         pl->r_no_3 = 1;
         obj = WEP_OBJ(pl);
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->mode = 4;
+        obj->step = 0;
     case 1:
         if (pl->motionMove()) {
             if (pG->weapon_type & 1) {

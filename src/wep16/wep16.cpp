@@ -52,7 +52,7 @@ void cObjKnife::init()
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = pPL;
+    m_pParent = pPL;
     resetMotion();
     MotionSetCore(this, &this->Motion, PL_ARC_PTR(pG->pPlayer, 0x1B), 0, 0, 0, 0);
 }

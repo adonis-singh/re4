@@ -208,7 +208,7 @@ static void wep13_r3_ready30(cPlayer* pl)
 }
 
 // r2_set: the launcher line copy of `to` reads the frame directly (`lwz 0x18(r1)..0x20(r1)`) while
-// `from` (frame offset 0) goes through an address register; a plain `obj->launcher.to = to` after
+// `from` (frame offset 0) goes through an address register; a plain `obj->hpos = to` after
 // `getTrajectory(&from, &to)` makes cse reuse the call's `&to` pseudo for the copy and gcse PRE
 // hoists it into a callee-saved register. The copy through an inline taking the address by pointer
 // keeps the frame-relative loads.
@@ -251,8 +251,8 @@ static void wep13_r2_set(cPlayer* pl)
         CameraMove();
         CamCtrl.getTrajectory(&from, &to);
         obj = LAUNCHER(pl);
-        obj->launcher.from = from;
-        VecCopy(&obj->launcher.to, &to);
+        obj->lpos = from;
+        VecCopy(&obj->hpos, &to);
         pl->endCamera();
         pl->r_no_0 = 0;
         pl->r_no_1 = 6;
@@ -354,8 +354,8 @@ static void wep13_r3_fire00(cPlayer* pl)
     MotionMove(pl, 0);
     pl->Wep->m_pWep->setDisp(1, 1);
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
@@ -561,8 +561,8 @@ static void wep13_r2_throw(cPlayer* pl)
 
             pl->stat |= 0x400;
             obj = pl->Wep->m_pWep;
-            obj->wep.mode = 5;
-            obj->wep.step = 0;
+            obj->mode = 5;
+            obj->step = 0;
             pl->Wep->m_pWep->setMotion(pl);
             EmRoutineSet(pl, 0, 0, 2, 0);
         }

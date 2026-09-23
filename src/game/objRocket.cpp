@@ -189,15 +189,15 @@ void cObjRocket::beginEvent(u32 flag)
 // No rocket in flight, none loaded.
 cObjLauncher::cObjLauncher()
 {
-    launcher.flags = 0;
-    launcher.rocket = 0;
+    flg = 0;
+    pRocket = 0;
 }
 
 // Destroys the loaded rocket at once (destroyNow) when the launcher goes.
 cObjLauncher::~cObjLauncher()
 {
-    if (launcher.rocket) {
-        ObjMgr.destroyNow(launcher.rocket);
+    if (pRocket) {
+        ObjMgr.destroyNow(pRocket);
     }
 }
 
@@ -208,7 +208,7 @@ void cObjLauncher::init(cModel* pMod)
 {
     cModelInfo* info;
 
-    wep.itemId = 0x35;
+    itemId = 0x35;
     info = (cModelInfo*) modelInit(PL_ARC_PTR(pG->pPlayer, 0x76), PL_ARC_PTR(pG->pPlayer, 0x75));
     if (info == 0) {
         pLog->err(0, 0, "cObjLauncher::init() modelInit() failed.");
@@ -223,13 +223,13 @@ void cObjLauncher::init(cModel* pMod)
     sub2B4.atari.throughOn();
     LightInfo.init2(1, 1, &cObjRocket::lightPos, &cObjRocket::lightSize, 1);
     grip(0);
-    wep.parent = pMod;
+    m_pParent = pMod;
     if (pG->weapon_type != 2) {
-        wep.motReset[0] = WEP_ARC_PTR(0x1E);
-        wep.motReset[1] = WEP_ARC_PTR(0x1E);
+        motReset[0] = WEP_ARC_PTR(0x1E);
+        motReset[1] = WEP_ARC_PTR(0x1E);
     } else {
-        wep.motReset[0] = WEP_ARC_PTR(0x1D);
-        wep.motReset[1] = WEP_ARC_PTR(0x1D);
+        motReset[0] = WEP_ARC_PTR(0x1D);
+        motReset[1] = WEP_ARC_PTR(0x1D);
     }
     resetMotion();
     if (ItemMgr.bulletNum()) {
@@ -246,30 +246,30 @@ void cObjLauncher::loadRocket()
     static Vec pos0 = { -136.0f, -30.72f, 118.85f };
     static Vec ang0 = { 1.5707964f, 0.0f, -1.5707964f };
 
-    if (launcher.rocket) {
+    if (pRocket) {
         return;
     }
-    launcher.rocket = (cObjRocket*) ObjMgr.createBack(cObjMgr::ID_WEP_ROCKET);
-    if (launcher.rocket == 0) {
+    pRocket = (cObjRocket*) ObjMgr.createBack(cObjMgr::ID_WEP_ROCKET);
+    if (pRocket == 0) {
         pLog->err(0, 0, "Wep13_init() cObjRocket CREATE FAILED");
         return;
     }
-    launcher.rocket->init();
-    launcher.rocket->setParent(getPartsPtr(0), &pos0, &ang0);
-    launcher.rocket->move();
+    pRocket->init();
+    pRocket->setParent(getPartsPtr(0), &pos0, &ang0);
+    pRocket->move();
 }
 
-// wep.mode 2 (fire): step 0 launches the loaded rocket (unless ckBoss took the shot) and reloads
+// mode 2 (fire): step 0 launches the loaded rocket (unless ckBoss took the shot) and reloads
 // for the infinite launcher / debug infinite ammo; step 1 waits for the fire motion to end.
 void cObjLauncher::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         if (DbgFlagChk(pG, DBG_INF_BULLET) || (DbgFlagChk(pG, DBG_INF_BULLET2))) {
-            if (launcher.rocket == 0) {
+            if (pRocket == 0) {
                 loadRocket();
             }
         }
-        if (launcher.rocket) {
+        if (pRocket) {
             if (ckBoss() == 0) {
                 launch();
                 if (pG->weapon_type == 2) {
@@ -278,12 +278,12 @@ void cObjLauncher::moveFire()
                     loadRocket();
                 }
             }
-            wep.step = 1;
+            step = 1;
         }
     } else {
         if (MotionGetState(this)) {
-            wep.mode = 0;
-            wep.step = 0;
+            mode = 0;
+            step = 0;
         }
     }
 }
@@ -317,27 +317,27 @@ void cObjLauncher::launch()
 {
     Vec d;
 
-    PSVECSubtract(&launcher.to, &launcher.from, &d);
-    launcher.rocket->ang.x = -VecElevation(&d);
-    launcher.rocket->ang.y = atan2(d.x, d.z);
-    launcher.rocket->ang.z = 0.0f;
-    launcher.rocket->pos = launcher.from;
-    launcher.rocket->pParts->pParent = launcher.rocket;
-    launcher.rocket->be_flag |= 2;
-    launcher.rocket->fire();
-    launcher.flags |= 1;
-    launcher.rocket = 0;
+    PSVECSubtract(&hpos, &lpos, &d);
+    pRocket->ang.x = -VecElevation(&d);
+    pRocket->ang.y = atan2(d.x, d.z);
+    pRocket->ang.z = 0.0f;
+    pRocket->pos = lpos;
+    pRocket->pParts->pParent = pRocket;
+    pRocket->be_flag |= 2;
+    pRocket->fire();
+    flg |= 1;
+    pRocket = 0;
     EstSet(this, -1, 0, 0, EFF_WEP13, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
     SndCall(2, 0, &pos, 0, 0, 0);
     StaFlagOn(pG, STA_PL_FIRE);
 }
 
-// wep.mode 5 (drop): the launcher is thrown away once.
+// mode 5 (drop): the launcher is thrown away once.
 void cObjLauncher::moveDrop()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         drop(1);
-        wep.step = 1;
+        step = 1;
     }
 }
 
@@ -361,8 +361,8 @@ void cObjLauncher::drop(int se)
         w->pParts->ang.x = 0.0f;
         w->pParts->ang.y = 0.0f;
         w->pParts->ang.z = 0.0f;
-        w->wep.mode = 5;
-        w->wep.step = 1;
+        w->mode = 5;
+        w->step = 1;
         a = w->pos;
         b.x = w->pos.x;
         b.y = w->pos.y - 10000.0f;
@@ -381,7 +381,7 @@ void cObjLauncher::drop(int se)
             }
         }
     }
-    launcher.flags &= ~1;
+    flg &= ~1;
     setDisp(0, 0);
 }
 
@@ -409,7 +409,7 @@ void cObjLauncher::interrupt()
 {
     cObjWep::interrupt();
     if (pG->weapon_type != 2) {
-        if (launcher.flags & 1) {
+        if (flg & 1) {
             drop(1);
         } else {
             grip(0);

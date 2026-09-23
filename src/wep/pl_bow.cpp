@@ -117,8 +117,8 @@ static void wep28_r3_ready00(cPlayer* pl)
     pl->Neck->init(0, 0, 0);
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 1;
-    obj->wep.step = 0;
+    obj->mode = 1;
+    obj->step = 0;
     hokan = 4;
     if (!(pl->stat & 0x40)) {
         hokan = 5;
@@ -285,8 +285,8 @@ static void wep28_r3_fire00(cPlayer* pl)
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     pl->setRightHand(0);
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
@@ -329,8 +329,8 @@ static void wepDown(cPlayer* pl)
     pl->setRightHand(0);
     pl->Wep->m_pWepHand->setDisp(1, 0);
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 3;
-    obj->wep.step = 0;
+    obj->mode = 3;
+    obj->step = 0;
     if (dmMotCk()) {
         pl->motionSet(WEP_ARC_PTR(0x20), 3, pl->r_no_3, 1, 0);
         EmRoutineSet(pl, 0, 0, 2, 0);

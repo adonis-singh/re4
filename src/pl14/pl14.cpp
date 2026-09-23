@@ -125,7 +125,7 @@ cSubLuis::cSubLuis()
 // Destructor (killEm / room change): destroys the gun object and clears pSUB.
 cSubLuis::~cSubLuis()
 {
-    ObjMgr.destroy(pItem);
+    ObjMgr.destroy(pWep);
     pSUB = 0;   // the inlined ~cUnit's be_flag load stays below the store
 }
 
@@ -1306,7 +1306,7 @@ int cAnalysis::aimCheck()
         break;
     default:
         if (PlGetStatus() & 0x10) {
-            if (pPL->Wep->m_pWep->wep.m_SightEm == (cEm*) owner) {
+            if (pPL->Wep->m_pWep->m_SightEm == (cEm*) owner) {
                 flags |= 2;
             } else {
                 f32 dir = PlGetDirY();
@@ -1343,7 +1343,7 @@ void cRoutine::shot()
     owner->hp = 0;
     PlWepHitCheck2(0, &p, &t, 3, 0, 6000.0f);
     owner->hp = hp;
-    EstSet(owner->pItem, -1, 0, 0, EFF_PL04, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
+    EstSet(owner->pWep, -1, 0, 0, EFF_PL04, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
     SndCall(8, 0, &owner->pParts->world, owner->id, 0, 0);
 }
 
@@ -1448,16 +1448,16 @@ int cSubLuis::damageCheck()
 // (parts 10) with a light area and himself as the weapon parent.
 void cSubLuis::equipWeapon()
 {
-    pItem = (cObjLuisItem*) ObjMgr.createBack(cObjMgr::ID_PL_WEAPON);
-    if (pItem == 0) {
+    pWep = ObjMgr.createBack(cObjMgr::ID_PL_WEAPON);
+    if (pWep == 0) {
         pLog->err(0, 0, "Luis.equipWeapon() CREATE FAILED");
     } else {
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
-        pItem->modelInit(SUB_ARC(this, 0x38 / 4), SUB_ARC(this, 0x3C / 4));
-        pItem->atari.m_flag &= 0xFCFF;
-        pItem->pParts->pParent = getPartsPtr(10);
-        pItem->LightInfo.init2(1, 1, LuisLightZero(), &p1, 1);
-        pItem->wep.parent = this;
+        pWep->modelInit(SUB_ARC(this, 0x38 / 4), SUB_ARC(this, 0x3C / 4));
+        pWep->atari.m_flag &= 0xFCFF;
+        pWep->pParts->pParent = getPartsPtr(10);
+        pWep->LightInfo.init2(1, 1, LuisLightZero(), &p1, 1);
+        ((cObjWep*) pWep)->m_pParent = this;
     }
 }
 

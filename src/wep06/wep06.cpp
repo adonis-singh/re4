@@ -2,7 +2,7 @@
 // carries the class, the entry points and the handgun routine registration (wep/pl_handgun.cpp).
 //
 // cObjGovernment is the cObjWep (game/objWep.cpp) of the Matilda, hanging on the player's right
-// hand (parts 10) and driven by wep.mode / wep.step from the handgun routines: mode 2 -> moveFire
+// hand (parts 10) and driven by mode / step from the handgun routines: mode 2 -> moveFire
 // (slide motion, SEs, flash, cartridge; the mode is left by the player routine, not by the motion
 // end), mode 4 -> moveReload. weapon_type 1 is the model with the stock (0x7, its own idle 0x39,
 // weapon list id 0x2B). Wep06_init is the WeaponInitFunc, PlHandgunMove the WeaponMoveFunc.
@@ -59,21 +59,21 @@ void ObjGovernment_init(cObj* obj)
 
 // cObjWep::init override (parent = the player): model 0x6 with idle 0x34 (type 1: model 0x7 with
 // idle 0x39; empty idle 0x3A; weapon list id 0x2A / 0x2B), atari bits 8/9 off, hung on the right
-// hand, light area, wep.shotFrame[0..2] = 0x14, default lock spread.
+// hand, light area, shotFrame[0..2] = 0x14, default lock spread.
 void cObjGovernment::init(cModel* parent)
 {
     void* bin;
 
     if (pG->weapon_type != 1) {
         bin = WEP_ARC_PTR(0x6);
-        wep.motReset[0] = WEP_ARC_PTR(0x34);
-        wep.motReset[1] = WEP_ARC_PTR(0x3A);
-        wep.itemId = 0x2A;
+        motReset[0] = WEP_ARC_PTR(0x34);
+        motReset[1] = WEP_ARC_PTR(0x3A);
+        itemId = 0x2A;
     } else {
         bin = WEP_ARC_PTR(0x7);
-        wep.motReset[0] = WEP_ARC_PTR(0x39);
-        wep.motReset[1] = WEP_ARC_PTR(0x3A);
-        wep.itemId = 0x2B;
+        motReset[0] = WEP_ARC_PTR(0x39);
+        motReset[1] = WEP_ARC_PTR(0x3A);
+        itemId = 0x2B;
     }
     if (modelInit(bin, WEP_ARC_PTR(0x5)) == 0) {
         pLog->err(0, 0, "cObjWep::init() failed.");
@@ -87,18 +87,18 @@ void cObjGovernment::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
+    m_pParent = parent;
     resetMotion();
-    wep.shotFrame[2] = wep.shotFrame[1] = wep.shotFrame[0] = 0x14;
+    shotFrame[2] = shotFrame[1] = shotFrame[0] = 0x14;
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire): step 0 starts the slide motion (0x32, 0x35 on the last round), plays the
+// mode == 2 (fire): step 0 starts the slide motion (0x32, 0x35 on the last round), plays the
 // shot SEs, sets Status_flg[0] bit23 (shot noise), muzzle flash 0x3A, a cartridge and the pad
 // vibration. Step 1 does nothing: the handgun routine's next state resets the mode.
 void cObjGovernment::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
         int zero;
 
@@ -115,18 +115,18 @@ void cObjGovernment::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP06, 0, 0, ESP_CORE_KIND_PL_WEP, (void*) zero, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        step = 1;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the tune level (0x36/0x3D/0x3E, or
+// mode == 4 (reload): step 0 starts the reload motion of the tune level (0x36/0x3D/0x3E, or
 // 0x33/0x3B/0x3C from an empty magazine) with the level's SE (0x16/0x20/0x21); at the level's
 // frame (44/37/22) ItemMgr.reload refills the magazine. The player routine ends the mode.
 void cObjGovernment::moveReload()
 {
     static const f32 reloadEnd[3] = { 44.0f, 37.0f, 22.0f };
 
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
         u16 se;
 
@@ -167,8 +167,8 @@ void cObjGovernment::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        step = 1;
     }
     if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();

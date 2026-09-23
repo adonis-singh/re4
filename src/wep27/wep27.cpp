@@ -3,7 +3,7 @@
 // Krauser's (mercenaries) build of the TMP: the same cObjMachinegun as wep/objMachinegun.cpp with
 // its own fire motions / SEs per weapon_type (0/2: the loud type with Status_flg[0] bit23; 1/3: the
 // suppressed type) and reload frames, hanging on the player's right hand (parts 10) and driven by
-// wep.mode / wep.step from the machine gun routines (mode 2 fire, mode 4 reload). Wep27_init is
+// mode / step from the machine gun routines (mode 2 fire, mode 4 reload). Wep27_init is
 // the WeaponInitFunc, PlMachineMove the WeaponMoveFunc.
 
 #include "wep_mod.h"
@@ -57,38 +57,38 @@ void cObjMachinegun::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
+    m_pParent = parent;
     switch (pG->weapon_type) {
     case 0:
     default:
-        wep.motReset[0] = WEP_ARC_PTR(0x2A);
-        wep.motReset[1] = WEP_ARC_PTR(0x2F);
-        wep.itemId = 0x30;
+        motReset[0] = WEP_ARC_PTR(0x2A);
+        motReset[1] = WEP_ARC_PTR(0x2F);
+        itemId = 0x30;
         setAbility(7.0f, 2.1f, 0.2864f * 0.7f, 0.2864f * 0.7f);
         break;
     case 1:
-        wep.motReset[0] = WEP_ARC_PTR(0x2A);
-        wep.motReset[1] = WEP_ARC_PTR(0x2F);
-        wep.itemId = 0x31;
+        motReset[0] = WEP_ARC_PTR(0x2A);
+        motReset[1] = WEP_ARC_PTR(0x2F);
+        itemId = 0x31;
         setAbility(5.73f * 0.7f, 2.86f * 0.7f, 0.2864f * 0.7f, 0.2864f * 0.7f);
         break;
     case 2:
-        wep.motReset[0] = WEP_ARC_PTR(0x2B);
-        wep.motReset[1] = WEP_ARC_PTR(0x2F);
-        wep.itemId = 0x32;
+        motReset[0] = WEP_ARC_PTR(0x2B);
+        motReset[1] = WEP_ARC_PTR(0x2F);
+        itemId = 0x32;
         setAbility(5.73f * 0.2f, 2.86f * 0.2f, 0.2864f * 0.5f, 0.2864f * 0.5f);
         break;
     case 3:
-        wep.motReset[0] = WEP_ARC_PTR(0x2B);
-        wep.motReset[1] = WEP_ARC_PTR(0x2F);
-        wep.itemId = 0x33;
+        motReset[0] = WEP_ARC_PTR(0x2B);
+        motReset[1] = WEP_ARC_PTR(0x2F);
+        itemId = 0x33;
         setAbility(5.73f * 0.2f, 2.86f * 0.2f, 0.2864f * 0.5f, 0.2864f * 0.5f);
         break;
     }
     resetMotion();
 }
 
-// wep.mode == 2 (fire, one round per wep11_r3_fire00): step 0 starts the gun's recoil motion
+// mode == 2 (fire, one round per wep11_r3_fire00): step 0 starts the gun's recoil motion
 // (types 0/2: 0x27, 0x2D on the last round; types 1/3: 0x2C / 0x2E), the shot SEs (loud types
 // set Status_flg[0] bit23, the suppressed ones play 0x18 + 0x15), the pad vibration, a cartridge
 // and the muzzle flash 0x45 (type 1 for the suppressed models); the motion's end returns to mode 0.
@@ -96,7 +96,7 @@ void cObjMachinegun::moveFire()
 {
     int type = 0;
 
-    if (wep.step == 0) {
+    if (step == 0) {
         void* mot;
 
         switch (pG->weapon_type) {
@@ -143,11 +143,11 @@ void cObjMachinegun::moveFire()
             break;
         }
         EstSet(this, -1, 0, 0, EFF_WEP11, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        wep.step = 1;
+        step = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        mode = 0;
+        step = 0;
     }
 }
 
@@ -182,14 +182,14 @@ void cObjMachinegun::setCartridge()
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the reload tune level (0x29/0x32/
+// mode == 4 (reload): step 0 starts the reload motion of the reload tune level (0x29/0x32/
 // 0x33, or 0x28/0x30/0x31 from an empty magazine) with the magazine-out SE; at the weapon type's
 // frame (40 / 52) the magazine-in SE plays and ItemMgr.reload refills. The player routine ends the mode.
 void cObjMachinegun::moveReload()
 {
     static const int reloadEnd[4] = { 40, 40, 52, 52 };
 
-    if (wep.step == 0) {
+    if (step == 0) {
         void* mot;
 
         if (ItemMgr.bulletNum()) {
@@ -218,8 +218,8 @@ void cObjMachinegun::moveReload()
             }
         }
         motionSet(mot, 0, 0, 1, 0);
-        wep.m_StopSeId = SndCall(2, 2, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, 2, &pParts->world, 0, 0, 0);
+        step = 1;
     }
     if (MotionCheckCrossFrame(&Motion, (f32) reloadEnd[pG->weapon_type])) {
         SndCall(2, 4, &pParts->world, 0, 0, 0);

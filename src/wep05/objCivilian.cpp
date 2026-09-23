@@ -3,7 +3,7 @@
 //
 // cObjCivilian is the cObjWep (game/objWep.cpp) of the weapon (a revolver: no cartridge ejection,
 // no empty-magazine motion, a long reload), hanging on the player's right hand (parts 10) and
-// driven by wep.mode / wep.step from the handgun routines (wep/pl_handgun.cpp). Its left hand
+// driven by mode / step from the handgun routines (wep/pl_handgun.cpp). Its left hand
 // model comes from the weapon archive (0x9) instead of a player hand number.
 
 #include "wep_mod.h"
@@ -20,7 +20,7 @@ public:
     virtual void setMotion(cPlayer* pl);
 };
 
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
 extern const u8 civilian_tbl[3];
 const u8 civilian_tbl[3] = { 0x14, 0x14, 0x14 };
 
@@ -48,42 +48,42 @@ void cObjCivilian::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.itemId = 0x29;
-    wep.motReset[0] = WEP_ARC_PTR(0x34);
+    m_pParent = parent;
+    itemId = 0x29;
+    motReset[0] = WEP_ARC_PTR(0x34);
     resetMotion();
-    wep.shotFrame[0] = civilian_tbl[0];
-    wep.shotFrame[1] = civilian_tbl[1];
-    wep.shotFrame[2] = civilian_tbl[2];
+    shotFrame[0] = civilian_tbl[0];
+    shotFrame[1] = civilian_tbl[1];
+    shotFrame[2] = civilian_tbl[2];
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire): step 0 starts the recoil motion 0x32, plays the shot SEs, sets
+// mode == 2 (fire): step 0 starts the recoil motion 0x32, plays the shot SEs, sets
 // Status_flg[0] bit23 (shot noise) and the muzzle flash 0x39; the motion's end returns to mode 0.
 void cObjCivilian::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x32), 0, 0, 0, 0);
         SndCall(2, 0, &pos, 0, 0, 0);
         SndCall(2, 2, &pos, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
         EstSet(this, -1, 0, 0, EFF_WEP05, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        wep.step = 1;
+        step = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        mode = 0;
+        step = 0;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the tune level (0x33/0x35/0x36) with
+// mode == 4 (reload): step 0 starts the reload motion of the tune level (0x33/0x35/0x36) with
 // the level's SE (0x16/0x20/0x21); at the level's frame (75/48/28) ItemMgr.reload refills the
 // cylinder. The player routine ends the mode.
 void cObjCivilian::moveReload()
 {
     static const f32 reloadEnd[3] = { 75.0f, 48.0f, 28.0f };
 
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
         u16 se;
 
@@ -110,8 +110,8 @@ void cObjCivilian::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        step = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

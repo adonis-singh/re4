@@ -2,8 +2,8 @@
 // The module object carries the class, the entry points and the handgun routine registration
 // (wep/pl_handgun.cpp).
 //
-// Ada's cObjRuger: one model (0x6) offset in her right hand (parts 10), driven by wep.mode /
-// wep.step from the handgun routines (mode 2 fire: slide motion, the loud or the suppressed SE set
+// Ada's cObjRuger: one model (0x6) offset in her right hand (parts 10), driven by mode /
+// step from the handgun routines (mode 2 fire: slide motion, the loud or the suppressed SE set
 // by weapon_type, flash 0x35, cartridge; mode 4 reload with only the level-1 motion variants).
 // Wep38_init is the WeaponInitFunc, PlHandgunMove the WeaponMoveFunc.
 
@@ -29,7 +29,7 @@ public:
     void setCartridge();
 };
 
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before Wep38_init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before Wep38_init's string)
 extern const u8 ruger_tbl[3];
 const u8 ruger_tbl[3] = { 0x10, 0xE, 0xC };
 
@@ -76,23 +76,23 @@ void cObjRuger::init(cModel* parent)
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x36);
-    wep.motReset[1] = WEP_ARC_PTR(0x3B);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x36);
+    motReset[1] = WEP_ARC_PTR(0x3B);
     resetMotion();
-    wep.shotFrame[0] = ruger_tbl[0];
-    wep.shotFrame[1] = ruger_tbl[1];
-    wep.shotFrame[2] = ruger_tbl[2];
+    shotFrame[0] = ruger_tbl[0];
+    shotFrame[1] = ruger_tbl[1];
+    shotFrame[2] = ruger_tbl[2];
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire): step 0 starts the slide motion (0x34, 0x39 on the last round), the six
+// mode == 2 (fire): step 0 starts the slide motion (0x34, 0x39 on the last round), the six
 // shot SEs of the loud (type != 1, Status_flg[0] bit23) or suppressed set, the muzzle flash 0x35
 // (type 1 variant for the suppressed model), a cartridge and the pad vibration; mode 0 at the
 // motion's end.
 void cObjRuger::moveFire()
 {
-    if (wep.step == 0) {
+    if (step == 0) {
         void* m;
         u16 se;
 
@@ -130,15 +130,15 @@ void cObjRuger::moveFire()
         }
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        step = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        mode = 0;
+        step = 0;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion (0x3D; 0x3C from an empty magazine at
+// mode == 4 (reload): step 0 starts the reload motion (0x3D; 0x3C from an empty magazine at
 // level 1) with the level's SE (0x16/0x20/0x21); at the level's frame (31/26/17) ItemMgr.reload
 // refills. The player routine ends the mode.
 void cObjRuger::moveReload()
@@ -146,7 +146,7 @@ void cObjRuger::moveReload()
     static const f32 reloadEnd[3] = { 31.0f, 26.0f, 17.0f };
     void* m = WEP_ARC_PTR(0x3D);
 
-    if (wep.step == 0) {
+    if (step == 0) {
         u16 se;
 
         if (ItemMgr.bulletNum()) {
@@ -170,8 +170,8 @@ void cObjRuger::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        step = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }

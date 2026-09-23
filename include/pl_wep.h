@@ -9,12 +9,30 @@
 
 class cPlayer;
 
-// Player weapon object (game/objWep.cpp): a cObj whose work area holds ObjWepWork (`wep`, obj.h).
-// The vtable order is objWep's `cObjWep virtual table`; the in-class bodies are the ones the
-// original emits after the destructor (objWep owns the vtable, so every in-class inline is
-// emitted there: add none that the target lacks).
-class cObjWep : public cObjUnion {
+// Player weapon object (game/objWep.cpp). The vtable order is objWep's `cObjWep virtual table`;
+// the in-class bodies are the ones the original emits after the destructor (objWep owns the
+// vtable, so every in-class inline is emitted there: add none that the target lacks).
+class cObjWep : public cObj {
 public:
+    void* motReset[2];    // 0x328  resetMotion idle motions: [0] normal, [1] empty magazine (pWepArc) (PS2 motReset[2])
+    f32 bureX;            // 0x330  aim sway (lock random, pl_wep PlWepLockRand): pitch range, degrees -> radians in setAbility (PS2 bureX)
+    f32 bureY;            // 0x334  yaw range (PS2 bureY)
+    f32 bureSpeedX;       // 0x338  pitch step per frame (PS2 bureSpeedX)
+    f32 bureSpeedY;       // 0x33C  yaw step per frame (PS2 bureSpeedY)
+    u8 shotFrame[4];      // 0x340  fire motion shot frames, from each weapon's const table (ruger_tbl, xd9_tbl, ...) (PS2 shotFrame[4])
+    u32 m_EraseTime;      // 0x344  (PS2 m_EraseTime; setEraseTime is not in the GC code)
+    cModel* m_pParent;    // 0x348  model the weapon hangs on (parentSet) (PS2 m_pParent)
+    u16 itemId;           // 0x34C  weapon item id (cObjLauncher::init: 0x35) (PS2 ITEM_ID itemId)
+    u8 mode;              // 0x34E  0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop (move dispatch)
+    u8 step;              // 0x34F  step inside the mode
+    u8 disp;              // 0x350  bit0 draw the laser this frame, bit1 drawn last frame, bits 2-4 setDisp types 0/1/2
+    u8 etcflag;           // 0x351  (PS2 etcflag)
+    s8 m_EtcTimer;        // 0x352  (PS2 m_EtcTimer)
+    u8 pad_2B;
+    u32 m_StopSeId;       // 0x354  SndCall handle stopped by resetMotion (PS2 m_StopSeId)
+    Vec m_ShotPos;        // 0x358  laser sight end / hit marker position (pl_wep getMarkerPos, PlWepHitCheck2) (PS2 m_ShotPos)
+    class cEm* m_SightEm; // 0x364  enemy the laser points at (GetWepTargetPos) (PS2 m_SightEm)
+
     cObjWep();
     virtual ~cObjWep() {}
     virtual void move();
@@ -32,10 +50,10 @@ public:
     // Aim sway ranges / per-frame steps in degrees (stored in radians) — each weapon module's
     // init() calls it (pl_wep PlWepLockRand).
     void setAbility(f32 pitch, f32 yaw, f32 pitchStep, f32 yawStep) {
-        wep.bureX = pitch * 0.017453292f;
-        wep.bureY = yaw * 0.017453292f;
-        wep.bureSpeedX = pitchStep * 0.017453292f;
-        wep.bureSpeedY = yawStep * 0.017453292f;
+        bureX = pitch * 0.017453292f;
+        bureY = yaw * 0.017453292f;
+        bureSpeedX = pitchStep * 0.017453292f;
+        bureSpeedY = yawStep * 0.017453292f;
     }
     virtual int keyKamae() { return (Key.on >> 4) & 1; }   // pl_sub joyKamae
     virtual void fire() {}
@@ -76,9 +94,14 @@ public:
 
 #define ROCKET_WK(o) ((RocketWork*) (o)->free)
 
-// Rocket launcher (game/objRocket.cpp): carries a cObjRocket (`launcher`, obj.h) it launches.
+// Rocket launcher (game/objRocket.cpp): carries a cObjRocket it launches.
 class cObjLauncher : public cObjWep {
 public:
+    u32 flg;              // 0x368  bit0: a rocket is in flight (PS2 cFlag flg)
+    Vec lpos;             // 0x36C  launch line (getMarkerPos) (PS2 lpos)
+    Vec hpos;             // 0x378  (PS2 hpos)
+    cObjRocket* pRocket;  // 0x384  loaded rocket (loadRocket)
+
     cObjLauncher();
     virtual ~cObjLauncher();
     // The launcher and its loaded rocket keep moving while the game is suspended.
@@ -88,8 +111,8 @@ public:
         } else {
             be_flag &= ~0x800;
         }
-        if (launcher.rocket) {
-            launcher.rocket->setNoSuspend(on);
+        if (pRocket) {
+            pRocket->setNoSuspend(on);
         }
     }
     virtual void moveFire();

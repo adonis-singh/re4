@@ -287,8 +287,8 @@ static void wep09_r3_fire00(cPlayer* pl)
     pl->m_Work4 = 0;
     if (pG->weapon_no == 0xA) {
         obj = pl->Wep->m_pWep;
-        obj->wep.mode = 2;
-        obj->wep.step = 0;
+        obj->mode = 2;
+        obj->step = 0;
     }
     pl->Wep->m_pWep->setDisp(1, 0);
     CamCtrl.getTrajectory(&pl->m_VecWork0, &dir);
@@ -333,8 +333,8 @@ static void wep09_r3_fire20(cPlayer* pl)
     MotionSetCore(pl, &pl->Motion, WEP_ARC_PTR(0x1B), 0, 3, 5, 0);
     pl->motionMove();
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     pl->r_no_3 = 3;
 }
 
@@ -414,8 +414,8 @@ static void wepDown(cPlayer* pl)
             mot3.set(pl, mot, mot, mot, 0, 0, 0, 4, 0);
             obj = pl->Wep->m_pWep;
             obj->motionSet(WEP_ARC_PTR(0x24), 0, 0, 1, 0);
-            obj->wep.mode = 0;
-            obj->wep.step = 0;
+            obj->mode = 0;
+            obj->step = 0;
         }
         mot3.move(m3r);
         EmRoutineSet(pl, 0, 0, 2, 0);
@@ -459,8 +459,8 @@ static void wep09_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = pl->Wep->m_pWep;
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->mode = 4;
+        obj->step = 0;
         break;
     }
     case 1:

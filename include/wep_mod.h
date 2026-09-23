@@ -99,6 +99,8 @@ public:
 
 class cObjBow : public cObjWep {
 public:
+    cObjWep* pAllow;      // 0x368  the arrow object shown on the bow (cObjAllow, ObjMgr id 0x10)
+
     virtual void moveReady();
     virtual void moveFire();
     virtual void moveDown();

@@ -408,7 +408,7 @@ static void wep07_r3_fire00(cPlayer* pl)
 
             p1.y += fRand1_1() * 100.0f;
             p1.z += fRand1_1() * 100.0f;
-            mk = &pl->Wep->m_pWep->wep.m_ShotPos;
+            mk = &pl->Wep->m_pWep->m_ShotPos;
             if (GetWaterHeight(mk, &wh) && mk->y <= wh) {
                 SndCall(2, 0xB, mk, 0, 0, 0);
             }
@@ -428,8 +428,8 @@ static void wep07_r3_fire00(cPlayer* pl)
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->mode = 2;
+    obj->step = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
@@ -525,8 +525,8 @@ static void wep07_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = pl->Wep->m_pWep;
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->mode = 4;
+        obj->step = 0;
         break;
     }
     case 1:

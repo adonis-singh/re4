@@ -140,7 +140,7 @@ cEmMine* SetMine(void* bin, void* tpl, Vec* pos, Vec* spd, int type)
     TransMatrix(em->mat, &em->pos);
     em->partsWorldCalc();
     if (em->type == 1) {
-        cEm* target = pPL->Wep->m_pWep->wep.m_SightEm;
+        cEm* target = pPL->Wep->m_pWep->m_SightEm;
 
         if (target) {
             w->pEm_homing = target;
