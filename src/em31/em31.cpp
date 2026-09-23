@@ -274,7 +274,7 @@ static inline void em31BridgeVsSet(cEm31* em, Em31Work* w)
 #define EM31_SET_DOWN(timer, type)                                                                  \
     w->Wake_timer = timer;                                                                           \
     if (w->Be_flg & 0x1000) {                                                                        \
-        EmRoutineSet(em, 2, 1, 0, type);                                                            \
+        em->setRno(2, 1, 0, type);                                                            \
     }                                                                                               \
     w->Down_type = type;                                                                             \
     w->Be_flg |= 0x4000
@@ -311,7 +311,7 @@ void em31DmCk(cEm31* em)
                 w->Berserk_wait = 450;
                 w->Berserk_timer = 0;
                 if (total >= (s16) (em->hp_max / 20)) {
-                    EmRoutineSet(em, 2, 0, 0, 0);
+                    em->setRno(2, 0, 0, 0);
                     return;
                 }
                 EM31_SET_DOWN(210, 0);
@@ -756,7 +756,7 @@ static void em31_R1_Appear(cEm31* em)
             em31SetTail(em);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -836,14 +836,14 @@ static void em31_R1_Wait(cEm31* em)
 
             if (w->Berserk_wait == 0 && w->Go_rot < 0.5235988f && dy < 100.0f && !(w->Be_flg & 0x40) &&
                 pG->Game_level > 1) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
                 break;
             }
         }
         if (w->Pl_rot > 0.7853982f) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -881,7 +881,7 @@ static void em31_R1_Walk(cEm31* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
             if (w->Timer == 0) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             w->Timer--;
@@ -890,7 +890,7 @@ static void em31_R1_Walk(cEm31* em)
 
                 if (w->Berserk_wait == 0 && w->Go_rot < 0.5235988f && dy < 100.0f && !(w->Be_flg & 0x40) &&
                     pG->Game_level > 1) {
-                    EmRoutineSet(em, 1, 5, 0, 0);
+                    em->setRno(1, 5, 0, 0);
                     break;
                 }
             }
@@ -917,10 +917,10 @@ static void em31_R1_Walk(cEm31* em)
             EstSet(0, -1, &p->world, 0, EFF_EM31, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         if (w->Go_rot > 0.7853982f) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         } else {
             if (em->l_pl < 12250000.0f) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             if (w->pTen == 0) {
@@ -930,7 +930,7 @@ static void em31_R1_Walk(cEm31* em)
                 break;
             }
             em31SetAtkWait(w);
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -969,23 +969,23 @@ static void em31_R1_Dash(cEm31* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
             if (w->Timer == 0) {
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
                 break;
             }
             w->Timer--;
             if (w->Go_rot > 2.3561945f) {
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
                 break;
             }
         }
         if (w->Go_rot > 2.3561945f) {
             if ((u8) (Rnd() % 10) > 4) {
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
             } else {
                 if (w->pTen) {
                     w->pTen->setWait();
                 }
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             }
             break;
         }
@@ -1052,15 +1052,15 @@ static void em31_R1_Turn(cEm31* em)
             if (em31BridgeVsCk(em, 0)) {
                 em31BridgeVsSet(em, w);
             } else if (w->Go_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->Be_flg & 0x40) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else if (em->l_pl > 64000000.0f &&
                        (dy = fabsf(em->pos.y - pPL->pos.y), w->Berserk_wait == 0 && w->Go_rot < 0.5235988f &&
                                                              dy < 100.0f && pG->Game_level > 1)) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -1079,7 +1079,7 @@ static void em31_R1_Turn(cEm31* em)
         w->Target_pos.x = -52600.0f;                                                                 \
         w->Target_pos.y = 17361.0f;                                                                  \
     }                                                                                               \
-    EmRoutineSet(em, 1, 8, 0, 0)
+    em->setRno(1, 8, 0, 0)
 
 // Body routine 1/7: the stand-off across the bridge (berserk cancelled). `side` is which bank the
 // giant is on (x -44 m), `ang` the yaw facing across. Steps: 0/1 turn to face across, 2/3 side-step
@@ -1201,7 +1201,7 @@ static void em31_R1_BridgeVs(cEm31* em)
             w->pTen->r_no_3 = ret;
             em->r_no_2 = 8;
         } else {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     case 4:
@@ -1212,7 +1212,7 @@ static void em31_R1_BridgeVs(cEm31* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         MotionMove(em, 0);
         if (em31BridgeVsCk(em, 1) == 0) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             break;
         }
         if (w->Atk_wait == 0 && w->pTen && w->pTen->ckAtkEnable()) {
@@ -1312,9 +1312,9 @@ static void em31_R1_Jump(cEm31* em)
         }
         if (MotionMove(em, 0)) {
             if (w->Go_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -1341,9 +1341,9 @@ static void em31_R1_BerserkStart(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->Pl_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
         }
         break;
@@ -1368,9 +1368,9 @@ static void em31_R1_BerserkEnd(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->Pl_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -1384,12 +1384,12 @@ static inline void em31StampEnd(cEm31* em, Em31Work* w)
         GameAddPoint(LVADD_ESCAPEATTACK);
     }
     if (w->Atk_ck && (w->Be_flg & 0x40)) {
-        EmRoutineSet(em, 1, 6, 0, 0);
+        em->setRno(1, 6, 0, 0);
     } else if (w->Atk_ck) {
         em31SetAtkWait(w);
-        EmRoutineSet(em, 1, 1, 0, 0);
+        em->setRno(1, 1, 0, 0);
     } else {
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
     }
 }
 
@@ -1679,7 +1679,7 @@ static void em31_R1_Kick(cEm31* em)
         pPL->dmg.m_Timer = 2;                                                                            \
         em->dmg.m_Timer = 2;                                                                             \
         w->pTen->dmg.m_Timer = 2;                                                                        \
-        EmRoutineSet(em, 1, rtn, 0, 0);                                                             \
+        em->setRno(1, rtn, 0, 0);                                                             \
         VibSetData(VIB_TBL, 0xB, 1);                                                                \
     }
 
@@ -1711,7 +1711,7 @@ static void em31_R1_Catch(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -1737,7 +1737,7 @@ static inline void em31CatchEnd(cEm31* em, Em31Work* w)
     if (pG->Game_level > 9) {
         w->Atk_wait = 0;
     }
-    EmRoutineSet(em, 1, 1, 0, 0);
+    em->setRno(1, 1, 0, 0);
 }
 
 // Body routine 1/0xC: the grab connected (Be_flg 0x80, dmType 2). Snapped to the grab spot
@@ -1868,7 +1868,7 @@ static void em31_R1_StepCatch(cEm31* em)
             w->Berserk_wait = 450;
             w->Berserk_timer = 0;
             w->Be_flg &= ~0x40;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -1920,11 +1920,11 @@ static inline void em31AtkEnd(cEm31* em, Em31Work* w)
     }
     if (MotionMove(em, 0)) {
         if (w->Go_rot > 0.7853982f) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         } else if (w->Atk_wait) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
     }
 }
@@ -2046,7 +2046,7 @@ static void em31_R1_T_Appear(cEm31* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2141,9 +2141,9 @@ static void em31_R1_T_Stamp(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->r_no_3 == 2) {
-                EmRoutineSet(em, 1, 0x12, 0, 1);
+                em->setRno(1, 0x12, 0, 1);
             } else {
-                EmRoutineSet(em, 1, 0x12, 0, 0);
+                em->setRno(1, 0x12, 0, 0);
             }
         }
         break;
@@ -2230,9 +2230,9 @@ static void em31_R1_T_Atk(cEm31* em)
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
             if (em->r_no_3) {
-                EmRoutineSet(em, 1, 0x12, 0, 0);
+                em->setRno(1, 0x12, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x12, 0, 1);
+                em->setRno(1, 0x12, 0, 1);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             no = 5;
@@ -2291,7 +2291,7 @@ static void em31_R1_T_BerserkStart(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2309,7 +2309,7 @@ static void em31_R1_T_BerserkEnd(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2326,7 +2326,7 @@ static void em31_R1_T_Jump(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         } else if (em->Motion.Seq_frame > 18.7f && em->Motion.Seq_frame < 19.3f) {
             em->setVoice(0x19, 2);
         }
@@ -2364,7 +2364,7 @@ static void em31_R1_T_Catch(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2384,7 +2384,7 @@ static void em31_R1_T_CatchHit(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 1);
+            em->setRno(1, 0x12, 0, 1);
         }
         break;
     }
@@ -2403,7 +2403,7 @@ static void em31_R1_T_StepCatch(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2423,7 +2423,7 @@ static void em31_R1_T_StepCatchHit(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 1);
+            em->setRno(1, 0x12, 0, 1);
         }
         break;
     }
@@ -2447,7 +2447,7 @@ static void em31_R1_T_PillarThrow(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
             break;
         }
         if ((em->Motion.Seq_old.Free & 2) && w->pBody) {
@@ -2499,7 +2499,7 @@ static void em31_R1_T_Dm_Normal(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2572,7 +2572,7 @@ static void em31_R1_T_Down(cEm31* em)
         em->r_no_2++;
     case 5:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     case 6:
@@ -2679,7 +2679,7 @@ static void em31_R1_T_Dm_Climb(cEm31* em)
     case 5:
         if (MotionMove(em, 0)) {
             LifeDownSet(em, (s16) (em->hp_max / 20), 0);
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2734,7 +2734,7 @@ static inline void em31DmEnd(cEm31* em, Em31Work* w)
     if (em31BridgeVsCk(em, 0)) {
         em31BridgeVsSet(em, w);
     } else {
-        EmRoutineSet(em, 1, 2, 0, 0xA);
+        em->setRno(1, 2, 0, 0xA);
     }
 }
 
@@ -3080,7 +3080,7 @@ static void plem31_Climb(cPlayer* pl)
 // Action button of the down loop: starts the back climb (routine 2/3), both sides invulnerable.
 static void em31SetActClimb(cEm31* em)
 {
-    EmRoutineSet(em, 2, 3, 0, 0);
+    em->setRno(2, 3, 0, 0);
     em->dmg.set(0, 30);
     pPL->dmg.set(0, 30);
 }
@@ -3514,7 +3514,7 @@ static void plem31_dm_Stamp(cPlayer* pl)
         if (MotionMove(pl, 0) || (pl->Motion.Seq_frame > 49.7f && pl->Motion.Seq_frame < 50.3f)) {
             if ((s16) pG->pl_life > 0) {
                 pl->atari.on();
-                EmRoutineSet(pPL, 1, 0, 0xA, 0);
+                pPL->setRno(1, 0, 0xA, 0);
             }
         }
         break;
@@ -3604,7 +3604,7 @@ void cEm31::setDamageCrane(int flip)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x20, 0, flip);
+    setRno(1, 0x20, 0, flip);
 }
 
 // Body, for the level script: teleports the giant to crane spot `no` (0 the west bank facing
@@ -3643,7 +3643,7 @@ void cEm31::setCranePos(int no)
     if (pG->Game_level <= 1) {
         w->Atk_wait = 120;
     }
-    EmRoutineSet(this, 1, 1, 0, 0);
+    setRno(1, 1, 0, 0);
     if (w->pTen) {
         w->pTen->setWait();
     }
@@ -3669,7 +3669,7 @@ void cEm31::setAtk(int no)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x17, 0, no);
+    setRno(1, 0x17, 0, no);
 }
 
 // Tentacle: the whipping loop of the body's charge (1/0x18).
@@ -3678,7 +3678,7 @@ void cEm31::setDashAtk()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x18, 0, 0);
+    setRno(1, 0x18, 0, 0);
 }
 
 // Tentacle: back to idle (1/0x12).
@@ -3687,7 +3687,7 @@ void cEm31::setWait()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x12, 0, 0);
+    setRno(1, 0x12, 0, 0);
 }
 
 // Tentacle: the player is climbing the back and slashing it (1/0x21).
@@ -3696,7 +3696,7 @@ void cEm31::setClimb()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x21, 0, 0);
+    setRno(1, 0x21, 0, 0);
 }
 
 // Tentacle: the pillar throw of the bridge fight (1/0x1D).
@@ -3705,7 +3705,7 @@ void cEm31::setPillarThrow()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1D, 0, 0);
+    setRno(1, 0x1D, 0, 0);
 }
 
 // Tentacle: rise with the body's berserk roar (1/0x13).
@@ -3714,7 +3714,7 @@ void cEm31::setBerserkStart()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x13, 0, 0);
+    setRno(1, 0x13, 0, 0);
 }
 
 // Tentacle: settle as the berserk ends (1/0x14).
@@ -3723,7 +3723,7 @@ void cEm31::setBerserkEnd()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x14, 0, 0);
+    setRno(1, 0x14, 0, 0);
 }
 
 // Tentacle: the jump pose (1/0x15).
@@ -3732,7 +3732,7 @@ void cEm31::setJump()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x15, 0, 0);
+    setRno(1, 0x15, 0, 0);
 }
 
 // Tentacle: follow the body's stamp variant `no` (1/0x16).
@@ -3741,7 +3741,7 @@ void cEm31::setStamp(u8 no)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x16, 0, no);
+    setRno(1, 0x16, 0, no);
 }
 
 // Tentacle: the grab reach (1/0x19).
@@ -3750,7 +3750,7 @@ void cEm31::setCatch()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x19, 0, 0);
+    setRno(1, 0x19, 0, 0);
 }
 
 // Tentacle: the crush of a caught player (1/0x1A).
@@ -3759,7 +3759,7 @@ void cEm31::setCatchHit()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1A, 0, 0);
+    setRno(1, 0x1A, 0, 0);
 }
 
 // Tentacle: the stepping grab reach (1/0x1B).
@@ -3768,7 +3768,7 @@ void cEm31::setStepCatch()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1B, 0, 0);
+    setRno(1, 0x1B, 0, 0);
 }
 
 // Tentacle: the crush of the stepping grab (1/0x1C).
@@ -3777,7 +3777,7 @@ void cEm31::setStepCatchHit()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1C, 0, 0);
+    setRno(1, 0x1C, 0, 0);
 }
 
 // Tentacle: the flinch after weak-point damage (1/0x1E).
@@ -3786,7 +3786,7 @@ void cEm31::setDmNormal()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1E, 0, 0);
+    setRno(1, 0x1E, 0, 0);
 }
 
 // Tentacle: collapse with the body's knock-down (1/0x1F, `flip` = mirrored).
@@ -3795,7 +3795,7 @@ void cEm31::setDown(int flip)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1F, 0, flip);
+    setRno(1, 0x1F, 0, flip);
 }
 
 // Tentacle: the flinch while down (T_Down step 6).
@@ -3839,7 +3839,7 @@ void cEm31::setDownBody()
     if (type != 0) {
         return;
     }
-    EmRoutineSet(this, 2, 1, 0, 0);
+    setRno(2, 1, 0, 0);
 }
 
 // Body, for the level script (the climb was interrupted): back to the down loop (2/1 step 2), the
@@ -4162,7 +4162,7 @@ void cEm31::setHitCrane(Vec* target)
             back = 1;
         }
     }
-    EmRoutineSet(this, 2, 2, 0, back);
+    setRno(2, 2, 0, back);
 }
 
 // Switches the four small tails between the calm loop (player beyond 7 m) and the agitated loop
@@ -4266,7 +4266,7 @@ void cEm31::setDie()
         return;
     }
     EM31_WK(this)->Be_flg |= 0x800;
-    EmRoutineSet(this, 3, 0, 0, 0);
+    setRno(3, 0, 0, 0);
 }
 
 // Body, for the level script: the plain death, straight into the second motion (3/0 step 2).
@@ -4275,7 +4275,7 @@ void cEm31::setDieNormal()
     if (type != 0) {
         return;
     }
-    EmRoutineSet(this, 3, 0, 2, 0);
+    setRno(3, 0, 2, 0);
 }
 
 // Body, for the level script: skip to the final death pose (3/0 step 4).
@@ -4284,7 +4284,7 @@ void cEm31::setDieCancel()
     if (type != 0) {
         return;
     }
-    EmRoutineSet(this, 3, 0, 4, 0);
+    setRno(3, 0, 4, 0);
 }
 
 // A standing pillar (obj 0x1F) within a 7 m wide, 4 m deep box in front: starts the whip attack at
@@ -4420,7 +4420,7 @@ int em31JumpCk(cEm31* em)
     }
     w->Target_pos = pPL->pos;
     w->Be_flg &= ~0x40;
-    EmRoutineSet(em, 1, 8, 0, 0);
+    em->setRno(1, 8, 0, 0);
     return 1;
 }
 
@@ -4688,7 +4688,7 @@ void cEm31::setAppearCancel()
         EffectEspDelete(1, w->EffKindId, this, 0);
         EffectEspgenDelete(1, w->EffKindId, this);
         EffectEfmDelete(1, w->EffKindId, this);
-        EmRoutineSet(this, 1, 2, 0, 0);
+        setRno(1, 2, 0, 0);
         break;
     case 1:
         em31ScaleReset(this);
@@ -4698,7 +4698,7 @@ void cEm31::setAppearCancel()
         EffectEspDelete(1, w->EffKindId, this, 0);
         EffectEspgenDelete(1, w->EffKindId, this);
         EffectEfmDelete(1, w->EffKindId, this);
-        EmRoutineSet(this, 1, 0x12, 0, 0);
+        setRno(1, 0x12, 0, 0);
         break;
     }
 }
@@ -4880,7 +4880,7 @@ int em31BridgeJumpCk(cEm31* em)
             }
             if (!(fabsf(Muku(&em->pos, &f->pos, em->ang.y, PI)) > 0.2617994f)) {
                 w->Target_pos = f->pos;
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
                 return 1;
             }
         }
@@ -4937,9 +4937,9 @@ int em31AtkRtnCk(cEm31* em)
     if (pPL->pos.y < em->pos.y + 1000.0f && !(w->Be_flg & 0x40) && lp.x > -2500.0f && lp.x < 2500.0f &&
         lp.z > 3000.0f && lp.z < 4000.0f) {
         if ((u8) (Rnd() % 10) > 4) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 0xA, 0, 0);
+            em->setRno(1, 0xA, 0, 0);
         }
         return 1;
     }
@@ -4950,7 +4950,7 @@ int em31AtkRtnCk(cEm31* em)
         return 0;
     }
     if (lp.x > -1000.0f && lp.x < 1000.0f && lp.y > 1000.0f && lp.z < 6000.0f) {
-        EmRoutineSet(em, 1, 0xD, 0, 0);
+        em->setRno(1, 0xD, 0, 0);
         return 1;
     }
     if (w->Atk_wait2 != 0) {
@@ -4965,9 +4965,9 @@ int em31AtkRtnCk(cEm31* em)
     }
     if (lp.x > -500.0f && lp.x < 500.0f && lp.y > -100.0f && lp.y < 100.0f && lp.z > 3000.0f && lp.z < 5000.0f) {
         if ((u8) (Rnd() % 10) > 4) {
-            EmRoutineSet(em, 1, 0xF, 0, 0);
+            em->setRno(1, 0xF, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 0xB, 0, 0);
+            em->setRno(1, 0xB, 0, 0);
         }
         return 1;
     }
@@ -4976,21 +4976,21 @@ int em31AtkRtnCk(cEm31* em)
         case 0:
         case 1:
         default:
-            EmRoutineSet(em, 1, 0xB, 0, 0);
+            em->setRno(1, 0xB, 0, 0);
             return 1;
         case 2:
-            EmRoutineSet(em, 1, 0x10, 0, 0);
+            em->setRno(1, 0x10, 0, 0);
             return 1;
         case 3:
             w->Target_pos = pPL->pos;
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
             return 1;
         }
     }
     if (!((em->pos.x - pp.x) * (em->pos.x - pp.x) + (em->pos.z - pp.z) * (em->pos.z - pp.z) < 25000000.0f)) {
         return 0;
     }
-    EmRoutineSet(em, 1, 0xF, 0, 0);
+    em->setRno(1, 0xF, 0, 0);
     return 1;
 }
 

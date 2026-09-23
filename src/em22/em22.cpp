@@ -125,7 +125,7 @@ void em22DmCk(cEm22* em)
             EmReserveDropItem(em);
             em->hp = 0;
             w->flags |= 0x400;
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
             return;
         }
     }
@@ -179,9 +179,9 @@ void em22DmCk(cEm22* em)
             return;
         }
         if (Rnd() & 3) {
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         }
         break;
     case 5:
@@ -199,22 +199,22 @@ void em22DmCk(cEm22* em)
     case 0x2C:
     case 0x2D:
     default:
-        EmRoutineSet(em, 2, 1, 0, 0);
+        em->setRno(2, 1, 0, 0);
         break;
     case 7:
     case 8:
     case 0x21:
         if (near) {
             if (Rnd() & 3) {
-                EmRoutineSet(em, 2, 1, 0, 0);
+                em->setRno(2, 1, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 0, 0, 0);
+                em->setRno(2, 0, 0, 0);
             }
         } else {
             if (w->flags & 0x22) {
                 return;
             }
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         }
         break;
     }
@@ -423,22 +423,22 @@ static void em22_R0_Init(cEm22* em)
     switch (em->set) {
     case 0:
     default:
-        EmRoutineSet(em, 1, 6, 0, 0);
+        em->setRno(1, 6, 0, 0);
         break;
     case 1:
-        EmRoutineSet(em, 1, 1, 0, 0);
+        em->setRno(1, 1, 0, 0);
         break;
     case 3:
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
         break;
     case 2:
-        EmRoutineSet(em, 1, em->set, 0, 0);
+        em->setRno(1, em->set, 0, 0);
         break;
     case 4:
-        EmRoutineSet(em, 1, em->set, 0, 0);
+        em->setRno(1, em->set, 0, 0);
         break;
     case 5:
-        EmRoutineSet(em, 1, em->set, 0, 0);
+        em->setRno(1, em->set, 0, 0);
         break;
     }
     if (em->flag & 0x40000000) {
@@ -557,7 +557,7 @@ static void em22_R1_R11B_A(cEm22* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 0xB, 0, 0);
+            em->setRno(1, 0xB, 0, 0);
         }
         break;
     }
@@ -637,7 +637,7 @@ static void em22_R1_R11B_B(cEm22* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 0xB, 0, 0);
+            em->setRno(1, 0xB, 0, 0);
         }
         break;
     }
@@ -688,7 +688,7 @@ static void em22_R1_InCage(cEm22* em)
         MotionMove(em, 0);
         if (em->flag & 1) {
             if (em22GotoCk(em) == 0) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         }
         break;
@@ -713,7 +713,7 @@ static void em22_R1_JumpWait(cEm22* em)
             return;
         }
         if ((w->flags & 1) && em->l_pl < em->Guard_r * em->Guard_r) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
             return;
         }
         if (em->flag & 1) {
@@ -739,7 +739,7 @@ static void em22_R1_JumpWait(cEm22* em)
             if (em22GotoCk(em)) {
                 return;
             }
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
         } else {
             em22DoorOpenCk(em);
         }
@@ -783,11 +783,11 @@ static void em22_R1_Wait(cEm22* em)
     }
     if (em->flag & 1) {
         em->flag &= ~1;
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
         return;
     }
     if ((w->flags & 1) && em->l_pl < em->Guard_r * em->Guard_r) {
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
         return;
     }
     {
@@ -795,7 +795,7 @@ static void em22_R1_Wait(cEm22* em)
         // `li` lands at the top of the test block, above the pG load)
         int zero = 0;
         if (StaFlagChk(pG, STA_PL_FIRE) && em->l_pl < 625000000.0f) {
-            EmRoutineSet(em, 1, 7, zero, zero);
+            em->setRno(1, 7, zero, zero);
             return;
         }
     }
@@ -821,11 +821,11 @@ static void em22_R1_RunAbout(cEm22* em)
         em22RunTurn(em, w);
         MotionMove(em, 0);
         if ((w->flags & 1) && em->l_pl < 49000000.0f && w->routeAngAbs < 0.5235988f) {
-            EmRoutineSet(em, 1, 0xB, 0, 0);
+            em->setRno(1, 0xB, 0, 0);
         } else if (w->stuckCnt > 5) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else if (em22PlRunCk(em) && w->plDist > 5000.0f) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         }
         break;
     }
@@ -833,12 +833,12 @@ static void em22_R1_RunAbout(cEm22* em)
         return;
     }
     if (em->l_pl < 6250000.0f) {
-        EmRoutineSet(em, 1, 0xA, 0, 0);
+        em->setRno(1, 0xA, 0, 0);
     } else if (em22SetParasiteCk(em)) {
-        EmRoutineSet(em, 1, 0x12, 0, 0);
+        em->setRno(1, 0x12, 0, 0);
     } else if (em22JumpCk(em) == 0) {
         if (w->targetAngAbs > 2.0943952f) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else {
             em22DoorOpenCk(em);
             em22SlaverSet(em, 1);
@@ -871,12 +871,12 @@ static void em22_R1_Run(cEm22* em)
                 a.y += 500.0f;
                 b.y += 500.0f;
                 if (SatMgr.hitCheck(&a, &b, 0, 0, 0, 0) == 0 && em22ScreenInCk(em) && (u8) (Rnd() % 10) > 4 && (w->flags & 1)) {
-                    EmRoutineSet(em, 1, 0xD, 0, 0);
+                    em->setRno(1, 0xD, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 7, 0, 0);
+                    em->setRno(1, 7, 0, 0);
                 }
             } else {
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
             }
         } else if (em->l_pl < 4000000.0f && w->routeAngAbs < 0.5235988f) {
             if (w->plDeadWait == 0) {
@@ -886,12 +886,12 @@ static void em22_R1_Run(cEm22* em)
                 b.y += 500.0f;
                 hit = SatMgr.hitCheck(&a, &b, 0, 0, 0, 0);
                 if (hit == 0 && em22ScreenInCk(em) && (u8) (Rnd() % 10) > 4 && (w->flags & 1)) {
-                    EmRoutineSet(em, 1, 0xD, 0, 0);
+                    em->setRno(1, 0xD, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 7, 0, 0);
+                    em->setRno(1, 7, 0, 0);
                 }
             } else {
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
             }
         }
         break;
@@ -906,7 +906,7 @@ static void em22_R1_Run(cEm22* em)
         return;
     }
     if (w->targetAngAbs > 2.0943952f) {
-        EmRoutineSet(em, 1, 9, 0, 0);
+        em->setRno(1, 9, 0, 0);
     } else {
         em22DoorOpenCk(em);
         em22SlaverSet(em, 1);
@@ -947,18 +947,18 @@ static void em22_R1_Turn(cEm22* em)
         if (MotionMove(em, 0)) {
             if (em22GotoCk(em) == 0) {
                 if (em->l_pl < 6250000.0f) {
-                    EmRoutineSet(em, 1, 0xA, 0, 0);
+                    em->setRno(1, 0xA, 0, 0);
                     return;
                 }
                 if (em22PlRunCk(em)) {
                     if (w->plDist > 5000.0f) {
-                        EmRoutineSet(em, 1, 8, 0, 0);
+                        em->setRno(1, 8, 0, 0);
                     }
                 } else {
                     if (w->plDist > 7000.0f) {
-                        EmRoutineSet(em, 1, 7, 0, 0);
+                        em->setRno(1, 7, 0, 0);
                     } else {
-                        EmRoutineSet(em, 1, 0xB, 0, 0);
+                        em->setRno(1, 0xB, 0, 0);
                     }
                 }
             }
@@ -1018,14 +1018,14 @@ static void em22_R1_Escape(cEm22* em)
         w->timer--;
     }
     if (em->l_pl > 49000000.0f && w->timer == 0) {
-        EmRoutineSet(em, 1, 7, 0, 1);
+        em->setRno(1, 7, 0, 1);
         return;
     }
     if (em22JumpCk(em)) {
         return;
     }
     if (w->targetAngAbs > 2.0943952f) {
-        EmRoutineSet(em, 1, 9, 0, 0);
+        em->setRno(1, 9, 0, 0);
     } else {
         em22DoorOpenCk(em);
         em22SlaverSet(em, 1);
@@ -1057,18 +1057,18 @@ static void em22_R1_Threat(cEm22* em)
                 w->timer--;
             } else {
                 if (w->plDeadWait == 0) {
-                    EmRoutineSet(em, 1, 8, 0, 0);
+                    em->setRno(1, 8, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 7, 0, 0);
+                    em->setRno(1, 7, 0, 0);
                 }
                 break;
             }
         }
         if (w->routeAngAbs > 1.5707964f) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else if (em22PlRunCk(em)) {
             if (w->plDist > 5000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         } else if (em->l_pl < 16000000.0f && w->routeAngAbs < 0.5235988f && w->plDeadWait == 0) {
             a = em->pos;
@@ -1076,7 +1076,7 @@ static void em22_R1_Threat(cEm22* em)
             a.y += 500.0f;
             b.y += 500.0f;
             if (SatMgr.hitCheck(&a, &b, 0, 0, 0, 0) == 0) {
-                EmRoutineSet(em, 1, 0xF, 0, 0);
+                em->setRno(1, 0xF, 0, 0);
             }
         } else if (em22PlRunCk2(em) && em->l_pl < 49000000.0f && w->plDeadWait == 0) {
             a = em->pos;
@@ -1084,7 +1084,7 @@ static void em22_R1_Threat(cEm22* em)
             a.y += 500.0f;
             c.y += 500.0f;
             if (SatMgr.hitCheck(&a, &c, 0, 0, 0, 0) == 0) {
-                EmRoutineSet(em, 1, 0xF, 0, 0);
+                em->setRno(1, 0xF, 0, 0);
             }
         }
         break;
@@ -1093,13 +1093,13 @@ static void em22_R1_Threat(cEm22* em)
         return;
     }
     if (em22SetParasiteCk(em)) {
-        EmRoutineSet(em, 1, 0x12, 0, 0);
+        em->setRno(1, 0x12, 0, 0);
         return;
     }
     if (em22LockCk(em)) {
         w->lockCnt++;
         if (w->lockCnt > 15) {
-            EmRoutineSet(em, 1, 0xC, 0, 0);
+            em->setRno(1, 0xC, 0, 0);
             return;
         }
     } else {
@@ -1161,9 +1161,9 @@ static void em22_R1_SideStep(cEm22* em)
                 return;
             }
             if (fabsf(Muku(&pPL->pos, &em->pos, pPL->ang.y, PI)) < 1.0471976f && w->plDeadWait == 0) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 7, 0, 1);
+                em->setRno(1, 7, 0, 1);
             }
         }
         break;
@@ -1241,7 +1241,7 @@ static void em22_R1_br_JumpAtk(cEm22* em)
     if (EatMgr.hitCheck(&a, &b, 0, 0, 0, 0)) {
         return;
     }
-    EmRoutineSet(em, 1, 0xE, 0, 0);
+    em->setRno(1, 0xE, 0, 0);
     pPL->dmg.m_Timer = 30;
     em->dmg.m_Timer = 30;
     VibSetData(VIB_TBL, 7, 1);
@@ -1273,7 +1273,7 @@ static void em22_R1_JumpAtk(cEm22* em)
             if (em22GotoCk(em)) {
                 return;
             }
-            EmRoutineSet(em, 1, 0xA, 0, 0);
+            em->setRno(1, 0xA, 0, 0);
         }
         break;
     }
@@ -1355,7 +1355,7 @@ static void em22_R1_JumpAtkHit(cEm22* em)
         }
         if (MotionMove(em, 0)) {
             em->atari.setPriority(0);
-            EmRoutineSet(em, 1, 0x11, 0, 0);
+            em->setRno(1, 0x11, 0, 0);
         } else if (w->timer) {
             w->timer--;
         } else {
@@ -1467,7 +1467,7 @@ static void em22_R1_br_ParaAtk(cEm22* em)
     if (v.x > 500.0f || v.x < -500.0f || v.z > 4000.0f || v.z < 0.0f || v.y > 500.0f || v.y < -500.0f) {
         return;
     }
-    EmRoutineSet(em, 1, 0x10, 0, 0);
+    em->setRno(1, 0x10, 0, 0);
     pPL->dmg.m_Timer = 30;
     em->dmg.m_Timer = 30;
     VibSetData(VIB_TBL, 7, 1);
@@ -1503,7 +1503,7 @@ static void em22_R1_ParaAtk(cEm22* em)
         em22DirMatrix(em, 0.0f);
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
-            EmRoutineSet(em, 1, 0xA, 0, 0);
+            em->setRno(1, 0xA, 0, 0);
         } else {
             if (em->Motion.Seq_old.Free & 0x80) {
                 em22SetParasiteAtk(em);
@@ -1542,7 +1542,7 @@ static void em22_R1_ParaAtkHit(cEm22* em)
             em->atari.setPriority(0);
             w->plDeadWait = 30;
             em22ParaSetMotWait(em);
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
         }
         break;
     }
@@ -1611,7 +1611,7 @@ static void em22_R1_Wakeup(cEm22* em)
         em22DirMatrix(em, 0.0f);
         if (MotionMove(em, 0)) {
             if (em22GotoCk(em) == 0) {
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
             }
         }
         break;
@@ -1638,7 +1638,7 @@ static void em22_R1_Parasite(cEm22* em)
         em22DirMatrix(em, 0.0f);
         if (MotionMove(em, 0)) {
             if (em22GotoCk(em) == 0) {
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             em22SetParasite(em);
@@ -1680,7 +1680,7 @@ static void em22_R1_Jump(cEm22* em)
         em22DirMatrix(em, 0.0f);
         if (MotionMove(em, 0)) {
             if (em22GotoCk(em) == 0) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         }
         break;
@@ -1731,19 +1731,19 @@ static void em22_R1_Dm_Small(cEm22* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em22LockCk(em)) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (Rnd() & 1) {
-                EmRoutineSet(em, 1, 0xA, 0, 0);
+                em->setRno(1, 0xA, 0, 0);
             } else if (w->plDeadWait == 0) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
             }
         } else if (w->timer) {
             w->timer--;
             if (w->timer == 0 && (Rnd() & 3) == 0) {
                 em->dmg.m_Timer = 5;
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             }
         }
         break;
@@ -1838,9 +1838,9 @@ static void em22_R1_Dm_Blow(cEm22* em)
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
                 em->atari.m_flag &= ~0x300;
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x11, 0, 0);
+                em->setRno(1, 0x11, 0, 0);
             }
         } else {
             if (em->Motion.Seq_old.Free & 2) {
@@ -1928,9 +1928,9 @@ static void em22_R1_Dm_Blow(cEm22* em)
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
                 em->atari.m_flag &= ~0x300;
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x11, 0, 0);
+                em->setRno(1, 0x11, 0, 0);
             }
         }
         break;
@@ -2673,7 +2673,7 @@ int em22JumpCk(cEm22* em)
     PSMTXMultVec(m, &b, &b);
     if (SatMgr.hitCheck(&a, &b, 0, &nrm, 0, 0) & 0x80020) {
         em->ang.y = atan2f(-nrm.x, -nrm.z);
-        EmRoutineSet(em, 1, 0x13, 0, 0);
+        em->setRno(1, 0x13, 0, 0);
         return 1;
     }
     return 0;
@@ -2813,7 +2813,7 @@ int em22GotoCk(cEm22* em)
     if (w->gotoOn == 0) {
         return 0;
     }
-    EmRoutineSet(em, 1, 0, 0, 0);
+    em->setRno(1, 0, 0, 0);
     return 1;
 }
 

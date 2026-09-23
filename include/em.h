@@ -159,10 +159,6 @@ public:
 #define EmRoutineSetW(em, r0, r1, r2, r3) \
     (*(u32*) &(em)->r_no_0 = ((u32) (r0) << 24) | ((u32) (r1) << 16) | ((u32) (r2) << 8) | (u32) (r3))
 
-// The four routine numbers of an enemy written through a helper: the stores stay in this order and the
-// arguments keep the registers of the call, which is not the case when they are assigned inline.
-static inline void EmRoutineSet(cEm* em, int r0, int r1, int r2, int r3) { em->r_no_0 = r0; em->r_no_1 = r1; em->r_no_2 = r2; em->r_no_3 = r3; }
-
 // Dead flag test (cDmgInfo upper 16 bits): an inline returning 0/1 gives the `li 1; andis.; bne; li 0` chain.
 static inline int EmDeadCk(cEm* em) { return em->dmg.m_Flag || em->dmg.m_Timer; }
 

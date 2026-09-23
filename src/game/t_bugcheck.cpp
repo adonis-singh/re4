@@ -127,13 +127,6 @@ void cToolBugcheck::menuPosMove()
         }
         PSVECAdd(&pPL->pos, &v, &pPL->pos);
         pPL->setPosAng(&pPL->pos, &pPL->ang);
-        {
-            // COMPILER-DIFF: candidate (gcse hash bucket of the .LC label name): one more constant
-            // pool label before "X:%.0f" gives the target's hoisted-high pseudo order. PS2's
-            // cPlWaist::reset() (a 0.0f store, player.h) would add exactly this label, but a real
-            // body there moves the body-count windows of esp and db_light.
-            f32 lc0 = 1.0f;
-        }
         eprintf(32, 56, 0, 0, "X:%.0f", pPL->pos.x);
         eprintf(32, 70, 0, 0, "Y:%.0f", pPL->pos.y);
         eprintf(32, 84, 0, 0, "Z:%.0f", pPL->pos.z);

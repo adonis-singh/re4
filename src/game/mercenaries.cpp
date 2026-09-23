@@ -203,7 +203,7 @@ int MercSysInitRoom(MercInit* pMInit)
         pLog->err(0, 0, "St4ResultInitRoom : DummyModel no create");
     } else {
         smd->setNoSuspend(1);
-        smd->be_flag |= 0x20;
+        smd->setMove(1);
         if (smd->Motion.pAttachCam == NULL) {
 #line 274 "D:/Bio4/Prog/mercenaries.cpp"
             smd->Motion.pAttachCam = (AttachCamera*) MEM_CALLOC(0x98, 1, 13);

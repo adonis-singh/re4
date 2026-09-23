@@ -68,9 +68,9 @@ static void wep28_r2_ready(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
         if (pl->stat.check(cPlayer::F_CROUCH)) {
-            EmRoutineSet(pl, 0, 0x11, 0, 0);
+            pl->setRno(0, 0x11, 0, 0);
         } else {
-            EmRoutineSet(pl, 0, 6, 3, 0xD);
+            pl->setRno(0, 6, 3, 0xD);
         }
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
@@ -137,7 +137,7 @@ static void wep28_r3_ready10(cPlayer* pl)
         BOW(pl)->setDispAllow(1);
     }
     if (pl->motionMove()) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
     m3r.move();
     mot3.move(m3r);
@@ -148,7 +148,7 @@ static void wep28_r3_ready10(cPlayer* pl)
 static void wep28_r3_ready20(cPlayer* pl)
 {
     if (MotionMove(pl, 0)) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
     m3r.move();
     mot3.move(m3r);
@@ -181,10 +181,10 @@ static void wep28_r2_set(cPlayer* pl)
         }
     } else if (joyFireTrg()) {
         if (pl->Wep->m_pWep->bulletNum()) {
-            EmRoutineSet(pl, 0, 6, 2, 0);
+            pl->setRno(0, 6, 2, 0);
         }
     } else if (joyFireOn() && pl->Wep->m_pWep->bulletNum()) {
-        EmRoutineSet(pl, 0, 6, 2, 0);
+        pl->setRno(0, 6, 2, 0);
     }
 }
 
@@ -299,7 +299,7 @@ static void wep28_r3_fire10(cPlayer* pl)
         BOW(pl)->setDispAllow(1);
     }
     if (pl->motionMove()) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     } else if (pl->Motion.Seq_frame >= (f32) endFrame && joyKamae() == 0) {
         pl->r_no_0 = 0;
         pl->r_no_1 = 6;
@@ -322,7 +322,7 @@ static void wepDown(cPlayer* pl)
     obj->r_no_1 = 0;
     if (dmMotCk()) {
         pl->motionSet(WEP_ARC_PTR(0x20), 3, pl->r_no_3, 1, 0);
-        EmRoutineSet(pl, 0, 0, 2, 0);
+        pl->setRno(0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
         pl->m_Hokan = 0xF;

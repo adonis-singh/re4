@@ -394,7 +394,7 @@ static void R30dShutterFrontEvent()
     while ((SubCharGetStatus() & 0x00800000) == 0) {
         SceSleep(1);
     }
-    EmRoutineSet(pSUB, 0, 0, 0, 0);
+    pSUB->setRno(0, 0, 0, 0);
     SubCharCtrl(0, 0);
     for (i = 0; i < 40; i++) {
         SceSleep(1);
@@ -424,7 +424,7 @@ static void R30dShutterFrontEvent()
         SndCall(6, 0x25, &bar->pos, 0, 0, 0);
     }
     pSUB->dmg.clear();
-    EmRoutineSet(pSUB, 0, 0, 0, 0);
+    pSUB->setRno(0, 0, 0, 0);
     SubCharCtrl(1, 0);
 }
 
@@ -667,7 +667,7 @@ static void R30dCoopSwitch()
     } while (COOP_ACTIVE(c) != 0);
     CamCtrl.Comeback(0);
     pPL->endEvent(2);
-    EmRoutineSet(pSUB, 0, 0, 0, 0);
+    pSUB->setRno(0, 0, 0, 0);
     SubCharCtrl(1, 0);
 }
 

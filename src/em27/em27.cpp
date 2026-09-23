@@ -151,11 +151,11 @@ void em27DmCk(cEm27* em)
     if (em->hp <= 0) {
         EmSetDie(em);
         if (em->pos.y > w->Water_h) {
-            EmRoutineSet(em, 2, 2, 0, 0);
+            em->setRno(2, 2, 0, 0);
         } else if (Rnd() & 1) {
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
         }
     } else {
         // Two identical arms behind a dmWep == 0x21 test: jump2 cross-jumps the whole first arm
@@ -164,15 +164,15 @@ void em27DmCk(cEm27* em)
         // sub-arms are merged it reads `ble E2; b T2`, identical to the second arm's head.
         if (em->dmg.m_Wep == 0x21) {
             if (!(em->pos.y > w->Water_h)) {
-                EmRoutineSet(em, 2, 0, 0, 0);
+                em->setRno(2, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 2, 0, 0);
+                em->setRno(2, 2, 0, 0);
             }
         } else {
             if (em->pos.y > w->Water_h) {
-                EmRoutineSet(em, 2, 2, 0, 0);
+                em->setRno(2, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 0, 0, 0);
+                em->setRno(2, 0, 0, 0);
             }
         }
     }
@@ -353,7 +353,7 @@ static void em27_R0_Init(cEm27* em)
     w->pCtrlGroup = GetCtrlCtrl12();
     em->setStatus(EM_STATUS_LOCKOFF);
     at->offOba();
-    EmRoutineSet(em, 1, zero, zero, zero);
+    em->setRno(1, zero, zero, zero);
     em->ang.y = fRand1_1() * PI;
     MotionSetCore(em, MOTION(em), ARC(7), 0, 0, 1, 0);
     MotionMove(em, 0);
@@ -392,13 +392,13 @@ static void em27_R1_Wait(cEm27* em)
         if (w->Timer) {
             w->Timer--;
         } else if ((Rnd() & 7) == 0 && em27JumpCk(em)) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (w->Dash_wait == 0) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         }
         break;
     }
@@ -429,16 +429,16 @@ static void em27_R1_Walk(cEm27* em)
         em27SetSPeed(em, 0.1f);
         if (MotionMove(em, 0) && (Rnd() & 3) == 0) {
             if (w->L_go > 9000000.0f && (Rnd() & 3) == 0 && em27JumpCk(em)) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
         } else if (w->Dash_wait == 0) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else if (w->Timer) {
             w->Timer--;
         } else {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -467,7 +467,7 @@ static void em27_R1_Dash(cEm27* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             w->Dash_wait = Rnd() % 150 + 210;
         }
         break;
@@ -498,7 +498,7 @@ static void em27_R1_Bank(cEm27* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         em27SetSPeed(em, 0.1f);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -530,9 +530,9 @@ static void em27_R1_Turn180(cEm27* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->Dash_wait == 0) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -573,9 +573,9 @@ static void em27_R1_Jump(cEm27* em)
     case 1:
         if (em27MotionMoveScale(em)) {
             if (w->Dash_wait == 0) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -612,7 +612,7 @@ static void em27_R1_Dm_Normal(cEm27* em)
     }
     case 1:
         if (em27MotionMoveScale(em)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         if ((em->Motion.Seq_old.Free & 4) && em->hp <= 0) {
             em->r_no_0 = 3;
@@ -728,7 +728,7 @@ static void em27_R1_Dm_Air(cEm27* em)
         em->r_no_2++;
     case 7:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }

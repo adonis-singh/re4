@@ -187,12 +187,12 @@ void em3aDmCk(cEm3a* em)
                 break;
             }
             em->hp = 0;
-            EmRoutineSet(em, 1, 0xC, 0, 0);
+            em->setRno(1, 0xC, 0, 0);
             return;
         }
         if (hit->parts_no == 0xB) {
             em->hp = 0;
-            EmRoutineSet(em, one, 0xB, 0, 0);
+            em->setRno(one, 0xB, 0, 0);
             return;
         }
     }
@@ -206,9 +206,9 @@ void em3aDmCk(cEm3a* em)
     }
     if (em->hp <= 0) {
         if (em->type == 2) {
-            EmRoutineSet(em, 1, 0xD, 0, 0);
+            em->setRno(1, 0xD, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
     }
 }
@@ -414,22 +414,22 @@ static void em3a_R0_Init(cEm3a* em)
         switch (em->set) {
         case 0:
         default:
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
             break;
         case 1:
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
             break;
         case 2:
-            EmRoutineSet(em, 1, 3, 0, 1);
+            em->setRno(1, 3, 0, 1);
             break;
         case 3:
-            EmRoutineSet(em, 1, 3, 0, 2);
+            em->setRno(1, 3, 0, 2);
             break;
         case 4:
-            EmRoutineSet(em, 1, 3, 0, 3);
+            em->setRno(1, 3, 0, 3);
             break;
         case 5:
-            EmRoutineSet(em, 1, 3, 0, 4);
+            em->setRno(1, 3, 0, 4);
             break;
         }
         break;
@@ -437,11 +437,11 @@ static void em3a_R0_Init(cEm3a* em)
         switch (em->set) {
         case 5:
         default:
-            EmRoutineSet(em, 1, 6, 0, 0);
+            em->setRno(1, 6, 0, 0);
             MotionSetCore(em, MOTION(em), ARC(0x12), 0, 0, 1, 0);
             break;
         case 6:
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
             MotionSetCore(em, MOTION(em), ARC(0xD), 0, 0, 1, 0);
             break;
         case 7:
@@ -529,7 +529,7 @@ static void em3a_R1_Patrol(cEm3a* em)
         em3aFoundSet(em, w, 9, 0);
     }
     if (w->flags & 1) {
-        EmRoutineSet(em, 1, 1, 0, 0);
+        em->setRno(1, 1, 0, 0);
     }
 }
 
@@ -590,7 +590,7 @@ static void em3a_R1_Atk(cEm3a* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         ang = fabsf(Muku(&em->pos, &pPL->pos, em->ang.y, PI));
         if (em3aLookPLCk(em) == 0 || em->l_pl > 100000000.0f) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
             break;
         }
         if (fabsf(em->pos.y - pPL->pos.y) > 5000.0f) {
@@ -709,7 +709,7 @@ static void em3a_R1_Chase(cEm3a* em)
         }
         em3aHoverMove(em, w, fl);
         if (em3aLookPLCk(em) && em->l_pl < 100000000.0f) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -781,7 +781,7 @@ static void em3a_R1_Fix(cEm3a* em)
             w->flags |= 1;
             em3aFoundSet(em, w, 9, 0);
             PSMTXMultVecSR(em->mat, &w->spd, &w->spd);
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         }
         break;
     }
@@ -832,7 +832,7 @@ static void em3a_R1_FixAtk(cEm3a* em)
             break;
         }
         if (em3aLookPLCk(em) == 0) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
             break;
         }
         if (em->l_pl > 225000000.0f || ang > 0.5235988f) {
@@ -863,7 +863,7 @@ static void em3a_R1_FixAtk(cEm3a* em)
             w->timer = 0;
         }
         if (em3aLookPLCk(em) == 0) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
             break;
         }
         if (w->timer) {
@@ -1000,7 +1000,7 @@ static void em3a_R1_B_HideWait(cEm3a* em)
     }
     if (w->flags & 1) {
         em3aFoundSet(em, w, 0xB, 0xA);
-        EmRoutineSet(em, 1, 8, 0, 0);
+        em->setRno(1, 8, 0, 0);
     }
 }
 
@@ -1023,7 +1023,7 @@ static void em3a_R1_B_Hide(cEm3a* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 6, 0, 0);
+            em->setRno(1, 6, 0, 0);
         }
         break;
     }
@@ -1045,7 +1045,7 @@ static void em3a_R1_B_Appear(cEm3a* em)
     case 1:
         if (MotionMove(em, 0)) {
             w->lostCnt = 0;
-            EmRoutineSet(em, 1, 0xA, 0, 0);
+            em->setRno(1, 0xA, 0, 0);
         }
         break;
     }
@@ -1090,7 +1090,7 @@ static void em3a_R1_B_Wait(cEm3a* em)
     }
     if (w->flags & 1) {
         em3aFoundSet(em, w, 0xB, 0xA);
-        EmRoutineSet(em, 1, 0xA, 0, 0);
+        em->setRno(1, 0xA, 0, 0);
     }
 }
 
@@ -1123,7 +1123,7 @@ static void em3a_R1_B_Move(cEm3a* em)
             w->timer--;
         }
         if (w->lostCnt > 89) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
             break;
         }
         if (w->routeAngAbs > 0.5235988f) {
@@ -1163,7 +1163,7 @@ static void em3a_R1_B_Move(cEm3a* em)
             break;
         }
         if (w->lostCnt > 89) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
         }
         break;
     }
@@ -1192,7 +1192,7 @@ static void em3a_R1_B_Move(cEm3a* em)
             lim = 46;
         }
         if (w->nearCnt > lim) {
-            EmRoutineSet(em, 1, 0xD, 0, 0);
+            em->setRno(1, 0xD, 0, 0);
             return;
         }
     } else {
@@ -1227,7 +1227,7 @@ static void em3a_R1_B_Die(cEm3a* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 0xD, 0, 0);
+            em->setRno(1, 0xD, 0, 0);
         }
         break;
     }
@@ -1257,7 +1257,7 @@ static void em3a_R1_B_AppearDie(cEm3a* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 0xD, 0, 0);
+            em->setRno(1, 0xD, 0, 0);
         }
         break;
     }

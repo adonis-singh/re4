@@ -74,9 +74,9 @@ void cObjWep::move()
     moveAll();
     if (!flag.check(F_DISP_0) || !flag.check(F_DISP_1) || !flag.check(F_DISP_2) ||
         (m_pParent && (m_pParent->isTrans() == 0 || (DpfFlagChk(pG, DPF_PL))))) {
-        be_flag &= ~2;
+        setTrans(0);
     } else {
-        be_flag |= 2;
+        setTrans(1);
     }
     if (m_pParent) {
         invisible_factor = m_pParent->invisible_factor;
@@ -391,7 +391,7 @@ void cObjWep::interrupt()
 {
     setDisp(1, 1);
     setDisp(2, 1);
-    be_flag |= 2;
+    setTrans(1);
     if (r_no_0 == 4) {
         endReload(0);
     }

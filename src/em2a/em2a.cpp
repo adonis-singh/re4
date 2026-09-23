@@ -109,10 +109,10 @@ void em2aDmCkTrap1(cEm2a* em)
     SndCall(8, 2, &em->pos, em->id, 0, em);
     EmDmBloodSet2(em, 0x22, 9, 0, 0, 0);
     if (em->r_no_0 == 1 && em->r_no_1 == 5) {
-        EmRoutineSet(em, 1, 4, 0, 0);
+        em->setRno(1, 4, 0, 0);
     } else {
         GameAddPoint(LVADD_CRITICALHIT);
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
     }
 }
 
@@ -128,7 +128,7 @@ void em2aDmCkTrap2(cEm2a* em)
         // both arms call EmSetDie: the arm's own `mr r3, em` copy is scheduled above the hp store,
         // so the original's cross-jump starts at the `bl` and each arm keeps the copy
         EmSetDie(em);
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
     } else {
         int wep;
 
@@ -144,7 +144,7 @@ void em2aDmCkTrap2(cEm2a* em)
         GameAddPoint(LVADD_CRITICALHIT);
         em->hp = 0;
         EmSetDie(em);
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
     }
 }
 
@@ -322,10 +322,10 @@ static void em2a_R0_Init(cEm2a* em)
     default:
         switch (em->set) {
         default:
-            EmRoutineSet(em, 1, 0, zero, zero);
+            em->setRno(1, 0, zero, zero);
             break;
         case 1:
-            EmRoutineSet(em, 1, 5, zero, zero);
+            em->setRno(1, 5, zero, zero);
             break;
             // dead loop: its LOOP_END note stops cse from following `beq case2`, so the arm does not
             // know zero == 0 and `z` is a fresh SI zero pseudo set before the clearStatus call (li r30,0)
@@ -335,18 +335,18 @@ static void em2a_R0_Init(cEm2a* em)
 
             em->hp = zero;
             em->clearStatus(EM_STATUS_ACTIVE);
-            EmRoutineSet(em, 1, 3, z, 1);
+            em->setRno(1, 3, z, 1);
             break;
         }
         }
         break;
     case 1:
         EstSet(em, -1, 0, 0, EFF_EM2A, 3, 0x800, (u8) w->espKind, em, (void*) zero);
-        EmRoutineSet(em, 1, 6, zero, zero);
+        em->setRno(1, 6, zero, zero);
         break;
     case 2:
         EstSet(em, -1, 0, 0, EFF_EM2A, 5, 0x800, (u8) w->espKind, em, (void*) zero);
-        EmRoutineSet(em, 1, 6, zero, zero);
+        em->setRno(1, 6, zero, zero);
         break;
     }
     em2a_R0_Move(em);
@@ -1004,7 +1004,7 @@ int em2aTrap1BiteCk(cEm2a* em)
         return 0;
     }
     em->pos.y = pPL->pos.y;
-    EmRoutineSet(em, 1, 1, 0, dead);
+    em->setRno(1, 1, 0, dead);
     return 1;
 }
 
@@ -1036,6 +1036,6 @@ int em2aTrap1BiteSubCk(cEm2a* em)
         return 0;
     }
     em->pos.y = pSUB->pos.y;
-    EmRoutineSet(em, 1, two, 0, dead);
+    em->setRno(1, two, 0, dead);
     return 1;
 }

@@ -172,7 +172,7 @@ void em25DmCk(cEm25* em)
         case DMG_TYPE_ENV_FIRE:
             if (w->Fire_timer == 0) {
                 w->Fire_timer = 120;
-                EmRoutineSet(em, 2, 4, 0, 0);
+                em->setRno(2, 4, 0, 0);
                 return;
             }
             break;
@@ -205,10 +205,10 @@ void em25DmCk(cEm25* em)
         default:
             em->be_flag &= ~0x10000;
             EmSetDieCnt(em);
-            EmRoutineSet(em, 3, 2, zero, zero);
+            em->setRno(3, 2, zero, zero);
             break;
         case 1:
-            EmRoutineSet(em, 2, zero, zero, zero);
+            em->setRno(2, zero, zero, zero);
             em->hp = 1;
             w->Die_ck = 1;
             break;
@@ -222,14 +222,14 @@ void em25DmCk(cEm25* em)
         default:
             if (!(Rnd() & 1)) {
                 if (Rnd() & 3) {
-                    EmRoutineSet(em, 2, 2, 0, 0);
+                    em->setRno(2, 2, 0, 0);
                 } else {
-                    EmRoutineSet(em, 2, 3, 0, 0);
+                    em->setRno(2, 3, 0, 0);
                 }
             }
             break;
         case 1:
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
             break;
         }
     }
@@ -245,7 +245,7 @@ void cEm25::move()
 
     if (r_no_0 && w->pEm_oya && !w->pEm_oya->isAlive()) {
         w->pEm_oya = 0;
-        EmRoutineSet(this, 1, 0, 0, 0);
+        setRno(1, 0, 0, 0);
     }
     be_flag &= ~0x4000;
     Motion.Mot_flag &= ~0x40000000;
@@ -460,7 +460,7 @@ static void em25_R1_Birth(cEm25* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -484,14 +484,14 @@ static void em25_R1_Wait(cEm25* em)
         MotionMove(em, 0);
         if ((s16) pG->pl_life > 0) {
             if (w->Go_rot > 1.22173047f) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
             } else if (w->Atk_wait == 0) {
                 if (em->l_pl < 4000000.0f && w->Go_rot < 0.523598790f) {
-                    EmRoutineSet(em, 1, 6, 0, 0);
+                    em->setRno(1, 6, 0, 0);
                 } else if (em->l_pl > 25000000.0f) {
-                    EmRoutineSet(em, 1, 4, 0, 0);
+                    em->setRno(1, 4, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 }
             }
         }
@@ -500,7 +500,7 @@ static void em25_R1_Wait(cEm25* em)
     if (w->Alive_timer == 0) {
         em->hp = 0;
         em->be_flag |= 0x10000;
-        EmRoutineSet(em, 3, 2, 0, 0);
+        em->setRno(3, 2, 0, 0);
     }
 }
 
@@ -520,22 +520,22 @@ static void em25_R1_Walk(cEm25* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
             if (w->Timer == 0) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
                 break;
             }
             w->Timer--;
         }
         if (em->l_pl < 4000000.0f && w->Go_rot < 0.523598790f) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else if (w->Go_rot > 1.22173047f) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
     if (w->Alive_timer == 0) {
         em->hp = 0;
         em->be_flag |= 0x10000;
-        EmRoutineSet(em, 3, 2, 0, 0);
+        em->setRno(3, 2, 0, 0);
     }
 }
 
@@ -554,22 +554,22 @@ static void em25_R1_Run(cEm25* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
             if (w->Timer == 0) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
                 break;
             }
             w->Timer--;
         }
         if (em->l_pl < 4000000.0f && w->Go_rot < 0.523598790f) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else if (w->Go_rot > 1.22173047f) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
     if (w->Alive_timer == 0) {
         em->hp = 0;
         em->be_flag |= 0x10000;
-        EmRoutineSet(em, 3, 2, 0, 0);
+        em->setRno(3, 2, 0, 0);
     }
 }
 
@@ -593,12 +593,12 @@ static void em25_R1_Turn90(cEm25* em)
                 em->r_no_2 = 0;
             } else if (em->l_pl > 9000000.0f) {
                 if (em->l_pl > 25000000.0f) {
-                    EmRoutineSet(em, 1, 4, 0, 0);
+                    em->setRno(1, 4, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 }
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -606,7 +606,7 @@ static void em25_R1_Turn90(cEm25* em)
     if (w->Alive_timer == 0) {
         em->hp = 0;
         em->be_flag |= 0x10000;
-        EmRoutineSet(em, 3, 2, 0, 0);
+        em->setRno(3, 2, 0, 0);
     }
 }
 
@@ -614,7 +614,7 @@ static void em25_R1_Turn90(cEm25* em)
 static void em25_R1_br_JumpAtk(cEm25* em)
 {
     if ((em->Motion.Seq_old.Free & 1) && em25CatchCk(em)) {
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
     }
 }
 
@@ -638,7 +638,7 @@ static void em25_R1_JumpAtk(cEm25* em)
         }
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -682,7 +682,7 @@ static void em25_R1_Bite(cEm25* em)
             at->on();
             w->Atk_wait = 60;
             em->dmg.m_Timer = 10;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
             break;
         }
         if (em->Motion.Seq_frame > 19.7000008f && em->Motion.Seq_frame < 20.2999992f) {
@@ -719,7 +719,7 @@ static void em25_R1_Bite(cEm25* em)
             at->on();
             w->Atk_wait = 60;
             em->dmg.m_Timer = 10;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -804,11 +804,11 @@ static void em25_R1_P_Appear(cEm25* em)
             em->scale.z = 1.0f;
             em->invisible_factor = 1.0f;
             em->hp = 0;
-            // A local for the 1: stored directly, it shares a register with EmRoutineSet's own
+            // A local for the 1: stored directly, it shares a register with setRno's own
             // literal arguments below instead of getting its own.
             int n = 1;
             w->Atk_enable = n;
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         }
         break;
     }
@@ -915,7 +915,7 @@ static void em25_R1_P_Atk(cEm25* em)
     case 1:
         em25OnParent(em);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             em25AtkCk(em, 1, 2);
         }
@@ -937,7 +937,7 @@ static void em25_R1_P_Poison(cEm25* em)
     case 1:
         em25OnParent(em);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else if (em->Motion.Seq_frame > 17.7000008f && em->Motion.Seq_frame < 18.2999992f) {
             em25SetPoison(em);
         }
@@ -976,7 +976,7 @@ static void em25_R1_Dm_P_Normal(cEm25* em)
             w->Atk_enable = 1;
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         }
         break;
     }
@@ -1033,7 +1033,7 @@ static void em25_R1_Dm_P_GoOut(cEm25* em)
     case 1:
         em->atari.on();
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, fe, 2, 0, 0);
+            em->setRno(fe, 2, 0, 0);
         }
         break;
     }
@@ -1050,7 +1050,7 @@ static void em25_R1_Dm_Small(cEm25* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -1068,7 +1068,7 @@ static void em25_R1_Dm_Big(cEm25* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 1, 0, 0);
+                em->setRno(3, 1, 0, 0);
             } else {
                 em->r_no_2++;
             }
@@ -1079,7 +1079,7 @@ static void em25_R1_Dm_Big(cEm25* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -1102,7 +1102,7 @@ static void em25_R1_Dm_Frame(cEm25* em)
             if (em->hp <= 0) {
                 EmSetDieCnt(em);
                 em->be_flag &= ~0x10000;
-                EmRoutineSet(em, 3, 1, 0, 0);
+                em->setRno(3, 1, 0, 0);
             } else {
                 em->r_no_2++;
             }
@@ -1120,7 +1120,7 @@ static void em25_R1_Dm_Frame(cEm25* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -1164,7 +1164,7 @@ static void em25_R1_Die_P_Normal(cEm25* em)
             em->scale.y = 0.0f;
             em->scale.z = 0.0f;
             em->be_flag &= ~2;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -1206,7 +1206,7 @@ static void em25_R1_Die_Normal(cEm25* em)
         if (w->Compress_y < 0.100000001f) {
             w->Compress_y = 0.100000001f;
             em->be_flag &= ~2;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -1247,7 +1247,7 @@ static void em25_R1_Die_Big(cEm25* em)
         if (w->Compress_y < 0.100000001f) {
             w->Compress_y = 0.100000001f;
             em->be_flag &= ~2;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -1322,28 +1322,28 @@ void cEm25::setParent(cEm* parent, int parts, Vec* ppos, Vec* prot)
         ang.z = 0.0f;
     }
     atari.off();
-    // A local for the 0: stored directly, it shares a register with the w->Mode/EmRoutineSet
+    // A local for the 0: stored directly, it shares a register with the w->Mode/setRno
     // literals below instead of getting its own.
     int n = 0;
     w->Die_ck = n;
     w->Mode = 1;
-    EmRoutineSet(this, 1, 8, 0, 0);
+    setRno(1, 8, 0, 0);
 }
 
 // Host dying: leaves the host (Dm_P_GoOut, r_no_3 = `flag` picks the landing motion).
 void cEm25::setGoOut(int flag)
 {
     if (flag) {
-        EmRoutineSet(this, 2, 1, 0, 1);
+        setRno(2, 1, 0, 1);
     } else {
-        EmRoutineSet(this, 2, 1, 0, 0);
+        setRno(2, 1, 0, 0);
     }
 }
 
 // Host request: back to the attached idle (P_Wait 9).
 void cEm25::setWait()
 {
-    EmRoutineSet(this, 1, 9, 0, 0);
+    setRno(1, 9, 0, 0);
 }
 
 // Host request (em10_R1_ParasiteAtk): the bite from the shoulders (P_Atk 0xA), Atk_ck cleared.
@@ -1368,7 +1368,7 @@ int cEm25::ckAtkHit()
 // Host request: the poison spit (P_Poison 0xB).
 void cEm25::setPoison()
 {
-    EmRoutineSet(this, 1, 0xB, 0, 0);
+    setRno(1, 0xB, 0, 0);
 }
 
 // Motion state of the attack: non-zero when the attack motion ended.
@@ -1380,7 +1380,7 @@ int cEm25::ckAtkEnd()
 // Host request: die with the host (Die_P_Normal, R3 0).
 void cEm25::setDie()
 {
-    EmRoutineSet(this, 3, 0, 0, 0);
+    setRno(3, 0, 0, 0);
 }
 
 // 1 once the parasite has died (dead).
@@ -1401,7 +1401,7 @@ void cEm25::setHide()
     be_flag &= ~2;
     w->pEm_oya = 0;
     w->Die_ck = 0;
-    EmRoutineSet(this, 1, 0, 0, 0);
+    setRno(1, 0, 0, 0);
 }
 
 // 1 while the parasite is parked in Hide (R0 1 / R1 0).
@@ -1416,7 +1416,7 @@ void cEm25::setBirth(Vec* ppos, f32 ang)
     setPos(ppos);
     pos_old = *ppos;
     this->ang.y = ang;
-    EmRoutineSet(this, 1, 1, 0, 0);
+    setRno(1, 1, 0, 0);
 }
 
 // Bite hit test on the attack frames: the capsule at part `parts` against the player / partner with
@@ -1848,7 +1848,7 @@ int cEm25::ckAtkEnable()
 // Host request: the host was hit, recoil (Dm_P_Normal).
 void cEm25::setDamage()
 {
-    EmRoutineSet(this, 2, 0, 0, 0);
+    setRno(2, 0, 0, 0);
 }
 
 // For the host: 1 when the partner is the nearer target (the host is more than 3000 units farther

@@ -338,7 +338,7 @@ static void em3d_R0_Init(cEm3d* em)
     w->Patrol_pos = Em3d_pos_tbl[0];
     EstSet(em, -1, 0, 0, EFF_EM3D, 0, 1, ESP_CORE_KIND_NONE, em, 0);
     EstSet(em, -1, 0, 0, EFF_EM3D, 3, 1, ESP_CORE_KIND_NONE, em, 0);
-    EmRoutineSet(em, 1, 0, 0, 0);
+    em->setRno(1, 0, 0, 0);
     SndCall(6, 0, &em->pos, 0, 0, em);
     em3d_R0_Move(em);
 }
@@ -475,7 +475,7 @@ static void em3d_R1_TargetMove(cEm3d* em)
         EM3D_HOVER_MOVE(em, w, 0.95f);
         if ((em->pos.x - pos.x) * (em->pos.x - pos.x) + (em->pos.z - pos.z) * (em->pos.z - pos.z) < 9000000.0f) {
             w->pTargetEm = 0;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -571,7 +571,7 @@ static void em3d_R1_Atk(cEm3d* em)
                 em3dMesSet(w, 5);
             }
         }
-        EmRoutineSet(em, 1, 0, 0, 1);
+        em->setRno(1, 0, 0, 1);
         break;
     }
     em3dMatCalc(em);
@@ -605,7 +605,7 @@ static void em3d_R1_WarpMove(cEm3d* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }

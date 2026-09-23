@@ -249,7 +249,7 @@ void Em36Init(cEm* em)
             Em36Limb* l = &w->limb[i];                                                             \
                                                                                                    \
             if (l->pObj != 0 && part == &w->hit[l->hit]) {                                         \
-                EmRoutineSet(em, 2, no, 0, 0);                                                     \
+                em->setRno(2, no, 0, 0);                                                     \
                 return;                                                                            \
             }                                                                                      \
         }                                                                                          \
@@ -289,11 +289,11 @@ void em36DmCk(cEm36* em)
                     EmReserveDropItem(em);
                     EmSetDieCnt(em);
                     if (w->flags & 0x100) {
-                        EmRoutineSet(em, 2, 5, 0, 0);
+                        em->setRno(2, 5, 0, 0);
                     } else if (w->flags & 0x20) {
-                        EmRoutineSet(em, 3, 1, 0, 0);
+                        em->setRno(3, 1, 0, 0);
                     } else {
-                        EmRoutineSet(em, 3, 0, 0, 0);
+                        em->setRno(3, 0, 0, 0);
                     }
                     return;
                 }
@@ -301,11 +301,11 @@ void em36DmCk(cEm36* em)
                     return;
                 }
                 if (w->flags & 0x100) {
-                    EmRoutineSet(em, 2, 5, 0, 0);
+                    em->setRno(2, 5, 0, 0);
                 } else if (w->flags & 0x20) {
-                    EmRoutineSet(em, 2, 3, 0, 0);
+                    em->setRno(2, 3, 0, 0);
                 } else {
-                    EmRoutineSet(em, 2, 1, 0, 0);
+                    em->setRno(2, 1, 0, 0);
                 }
                 return;
             }
@@ -337,11 +337,11 @@ void em36DmCk(cEm36* em)
         EmReserveDropItem(em);
         EmSetDieCnt(em);
         if (w->flags & 0x100) {
-            EmRoutineSet(em, 2, 5, 0, 0);
+            em->setRno(2, 5, 0, 0);
         } else if (w->flags & 0x20) {
-            EmRoutineSet(em, 3, 1, 0, 0);
+            em->setRno(3, 1, 0, 0);
         } else {
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
         }
         return;
     }
@@ -396,7 +396,7 @@ void em36DmCk(cEm36* em)
         case 0xE:
             em36BloodSet(em);
         }
-        EmRoutineSet(em, 2, 5, 0, 0);
+        em->setRno(2, 5, 0, 0);
         return;
     }
     if (w->flags & 0x20) {
@@ -456,7 +456,7 @@ void em36DmCk(cEm36* em)
             }
             break;
         }
-        EmRoutineSet(em, 2, 3, 0, 0);
+        em->setRno(2, 3, 0, 0);
         return;
     }
     switch (em->dmg.m_Wep) {
@@ -478,7 +478,7 @@ void em36DmCk(cEm36* em)
     case 0x2B:
         if ((u8) (Rnd() % 10) == 5) {
             if (em36LostParts(em)) {
-                EmRoutineSet(em, 2, 0, 0, 0);
+                em->setRno(2, 0, 0, 0);
                 return;
             }
         }
@@ -499,7 +499,7 @@ void em36DmCk(cEm36* em)
     case 0x2A:
     case 0x2D:
         em36BloodSet(em);
-        EmRoutineSet(em, 2, 1, 0, 0);
+        em->setRno(2, 1, 0, 0);
         return;
     case 9:
     case 0xA:
@@ -514,7 +514,7 @@ void em36DmCk(cEm36* em)
         if (em36LostParts(em) == 0) {
             em36BloodSet(em);
         }
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
         return;
     case 0xE:
         em36BloodSet(em);
@@ -750,19 +750,19 @@ static void em36_R0_Init(cEm36* em)
         break;
     case 2:
         em36AppearEsp(em, w);
-        EmRoutineSet(em, 1, 0x1C, 0, 0);
+        em->setRno(1, 0x1C, 0, 0);
         em->setStatus(EM_STATUS_ACTIVE);
         MotionSetCore(em, MOTION(em), ARC(0x26), 0, 0, 5, 0);
         MotionMove(em, 0);
         break;
     case 3:
-        EmRoutineSet(em, 1, 0x1D, 0, 0);
+        em->setRno(1, 0x1D, 0, 0);
         em->clearStatus(EM_STATUS_ACTIVE);
         MotionSetCore(em, MOTION(em), ARC(0x97), 0, 0, 5, 0);
         MotionMove(em, 0);
         break;
     case 4:
-        EmRoutineSet(em, 1, 0x1E, 0, 0);
+        em->setRno(1, 0x1E, 0, 0);
         em->clearStatus(EM_STATUS_ACTIVE);
         MotionSetCore(em, MOTION(em), ARC(0x9B), 0, 0, 0x100, 0);
         MotionMove(em, 0);
@@ -832,7 +832,7 @@ static void em36_R1_R307Appear(cEm36* em)
             em->flag &= ~1;
             w->flags |= 0x200;
             em->setStatus(EM_STATUS_ACTIVE);
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             at = &em->atari;
             at->on();
         }
@@ -858,7 +858,7 @@ static void em36_R1_R309Appear(cEm36* em)
             em->flag &= ~1;
             w->seWait = 300;
             w->flags |= 0x200;
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -898,9 +898,9 @@ static void em36_R1_R308Appear(cEm36* em)
     case 3:
         if (MotionMove(em, 0)) {
             if (w->flags2 & 0xC) {
-                EmRoutineSet(em, 1, 0x10, 0, 0);
+                em->setRno(1, 0x10, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             }
         }
         break;
@@ -959,10 +959,10 @@ static void em36_R1_R310Appear(cEm36* em)
         }
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.3561945f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
             if (em->l_pl > 9000000.0f) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -987,10 +987,10 @@ static void em36_R1_Wait(cEm36* em)
             em36FindCk(em);
             if ((w->flags & 0x200) && w->wait == 0) {
                 if (w->targetAngAbs > 2.3561945f) {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 }
                 if (em->l_pl > 9000000.0f) {
-                    EmRoutineSet(em, 1, 1, 0, 0);
+                    em->setRno(1, 1, 0, 0);
                 }
             }
         }
@@ -1006,7 +1006,7 @@ static inline void em36WalkTail(cEm36* em)
 {
     if (em36RegeneCk(em) == 0) {
         if ((s16) pG->pl_life <= 0) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
             em36DoorOpenCk(em);
             if (em36JumpDownCk(em) == 0 && em36FanceOverCk(em) == 0) {
@@ -1048,7 +1048,7 @@ static void em36_R1_Walk(cEm36* em)
         if (MotionMove(em, 0) && (w->flags & 1)) {
             if (w->timer == 0) {
                 w->wait = 30;
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
                 break;
             }
             w->timer--;
@@ -1057,17 +1057,17 @@ static void em36_R1_Walk(cEm36* em)
             break;
         }
         if (w->targetAngAbs > 2.3561945f) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         if ((u32) em->type <= 1 && !(w->flags & 4) && w->seWait == 0 && (w->flags & 1) && em->l_pl > 25000000.0f &&
             em->l_pl < 100000000.0f) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
     if (em36RegeneCk(em) == 0) {
         if ((s16) pG->pl_life <= 0) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
             em36DoorOpenCk(em);
             if (em36JumpDownCk(em) == 0 && em36FanceOverCk(em) == 0) {
@@ -1121,7 +1121,7 @@ static void em36_R1_Dash(cEm36* em)
         if (MotionMove(em, 0) && (w->flags & 1)) {
             if (w->timer == 0) {
                 w->wait = 30;
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
                 break;
             }
             w->timer--;
@@ -1130,7 +1130,7 @@ static void em36_R1_Dash(cEm36* em)
             break;
         }
         if (w->targetAngAbs > 2.3561945f) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -1162,9 +1162,9 @@ static void em36_R1_Turn(cEm36* em)
         if (MotionMove(em, 0)) {
             if ((u32) em->type <= 1 && !(w->flags & 4) && w->seWait == 0 && (w->flags & 1) &&
                 em->l_pl > 25000000.0f && em->l_pl < 100000000.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else {
             Vec v;
@@ -1228,12 +1228,12 @@ static void em36_R1_JumpDown(cEm36* em)
     case 3:
         if (MotionMove(em, 0)) {
             if ((s16) pG->pl_life <= 0) {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else {
                 if (w->targetAngAbs > 2.3561945f) {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 }
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -1267,9 +1267,9 @@ static void em36_R1_FanceOver(cEm36* em)
         PSVECSubtract(d, &v, d);
         if (MotionMove(em, 0)) {
             if (w->flags2 & 0xC) {
-                EmRoutineSet(em, 1, 0x10, 0, 0);
+                em->setRno(1, 0x10, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             }
         }
         break;
@@ -1292,12 +1292,12 @@ static void em36_R1_Threat(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             if ((s16) pG->pl_life <= 0) {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else {
                 if (w->targetAngAbs > 2.3561945f) {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 }
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             w->flags |= 0x2000;
@@ -1333,7 +1333,7 @@ static void em36_R1_Crash(cEm36* em)
     }
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -1423,9 +1423,9 @@ static void em36_R1_Atk(cEm36* em)
             }
             if (w->atkHit) {
                 w->wait = 0;
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
             break;
         }
@@ -1484,9 +1484,9 @@ static void em36_R1_SpineAtk(cEm36* em)
             }
             if (w->atkHit) {
                 w->wait = 0;
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             w->flags |= 0xA000;
@@ -1649,9 +1649,9 @@ static void em36_R1_Catch(cEm36* em)
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
             if (w->targetAngAbs > 2.3561945f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -1750,7 +1750,7 @@ static void em36_R1_CatchHit(cEm36* em)
     case 3:
         if (MotionMove(em, 0)) {
             em->atari.m_flag &= ~8;
-            EmRoutineSet(em, 1, 6, 0, 0);
+            em->setRno(1, 6, 0, 0);
         }
         break;
     case 4:
@@ -1777,7 +1777,7 @@ static void em36_R1_CatchHit(cEm36* em)
     case 5:
         if (MotionMove(em, 0)) {
             em->atari.m_flag &= ~8;
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             SndStop(w->sndId, 0);
         }
@@ -1930,9 +1930,9 @@ static void em36_R1_LongCatch(cEm36* em)
             GameAddPoint(LVADD_ESCAPEATTACK);
             em36SetFindWait(w);
             if (w->targetAngAbs > 2.3561945f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -1978,7 +1978,7 @@ static void em36_R1_LongCatchHit(cEm36* em)
             SndCall(8, 0x23, &pPL->getPartsPtr(3)->world, em->id, 0, pPL);
         }
         if (em36BetweenHitCk(em)) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
         }
         break;
     }
@@ -2066,7 +2066,7 @@ static void em36_R1_SpineCatchHit(cEm36* em)
         }
         if (end && (s16) pG->pl_life > 0) {
             em->atari.m_flag &= ~8;
-            EmRoutineSet(em, 1, 6, 0, 0);
+            em->setRno(1, 6, 0, 0);
         }
         break;
     }
@@ -2183,9 +2183,9 @@ static void em36_R1_LostCatch(cEm36* em)
         }
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.3561945f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -2245,9 +2245,9 @@ static void em36_R1_RegeneArm(cEm36* em)
         if (MotionMove(em, 0)) {
             if ((u32) em->type <= 1 && !(w->flags & 4) && w->seWait == 0 && (w->flags & 1) &&
                 em->l_pl > 25000000.0f && em->l_pl < 100000000.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
             break;
         }
@@ -2280,9 +2280,9 @@ static void em36_R1_RegeneArm2(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->flags2 & 0xC) {
-                EmRoutineSet(em, 1, 0x19, 0, 0);
+                em->setRno(1, 0x19, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             }
             break;
         }
@@ -2317,9 +2317,9 @@ static void em36_R1_RegeneFoot(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             if ((w->flags2 & 3) && w->atkTimer[2] == 0 && w->atkTimer[3] == 0) {
-                EmRoutineSet(em, 1, 0x18, 0, 0);
+                em->setRno(1, 0x18, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             }
             break;
         }
@@ -2370,15 +2370,15 @@ static void em36_R1_D_Wait(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             if ((em->type == 2 || em->type == 3) && em->l_pl > 2250000.0f && (s16) pG->pl_life > 0) {
-                EmRoutineSet(em, 1, 0x11, 0, 0);
+                em->setRno(1, 0x11, 0, 0);
             } else {
                 em->r_no_2 = 0;
             }
         } else {
             if (w->atkTimer[4] == 0 && w->atkTimer[5] == 0) {
-                EmRoutineSet(em, 1, 0x19, 0, 0);
+                em->setRno(1, 0x19, 0, 0);
             } else if (!(w->flags2 & 0xC)) {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             } else if ((s16) pG->pl_life > 0) {
                 if (w->wait == 0) {
                     Vec v;
@@ -2396,7 +2396,7 @@ static void em36_R1_D_Wait(cEm36* em)
                     default:
                         if ((w->flags & 1) && d < 36000000.0f && w->routeAngAbs < 0.5235988f) {
                             w->wait = 90;
-                            EmRoutineSet(em, 1, 0x14, 0, 0);
+                            em->setRno(1, 0x14, 0, 0);
                             return;
                         }
                         break;
@@ -2404,13 +2404,13 @@ static void em36_R1_D_Wait(cEm36* em)
                     case 3:
                         if ((w->flags & 1) && d < 2250000.0f) {
                             w->wait = 90;
-                            EmRoutineSet(em, 1, 0x13, 0, 0);
+                            em->setRno(1, 0x13, 0, 0);
                             return;
                         }
                         break;
                     }
                 } else if (w->routeAngAbs > 0.5235988f) {
-                    EmRoutineSet(em, 1, 0x12, 0, 0);
+                    em->setRno(1, 0x12, 0, 0);
                 }
             }
         }
@@ -2436,13 +2436,13 @@ static void em36_R1_D_Walk(cEm36* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
             if (w->routeAngAbs > 0.5235988f) {
-                EmRoutineSet(em, 1, 0x12, 0, 0);
+                em->setRno(1, 0x12, 0, 0);
             } else if ((s16) pG->pl_life <= 0 || em->l_pl < 1000000.0f) {
-                EmRoutineSet(em, 1, 0x10, 0, 0);
+                em->setRno(1, 0x10, 0, 0);
             } else if (w->atkTimer[4] == 0 && w->atkTimer[5] == 0) {
-                EmRoutineSet(em, 1, 0x19, 0, 0);
+                em->setRno(1, 0x19, 0, 0);
             } else if (!(w->flags2 & 0xC)) {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             }
         } else if (w->wait == 0) {
             Vec v;
@@ -2460,7 +2460,7 @@ static void em36_R1_D_Walk(cEm36* em)
             default:
                 if ((w->flags & 1) && d < 36000000.0f && w->routeAngAbs < 0.5235988f) {
                     w->wait = 90;
-                    EmRoutineSet(em, 1, 0x14, 0, 0);
+                    em->setRno(1, 0x14, 0, 0);
                     return;
                 }
                 break;
@@ -2468,7 +2468,7 @@ static void em36_R1_D_Walk(cEm36* em)
             case 3:
                 if ((w->flags & 1) && d < 2250000.0f) {
                     w->wait = 90;
-                    EmRoutineSet(em, 1, 0x13, 0, 0);
+                    em->setRno(1, 0x13, 0, 0);
                     return;
                 }
                 break;
@@ -2511,11 +2511,11 @@ static void em36_R1_D_Turn(cEm36* em)
         }
         if (MotionMove(em, 0)) {
             if (w->atkTimer[4] == 0 && w->atkTimer[5] == 0) {
-                EmRoutineSet(em, 1, 0x19, 0, 0);
+                em->setRno(1, 0x19, 0, 0);
             } else if (w->routeAngAbs > 0.5235988f) {
-                EmRoutineSet(em, 1, 0x12, 0, 0);
+                em->setRno(1, 0x12, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x10, 0, 0);
+                em->setRno(1, 0x10, 0, 0);
             }
         } else if (w->wait == 0) {
             Vec v;
@@ -2532,11 +2532,11 @@ static void em36_R1_D_Turn(cEm36* em)
                 case 0:
                 case 1:
                 default:
-                    EmRoutineSet(em, 1, 0x14, 0, 0);
+                    em->setRno(1, 0x14, 0, 0);
                     break;
                 case 2:
                 case 3:
-                    EmRoutineSet(em, 1, 0x13, 0, 0);
+                    em->setRno(1, 0x13, 0, 0);
                     break;
                 }
                 return;
@@ -2564,7 +2564,7 @@ static void em36_R1_D_SpineAtk(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             w->wait = 30;
-            EmRoutineSet(em, 1, 0x10, 0, 0);
+            em->setRno(1, 0x10, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             w->flags |= 0xA000;
             em36AtkCk(em, 1, 0);
@@ -2612,7 +2612,7 @@ static void em36_R1_D_Catch(cEm36* em)
         }
         if (MotionMove(em, 0)) {
             w->wait = 30;
-            EmRoutineSet(em, 1, 0x10, 0, 0);
+            em->setRno(1, 0x10, 0, 0);
         }
         break;
     }
@@ -2691,7 +2691,7 @@ static void em36_R1_D_CatchHit(cEm36* em)
         if (end) {
             em->atari.m_flag &= ~8;
             w->wait = 90;
-            EmRoutineSet(em, 1, 0x10, 0, 0);
+            em->setRno(1, 0x10, 0, 0);
         }
         break;
     }
@@ -2792,9 +2792,9 @@ static void em36_R1_Wakeup(cEm36* em)
             w->flags &= ~0x20;
             if ((u32) em->type <= 1 && !(f & 4) && w->seWait == 0 && (f & 1) && em->l_pl > 25000000.0f &&
                 em->l_pl < 100000000.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -2908,15 +2908,15 @@ static void em36_R1_Dm_Normal(cEm36* em)
             default:
                 if ((u32) em->type <= 1 && !(w->flags & 4) && w->seWait == 0 && (w->flags & 1) &&
                     em->l_pl > 25000000.0f && em->l_pl < 100000000.0f) {
-                    EmRoutineSet(em, 1, 2, 0, 0);
+                    em->setRno(1, 2, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 1, 0, 0xA);
+                    em->setRno(1, 1, 0, 0xA);
                 }
                 break;
             case 4:
             case 5:
                 w->flags |= 0x20;
-                EmRoutineSet(em, 1, 0x10, 0, 0xA);
+                em->setRno(1, 0x10, 0, 0xA);
                 break;
             }
         }
@@ -3043,9 +3043,9 @@ static void em36_R1_Dm_Big(cEm36* em)
         if (MotionMove(em, 0)) {
             if ((u32) em->type <= 1 && !(w->flags & 4) && w->seWait == 0 && (w->flags & 1) &&
                 em->l_pl > 25000000.0f && em->l_pl < 100000000.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0xA);
+                em->setRno(1, 1, 0, 0xA);
             }
         }
         break;
@@ -3073,10 +3073,10 @@ static void em36_R1_Dm_Weak(cEm36* em)
         if (MotionMove(em, 0)) {
             if ((u32) em->type <= 1 && !(w->flags & 4) && w->seWait == 0 && (w->flags & 1) &&
                 em->l_pl > 25000000.0f && em->l_pl < 100000000.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
                 break;
             }
-            EmRoutineSet(em, 1, 1, 0, 0xA);
+            em->setRno(1, 1, 0, 0xA);
         }
         em36DmTwitch(w);
         break;
@@ -3101,9 +3101,9 @@ static void em36_R1_Dm_Down(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (!(w->flags2 & 0xC)) {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x10, 0, 0);
+                em->setRno(1, 0x10, 0, 0);
             }
         }
         break;
@@ -3130,9 +3130,9 @@ static void em36_R1_Dm_DownWeak(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (!(w->flags2 & 0xC)) {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x10, 0, 0);
+                em->setRno(1, 0x10, 0, 0);
             }
             break;
         }
@@ -3155,19 +3155,19 @@ static void em36_R1_Dm_DownJump(cEm36* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 1, 0, 0);
+                em->setRno(3, 1, 0, 0);
             } else if ((u8) (Rnd() % 10) > 2) {
-                EmRoutineSet(em, 1, 0x10, 0, 0);
+                em->setRno(1, 0x10, 0, 0);
             } else {
                 switch (em->type) {
                 case 0:
                 case 1:
                 default:
-                    EmRoutineSet(em, 1, 0x14, 0, 0);
+                    em->setRno(1, 0x14, 0, 0);
                     break;
                 case 2:
                 case 3:
-                    EmRoutineSet(em, 1, 0x13, 0, 0);
+                    em->setRno(1, 0x13, 0, 0);
                     break;
                 }
             }
@@ -3617,7 +3617,7 @@ int em36RegeneCk(cEm36* em)
         return 0;
     }
     if (w->flags2 & 3) {
-        EmRoutineSet(em, 1, 0x17, 0, 0);
+        em->setRno(1, 0x17, 0, 0);
         return 1;
     }
     return 0;
@@ -4201,7 +4201,7 @@ int em36SetDmVal(cEm36* em)
 // For the level script: switches the enemy to the room 307 appearance wait (1/0x1B).
 void cEm36::setR307Appear()
 {
-    EmRoutineSet(this, 1, 0x1B, 0, 0);
+    setRno(1, 0x1B, 0, 0);
 }
 
 // The hit mark effect of the damage part, in the parts' local frame.
@@ -4348,10 +4348,10 @@ int em36AtkRtnCk(cEm36* em)
         dy = fabsf(dy);
         if ((w->flags & 2) && d < 2250000.0f && dy < 500.0f) {
             if ((w->flags2 & 3) != 3) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
                 return 1;
             }
-            EmRoutineSet(em, 1, 0x17, 0, 0);
+            em->setRno(1, 0x17, 0, 0);
             return 1;
         }
         return 0;
@@ -4371,22 +4371,22 @@ int em36AtkRtnCk(cEm36* em)
         case 1:
         default:
             if (pG->Game_level > 9) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
                 return 1;
             }
             if ((u8) (Rnd() % 10) > 7 && pG->Game_level > 1) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
                 return 1;
             }
             break;
         case 2:
         case 3:
             if (pG->Game_level > 9) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
                 return 1;
             }
             if ((u8) (Rnd() % 10) > 3 && pG->Game_level > 1) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
                 return 1;
             }
             break;
@@ -4404,16 +4404,16 @@ int em36AtkRtnCk(cEm36* em)
         case 0:
         case 1:
         default:
-            EmRoutineSet(em, 1, 0xA, 0, 0);
+            em->setRno(1, 0xA, 0, 0);
             return 1;
         case 2:
         case 3:
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
             return 1;
         }
     }
     if ((w->flags & 0x1000) && (w->flags2 & 3) != 3) {
-        EmRoutineSet(em, 1, 8, 0, 0);
+        em->setRno(1, 8, 0, 0);
         return 1;
     }
     switch (em->type) {
@@ -4421,13 +4421,13 @@ int em36AtkRtnCk(cEm36* em)
     case 1:
     default:
         if ((w->flags & 1) && (w->flags2 & 3)) {
-            EmRoutineSet(em, 1, 0xF, 0, 0);
+            em->setRno(1, 0xF, 0, 0);
             return 1;
         }
         break;
     case 2:
     case 3:
-        EmRoutineSet(em, 1, 9, 0, 0);
+        em->setRno(1, 9, 0, 0);
         return 1;
     }
     return 0;
@@ -4992,7 +4992,7 @@ int em36JumpDownCk(cEm36* em)
         ang = atan2f(-nrm.x, -nrm.z);
         if (!(fabsf(Muku2(em->ang.y, ang, PI)) > 0.5235988f)) {
             w->jumpAng = ang;
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
             return 1;
         }
     }
@@ -5082,7 +5082,7 @@ int em36FanceOverCk(cEm36* em)
         e.z = 0.0f;
         PSMTXMultVec(m, &e, &w->fanceVec);
     }
-    EmRoutineSet(em, 1, rem, 0, 0);
+    em->setRno(1, rem, 0, 0);
     return 1;
 }
 
@@ -5247,13 +5247,13 @@ int em36CrashCk(cEm36* em)
         return 0;
     }
     if (w->flags & 0x100) {
-        EmRoutineSet(em, 2, 5, 0, 0);
+        em->setRno(2, 5, 0, 0);
         return 1;
     }
     if (fabsf(Muku(&em->pos, &hit, em->ang.y, PI)) < 1.5707964f) {
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
     } else {
-        EmRoutineSet(em, 1, 7, 0, 1);
+        em->setRno(1, 7, 0, 1);
     }
     w->fanceVec = hit;
     return 1;

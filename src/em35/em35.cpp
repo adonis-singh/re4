@@ -279,7 +279,7 @@ void em35DmCk(cEm35* em)
     }
     if (em->hp <= 0) {
         EmSetDie(em);
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
         return;
     }
     w->dmgCnt += dmg;
@@ -340,9 +340,9 @@ void em35DmCk(cEm35* em)
             if ((u8) (Rnd() % 3) == 0) {
                 if (!(w->flags & 0x80)) {
                     if (Rnd() & 7) {
-                        EmRoutineSet(em, 2, 0, 0, 0);
+                        em->setRno(2, 0, 0, 0);
                     } else {
-                        EmRoutineSet(em, 2, 2, 0, 0);
+                        em->setRno(2, 2, 0, 0);
                     }
                     w->dmgCnt = 0;
                     return;
@@ -351,7 +351,7 @@ void em35DmCk(cEm35* em)
         }
         if (w->dmgCnt > 400) {
             w->dmgCnt = 0;
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         }
         return;
     case 5:
@@ -359,9 +359,9 @@ void em35DmCk(cEm35* em)
     case 0xF:
     case 0x2C:
         if (Rnd() & 3) {
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 2, 2, 0, 0);
+            em->setRno(2, 2, 0, 0);
         }
         w->weakDmg = 0;
         w->dmgCnt = 0;
@@ -478,7 +478,7 @@ void em35DmCkUpper(cEm35* em)
     if (em->hp <= 0) {
         EmSetDie(em);
         EmSetDieCnt(em);
-        EmRoutineSet(em, 2, 4, 0, 0);
+        em->setRno(2, 4, 0, 0);
         return;
     }
     if (w->flags & 0x20) {
@@ -514,7 +514,7 @@ void em35DmCkUpper(cEm35* em)
             if ((u8) (Rnd() % 3) != 0) {
                 return;
             }
-            EmRoutineSet(em, 2, 5, 0, 0);
+            em->setRno(2, 5, 0, 0);
             return;
         case 9:
         case 0xA:
@@ -522,7 +522,7 @@ void em35DmCkUpper(cEm35* em)
             if ((u8) (Rnd() % 3) != 0) {
                 return;
             }
-            EmRoutineSet(em, 2, 5, 0, 0);
+            em->setRno(2, 5, 0, 0);
             return;
         case 0xD:
         case 0x12:
@@ -530,7 +530,7 @@ void em35DmCkUpper(cEm35* em)
         case 0x29:
         case 0x2D:
         default:
-            EmRoutineSet(em, 2, 5, 0, 0);
+            em->setRno(2, 5, 0, 0);
             return;
         }
     }
@@ -554,7 +554,7 @@ void em35DmCkUpper(cEm35* em)
     case 0x2B:
         if (w->dmgCnt > 400) {
             w->dmgCnt = 0;
-            EmRoutineSet(em, 2, 4, 0, 0);
+            em->setRno(2, 4, 0, 0);
         }
         return;
     case 7:
@@ -562,14 +562,14 @@ void em35DmCkUpper(cEm35* em)
     case 0x21:
         if (w->dmgCnt > 400) {
             w->dmgCnt = 0;
-            EmRoutineSet(em, 2, 4, 0, 0);
+            em->setRno(2, 4, 0, 0);
             return;
         }
         if (near == 0) {
             return;
         }
         if ((Rnd() & 3) == 0) {
-            EmRoutineSet(em, 2, 4, 0, 0);
+            em->setRno(2, 4, 0, 0);
         }
         return;
     case 9:
@@ -577,11 +577,11 @@ void em35DmCkUpper(cEm35* em)
     case 0x28:
         if (w->dmgCnt > 400) {
             w->dmgCnt = 0;
-            EmRoutineSet(em, 2, 4, 0, 0);
+            em->setRno(2, 4, 0, 0);
             return;
         }
         if ((Rnd() & 3) == 0) {
-            EmRoutineSet(em, 2, 4, 0, 0);
+            em->setRno(2, 4, 0, 0);
         }
         return;
     case 5:
@@ -594,7 +594,7 @@ void em35DmCkUpper(cEm35* em)
     case 0x2C:
     case 0x2D:
     default:
-        EmRoutineSet(em, 2, 4, 0, 0);
+        em->setRno(2, 4, 0, 0);
         return;
     }
 }
@@ -981,7 +981,7 @@ static void em35_R0_Init(cEm35* em)
         default:
             EstSet(em, -1, 0, 0, EFF_EM35, 3, 1, w->espKind, em, (void*) zero);
             EstSet(em, -1, 0, 0, EFF_EM35, 8, 1, w->espKind, em, (void*) zero);
-            EmRoutineSet(em, 1, 1, zero, zero);
+            em->setRno(1, 1, zero, zero);
             MotionSetCore(em, MOTION(em), ARC(0xA), 0, 0, 1, 0);
             MotionMove(em, 0);
             break;
@@ -989,7 +989,7 @@ static void em35_R0_Init(cEm35* em)
             EstSet(em, -1, 0, 0, EFF_EM35, 4, 1, w->espKind, em, (void*) zero);
             EstSet(em, -1, 0, 0, EFF_EM35, 9, 1, w->espKind, em, (void*) zero);
             em->atari.off();
-            EmRoutineSet(em, 1, 0xF, zero, zero);
+            em->setRno(1, 0xF, zero, zero);
             MotionSetCore(em, MOTION(em), ARC(0x48), 0, 0, 1, 0);
             MotionMove(em, 0);
             break;
@@ -999,7 +999,7 @@ static void em35_R0_Init(cEm35* em)
         switch (em->type) {
         case 0:
         default:
-            EmRoutineSet(em, 1, 0xE, zero, zero);
+            em->setRno(1, 0xE, zero, zero);
             em->clearStatus(EM_STATUS_LOOK_ME);
             MotionSetCore(em, MOTION(em), ARC(0x46), 0, 0, 1, 0);
             MotionMove(em, 0);
@@ -1008,7 +1008,7 @@ static void em35_R0_Init(cEm35* em)
             EstSet(em, -1, 0, 0, EFF_EM35, 4, 1, w->espKind, em, (void*) zero);
             EstSet(em, -1, 0, 0, EFF_EM35, 9, 1, w->espKind, em, (void*) zero);
             em->atari.off();
-            EmRoutineSet(em, 1, 0x1F, zero, zero);
+            em->setRno(1, 0x1F, zero, zero);
             MotionSetCore(em, MOTION(em), ARC(0x88), 0, 0, 1, 0);
             MotionMove(em, 0);
             break;
@@ -1160,11 +1160,11 @@ static void em35_R1_Wait(cEm35* em)
         MotionMove(em, 0);
         if (EmDeadCk(em)) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else if (em35BigStepCk(em) == 0) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else {
             if (em->l_pl > 25000000.0f) {
@@ -1172,11 +1172,11 @@ static void em35_R1_Wait(cEm35* em)
             }
             if (w->atkWait == 0) {
                 if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                    EmRoutineSet(em, 1, 4, 0, 0);
+                    em->setRno(1, 4, 0, 0);
                 } else if (w->targetAngAbs > 1.0471976f) {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 1, 0, 0);
+                    em->setRno(1, 1, 0, 0);
                 }
             }
         }
@@ -1245,43 +1245,43 @@ static void em35_R1_Walk(cEm35* em)
         MotionMove(em, 0);
         if (em->pos.y + 2000.0f < pPL->pos.y) {
             if (em->l_pl < 16000000.0f) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             } else {
                 goto big_step;
             }
         } else if (w->routeAngAbs < 0.5235988f && em->l_pl > 4000000.0f && em->l_pl < 12250000.0f &&
                    w->lockWait == 0) {
             if ((s16) pG->pl_life <= 900 && (Rnd() & 1)) {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             } else {
                 switch ((u8) (Rnd() % 3)) {
                 case 0:
-                    EmRoutineSet(em, 1, 8, 0, 0);
+                    em->setRno(1, 8, 0, 0);
                     break;
                 case 1:
-                    EmRoutineSet(em, 1, 5, 0, 0);
+                    em->setRno(1, 5, 0, 0);
                     break;
                 case 2:
-                    EmRoutineSet(em, 1, 6, 0, 0);
+                    em->setRno(1, 6, 0, 0);
                     break;
                 }
             }
         } else if (w->walkType) {
             if (em->l_pl < 2250000.0f && w->routeAngAbs < 0.7853982f) {
-                EmRoutineSet(em, 1, 0xC, 0, 1);
+                em->setRno(1, 0xC, 0, 1);
             } else if (em35bPlRunCk(em) && em->l_pl < 12250000.0f && w->routeAngAbs < 0.7853982f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else {
                 goto turn_ck;
             }
         } else {
             if (w->routeAngAbs < 1.0471976f &&
                 (em->l_pl < 6250000.0f || (em35bPlRunCk(em) && em->l_pl < 12250000.0f))) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
             turn_ck:
                 if (w->routeAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                    EmRoutineSet(em, 1, 4, 0, 0);
+                    em->setRno(1, 4, 0, 0);
                 } else {
                 big_step:
                     em35BigStepCk(em);
@@ -1320,47 +1320,47 @@ static void em35_R1_BigStep(cEm35* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else {
             if (em->Motion.Seq_old.Free & 4) {
                 if (w->routeAngAbs < 0.5235988f && em->l_pl > 4000000.0f && em->l_pl < 12250000.0f &&
                     w->lockWait == 0) {
                     if ((s16) pG->pl_life <= 900 && (Rnd() & 1)) {
-                        EmRoutineSet(em, 1, 9, 0, 0);
+                        em->setRno(1, 9, 0, 0);
                     } else {
                         switch ((u8) (Rnd() % 3)) {
                         case 0:
-                            EmRoutineSet(em, 1, 8, 0, 0);
+                            em->setRno(1, 8, 0, 0);
                             break;
                         case 1:
-                            EmRoutineSet(em, 1, 5, 0, 0);
+                            em->setRno(1, 5, 0, 0);
                             break;
                         case 2:
-                            EmRoutineSet(em, 1, 6, 0, 0);
+                            em->setRno(1, 6, 0, 0);
                             break;
                         }
                     }
                 } else if (w->walkType) {
                     if (em->l_pl < 2250000.0f && w->routeAngAbs < 0.7853982f) {
-                        EmRoutineSet(em, 1, 0xC, 0, 1);
+                        em->setRno(1, 0xC, 0, 1);
                     } else if (em35bPlRunCk(em) && em->l_pl < 12250000.0f && w->routeAngAbs < 0.7853982f) {
-                        EmRoutineSet(em, 1, 0xC, 0, 0);
+                        em->setRno(1, 0xC, 0, 0);
                     } else {
                         goto turn_ck;
                     }
                 } else {
                     if (w->routeAngAbs < 1.0471976f &&
                         (em->l_pl < 6250000.0f || (em35bPlRunCk(em) && em->l_pl < 12250000.0f))) {
-                        EmRoutineSet(em, 1, 4, 0, 0);
+                        em->setRno(1, 4, 0, 0);
                     } else {
                     turn_ck:
                         if (w->routeAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                            EmRoutineSet(em, 1, 4, 0, 0);
+                            em->setRno(1, 4, 0, 0);
                         } else {
                             goto se;
                         }
@@ -1425,13 +1425,13 @@ static void em35_R1_Turn(cEm35* em)
         }
         if (MotionMove(em, 0)) {
             if (em->l_pl < 2250000.0f && w->routeAngAbs < 0.7853982f) {
-                EmRoutineSet(em, 1, 0xC, 0, 1);
+                em->setRno(1, 0xC, 0, 1);
             } else if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else if (em35BigStepCk(em) == 0) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -1484,13 +1484,13 @@ static void em35_R1_Atk(cEm35* em)
             }
             if (w->atkHit) {
                 w->atkWait = 90;
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else {
             if ((em->Motion.Seq_old.Free & 4) && w->routeAngAbs < 1.5707964f && em->l_pl < 25000000.0f) {
@@ -1538,7 +1538,7 @@ static void em35_R1_br_AtkDouble(cEm35* em)
         em35AtkCk(em, 3, 0x2E);
         em35AtkCk(em, 3, 0x2F);
         if (w->atkHit) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
             return;
         }
     }
@@ -1552,7 +1552,7 @@ static void em35_R1_br_AtkDouble(cEm35* em)
         em35AtkCk(em, 3, 0x28);
         em35AtkCk(em, 3, 0x29);
         if (w->atkHit) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
         }
     }
 }
@@ -1585,13 +1585,13 @@ static void em35_R1_AtkDouble(cEm35* em)
             }
             if (w->atkHit) {
                 w->atkWait = 90;
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else {
             if (w->atkHit2) {
@@ -1653,11 +1653,11 @@ static void em35_R1_BearHug(cEm35* em)
     case 3:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -1867,13 +1867,13 @@ static void em35_R1_Atk2F(cEm35* em)
         if (MotionMove(em, 0)) {
             if (w->atkHit) {
                 w->atkWait = 90;
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -1901,7 +1901,7 @@ static void plem35DmFall2F(cPlayer* pl)
     case 1:
         if (MotionMove(pl, 0) && (s16) pG->pl_life > 0) {
             pl->atari.on();
-            EmRoutineSet(pPL, 1, 0, 0xA, 0);
+            pPL->setRno(1, 0, 0xA, 0);
         } else if (pl->Motion.Seq_frame > 39.7f && pl->Motion.Seq_frame < 40.3f) {
             SndCall(5, 5, &pPL->pos, pPL->id, 0, pPL);
             SndCall(1, 0x12, &pPL->pos, pPL->id, 0, pPL);
@@ -1951,13 +1951,13 @@ static void em35_R1_LongAtk(cEm35* em)
             }
             if (w->atkHit) {
                 w->atkWait = 90;
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             em35AtkCk(em, 2, 0x11);
@@ -2005,9 +2005,9 @@ static void em35_R1_Hook(cEm35* em)
         if (MotionMove(em, 0)) {
             if (w->atkHit) {
                 if (em->l_pl < 2250000.0f && w->routeAngAbs < 0.7853982f && (Rnd() & 1)) {
-                    EmRoutineSet(em, 1, 0xC, 0, 0);
+                    em->setRno(1, 0xC, 0, 0);
                 } else if (em->l_pl < 12250000.0f) {
-                    EmRoutineSet(em, 1, 4, 0, 0);
+                    em->setRno(1, 4, 0, 0);
                 } else {
                     goto far;
                 }
@@ -2015,14 +2015,14 @@ static void em35_R1_Hook(cEm35* em)
             far:
                 if (w->targetAngAbs > 1.0471976f) {
                     if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                        EmRoutineSet(em, 1, 4, 0, 0);
+                        em->setRno(1, 4, 0, 0);
                     } else if (w->targetAngAbs > 1.0471976f) {
-                        EmRoutineSet(em, 1, 3, 0, 0);
+                        em->setRno(1, 3, 0, 0);
                     } else {
-                        EmRoutineSet(em, 1, 3, 0, 0);
+                        em->setRno(1, 3, 0, 0);
                     }
                 } else {
-                    EmRoutineSet(em, 1, 1, 0, 0);
+                    em->setRno(1, 1, 0, 0);
                 }
             }
         } else if (em->Motion.Seq_old.Free & 1) {
@@ -2082,7 +2082,7 @@ static void em35_R1_br_Critical(cEm35* em)
         if (w->atkHit) {
             VibSetData(VIB_TBL, 0xB, 1);
             em->dmg.set(0, 2);
-            EmRoutineSet(em, 1, 0xA, 0, 0);
+            em->setRno(1, 0xA, 0, 0);
         }
     }
 }
@@ -2149,9 +2149,9 @@ static void em35_R1_Critical(cEm35* em)
             GameAddPoint(LVADD_ESCAPEATTACK);
             if (w->atkHit) {
                 w->atkWait = 90;
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -2332,7 +2332,7 @@ static void plem35DmStamp(cPlayer* pl)
         em35StampCamMove((cEm35*)pl->pEmCatch);
         if (MotionMove(pl, 0)) {
             if ((s16) pG->pl_life > 0) {
-                EmRoutineSet(pPL, 1, 0, 0xA, 0);
+                pPL->setRno(1, 0, 0xA, 0);
             }
         }
         break;
@@ -2404,11 +2404,11 @@ static void em35_R1_Catch(cEm35* em)
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -2465,11 +2465,11 @@ static void em35_R1_CatchHit(cEm35* em)
     case 3:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -2481,7 +2481,7 @@ static void em35_R1_CatchHit(cEm35* em)
     case 5:
         if (MotionMove(em, 0)) {
             w->atkWait = 90;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -2637,9 +2637,9 @@ static void em35_R1_U_Wait(cEm35* em)
     case 1:
         if (MotionMove(em, 0)) {
             if ((Rnd() & 3) == 0 && em->l_pl > 25000000.0f && em35BeamDownCk(em, w->beamNo)) {
-                EmRoutineSet(em, 1, 0x1A, 0, 0);
+                em->setRno(1, 0x1A, 0, 0);
             } else if ((Rnd() & 3) == 0 && em->l_pl > 25000000.0f && em35BeamUpCk(em, w->beamNo)) {
-                EmRoutineSet(em, 1, 0x19, 0, 0);
+                em->setRno(1, 0x19, 0, 0);
             } else {
                 em35NextRtnSetUpper(em);
             }
@@ -2780,13 +2780,13 @@ static void em35_R1_U_BackJump(cEm35* em)
 
             if (em->l_pl < 30250000.0f && dy < 500.0f) {
                 if (em->l_pl < 2250000.0f) {
-                    EmRoutineSet(em, 1, 0x1B, 0, 0);
+                    em->setRno(1, 0x1B, 0, 0);
                 } else if (em->l_pl < 9000000.0f && w->routeAngAbs < 0.2617994f) {
-                    EmRoutineSet(em, 1, 0x1D, 0, 0);
+                    em->setRno(1, 0x1D, 0, 0);
                 } else if (em->l_pl < 9000000.0f && (Rnd() & 1)) {
-                    EmRoutineSet(em, 1, 0x1C, 0, 0);
+                    em->setRno(1, 0x1C, 0, 0);
                 } else if (w->routeAngAbs < 0.7330383f) {
-                    EmRoutineSet(em, 1, 0x1E, 0, 0);
+                    em->setRno(1, 0x1E, 0, 0);
                 } else {
                     goto beam;
                 }
@@ -2795,11 +2795,11 @@ static void em35_R1_U_BackJump(cEm35* em)
                 if (em->r_no_3 && em35BeamBackCk(em, w->beamNo)) {
                     em->r_no_2 = 0;
                 } else if ((Rnd() & 1) && em35BeamDownCk(em, w->beamNo)) {
-                    EmRoutineSet(em, 1, 0x1A, 0, 0);
+                    em->setRno(1, 0x1A, 0, 0);
                 } else if ((Rnd() & 1) && em35BeamUpCk(em, w->beamNo)) {
-                    EmRoutineSet(em, 1, 0x19, 0, 0);
+                    em->setRno(1, 0x19, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 0xF, 0, 0);
+                    em->setRno(1, 0xF, 0, 0);
                 }
             }
         }
@@ -3449,11 +3449,11 @@ static void em35_R1_Dm_Small(cEm35* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -3477,14 +3477,14 @@ static void em35_R1_Dm_Spinal(cEm35* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
                 break;
             }
             if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
                 break;
             }
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         if (em->Motion.Seq_old.Free & 1) {
             SndStop(w->sndId, 0);
@@ -3528,11 +3528,11 @@ static void em35_R1_Dm_Big(cEm35* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -3575,24 +3575,24 @@ static void em35_R1_Dm_Frame(cEm35* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
                 break;
             }
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
                 break;
             }
             if (w->targetAngAbs > 1.0471976f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
                 break;
             }
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         if (w->timer) {
             w->timer--;
             LifeDownSet2(em, 10, 0, 0);
             if (w->timer == 0 && em->hp <= 0) {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             }
         }
         break;
@@ -3607,10 +3607,10 @@ static inline void em35CrawlStart(cEm35* em)
 
     RouteCkToPos(em, &em35_crawl_pos[no], &out, 0, 0);
     if (fabsf(Muku(&em->pos, &out, em->ang.y, PI)) > 2.0943952f) {
-        EmRoutineSet(em, 1, 0x21, 0, 0);
+        em->setRno(1, 0x21, 0, 0);
         MotionMove(em, 0);
     } else {
-        EmRoutineSet(em, 1, 0x20, 0, 0);
+        em->setRno(1, 0x20, 0, 0);
     }
 }
 
@@ -3677,10 +3677,10 @@ static void em35_R1_Dm_U_Fall(cEm35* em)
                 RouteCkToPos(em, &em35_crawl_pos[no], &out, 0, 0);
                 ang = fabsf(Muku(&em->pos, &out, em->ang.y, PI));
                 if (ang > 2.0943952f) {
-                    EmRoutineSet(em, 1, 0x21, 0, 0);
+                    em->setRno(1, 0x21, 0, 0);
                     MotionMove(em, 0);
                 } else {
-                    EmRoutineSet(em, 1, 0x20, 0, 0);
+                    em->setRno(1, 0x20, 0, 0);
                 }
             } else {
                 em->clearStatus(EM_STATUS_ACTIVE);
@@ -3710,7 +3710,7 @@ static void em35_R1_Dm_U_Crawl(cEm35* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->hp > 0) {
-                EmRoutineSet(em, 1, 0x20, 0, 0xA);
+                em->setRno(1, 0x20, 0, 0xA);
             } else {
                 em->clearStatus(EM_STATUS_ACTIVE);
                 em->setStatus(EM_STATUS_ITEMSET);
@@ -4398,58 +4398,58 @@ void em35NextRtnSetUpper(cEm35* em)
     dy = fabsf(dy);
     if (pPL->pos.y > em->pos.y + 1000.0f) {
         if (em35BeamFrontUpCk(em, w->beamNo) && (Rnd() & 1)) {
-            EmRoutineSet(em, 1, 0x11, 0, 0);
+            em->setRno(1, 0x11, 0, 0);
             return;
         }
         if (em->l_pl < 100000000.0f && em35BeamUpCk(em, w->beamNo)) {
-            EmRoutineSet(em, 1, 0x19, 0, 0);
+            em->setRno(1, 0x19, 0, 0);
             return;
         }
     }
     if (pPL->pos.y < em->pos.y - 1000.0f) {
         if (em35BeamFrontDownCk(em, w->beamNo) && (Rnd() & 1)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
             return;
         }
         if (em->l_pl < 25000000.0f && em35BeamDownCk(em, w->beamNo)) {
-            EmRoutineSet(em, 1, 0x1A, 0, 0);
+            em->setRno(1, 0x1A, 0, 0);
             return;
         }
     }
     if (em35LockCk(em) && (Rnd() & 1) && w->beamNo != 0xFF && (Rnd() & 1)) {
         if (em35BeamUpCk(em, w->beamNo)) {
-            EmRoutineSet(em, 1, 0x19, 0, 0);
+            em->setRno(1, 0x19, 0, 0);
             return;
         }
         if (em35BeamDownCk(em, w->beamNo)) {
-            EmRoutineSet(em, 1, 0x1A, 0, 0);
+            em->setRno(1, 0x1A, 0, 0);
             return;
         }
     }
     if (em->l_pl < 30250000.0f && dy < 500.0f) {
         if (em->l_pl < 2250000.0f) {
-            EmRoutineSet(em, 1, 0x1B, 0, 0);
+            em->setRno(1, 0x1B, 0, 0);
             return;
         }
         if (em->l_pl < 9000000.0f && w->routeAngAbs < 0.2617994f) {
-            EmRoutineSet(em, 1, 0x1D, 0, 0);
+            em->setRno(1, 0x1D, 0, 0);
             return;
         }
         if (em->l_pl < 9000000.0f && w->routeAngAbs < 1.0471976f && (Rnd() & 1)) {
-            EmRoutineSet(em, 1, 0x1C, 0, 0);
+            em->setRno(1, 0x1C, 0, 0);
             return;
         }
         if (em->l_pl < 9000000.0f && w->routeAngAbs > 2.0943952f && (Rnd() & 1)) {
-            EmRoutineSet(em, 1, 0x1C, 0, 0);
+            em->setRno(1, 0x1C, 0, 0);
             return;
         }
         if (w->routeAngAbs < 0.7330383f) {
-            EmRoutineSet(em, 1, 0x1E, 0, 0);
+            em->setRno(1, 0x1E, 0, 0);
             return;
         }
     }
     if (w->routeAngAbs > 1.5707964f) {
-        EmRoutineSet(em, 1, 0x15, 0, 0);
+        em->setRno(1, 0x15, 0, 0);
         return;
     }
     if (w->routeAngAbs > 0.7853982f) {
@@ -4464,19 +4464,19 @@ void em35NextRtnSetUpper(cEm35* em)
         }
     }
     if (em35BeamFrontUpCk(em, w->beamNo) && (Rnd() & 1)) {
-        EmRoutineSet(em, 1, 0x11, 0, 0);
+        em->setRno(1, 0x11, 0, 0);
         return;
     }
     if (em35BeamFrontDownCk(em, w->beamNo) && (Rnd() & 1)) {
-        EmRoutineSet(em, 1, 0x12, 0, 0);
+        em->setRno(1, 0x12, 0, 0);
         return;
     }
     if ((Rnd() & 1) && pG->Game_level > 1 && em35BeamFrontDobuleCk(em, w->beamNo)) {
-        EmRoutineSet(em, 1, 0x13, 0, 0);
+        em->setRno(1, 0x13, 0, 0);
         return;
     }
     if (em35BeamFrontCk(em, w->beamNo)) {
-        EmRoutineSet(em, 1, 0x10, 0, 0);
+        em->setRno(1, 0x10, 0, 0);
         return;
     }
     if (em35BeamSideStepCk(em, 1)) {
@@ -4486,9 +4486,9 @@ void em35NextRtnSetUpper(cEm35* em)
         return;
     }
     if (w->routeAng < 0.0f) {
-        EmRoutineSet(em, 1, 0x16, 0, 1);
+        em->setRno(1, 0x16, 0, 1);
     } else {
-        EmRoutineSet(em, 1, 0x16, 0, 0);
+        em->setRno(1, 0x16, 0, 0);
     }
 }
 
@@ -4499,19 +4499,19 @@ void em35NextRtnSetUpper2(cEm35* em)
     Em35Work* w = EM35_WK(em);
 
     if (em35BeamBackCk(em, w->beamNo)) {
-        EmRoutineSet(em, 1, 0x14, 0, 1);
+        em->setRno(1, 0x14, 0, 1);
         return;
     }
     if (em35BeamUpCk(em, w->beamNo)) {
-        EmRoutineSet(em, 1, 0x19, 0, 0);
+        em->setRno(1, 0x19, 0, 0);
         return;
     }
     if (em35BeamDownCk(em, w->beamNo)) {
-        EmRoutineSet(em, 1, 0x1A, 0, 0);
+        em->setRno(1, 0x1A, 0, 0);
         return;
     }
     if (em35BeamFrontCk(em, w->beamNo)) {
-        EmRoutineSet(em, 1, 0x10, 0, 0);
+        em->setRno(1, 0x10, 0, 0);
         return;
     }
     if (w->routeAng > 0.0f) {
@@ -4523,7 +4523,7 @@ void em35NextRtnSetUpper2(cEm35* em)
             return;
         }
     }
-    EmRoutineSet(em, 1, 0xF, 0, 0);
+    em->setRno(1, 0xF, 0, 0);
 }
 
 // 1 when the player is aiming (routine 0/6) a loaded gun other than the rocket launcher (0x10) at
@@ -4881,15 +4881,15 @@ int em35BeamSideStepCk(cEm35* em, int side)
     int ret;
 
     if (d > 12250000.0f) {
-        EmRoutineSet(em, 1, 0x17, 0, side);
+        em->setRno(1, 0x17, 0, side);
         ret = 1;
     } else if (d > 2250000.0f) {
-        EmRoutineSet(em, 1, 0x16, 0, side);
+        em->setRno(1, 0x16, 0, side);
         ret = 1;
     } else if (em35BeamSideCk(w->beamNo, side, em->ang.y) == 0) {
         ret = 0;
     } else {
-        EmRoutineSet(em, 1, 0x18, 0, side);
+        em->setRno(1, 0x18, 0, side);
         ret = 1;
     }
     return ret;
@@ -5064,7 +5064,7 @@ void cEm35::setDiePose()
     ang.z = 0.0f;
     MotionSetCore(this, MOTION(this), PL_ARC_PTR(subArc, 0x7B), 0, 0, 1, 0);
     MotionMove(this, 0);
-    EmRoutineSet(this, 3, 1, 0, 0);
+    setRno(3, 1, 0, 0);
 }
 
 // For the level script (after the divide cutscene): places the upper body at its start spot facing
@@ -5083,7 +5083,7 @@ void cEm35::setUpperStart()
     MotionMove(this, 0);
     w->flags &= ~0x40;
     be_flag |= 0x00200000;
-    EmRoutineSet(this, 1, 0xF, 0, 0);
+    setRno(1, 0xF, 0, 0);
 }
 
 // Starts the big step (1/2) when the target is straight ahead (30 deg) beyond 7.5 m, the enemy is
@@ -5117,7 +5117,7 @@ int em35BigStepCk(cEm35* em)
     if (SatMgr.hitCheck(&a, &b, 0, 0, 0, 0)) {
         return 0;
     }
-    EmRoutineSet(em, 1, 2, 0, 0);
+    em->setRno(1, 2, 0, 0);
     return 1;
 }
 

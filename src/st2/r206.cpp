@@ -448,7 +448,7 @@ static void funcAshley(cEm* p)
         p->r_no_2 = 5;
     default:
         if (p->motionMove() != 0) {
-            EmRoutineSet(p, 0, 0, 0, 0);
+            p->setRno(0, 0, 0, 0);
             pSUB->atari.on();
             SubCharCtrl(SCC_CHASE, 0);
         }
@@ -466,7 +466,7 @@ static void funcAshley2(cEm* p)
         p->r_no_2 = 1;
     }
     if (p->motionMove() != 0) {
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         pSUB->atari.on();
         SubCharCtrl(SCC_CHASE, 0);
     }
@@ -495,7 +495,7 @@ static void funcAshley3(cEm* p)
         }
         break;
     default:
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         pSUB->atari.on();
         SubCharCtrl(SCC_CHASE, 0);
         break;
@@ -702,7 +702,7 @@ static void r206_snipe()
             }
         }
         if ((s16) pG->ashley_life != -1 && (u32) done > 2) {
-            EmRoutineSet(pSUB, 0, 0, 0, 0);
+            pSUB->setRno(0, 0, 0, 0);
             goto snipe_done;
         }
         SceSleep(1);

@@ -480,6 +480,7 @@ public:
     cParts* getPartsPtr(int idx);  // -1: the model itself; NULL (and a log) when out of range
     int modelInit(void* bin, void* tpl);  // returns the cModelInfo* (pl_leon range-checks it)
     int initJoint(void* bin);     // parts list from the bin's parts records (makePartsList / setPartsParent / setPartsOffset / setJointInfo)
+    int initJoint(u32 binAddr) { return initJoint((void*) binAddr); }
     void releaseJoint();          // releasePartsList(0) when there are parts
     void setPartsParent();        // pParent of every parts from the bin records
     void matBlend(f32 rate);      // parts pose = rate * own pose + (1 - rate) * worldMat pose (motion.cpp MotionMove blends)
@@ -498,6 +499,24 @@ public:
     void setPos(Vec* newPos);
     void setAng(Vec* ang);
     void setPosAng(Vec* newPos, Vec* newAng) { setPos(newPos); setAng(newAng); }
+    void setTrans(int on) { if (on) { be_flag |= 2; } else { be_flag &= ~2; } }
+    int isNoSuspend() { return be_flag & 0x800; }
+    void setMove(int on) { if (on) { be_flag |= 0x20; } else { be_flag &= ~0x20; } }
+    int isMove() { return (be_flag >> 5) & 1; }
+    void setError(int on_off) { if (on_off) { be_flag |= 0x80000000; } else { be_flag &= ~0x80000000; } }
+    int checkError() { return be_flag >> 31; }
+    void setRno(int r0, int r1, int r2, int r3) { r_no_0 = r0; r_no_1 = r1; r_no_2 = r2; r_no_3 = r3; }
+    void setZMode(int m) { z_mode = m; }
+    int getZMode() { return z_mode; }
+    void setTevScaleGroup(int g) { TevScaleGroup = g; }
+    int isNoClip() { return be_flag & 0x1000; }
+    void setNoClip(int on) { if (on) { be_flag |= 0x1000; } else { be_flag &= ~0x1000; } }
+    void SetAddAmb(u8 r, u8 g, u8 b) {
+        if (r == 0 && g == 0 && b == 0) { be_flag &= ~8; } else { be_flag |= 8; }
+        AddAmb_r = r;
+        AddAmb_g = g;
+        AddAmb_b = b;
+    }
     // Component overloads: a Vec temporary, then setPos / setAng.
     void setPos(f32 x, f32 y, f32 z) { Vec tpos; tpos.x = x; tpos.y = y; tpos.z = z; setPos(&tpos); }
     void setAng(f32 ax, f32 ay, f32 az) { Vec tang; tang.x = ax; tang.y = ay; tang.z = az; setAng(&tang); }
@@ -517,6 +536,7 @@ public:
     void moveDataAddr(int ofsAddr);   // model data moved by `ofs` bytes (block.cpp memory compaction)
     // Copies the parts positions of a model bin (parts bin of an event costume, event SetPartsSub).
     void setPartsOffset(void* bin);
+    void setPartsOffset(u32 addr) { setPartsOffset((void*) addr); }
     // setPos / setAng / MotionClear(0) / matUpdate() (event ExeEndEvt puts the player back).
     void zeroPartsPosInit(Vec* vPos, Vec* vAng);
     void partsFixMemory(int fix_parts);  // (pl_class setFootwork: 0x13)

@@ -84,7 +84,7 @@ void em18DmCk(cEm18* em)
         case DMG_TYPE_ENV_FIRE:
             em->hp = 0;
             EmSetDie(em);
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
             return;
         }
     }
@@ -113,7 +113,7 @@ void em18DmCk(cEm18* em)
     em18BloodSet(em);
     SndCall(8, 4, &em->pos, em->id, 0, 0);
     EmSetDie(em);
-    EmRoutineSet(em, 3, 0, 0, 0);
+    em->setRno(3, 0, 0, 0);
 }
 
 // Blood effect of the killing hit (EmDmBloodSet2 kind 0x15): the big splash for a near shotgun hit,
@@ -281,7 +281,7 @@ static void em18_R0_Init(cEm18* em)
     Em18ClothSet(em, &w->Cloth, 0);
     w->Be_flg = 0;
     w->Neck_dir_y = 0.0f;
-    EmRoutineSet(em, one, 0, 0, 0);
+    em->setRno(one, 0, 0, 0);
     MotionSetCore(em, MOTION(em), ARC(0x14), 0, 0, 1, 0);
     MotionMove(em, 0);
     em->clearStatus(EM_STATUS_ACTIVE);
@@ -359,7 +359,7 @@ static void em18_R1_Trade(cEm18* em)
             em18GoodsPartsSet(em, 0);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -424,7 +424,7 @@ static void em18TradeAction(cEm18* em)
             SubScreenOpen(SS_OPEN_SHOP, 0);
         } else {
             w->Be_flg |= 0x20;
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             pPL->dmg.set(0, 30);
         }
     } else {
@@ -454,7 +454,7 @@ static void em18_R1_Dm_Normal(cEm18* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 10);
+            em->setRno(1, 0, 0, 10);
         }
         break;
     }

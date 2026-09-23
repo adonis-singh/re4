@@ -110,7 +110,7 @@ static void funcAshley(cEm* p)
     if (p->motionMove()) {
         cAtariInfo* at;
 
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         at = &pSUB->atari;
         at->on();
         SubCharCtrl(1, 0);

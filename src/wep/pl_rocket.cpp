@@ -241,7 +241,7 @@ static void wep13_r2_set(cPlayer* pl)
         } else {
             int md = 3;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
     } else if (joyFireOn() && pl->Wep->m_pWep->bulletNum()) {
         Vec from;
@@ -551,7 +551,7 @@ static void wep13_r2_throw(cPlayer* pl)
             obj->r_no_0 = 5;
             obj->r_no_1 = 0;
             pl->Wep->m_pWep->setMotion(pl);
-            EmRoutineSet(pl, 0, 0, 2, 0);
+            pl->setRno(0, 0, 2, 0);
         }
         pl->motionMove();
         break;
@@ -609,7 +609,7 @@ static void wep13_r2_next(cPlayer* pl)
         } else {
             int md = 1;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
     }
 }

@@ -90,7 +90,7 @@ static void wep07_r2_ready(cPlayer* pl)
     } else if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
         pl->Motion.Seq_speed = 1.0f;
         pl->Wep->m_Flag |= 1;
-        EmRoutineSet(pl, 0, 6, 4, 0);
+        pl->setRno(0, 6, 4, 0);
         pl->m_Work0 = 1;
     } else if (pl->m_pEm) {
         CamCtrlShoulderSetAim(&pl->m_pEm->pos);
@@ -175,7 +175,7 @@ static void wep07_r3_ready10(cPlayer* pl)
     if (pl->Motion.Seq_frame >= endFrame) {
         pl->Motion.Seq_speed = 1.0f;
         SndCall(2, 9, &pl->getPartsPtr(0xA)->world, 0, 0, 0);
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
     m3r.move();
     mot3.move(m3r);
@@ -187,7 +187,7 @@ static void wep07_r3_ready20(cPlayer* pl)
 {
     if (MotionMove(pl, 0)) {
         SndCall(5, 0, &pl->getPartsPtr(0x14)->world, 0, 0, 0);
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
     m3r.move();
     mot3.move(m3r);
@@ -222,22 +222,22 @@ static void wep07_r2_set(cPlayer* pl)
         }
     } else if (joyFireTrg()) {
         if (pl->Wep->m_pWep->bulletNum()) {
-            EmRoutineSet(pl, 0, 6, 2, 0);
+            pl->setRno(0, 6, 2, 0);
         } else if (pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->m_Work0 = 0;
         } else {
             SndCall(2, 3, &pl->getPartsPtr(4)->world, 0, 0, 0);
             goto reload;
         }
     } else if (joyFireOn() && pl->Wep->m_pWep->bulletNum()) {
-        EmRoutineSet(pl, 0, 6, 2, 0);
+        pl->setRno(0, 6, 2, 0);
     } else {
     reload:
         if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->m_Work0 = 1;
         }
     }
@@ -484,7 +484,7 @@ void wepDown(cPlayer* pl)
 {
     if (dmMotCk()) {
         MotionSetCore(pl, &pl->Motion, WEP_ARC_PTR(0x1F), 0, 3, 5, 0);
-        EmRoutineSet(pl, 0, 0, 2, 0);
+        pl->setRno(0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
         pl->m_Hokan = 0xF;
@@ -566,7 +566,7 @@ static void wep07_r2_reload(cPlayer* pl)
                 }
             }
             if (pl->Motion.Seq_frame >= (f32) (pl->Motion.Seq_frame_num - 1)) {
-                EmRoutineSet(pl, 0, 6, 1, 0);
+                pl->setRno(0, 6, 1, 0);
             }
         }
         break;
@@ -579,7 +579,7 @@ static void wep07_r2_reload(cPlayer* pl)
     }
     case 3:
         if ((int) ++pl->m_Work0 > 8) {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         }
         mot3.move(m3r);
         pl->motionMove();

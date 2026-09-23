@@ -99,7 +99,7 @@ void em24DmCk(cEm24* em)
     die:
         em->hp = 0;
         em->dmg.m_Timer = 0x80;
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
     }
 }
 
@@ -232,12 +232,12 @@ static void em24_R0_Init(cEm24* em)
     default:
         MotionSetCore(em, MOTION(em), ARC(0xF), 0, 0, 5, 0);
         MotionMove(em, 0);
-        EmRoutineSet(em, 1, two, zero, zero);
+        em->setRno(1, two, zero, zero);
         break;
     case 0:
         MotionSetCore(em, MOTION(em), ARC(0xF), 0, 0, 5, 0);
         MotionMove(em, 0);
-        EmRoutineSet(em, 1, 0, 0, 0);
+        em->setRno(1, 0, 0, 0);
         break;
     }
     em24_R0_Move(em);
@@ -313,7 +313,7 @@ static void em24_R1_BoxWait(cEm24* em)
                 }
                 if (w->motEnd) {
                     at->m_flag |= 0x100;
-                    EmRoutineSet(em, 1, two, 0, 0);
+                    em->setRno(1, two, 0, 0);
                     break;
                 }
             }
@@ -344,7 +344,7 @@ static void em24_R1_CoilWait(cEm24* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -438,7 +438,7 @@ static void em24_R1_Coil(cEm24* em)
         em->ang.y += Muku(&em->pos, &pPL->pos, em->ang.y, PI / 64.0f);
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -447,7 +447,7 @@ static void em24_R1_Coil(cEm24* em)
 // R0 == 2: the snake has no damage reaction; straight back to Free (R1 2).
 static void em24_R0_Damage(cEm24* em)
 {
-    EmRoutineSet(em, 1, 2, 0, 0);
+    em->setRno(1, 2, 0, 0);
 }
 
 // R0 == 3: death. The death motion (ARC 0x15 in the box / 0x13), the burst effect, then drops a

@@ -295,7 +295,7 @@ void cPlayer::startUp()
     matUpdate();
     m_Frame = 0;
     m_Hokan = 0;
-    EmRoutineSet(this, 0, 0, 0, 1);
+    setRno(0, 0, 0, 1);
     move();
     motionMove();
     motionMove();
@@ -448,7 +448,7 @@ void pl_R1_Footwork(cPlayer* pEm)
     }
     if (pEm->actionSelect() == 0) {
         if ((Key.on & 1) && (Key.on & 0x40000000) && joyKamae() == 0) {
-            EmRoutineSet(pEm, 0, 3, 0, 0);
+            pEm->setRno(0, 3, 0, 0);
         } else {
             pEm->checkCtrl();
         }
@@ -496,7 +496,7 @@ void pl_R1_Walk(cPlayer* pEm)
             pEm->m_Hokan = 5;
             pEm->m_Frame = (u8) (pEm->Motion.Seq_frame * 255.0f / (f32) pEm->Motion.Seq_frame_num);
         } else if (!(Key.on & 1)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         } else {
             if (Key.on & 4) {
                 pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
@@ -522,7 +522,7 @@ void pl_R1_Back(cPlayer* pEm)
     pEm->motionMove();
     if (pEm->actionSelect() == 0) {
         if (!(Key.on & 2)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         } else {
             if (Key.on & 4) {
                 pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
@@ -580,7 +580,7 @@ void pl_R1_Run(cPlayer* pEm)
         } else {
             pEm->Neck->init(PL_ARC_PTR(pG->pPlayer, 0x44), PL_ARC_PTR(pG->pPlayer, 0x45), (u16) frame);
         }
-        pEm->Waist->m_Ang.y = 0.0f;
+        pEm->Waist->reset();
         pEm->m_Work0 = 0;
         breath_ctr = 0;
         pEm->r_no_2 = 3;
@@ -623,7 +623,7 @@ void pl_R1_Run(cPlayer* pEm)
             }
             pEm->ang.y = LIMIT_ANGLE(pEm->ang.y);
             if (joyKamae()) {
-                EmRoutineSet(pEm, 0, 0, 0, 0);
+                pEm->setRno(0, 0, 0, 0);
             } else if (!(Key.on & 0x40000000) || !(Key.on & 1)) {
                 if (Key.on & 1) {
                     pEm->m_Hokan = 5;
@@ -633,7 +633,7 @@ void pl_R1_Run(cPlayer* pEm)
                     pEm->r_no_2 = 0;
                     pEm->m_Frame = (u8) (pEm->Motion.Seq_frame * 255.0f / (f32) pEm->Motion.Seq_frame_num);
                 } else {
-                    EmRoutineSet(pEm, 0, 0, 0, 0);
+                    pEm->setRno(0, 0, 0, 0);
                 }
                 return;
             }
@@ -662,12 +662,12 @@ void pl_R1_Turn(cPlayer* pEm)
         break;
     case 1:
         if (!(Key.on & 4)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     case 2:
         if (!(Key.on & 8)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -730,7 +730,7 @@ void pl_R1_Turn180(cPlayer* pEm)
         }
         if (end) {
             pEm->m_BbtnCnt = 0;
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
             CamCtrlShoulderSetSearchFrame(0);
             return;
         }
@@ -749,7 +749,7 @@ cDelayF m3r;
 void pl_R1_Weapon(cPlayer* pEm)
 {
     if (pG->pl_type == 1) {
-        EmRoutineSet(pEm, 0, 0, 0, 0);
+        pEm->setRno(0, 0, 0, 0);
     } else if (WeaponMoveFunc == 0) {
         pLog->err(0, 0, "pl_R1_Weapon(): Function is no regist!");
     } else {
@@ -852,7 +852,7 @@ void pl_R1_Ladder(cPlayer* pEm)
             pEm->m_Fwork0 += 1500.0f;
             pEm->dmg.clear();
             pEm->atari.on();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
             pEm->stat.on(cPlayer::F_SHADOW);
         }
         break;
@@ -918,7 +918,7 @@ void pl_R1_Ladder(cPlayer* pEm)
             pEm->m_Fwork0 -= 500.0f;
             pEm->dmg.clear();
             pEm->atari.on();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1006,7 +1006,7 @@ void pl_R1_Crouch(cPlayer* pEm)
         pEm->pList->ang.y *= 0.5f;
         if (MotionCheckCrossFrame(MOTION(pEm), endFrame)) {
             pEm->pList->ang.y = 0.0f;
-            EmRoutineSet(pEm, 0, 0, 2, 0);
+            pEm->setRno(0, 0, 2, 0);
         }
         break;
     }
@@ -1018,7 +1018,7 @@ void pl_R1_Crouch(cPlayer* pEm)
             pEm->stat.off(cPlayer::F_CROUCH);
         }
         if (joyKamae()) {
-            EmRoutineSet(pEm, 0, 6, 0, 0);
+            pEm->setRno(0, 6, 0, 0);
         }
     }
 }
@@ -1057,7 +1057,7 @@ void pl_R1_JumpFall(cPlayer* pEm)
     case 2:
         pEm->motionMove();
         if (pEm->Motion.Seq_frame >= 20.0f) {
-            EmRoutineSet(pEm, 0, 0, 2, 0);
+            pEm->setRno(0, 0, 2, 0);
         }
         break;
     }
@@ -1077,7 +1077,7 @@ void pl_R1_Whistle(cPlayer* pEm)
             StaFlagOn(pG, STA_PL_FIRE);
         }
         if (pEm->motionMove()) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1124,7 +1124,7 @@ void pl_R1_LevelUp(cPlayer* pEm)
     case 1:
         if (pEm->motionMove()) {
             pEm->stat.off(cPlayer::F_SHADOW);
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
             pEm->atari.on();
         }
         break;
@@ -1158,7 +1158,7 @@ void pl_R1_LevelDown(cPlayer* pEm)
                 pEm->pos.y -= 1000.0f;
             }
             pEm->stat.on(cPlayer::F_SHADOW);
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
             pEm->atari.on();
         }
         break;
@@ -1217,13 +1217,13 @@ void pl_R1_ObjPush(cPlayer* pEm)
         CamCtrl.endPushObject();
         pEm->stat.off(cPlayer::F_OBJPUSH);
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x22), 0, 5, 5, 0);
-        EmRoutineSet(pEm, 0, 0, 2, 0);
+        pEm->setRno(0, 0, 2, 0);
         break;
     case 0x32:
         CamCtrl.endPushObject();
         pEm->stat.off(cPlayer::F_OBJPUSH);
         MotionSetCore(pEm, MOTION(pEm), pEm->m_MotTbl[0], 0, 0xF, 5, 0);
-        EmRoutineSet(pEm, 0, 0, 2, 0);
+        pEm->setRno(0, 0, 2, 0);
         break;
     }
 }
@@ -1308,7 +1308,7 @@ void pl_R1_Fance(cPlayer* pEm)
     if (end) {
         pEm->atari.setPriority(0);
         pEm->atari.onSca();
-        EmRoutineSet(pEm, 0, 0, 0, 0);
+        pEm->setRno(0, 0, 0, 0);
     }
     pEm->dmg.set(0, 2);
 }
@@ -1485,7 +1485,7 @@ void pl_R1_Fall(cPlayer* pEm)
             pEm->atari.setPriority(0);
             pEm->atari.on();
             pEm->dmg.clear();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }

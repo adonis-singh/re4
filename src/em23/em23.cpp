@@ -86,7 +86,7 @@ void em23DmCk(cEm23* em)
             EmSetDie(em);
             EmReserveDropItem(em);
             w->flags |= 4;
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
             return;
         }
     }
@@ -151,7 +151,7 @@ void em23DmCk(cEm23* em)
         EmDmBloodSet2(em, 0x1B, 0, 0, 0, 0);
         EmDmBloodSet2(em, 0x1B, 1, 0, 0, 0);
         SndCall(8, 0xF, &em->pos, em->id, 0, em);
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
     }
 }
 
@@ -287,10 +287,10 @@ static void em23_R0_Init(cEm23* em)
     switch (em->set) {
     case 0:
     default:
-        EmRoutineSet(em, 1, 1, 0, 0);
+        em->setRno(1, 1, 0, 0);
         break;
     case 1:
-        EmRoutineSet(em, 1, 0, 0, 0);
+        em->setRno(1, 0, 0, 0);
         break;
     }
     MotionSetCore(em, MOTION(em), ARC(9), 0, 0, 5, 0);
@@ -493,7 +493,7 @@ static void em23_R1_R20ALanding(cEm23* em)
                 w->timer--;
             } else {
                 em->atari.on();
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             }
         }
         break;
@@ -518,7 +518,7 @@ static void em23_R1_Wait(cEm23* em)
             em->r_no_2 = 0;
         }
         if (EM23_PL_NEAR(em, 25000000.0f, 100000000.0f)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -549,7 +549,7 @@ static void em23_R1_Takeoff(cEm23* em)
             Ctrl11SetSe(w->pCtrl11, em, 10, 10, 0xB);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
             w->spd.x = 0.0f;
             w->spd.y = 20.0f;
             w->spd.z = 30.0f;
@@ -582,7 +582,7 @@ static void em23_R1_TakeoffDash(cEm23* em)
             Ctrl11SetSe(w->pCtrl11, em, 10, 10, 0xB);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
             w->spd.x = 0.0f;
             w->spd.y = 20.0f;
             w->spd.z = 30.0f;
@@ -738,7 +738,7 @@ static void em23_R1_Landing(cEm23* em)
         }
         if (em23AddSpeedAir(em, em->ang.y)) {
             if (fabsf(em->pos.y - w->pCorpse->pos.y) > 200.0f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
                 em->r_no_2++;
             }
@@ -754,12 +754,12 @@ static void em23_R1_Landing(cEm23* em)
         if (MotionMove(em, 0)) {
             if (w->pCorpse) {
                 if (fabsf(em->pos.y - w->pCorpse->pos.y) < 200.0f) {
-                    EmRoutineSet(em, 1, 6, 0, 0);
+                    em->setRno(1, 6, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 2, 0, 0);
+                    em->setRno(1, 2, 0, 0);
                 }
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -781,7 +781,7 @@ static void em23_R1_Landing(cEm23* em)
         }
         if (w->pCorpse && w->pCorpse->l_pl < 16000000.0f) {
         takeoff:
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
             return;
         }
     }
@@ -826,14 +826,14 @@ static void em23_R1_ToCorpse(cEm23* em)
             && (em->pos.x - w->pCorpse->pos.x) * (em->pos.x - w->pCorpse->pos.x)
                        + (em->pos.z - w->pCorpse->pos.z) * (em->pos.z - w->pCorpse->pos.z)
                    < 360000.0f) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
             return;
         }
         if (EM23_PL_NEAR(em, 6250000.0f, 100000000.0f)) {
             if (Rnd() % 3) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
             return;
         }
@@ -901,7 +901,7 @@ static void em23_R1_Eat(cEm23* em)
         break;
     }
     if (EM23_PL_NEAR(em, 6250000.0f, 100000000.0f)) {
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
     } else {
         em23SetWing(em, 1);
     }
@@ -942,7 +942,7 @@ static void em23_R1_Dm_Air(cEm23* em)
             if (em->hp > 0) {
                 em->r_no_2++;
             } else {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             }
         } else {
             w->targetAng = em->pos.y;
@@ -961,7 +961,7 @@ static void em23_R1_Dm_Air(cEm23* em)
         w->spd.z *= 0.85f;
         em23AddSpeedAir(em, w->dmAng);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }

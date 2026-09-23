@@ -684,7 +684,7 @@ static void funcAshley(cEm* p)
             } else {
                 SceExec(0x12, (TaskFunc) brige1_down, 0, 0, SCE_PRIO_DEF_2, 0);
                 pG->Room_flg[0] &= ~0x08000000;
-                EmRoutineSet(p, mot, mot, mot, mot);
+                p->setRno(mot, mot, mot, mot);
                 SubCharCtrl(SCC_CHASE, 0);
             }
         } else if (pG->Room_flg[0] & 0x80000000) {
@@ -696,7 +696,7 @@ static void funcAshley(cEm* p)
                 pG->Room_flg[0] |= 0x40000000;
                 SceExec(0x12, (TaskFunc) footingA_up, 0, 0, SCE_PRIO_DEF_2, 0);
                 pG->Room_flg[0] &= ~0x80000000;
-                EmRoutineSet(p, 0, 0, 0, 0);
+                p->setRno(0, 0, 0, 0);
                 SubCharCtrl(SCC_CHASE, 0);
                 if (pG->Room_flg[0] & 0x20000000) {
                     Vec pos;
@@ -718,7 +718,7 @@ static void funcAshley(cEm* p)
                 pG->Room_flg[0] |= 0x20000000;
                 SceExec(0x12, (TaskFunc) footingB_up, 0, 0, SCE_PRIO_DEF_2, 0);
                 pG->Room_flg[0] |= 0x80000000;
-                EmRoutineSet(p, 0, 0, 0, 0);
+                p->setRno(0, 0, 0, 0);
                 SubCharCtrl(SCC_CHASE, 0);
                 if (pG->Room_flg[0] & 0x40000000) {
                     Vec pos;
@@ -751,7 +751,7 @@ static void funcAshley2(cEm* p)
         SndCall(8, 1, &p->pos, p->id, 0, 0);
     }
     if (p->motionMove() != 0) {
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         AtariFlagsOr(&pSUB->atari, 0x300);
         SubCharCtrl(SCC_CHASE, 0);
     }
@@ -772,7 +772,7 @@ static void funcAshley3(cEm* p)
     p->ang.y += Muku(&p->pos, &target, p->ang.y, 0.09817477f);
     W->ashleyCnt++;
     if (p->motionMove() != 0) {
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         AtariFlagsOr(&pSUB->atari, 0x300);
         SubCharSetHand(0);
         SubCharCtrl(SCC_CHASE, 0);

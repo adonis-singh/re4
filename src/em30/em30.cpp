@@ -134,7 +134,7 @@ int em30DmCk(cEm30* em)
         EmDmBloodSet(em);
         if (em->hp <= 0) {
             EmSetDie(em);
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
         } else {
             // `lbz r3, dmWep; cmpwi r3, 0x21` with no branch (r3 = the return value): the branch
             // around an empty taken arm is deleted by jump2 after reload. Written as `== 0x21`, cse
@@ -298,7 +298,7 @@ static void em30_R1_Wait(cEm30* em)
     case 1:
         MotionMove(em, 0);
         if (EmDeadCk(em)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -320,7 +320,7 @@ static void em30_R1_Walk(cEm30* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         MotionMove(em, 0);
         if (em->l_pl < 4000000.0f) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -347,7 +347,7 @@ static void em30_R1_Dm_Normal(cEm30* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 10);
+            em->setRno(1, 1, 0, 10);
         }
         break;
     }

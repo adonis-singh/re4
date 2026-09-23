@@ -569,7 +569,7 @@ void SceSetItemEvent(int atNo, int itemNo, int flagNo, int cut, void (*func)(int
             m = SceAtItemModelPtr(itemNo);
             SceAtSetEnable(itemNo, 0);
             if (m) {
-                m->be_flag |= 2;
+                m->setTrans(1);
             }
         }
     }
@@ -935,10 +935,10 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
         item = SceAtItemModelPtr(itemNo);
     }
     if (o1) {
-        o1->be_flag |= 0x20;
+        o1->setMove(1);
     }
     if (o2) {
-        o2->be_flag |= 0x20;
+        o2->setMove(1);
     }
     if (mode == 0) {
         switch (type) {

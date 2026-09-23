@@ -619,9 +619,9 @@ void SmdSetTrans(u32 idx, int onoff)
     }
     do {
         if (onoff == 1) {
-            obj->be_flag |= 2;
+            obj->setTrans(1);
         } else {
-            obj->be_flag &= ~2;
+            obj->setTrans(0);
         }
         obj = SmdGetGroupNext(obj);
     } while (obj != NULL);

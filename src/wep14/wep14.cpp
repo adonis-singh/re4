@@ -215,7 +215,7 @@ static void wep14_r3_ready20(cPlayer* pl)
 {
     if (pl->motionMove()) {
         SndCall(5, 0, &pl->getPartsPtr(0x14)->world, 0, 0, 0);
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
     m3r.move();
     mot3.move(m3r);
@@ -234,7 +234,7 @@ static void wep14_r3_ready30(cPlayer* pl)
 
     if (pl->motionMove()) {
         SndCall(5, 0, &pl->getPartsPtr(0x14)->world, 0, 0, 0);
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
     pl->ang.y += Muku(&pl->pos, &tgt, pl->ang.y, PI / 8.0f);
     pl->pos.x = pl->pos.x * 0.6f + pos.x * 0.4f;
@@ -288,7 +288,7 @@ static void wep14_r2_set(cPlayer* pl)
         } else {
             int md = 3;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
     } else if ((fire = joyFireTrg())) {
         fire = WEP_OBJ(pl)->bulletNum();
@@ -447,7 +447,7 @@ static void wep14_r2_down(cPlayer* pl)
     }
     if (dmMotCk()) {
         pl->motionSet(WEP_ARC_PTR(0x15), 7, 0, 1, 0);
-        EmRoutineSet(pl, 0, 0, 2, 0);
+        pl->setRno(0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
         pl->m_Hokan = 0xF;
@@ -538,7 +538,7 @@ static void wep14_r2_next(cPlayer* pl)
         pl->Body->waistMove();
         pl->motionMove();
         if ((int) pl->m_Work0++ > 9) {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         }
         break;
     }
@@ -563,7 +563,7 @@ static void wep14_r2_next(cPlayer* pl)
         } else {
             int md = 1;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
     }
 }

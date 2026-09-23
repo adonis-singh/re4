@@ -749,7 +749,7 @@ int cEmWindow::SetBreakModel()
         bin = GetEtcAddr(w->arc, WindowData[type].bin);
         SetChangeModel(bin, GetEtcAddr(w->arc, WindowData[type].tpl));
     } else {
-        be_flag &= ~2;
+        setTrans(0);
     }
     if (WindowData[type].breakEff2 == 1) {
         EstSet(0, -1, &pos, &ang, w->eff, 9, 1, ESP_CORE_KIND_NONE, 0, 0);

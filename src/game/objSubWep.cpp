@@ -250,7 +250,7 @@ void cSubWep::addSpeed()
             SndCall(5, 0x24, &pos, 0, 0, 0);
             AddWaterPower(pos, 0.5f);
             r_no_0 = 1;
-            be_flag &= ~2;
+            setTrans(0);
         } else {
             timer = 1;
             moveWater();
@@ -303,7 +303,7 @@ void cSubWep::addSpeed()
             }
             SndCall(5, 0x24, &pos, 0, 0, 0);
             r_no_0 = 1;
-            be_flag &= ~2;
+            setTrans(0);
         } else {
             timer = 1;
             moveWater();

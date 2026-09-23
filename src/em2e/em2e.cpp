@@ -73,7 +73,7 @@ void em2eDmCk(cEm2e* em)
             EstSet(em, -1, 0, 0, EFF_EM2E, 0, 0, ESP_CORE_KIND_NONE, em, 0);
             SndCall(8, 4, &em->pos, em->id, 0, em);
             EmSetDie(em);
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
         }
     }
     if (em->dmg.m_Flag) {
@@ -91,7 +91,7 @@ void em2eDmCk(cEm2e* em)
         }
         SndCall(8, 4, &em->pos, em->id, 0, em);
         EmSetDie(em);
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
     }
 }
 
@@ -192,7 +192,7 @@ static void em2e_R0_Init(cEm2e* em)
     switch (em->set) {
     case 0:
     default:
-        EmRoutineSet(em, 1, zero, zero, zero);
+        em->setRno(1, zero, zero, zero);
         break;
     case 1: {
         Mtx m;
@@ -216,7 +216,7 @@ static void em2e_R0_Init(cEm2e* em)
             w->nrm = nrm;
         }
         at->offSca();
-        EmRoutineSet(em, 1, 3, zero, zero);
+        em->setRno(1, 3, zero, zero);
         break;
     }
     }
@@ -242,9 +242,9 @@ static void em2e_R1_Wait(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 1) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -277,9 +277,9 @@ static void em2e_R1_Walk(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -311,9 +311,9 @@ static void em2e_R1_Turn(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -339,7 +339,7 @@ static void em2e_R1_W_Wait(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -370,9 +370,9 @@ static void em2e_R1_W_Walk(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -403,7 +403,7 @@ static void em2e_R1_W_Turn(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         }
         break;
     }

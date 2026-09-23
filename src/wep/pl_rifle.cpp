@@ -84,7 +84,7 @@ static void wep09_r2_ready(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
         if (pl->stat.check(cPlayer::F_CROUCH)) {
-            EmRoutineSet(pl, 0, 0x11, 0, 0);
+            pl->setRno(0, 0x11, 0, 0);
         } else {
             pl->r_no_0 = 0;
             pl->r_no_1 = 0;
@@ -104,7 +104,7 @@ static void wep09_r2_ready(cPlayer* pl)
         }
         if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->Wep->m_pWep->setDisp(1, 1);
             pl->m_Work0 = 1;
         }
@@ -143,7 +143,7 @@ static void wep09_r3_ready10(cPlayer* pl)
         pl->Wep->m_CamAdjY -= d;
     }
     if (pl->motionMove()) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
         pl->m_Work4 = 10;
     }
     pl->Waist->set(0.0f, 0.4f);
@@ -175,21 +175,21 @@ static void wep09_r2_set(cPlayer* pl)
         Vec at;
 
         if (pl->stat.check(cPlayer::F_CROUCH)) {
-            EmRoutineSet(pl, 0, 0x11, 0, 0);
+            pl->setRno(0, 0x11, 0, 0);
         } else {
             int md = 3;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
         pl->m_Work0 = 0;
         CamCtrl.getTrajectory(&pl->m_VecWork0, &at);
         PSVECSubtract(&at, &pl->m_VecWork0, &pl->m_VecWork0);
     } else if (joyFireOn() && pl->m_Work4 == 0 && pl->Wep->m_pWep->bulletNum()) {
-        EmRoutineSet(pl, 0, 6, 2, 0);
+        pl->setRno(0, 6, 2, 0);
     } else if (joyFireTrg() && pl->Wep->m_pWep->bulletNum() == 0) {
         if (pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->Wep->m_pWep->setDisp(1, 1);
             pl->m_Work0 = 0;
         } else {
@@ -201,7 +201,7 @@ static void wep09_r2_set(cPlayer* pl)
         if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_pWep->setDisp(1, 1);
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->m_Work0 = 1;
         }
     }
@@ -303,13 +303,13 @@ static void wep09_r3_fire10(cPlayer* pl)
     w = pl->Wep;
     if (pl->m_Work4 > (u8) PlShotFrameTbl[pG->weapon_no][pG->weapon_lv_speed]) {
         if (pG->weapon_no != 9 || w->m_pWep->bulletNum() == 0) {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
             pl->m_Work4 = 10;
         } else {
             pl->r_no_3 = 2;
         }
     } else if (pG->weapon_no != 9 && pl->m_Work4 > 10 && joyKamae() == 0) {
-        EmRoutineSet(pl, 0, 6, 3, 0);
+        pl->setRno(0, 6, 3, 0);
         pl->m_Work0 = 0;
     }
 }
@@ -339,9 +339,9 @@ static void wep09_r3_fire30(cPlayer* pl)
 {
     if (joyKamae() == 0 && pl->Motion.Seq_frame >= 25.0f) {
         if (pl->stat.check(cPlayer::F_CROUCH)) {
-            EmRoutineSet(pl, 0, 0x11, 0, 0);
+            pl->setRno(0, 0x11, 0, 0);
         } else {
-            EmRoutineSet(pl, 0, 6, 3, 0);
+            pl->setRno(0, 6, 3, 0);
             pl->m_Work0 = 1;
         }
     } else if (pl->motionMove()) {
@@ -350,11 +350,11 @@ static void wep09_r3_fire30(cPlayer* pl)
             CamCtrl.loadScopeParam();
             CameraMove();
             scopeOn(pl);
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         } else if (pl->stat.check(cPlayer::F_CROUCH)) {
-            EmRoutineSet(pl, 0, 0x11, 0, 0);
+            pl->setRno(0, 0x11, 0, 0);
         } else {
-            EmRoutineSet(pl, 0, 6, 3, 0);
+            pl->setRno(0, 6, 3, 0);
             pl->m_Work0 = 1;
         }
     }
@@ -394,7 +394,7 @@ static void wepDown(cPlayer* pl)
             obj->r_no_1 = 0;
         }
         mot3.move(m3r);
-        EmRoutineSet(pl, 0, 0, 2, 0);
+        pl->setRno(0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
         pl->m_Hokan = 0xF;
@@ -449,7 +449,7 @@ static void wep09_r2_reload(cPlayer* pl)
             } else {
                 int md = 3;
 
-                EmRoutineSet(pl, 0, 6, md, 0);
+                pl->setRno(0, 6, md, 0);
                 pl->m_Work0 = 1;
             }
         }
@@ -458,7 +458,7 @@ static void wep09_r2_reload(cPlayer* pl)
             CameraMove();
             scopeOn(pl);
             SndCall(2, 9, &pl->pList->world, 0, 0, 0);
-            EmRoutineSet(pl, 0, 6, 1, 2);
+            pl->setRno(0, 6, 1, 2);
             pl->m_Work4 = 10;
         }
         MotionMove(pl, 0);
@@ -486,15 +486,15 @@ static void wep09_r2_next(cPlayer* pl)
             }
         }
         if ((int) pl->m_Work0++ > 9) {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         }
         break;
     }
     if (Key.trg & 0x20) {
         if (pl->Wep->lockNext()) {
-            EmRoutineSet(pl, 0, 6, 5, 0);
+            pl->setRno(0, 6, 5, 0);
         } else {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         }
     } else {
         if (joyKamae() == 0) {
@@ -506,7 +506,7 @@ static void wep09_r2_next(cPlayer* pl)
             } else {
                 int md = 1;
 
-                EmRoutineSet(pl, 0, 6, md, 0);
+                pl->setRno(0, 6, md, 0);
             }
         }
         CameraMove();

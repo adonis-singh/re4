@@ -367,7 +367,7 @@ static void em2f_R0_Init(cEm2f* em)
         em->scale.x = 2.0f;
         em->scale.y = 2.0f;
         em->scale.z = 2.0f;
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0xA), 0, 0, 0x401, 0);
         MotionMove(em, 0);
         break;
@@ -379,7 +379,7 @@ static void em2f_R0_Init(cEm2f* em)
         em->setStatus(EM_STATUS_IK_OFF);
         em->atari.m_flag &= ~0x300;
         em->atari.m_flag |= 8;
-        EmRoutineSet(em, 1, 0xA, 0, 0);
+        em->setRno(1, 0xA, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0xA), 0, 0, 0x401, 0);
         MotionMove(em, 0);
         break;
@@ -431,7 +431,7 @@ static void em2f_R1_Walk(cEm2f* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         MotionMove(em, 0);
         if (em->l_pl < 1000000.0f) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -453,7 +453,7 @@ static void em2f_R1_SwimWait(cEm2f* em)
     case 1:
         if (StaFlagChk(pG, STA_PL_BOAT)) {
             em->be_flag |= 2;
-            EmRoutineSet(em, one, 3, 0, 0);
+            em->setRno(one, 3, 0, 0);
         }
         break;
     }
@@ -545,9 +545,9 @@ static void em2f_R1_Swim(cEm2f* em)
                     return;
                 }
                 if (w->atkCnt) {
-                    EmRoutineSet(em, 1, 6, 0, 0);
+                    em->setRno(1, 6, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 9, 0, 0);
+                    em->setRno(1, 9, 0, 0);
                 }
                 return;
             }
@@ -563,11 +563,11 @@ static void em2f_R1_Swim(cEm2f* em)
                 return;
             }
             if (ang > 2.3561945f) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
                 return;
             }
             if (ang > 1.0471976f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
                 return;
             }
         }
@@ -623,7 +623,7 @@ static void em2f_R1_SwimTurn90(cEm2f* em)
             em->ang.y = LIMIT_ANGLE(em->ang.y);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -655,7 +655,7 @@ static void em2f_R1_SwimTurn180(cEm2f* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -697,7 +697,7 @@ static void em2f_R1_SwimTurn180Atk(cEm2f* em)
     case 1:
         if (MotionMove(em, 0)) {
             w->flags &= ~0x10;
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -736,7 +736,7 @@ static void em2f_R1_RisingDragon(cEm2f* em)
         if (w->timer == 0) {
             hide = StaFlagChk(pG, STA_PL_SWIM);
             if (hide == 0) {
-                EmRoutineSet(em, one, 3, 0, 0);
+                em->setRno(one, 3, 0, 0);
                 break;
             }
             em->r_no_2++;
@@ -784,11 +784,11 @@ static void em2f_R1_RisingDragon(cEm2f* em)
         r = MotionMove(em, 0);
         if (r) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         } else {
             if (em->Motion.Seq_old.Free & 1) {
                 if (StaFlagChk(pG, STA_PL_SWIM)) {
-                    EmRoutineSet(pPL, r, 0xF, 9, r);
+                    pPL->setRno(r, 0xF, 9, r);
                     SndCall(8, 0x1E, &em->pos, em->id, 0, em);
                     SndCall(8, 0x1F, &pPL->pos, em->id, 0, pPL);
                 }
@@ -841,7 +841,7 @@ static void em2f_R1_Packman(cEm2f* em)
         if (w->timer == 0) {
             hide = StaFlagChk(pG, STA_PL_SWIM);
             if (hide == 0) {
-                EmRoutineSet(em, one, 3, 0, 0);
+                em->setRno(one, 3, 0, 0);
                 break;
             }
             em->r_no_2++;
@@ -893,14 +893,14 @@ static void em2f_R1_Packman(cEm2f* em)
         if (r) {
             if ((s16) pG->pl_life > 0) {
                 em2fChangeRoute(em);
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
                 em->r_no_2++;
             }
         } else {
             if (em->Motion.Seq_old.Free & 1) {
                 if (StaFlagChk(pG, STA_PL_SWIM)) {
-                    EmRoutineSet(pPL, r, 0xF, 9, r);
+                    pPL->setRno(r, 0xF, 9, r);
                     pPL->be_flag &= ~2;
                     SndCall(8, 0x1E, &em->pos, em->id, 0, em);
                 }
@@ -922,7 +922,7 @@ static void em2f_R1_Packman(cEm2f* em)
     case 7:
         if (MotionMove(em, 0)) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -1039,7 +1039,7 @@ static void em2f_R1_HideMode(cEm2f* em)
         }
         if (MotionMove(em, 0)) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     case 0xA:
@@ -1055,7 +1055,7 @@ static void em2f_R1_HideMode(cEm2f* em)
         }
         if (MotionMove(em, 0)) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -1216,7 +1216,7 @@ static void em2f_R1_Dm_Normal(cEm2f* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -1606,12 +1606,12 @@ int em2fRisingDragonCk(cEm2f* em)
             if (Rnd() & 3) {
                 w->rndFlag = 0;
             }
-            EmRoutineSet(em, one, 7, 0, 0);
+            em->setRno(one, 7, 0, 0);
         } else {
             if (Rnd() & 3) {
                 w->rndFlag = one;
             }
-            EmRoutineSet(em, one, 8, 0, 0);
+            em->setRno(one, 8, 0, 0);
         }
         return 1;
     }

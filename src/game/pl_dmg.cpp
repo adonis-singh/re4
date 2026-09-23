@@ -117,7 +117,7 @@ void damageNormal(cPlayer* pEm)
                 pEm->dmg.m_Flag = 0;
                 pEm->dmg.m_Timer = 5;
                 EndPlDamage();
-                EmRoutineSet(pEm, 0, 0, 0, 0);
+                pEm->setRno(0, 0, 0, 0);
             }
         }
         if (pEm->m_Work1 != 0) {
@@ -155,7 +155,7 @@ void damageNormal(cPlayer* pEm)
             pEm->dmg.m_Flag = 0;
             pEm->dmg.m_Timer = 5;
             EndPlDamage();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     default:
@@ -273,7 +273,7 @@ void damageBlow(cPlayer* pEm)
             pEm->dmg.m_Flag = 0;
             pEm->dmg.m_Timer = 5;
             EndPlDamage();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -310,7 +310,7 @@ void damageBlast(cPlayer* pEm)
             pEm->dmg.m_Flag = 0;
             pEm->dmg.m_Timer = 5;
             EndPlDamage();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }

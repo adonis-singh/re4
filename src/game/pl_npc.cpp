@@ -246,7 +246,7 @@ void cSubChar::moveCore()
         case 5:
         case 6:
         case 0xE:
-            EmRoutineSet(this, 6, 0, 0, 0);
+            setRno(6, 0, 0, 0);
             dmg.set(0, 0x80);
             break;
         }
@@ -283,7 +283,7 @@ void cSubChar::moveFootwork()
         m_Work0 = 0;
         if (flg.check(F_MOVE_TO)) {
             if (dist > 400.0f) {
-                EmRoutineSet(this, 0, 1, 0, 0);
+                setRno(0, 1, 0, 0);
                 return;
             }
             r_no_2 = 0x32;
@@ -430,19 +430,19 @@ void cSubChar::moveFootwork()
     }
     backCheckCtrlFootwork();
     if (status.check(S_PANTS)) {
-        EmRoutineSet(this, 0, 6, 0, 0);
+        setRno(0, 6, 0, 0);
         return;
     }
     if (status.check(S_WEPCAUTION)) {
-        EmRoutineSet(this, 0, 4, 0, 0);
+        setRno(0, 4, 0, 0);
         return;
     }
     if (plDownCheck()) {
-        EmRoutineSet(this, 0, 0x11, 0, 0);
+        setRno(0, 0x11, 0, 0);
         return;
     }
     if (!status.check(S_PL_NEAR) && status.check(S_EM_NEAR)) {
-        EmRoutineSet(this, 0, 7, 0, 0);
+        setRno(0, 7, 0, 0);
         return;
     }
     if (flg.check(F_STAY)) {
@@ -465,7 +465,7 @@ void cSubChar::moveFootwork()
         return;
     }
     if (StaFlagChk(pG, STA_PL_CATCHED) && status.check(S_PL_NEAR)) {
-        EmRoutineSet(this, 0, 7, 0, 0);
+        setRno(0, 7, 0, 0);
         return;
     }
     if (StaFlagChk(pG, STA_PL_EM_ACTION) && status.check(S_PL_NEAR)) {
@@ -478,7 +478,7 @@ void cSubChar::moveFootwork()
         return;
     }
     if (readyCheck()) {
-        EmRoutineSet(this, 0, 1, 0, 0);
+        setRno(0, 1, 0, 0);
         return;
     }
     act = actCheck();
@@ -489,25 +489,25 @@ void cSubChar::moveFootwork()
                 if (!pEm->status.check(cSubChar::S_ARRIVED)) {
                     pEm->m_Frame = 0;
                     pEm->m_Hokan = 5;
-                    EmRoutineSet(pEm, 0, 1, 0, 0);
+                    pEm->setRno(0, 1, 0, 0);
                     break;
                 }
             }
             if (dist > 1100.0f || m_PlActTime) {
                 pEm->m_Frame = 0;
                 pEm->m_Hokan = 5;
-                EmRoutineSet(pEm, 0, 1, 0, 0);
+                pEm->setRno(0, 1, 0, 0);
             }
         }
         break;
     case 7:
-        EmRoutineSet(this, 0, 2, 0, 0);
+        setRno(0, 2, 0, 0);
         break;
     case 8:
-        EmRoutineSet(this, 0, 0xA, 0, 0);
+        setRno(0, 0xA, 0, 0);
         break;
     case 9:
-        EmRoutineSet(this, 0, 0xC, 0, 0);
+        setRno(0, 0xC, 0, 0);
         break;
     case 5:
     case 6:
@@ -656,7 +656,7 @@ void cSubChar::moveMove()
         if (Muku2(ang.y, m_TargetDir, 3.1415927f) > 0.0f) {
             ang.y = m_TargetDir;
             status.on(S_ARRIVED);
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     case 0xC:
@@ -664,7 +664,7 @@ void cSubChar::moveMove()
         if (Muku2(ang.y, m_TargetDir, 3.1415927f) < 0.0f) {
             ang.y = m_TargetDir;
             status.on(S_ARRIVED);
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -708,56 +708,56 @@ void cSubChar::moveMove()
         m_Timer++;
     }
     if (status.check(S_PANTS)) {
-        EmRoutineSet(this, 0, 6, 0, 0);
+        setRno(0, 6, 0, 0);
     } else if (status.check(S_WEPCAUTION)) {
-        EmRoutineSet(this, 0, 4, 0, 0);
+        setRno(0, 4, 0, 0);
     } else if (StaFlagChk(pG, STA_PL_EM_ACTION) && status.check(S_PL_NEAR)) {
-        EmRoutineSet(this, 0, 0, 0x32, 0);
+        setRno(0, 0, 0x32, 0);
     } else if (!status.check(S_PL_NEAR) && status.check(S_EM_NEAR)) {
-        EmRoutineSet(this, 0, 7, 0, 0);
+        setRno(0, 7, 0, 0);
     } else if (StaFlagChk(pG, STA_PL_CATCHED) && status.check(S_PL_NEAR)) {
-        EmRoutineSet(this, 0, 7, 0, 0);
+        setRno(0, 7, 0, 0);
     } else if (flg.check(F_STAY)) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     } else if (status.check(S_NEED_STOP)) {
         return;
     } else if (m_FallWaitTimer) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     } else if ((plStat & 0x400) && !flg.check(F_MOVE_TO)) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     } else if (plStat & 0x40000) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     } else if ((plStat & 0x20000) && dist < 1000.0f && !flg.check(F_MOVE_TO)) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     } else {
         switch ((u32) actCheck()) {
         case 1:
-            EmRoutineSet(this, 0, 8, 0, 0);
+            setRno(0, 8, 0, 0);
             break;
         case 2:
-            EmRoutineSet(this, 0, 8, 0, 1);
+            setRno(0, 8, 0, 1);
             break;
         case 3:
             status.on(S_FALL_WINDOW);
-            EmRoutineSet(this, 0, 0x12, 0, 0);
+            setRno(0, 0x12, 0, 0);
             break;
         case 4:
-            EmRoutineSet(this, 0, 0x14, 0, 0);
+            setRno(0, 0x14, 0, 0);
             break;
         case 5:
         case 6:
             break;
         case 7:
-            EmRoutineSet(this, 0, 2, 0, 0);
+            setRno(0, 2, 0, 0);
             break;
         case 8:
-            EmRoutineSet(this, 0, 0xA, 0, 0);
+            setRno(0, 0xA, 0, 0);
             break;
         case 9:
-            EmRoutineSet(this, 0, 0xC, 0, 0);
+            setRno(0, 0xC, 0, 0);
             break;
         case 0xB:
-            EmRoutineSet(this, 0, 0x13, 0, 0);
+            setRno(0, 0x13, 0, 0);
             break;
         }
     }
@@ -851,7 +851,7 @@ void cSubChar::moveBehind()
         atari.on();
         inSat();
         atari.set(-10, 300.0f, 200.0f);
-        EmRoutineSet(this, 0, 0, 0x28, 0);
+        setRno(0, 0, 0x28, 0);
         break;
     }
 }
@@ -905,7 +905,7 @@ void cSubChar::moveKagamu()
             status.off(S_DOWN);
         }
         if (pEm->motionMove()) {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -948,7 +948,7 @@ void cSubChar::movePants()
         break;
     case 4:
         if (MotionMove(pEm, 0)) {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -985,7 +985,7 @@ void cSubChar::moveDown()
     case 4:
         if (motionMove()) {
             status.off(S_DOWN);
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1046,7 +1046,7 @@ void cSubChar::moveFance()
 
         if (pEm->r_no_3 == 0) {
             if (!getScrActionPoint(&p, &r, 0x20)) {
-                EmRoutineSet(this, 0, 0, 0, 0);
+                setRno(0, 0, 0, 0);
                 break;
             }
         } else {
@@ -1069,7 +1069,7 @@ void cSubChar::moveFance()
             pEm->atari.onSca();
             atari.setPriority(0);
             pEm->dmg.clear();
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1171,7 +1171,7 @@ void cSubChar::moveFall()
             atari.setPriority(0);
             dmg.clear();
             flg.off(F_SHADOW_OFF);
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1232,7 +1232,7 @@ void cSubChar::moveAction()
         if (motionMove()) {
             atari.on();
             dmg.clear();
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     case 2:
@@ -1250,7 +1250,7 @@ void cSubChar::moveAction()
         if (motionMove()) {
             atari.on();
             dmg.clear();
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     case 4:
@@ -1264,7 +1264,7 @@ void cSubChar::moveAction()
         if (motionMove()) {
             atari.on();
             dmg.clear();
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1327,7 +1327,7 @@ void cSubChar::moveLadder()
             atari.on();
             dmg.clear();
             flg.off(F_SHADOW_OFF);
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1426,7 +1426,7 @@ void cSubChar::moveBack()
         break;
     }
     if (!StaFlagChk(pG, STA_PL_CATCHED)) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     }
 }
 
@@ -1621,7 +1621,7 @@ void cSubChar::moveHide()
             pEm->atari.setPriority(0);
             atari.on();
             dmg.clear();
-            EmRoutineSet(this, z, z, z, z);
+            setRno(z, z, z, z);
         }
         break;
     }
@@ -1658,7 +1658,7 @@ void cSubChar::moveStoop()
         break;
     case 4:
         if (motionMove()) {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1729,7 +1729,7 @@ void cSubChar::moveFallWait()
         r_no_2 = 5;
     case 5:
         if (motionMove()) {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1761,7 +1761,7 @@ void cSubChar::moveFallWait()
     }
     if (!SatMgr.hitCheck(&pList->world, &pPL->pList->world, 0, 0, 0, 0)) {
         status.off(S_FALL_WINDOW);
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     }
 }
 
@@ -1787,7 +1787,7 @@ void cSubChar::moveLadderWait()
     }
     if (!SatMgr.hitCheck(&pList->world, &pPL->pList->world, 0, 0, 0, 0) &&
         !SatMgr.hitCheck(&pPL->pList->world, &pList->world, 0, 0, 0, 0)) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     }
 }
 
@@ -1813,7 +1813,7 @@ void cSubChar::moveWindowWait()
     }
     if (!SatMgr.hitCheck(&pList->world, &pPL->pList->world, 0, 0, 0, 0) &&
         !SatMgr.hitCheck(&pPL->pList->world, &pList->world, 0, 0, 0, 0)) {
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
     }
 }
 
@@ -1967,7 +1967,7 @@ void cSubChar::moveDamage()
             switch (m_Work0) {   // default first (laid out first); separate identical bodies
             default:
                 setFace(0);
-                EmRoutineSet(this, 0, 0, 0, 0);
+                setRno(0, 0, 0, 0);
                 break;
             case 6:
             case 7:
@@ -2006,7 +2006,7 @@ void cSubChar::moveDamage()
     case 6:
         if (motionMove()) {
             endDamage();
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     case 7:
@@ -2097,7 +2097,7 @@ void cSubChar::moveEvent()
                 } else {
                     MOT_SET(pEm, MOTION(pEm), SUB_MOT(pEm, 0x6E), 0, 7, 5, 0);
                 }
-                EmRoutineSet(this, 5, 0, 0, 0);
+                setRno(5, 0, 0, 0);
             }
             break;
         }
@@ -2325,7 +2325,7 @@ int cSubChar::windowCheck()
         }
         if (w->ChkBreakDir(&pEm->pos) == 2) {
             status.on(S_FALL_WINDOW);
-            EmRoutineSet(this, 0, 0x12, 0, 0);
+            setRno(0, 0x12, 0, 0);
             return 2;
         }
         fWork0 = atan2(-dir.x, -dir.z);
@@ -2385,7 +2385,7 @@ void catchOn()
 
     pPL->dmg.set(0, 0x80);
     sub->dmg.set(0, 0x80);
-    EmRoutineSet(sub, 0, 9, 0, 0);
+    sub->setRno(0, 9, 0, 0);
     if (sub->m_PlActTime) {
         p = sub->m_PlActPos;
         p.y = sub->pos.y;
@@ -2461,7 +2461,7 @@ int cSubChar::actionCheck()
             pEm->m_Work0 = 3;
             ret = 1;
         } else {
-            EmRoutineSet(this, 0, 0x12, 0, 0);
+            setRno(0, 0x12, 0, 0);
         }
     }
     return ret;
@@ -3011,7 +3011,7 @@ void cSubChar::control(int mode)
         break;
     case 1:
         if (r_no_0 == 5) {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         if (r_no_0 != 0 || r_no_1 != 0x10) {
             flg.off(F_SLEEP);
@@ -3021,7 +3021,7 @@ void cSubChar::control(int mode)
         break;
     case 3:
         if (r_no_0 == 5) {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         if (r_no_0 != 0 || r_no_1 != 0x10) {
             setPos(&pPL->pos);
@@ -3033,7 +3033,7 @@ void cSubChar::control(int mode)
         atari.on();
     case 2:
         if (r_no_0 == 5) {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         if (r_no_0 != 0 || r_no_1 != 0x10) {
             flg.off(F_SLEEP).off(F_STAY);
@@ -3046,26 +3046,26 @@ void cSubChar::control(int mode)
         flg.off(F_STAY);
         flg.on(F_MOVE_TO);
         if (m_TargetPos.x != 193.0f) {
-            EmRoutineSet(this, 0, md, 0, 0);
+            setRno(0, md, 0, 0);
             atari.on();
         } else if (m_TargetDir != 193.0f) {
             m_TargetPos = pos;
-            EmRoutineSet(this, 0, md, 0, 0);
+            setRno(0, md, 0, 0);
             atari.on();
         } else {
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
     case 5:
         init();
-        EmRoutineSet(this, 0, 0, 0, 0);
+        setRno(0, 0, 0, 0);
         break;
     case 6:
         if (r_no_0 == 0 && flg.check(F_PL_CTRL)) {
             flg.on(F_STAY);
             flg.off(F_PL_CTRL);
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -3369,7 +3369,7 @@ void cSubChar::damageCheck()
         return;
     }
     if (pAuxDm) {
-        EmRoutineSet(this, 1, 0, 0, 0);
+        setRno(1, 0, 0, 0);
         dmg.m_Flag = 0;
         return;
     }
@@ -3380,14 +3380,14 @@ void cSubChar::damageCheck()
         LifeDownSet2(this, 9999, 0, 0);
         int one = 1;
         if (StaFlagChk(pG, STA_SUB_LADDER)) {
-            EmRoutineSet(this, one, 0, 0, 0);
+            setRno(one, 0, 0, 0);
             m_Work0 = 11;
         } else if ((s16) pG->ashley_life > 0) {
-            EmRoutineSet(this, one, 0, 0, 0);
+            setRno(one, 0, 0, 0);
             m_Work0 = 2;
         } else {
             dmg.m_Timer = 0x80;
-            EmRoutineSet(this, 2, 0, 0, 0);
+            setRno(2, 0, 0, 0);
         }
         break;
     }
@@ -3402,7 +3402,7 @@ void cSubChar::damageCheck()
             r_no_3 = 0;
         } else {
             LifeDownSet2(this, 9999, 0, 0);
-            EmRoutineSet(this, 1, 0, 0, 0);
+            setRno(1, 0, 0, 0);
             if (Front_check(this, &dmg.m_PosFrom, 1.5707964f)) {
                 m_Work0 = 7;
                 ang.y += Muku(&pos, &dmg.m_PosFrom, 3.1415927f, 3.1415927f);
@@ -3419,11 +3419,11 @@ void cSubChar::damageCheck()
         dmg.m_Timer = 0x3C;
         LifeDownSet2(this, 300, 0, 0);
         if ((s16) pG->ashley_life > 0) {
-            EmRoutineSet(this, 1, 0, 0, 0);
+            setRno(1, 0, 0, 0);
             m_Work0 = 2;
         } else {
             dmg.m_Timer = 0x80;
-            EmRoutineSet(this, 2, 0, 0, 0);
+            setRno(2, 0, 0, 0);
         }
         break;
     }
@@ -3713,29 +3713,29 @@ void cSubChar::dmgCheck()
         LifeDownSet2(this, (s16) pG->ashley_life_max, 0, 0);
         int one = 1;
         if (StaFlagChk(pG, STA_SUB_LADDER)) {
-            EmRoutineSet(this, one, 0, 0, 0);
+            setRno(one, 0, 0, 0);
             m_Work0 = 11;
         } else if ((s16) pG->ashley_life > 0) {
             dmg.m_Timer = 0x5A;
-            EmRoutineSet(this, one, 0, 0, 0);
+            setRno(one, 0, 0, 0);
             m_Work0 = 2;
         } else {
             dmg.m_Timer = 0x80;
-            EmRoutineSet(this, 2, 0, 0, 0);
+            setRno(2, 0, 0, 0);
         }
         StaFlagOff(pG, STA_SUB_LADDER);
         int two = 1;
         LifeDownSet2(this, (s16) pG->ashley_life_max, 0, 0);
         if (StaFlagChk(pG, STA_SUB_LADDER)) {
-            EmRoutineSet(this, two, 0, 0, 0);
+            setRno(two, 0, 0, 0);
             m_Work0 = 11;
         } else if ((s16) pG->ashley_life > 0) {
             dmg.m_Timer = 0x5A;
-            EmRoutineSet(this, two, 0, 0, 0);
+            setRno(two, 0, 0, 0);
             m_Work0 = 2;
         } else {
             dmg.m_Timer = 0x80;
-            EmRoutineSet(this, 2, 0, 0, 0);
+            setRno(2, 0, 0, 0);
         }
         break;
     }
@@ -3744,15 +3744,15 @@ void cSubChar::dmgCheck()
         LifeDownSet2(this, (s16) pG->ashley_life_max, 0, 0);
         int one = 1;
         if (StaFlagChk(pG, STA_SUB_LADDER)) {
-            EmRoutineSet(this, one, 0, 0, 0);
+            setRno(one, 0, 0, 0);
             m_Work0 = 11;
         } else if ((s16) pG->ashley_life > 0) {
             dmg.m_Timer = 0x5A;
-            EmRoutineSet(this, one, 0, 0, 0);
+            setRno(one, 0, 0, 0);
             m_Work0 = 2;
         } else {
             dmg.m_Timer = 0x80;
-            EmRoutineSet(this, 2, 0, 0, 0);
+            setRno(2, 0, 0, 0);
         }
         break;
     }
@@ -3760,11 +3760,11 @@ void cSubChar::dmgCheck()
         LifeDownSet2(this, 300, 0, 0);
         if ((s16) pG->ashley_life > 0) {
             dmg.m_Timer = 0x5A;
-            EmRoutineSet(this, 1, 0, 0, 0);
+            setRno(1, 0, 0, 0);
             m_Work0 = 2;
         } else {
             dmg.m_Timer = 0x80;
-            EmRoutineSet(this, 2, 0, 0, 0);
+            setRno(2, 0, 0, 0);
         }
         break;
     }

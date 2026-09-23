@@ -128,7 +128,7 @@ void em34DmCk(cEm34* em)
     EmDmBloodSet(em);
     if (em->hp <= 0) {
         EmSetDie(em);
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
     }
 }
 
@@ -318,7 +318,7 @@ static void em34_R0_Init(cEm34* em)
     EspDataLoad((u32) ARC(0x10), EFF_EM34, 0);
     w->Neck_dir_y = 0.0f;
     w->Be_flg = 0;
-    EmRoutineSet(em, one, 0, 0, 0);
+    em->setRno(one, 0, 0, 0);
     switch (em->type) {
     case 0:
     default:
@@ -368,7 +368,7 @@ static void em34_R1_Wait(cEm34* em)
     case 1:
         MotionMove(em, 0);
         if (EmDeadCk(em)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -403,11 +403,11 @@ static void em34_R1_Walk(cEm34* em)
         MotionMove(em, 0);
         if (em->type == 1 && em->hp < 500) {
             if (em->l_pl < 1000000.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         } else {
             if (em->l_pl < 4000000.0f) {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             }
         }
         break;
@@ -443,7 +443,7 @@ static void em34_R1_Atk(cEm34* em)
         em->ang.y += Muku(&em->pos, &w->Go_pos, em->ang.y, PI / 32.0f);
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             em34AtkCk(em, 0, 0xA);
         }
@@ -484,7 +484,7 @@ static void em34_R1_Dm_Normal(cEm34* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 10);
+            em->setRno(1, 1, 0, 10);
         }
         break;
     }

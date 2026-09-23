@@ -190,7 +190,7 @@ static void funcAshley2(cEm* p)
         // Reference store: the `lwz pSUB` (fixed scalar) below depends on an unflagged MEM store but
         // not on an in-struct one, which is what ranks the 1.0 chain above the routine bytes.
         (p->Motion.Seq_speed = 1.0f);
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         at = &pSUB->atari;
         at->on();
         SubCharCtrl(SCC_CHASE, 0);

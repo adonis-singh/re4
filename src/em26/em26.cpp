@@ -84,7 +84,7 @@ void em26DmCk(cEm26* em)
             em->hp = 0;
             EmSetDie(em);
             w->flags |= 0x20;
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
             return;
         }
     }
@@ -189,9 +189,9 @@ void em26DmCk(cEm26* em)
     }
     SndCall(8, 0xA, &em->pos, em->id, 0, em);
     if (em->hp <= 0) {
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
     } else if (part->parts_no == 5 || part->parts_no == 0x18 || Rnd() % 5 == 0) {
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
     }
 }
 
@@ -314,7 +314,7 @@ static void em26_R0_Init(cEm26* em)
     w->pCtrl12 = GetCtrlCtrl12();
     w->x194 = zero;
     em->setStatus(EM_STATUS_ACTIVE);
-    EmRoutineSet(em, 1, zero, zero, zero);
+    em->setRno(1, zero, zero, zero);
     if (w->flags & 0x10) {
         MotionSetCore(em, MOTION(em), ARC(8), 0, 0, 0x41, 0);
     } else {
@@ -379,7 +379,7 @@ static void em26_R1_Wait(cEm26* em)
         if ((p->world.x - pPL->pos.x) * (p->world.x - pPL->pos.x)
                 + (p->world.z - pPL->pos.z) * (p->world.z - pPL->pos.z) < 1000000.0f
             && fabsf(em->pos.y - pPL->pos.y) < 500.0f) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
     }
 }
@@ -411,7 +411,7 @@ static void em26_R1_Atk(cEm26* em)
             em26AtkCk(em);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -473,7 +473,7 @@ static void em26_R1_Dm_Small(cEm26* em)
     }
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }

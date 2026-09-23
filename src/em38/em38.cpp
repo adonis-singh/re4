@@ -190,7 +190,7 @@ void em38DmCk(cEm38* em)
                 }
                 if (w->dmgCnt > 199) {
                     w->dmgCnt = 0;
-                    EmRoutineSet(em, 2, 0, 0, 0);
+                    em->setRno(2, 0, 0, 0);
                     return;
                 }
             } else {
@@ -204,7 +204,7 @@ void em38DmCk(cEm38* em)
             if (w->seWait == 0) {
                 Ctrl11SetSeEm38(w->pCtrl11, em, 0x23);
             }
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
         }
     }
 }
@@ -478,25 +478,25 @@ static void em38_R0_Init(cEm38* em)
         MotionMove(em, 0);
         break;
     case 1:
-        EmRoutineSet(em, 1, 5, 0, 0);
+        em->setRno(1, 5, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x2F), 0, 0, 5, 0);
         em->hp = 200;
         MotionMove(em, 0);
         break;
     case 2:
-        EmRoutineSet(em, 1, 5, 0, 0);
+        em->setRno(1, 5, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x2F), 0, 0, 5, 0);
         em->hp = 200;
         MotionMove(em, 0);
         break;
     case 3:
         em->setStatus(EM_STATUS_ACTIVE);
-        EmRoutineSet(em, 1, 0xE, 0, 0);
+        em->setRno(1, 0xE, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x29), 0, 0, 1, 0);
         MotionMove(em, 0);
         break;
     case 4:
-        EmRoutineSet(em, 1, 0x10, 0, 0);
+        em->setRno(1, 0x10, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x50), 0, 0, 5, 0);
         MotionMove(em, 0);
         break;
@@ -559,14 +559,14 @@ static void em38_R1_Wait(cEm38* em)
             }
             if (w->atkWait == 0 && fabsf(w->blendRate - ang) < 10.0f) {
                 if ((u8) (Rnd() % 10) > 3) {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                     return;
                 }
             }
             if (w->waitCnt) {
                 w->waitCnt--;
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -622,7 +622,7 @@ static void em38_R1_HeadUp(cEm38* em)
         if (MotionMove(em, 0)) {
             if (w->pTent[0] && w->pTent[1]) {
                 if (w->pTent[0]->ckIn() == 0 || w->pTent[1]->ckIn() == 0) {
-                    EmRoutineSet(em, 1, 2, 0, 0);
+                    em->setRno(1, 2, 0, 0);
                     return;
                 }
             }
@@ -650,7 +650,7 @@ static void em38_R1_HeadUp(cEm38* em)
         w->blendRate = w->blendRate * 0.98f + ang * 0.02f;
         em38BlendMotSet(em, w->mot[0], w->mot[1], w->mot[2], w->mot[3], 0, 0, w->blendKind);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -683,7 +683,7 @@ static void em38_R1_HeadStamp(cEm38* em)
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
             w->blendRate = 0.0f;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             em38AtkCk(em, 4, 0x17);
             em38AtkCk(em, 4, 0x18);
@@ -764,7 +764,7 @@ static void em38_R1_Atk(cEm38* em)
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
             w->atkWait = 210;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -843,11 +843,11 @@ static void em38_R1_T_Wait(cEm38* em)
     case 1:
         MotionMove(em, 0);
         if (w->pBody && w->pBody->hp <= 0) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
             break;
         }
         if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
             break;
         }
         if (w->atkWait) {
@@ -856,18 +856,18 @@ static void em38_R1_T_Wait(cEm38* em)
         if (pPL->pos.y > 2000.0f) {
             if (w->pBody) {
                 if (w->pBody->ckHeadUp()) {
-                    EmRoutineSet(em, 1, 0xB, 0, 0);
+                    em->setRno(1, 0xB, 0, 0);
                     break;
                 }
                 if ((u8) (Rnd() % 10) <= 1 && w->pBody->ckCritical() == 0 && pG->Game_level > 1) {
-                    EmRoutineSet(em, 1, 0xA, 0, 0);
+                    em->setRno(1, 0xA, 0, 0);
                     break;
                 }
             }
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else {
             if (pG->Game_level > 1) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             }
         }
         break;
@@ -924,7 +924,7 @@ static void em38_R1_T_In(cEm38* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -954,7 +954,7 @@ static void em38_R1_T_Out(cEm38* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 6, 0, 0);
+            em->setRno(1, 6, 0, 0);
         }
         break;
     }
@@ -1056,9 +1056,9 @@ static void em38_R1_T_Atk(cEm38* em)
             if (w->atkHit == 0) {
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else {
             if (em->Motion.Seq_old.Free & 1) {
                 em38AtkCk(em, 0, 7);
@@ -1158,9 +1158,9 @@ static void em38_R1_T_MdlAtk(cEm38* em)
             if (w->atkHit == 0) {
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else {
             if (pPL->r_no_0 == 1 || pPL->r_no_0 == 2 || (StaFlagChk(pG, STA_PL_CATCHED))) {
                 w->escaped = 1;
@@ -1246,9 +1246,9 @@ static void em38_R1_T_BigAtk(cEm38* em)
         end = MotionMove(em, 0);
         if (end) {
             GameAddPoint(LVADD_ESCAPEATTACK);
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else {
             if (pPL->r_no_0 == 1 || pPL->r_no_0 == 2 || (StaFlagChk(pG, STA_PL_CATCHED))) {
                 w->escaped = 1;
@@ -1320,9 +1320,9 @@ static void em38_R1_T_DownAtk(cEm38* em)
             if (w->atkHit == 0) {
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             em38AtkCk(em, 2, 7);
             em38AtkCk(em, 2, 8);
@@ -1371,7 +1371,7 @@ static void em38_R1_T_CatchHit(cEm38* em)
             SndCall(8, 0x26, &em->getPartsPtr(4)->world, em->id, 0, pPL);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -1478,7 +1478,7 @@ static void em38_R1_U_Critical(cEm38* em)
     case 1:
         em38UpperOnBody(em);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0xE, 0, 0);
+            em->setRno(1, 0xE, 0, 0);
         }
         break;
     }
@@ -1565,7 +1565,7 @@ static void em38_R1_Dm_Down(cEm38* em)
         em->r_no_2++;
     case 5:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0xA);
+            em->setRno(1, 0, 0, 0xA);
         }
         break;
     }
@@ -1586,7 +1586,7 @@ static void em38_R1_Dm_Upper(cEm38* em)
     case 1:
         em38UpperOnBody(em);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0xE, 0, 0);
+            em->setRno(1, 0xE, 0, 0);
         }
         break;
     }
@@ -2742,7 +2742,7 @@ void cEm38::setIn()
     if (type == 1 || type == 2) {
         if (r_no_1 == 6) {
             hp = 200;
-            EmRoutineSet(this, 1, 7, 0, 0);
+            setRno(1, 7, 0, 0);
         }
     }
 }
@@ -2763,7 +2763,7 @@ int cEm38::ckIn()
 void cEm38::setCritical()
 {
     if (type == 3) {
-        EmRoutineSet(this, 1, 0xF, 0, 0);
+        setRno(1, 0xF, 0, 0);
     }
 }
 

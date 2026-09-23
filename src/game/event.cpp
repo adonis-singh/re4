@@ -672,8 +672,8 @@ void Event::ControlTransFlag()
         if (pG->game_costume == 1) {
             if (ModTbl.ChkDatWkNoName(i, "evmd100") == 1 || ModTbl.ChkDatWkNoName(i, "evm8200") == 1
                 || ModTbl.ChkDatWkNoName(i, "evm7100") == 1) {
-                m->be_flag &= ~0x20;
-                m->be_flag &= ~2;
+                m->setMove(0);
+                m->setTrans(0);
                 continue;
             }
         }
@@ -700,36 +700,36 @@ void Event::ControlTransFlag()
                 }
             }
             if (state == -1 || (state & 4)) {
-                m->be_flag &= ~0x20;
-                m->be_flag &= ~2;
+                m->setMove(0);
+                m->setTrans(0);
             } else {
-                m->be_flag |= 0x20;
-                m->be_flag |= 2;
+                m->setMove(1);
+                m->setTrans(1);
             }
             if (m->kindid == 1 && m->id == cObjMgr::ID_EVENT) {
                 w = OBJ18_WK((cObj18*) m);
                 if (w->obj18_type == OBJ18_TYPE_ADA && w->pObjChain != 0 && !(OBJ18_WK((cObj18*) m)->ObjChainFlagCommon & 0x04000000)) {
                     if ((m->be_flag & 0x20) == 0) {
-                        w->pObjChain->be_flag &= ~0x20;
+                        w->pObjChain->setMove(0);
                     } else {
-                        w->pObjChain->be_flag |= 0x20;
+                        w->pObjChain->setMove(1);
                     }
                     if (m->isTrans() == 0) {
-                        w->pObjChain->be_flag &= ~2;
+                        w->pObjChain->setTrans(0);
                     } else {
-                        w->pObjChain->be_flag |= 2;
+                        w->pObjChain->setTrans(1);
                     }
                 }
                 if (obj18GetOya(&oya, (cObj*) m) == 1) {
                     if ((oya->be_flag & 0x20) == 0) {
-                        m->be_flag &= ~0x20;
+                        m->setMove(0);
                     } else {
-                        m->be_flag |= 0x20;
+                        m->setMove(1);
                     }
                     if (oya->isTrans() == 0) {
-                        m->be_flag &= ~2;
+                        m->setTrans(0);
                     } else {
-                        m->be_flag |= 2;
+                        m->setTrans(1);
                     }
                 }
             }
@@ -980,7 +980,7 @@ int Event::ExePacket_SetOm(Event* pEvt)
     }
     obj->be_flag |= 0x02001000;
     obj->setNoSuspend(1);
-    obj->be_flag &= ~2;
+    obj->setTrans(0);
     Obj18CmfSet(obj, pac->flag);
     if (strcmp(pac->mod.name, "pl0000") == 0) {
         pEvt->PPl = obj;

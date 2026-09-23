@@ -159,7 +159,7 @@ void cObjRobo::R0Init(cObjRobo* pObj)
             } else {
                 SceAtSetParent(SCEAT_ITEMPARENT_R, smd, 0);
             }
-            smd->be_flag &= ~2;
+            smd->setTrans(0);
         }
     }
     SceAtDataSet_exec(SCEAT_EXEC_BACK, SCE_LEVEL10, 0, (TaskFunc) TaskSwitchBack, pObj, 1);

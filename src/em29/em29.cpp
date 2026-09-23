@@ -62,13 +62,13 @@ static inline void em29DmRoutineSet(cEm29* em, u32 kind)
     switch (kind) {
     case 0:
     default:
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
         break;
     case 1:
-        EmRoutineSet(em, 2, 1, 0, 0);   // cse stores the kind register for the 1
+        em->setRno(2, 1, 0, 0);   // cse stores the kind register for the 1
         break;
     case 2:
-        EmRoutineSet(em, 2, 2, 0, 0);
+        em->setRno(2, 2, 0, 0);
         break;
     }
 }
@@ -81,14 +81,14 @@ static inline void em29DmRoutineSetLate(cEm29* em, u32 kind)
 {
     switch (kind) {
     case 1:
-        EmRoutineSet(em, 2, 1, 0, 0);
+        em->setRno(2, 1, 0, 0);
         break;
     case 2:
-        EmRoutineSet(em, 2, 2, 0, 0);
+        em->setRno(2, 2, 0, 0);
         break;
     case 0:
     default:
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
         break;
     }
 }
@@ -101,13 +101,13 @@ static inline void em29DmRoutineSetZ(cEm29* em, u32 kind, int z)
     switch (kind) {
     case 0:
     default:
-        EmRoutineSet(em, 2, z, z, z);
+        em->setRno(2, z, z, z);
         break;
     case 1:
-        EmRoutineSet(em, 2, 1, z, z);
+        em->setRno(2, 1, z, z);
         break;
     case 2:
-        EmRoutineSet(em, 2, 2, z, z);
+        em->setRno(2, 2, z, z);
         break;
     }
 }
@@ -408,10 +408,10 @@ static void em29_R0_Init(cEm29* em)
     switch (em->set) {
     case 0:
     default:
-        EmRoutineSet(em, one, zero, zero, zero);
+        em->setRno(one, zero, zero, zero);
         break;
     case 1:
-        EmRoutineSet(em, 1, 1, zero, zero);
+        em->setRno(1, 1, zero, zero);
         break;
     }
     em->ang.y = fRand1_1() * PI;
@@ -462,7 +462,7 @@ static void em29_R1_WaitLand(cEm29* em)
         MotionSetCore(em, MOTION(em), ARC(0xC), 0, 0, 5, 0);
         MotionMove(em, 0);
         w->atkTimer = 180;
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
         w->spd.x = 0.0f;
         w->spd.y = 80.0f;
         w->spd.z = 100.0f;
@@ -501,7 +501,7 @@ static void em29_R1_WaitCeiling(cEm29* em)
     case 3:
         if (MotionMove(em, 0)) {
             w->atkTimer = 180;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
             w->spd.x = 0.0f;
             w->spd.y = -50.0f;
             w->spd.z = 100.0f;
@@ -546,13 +546,13 @@ static void em29_R1_Walk(cEm29* em)
         hit = Ctrl12CntCk(w->pCtrl12, CTRL12_ID_CNT_EM29_DIE, 10);
         if (hit) {
             em->hp = 0;
-            EmRoutineSet(em, 3, 2, 0, 0);
+            em->setRno(3, 2, 0, 0);
         } else if (w->timer == 0) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else {
             w->timer--;
             if (w->targetAngAbs > PI / 2.0f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
         }
         break;
@@ -586,11 +586,11 @@ static void em29_R1_Turn(cEm29* em)
     case 1:
         em29SetSPeed(em, 0.5f);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         if (Ctrl12CntCk(w->pCtrl12, CTRL12_ID_CNT_EM29_DIE, 10)) {
             em->hp = 0;
-            EmRoutineSet(em, 3, 2, 0, 0);
+            em->setRno(3, 2, 0, 0);
         }
         break;
     }
@@ -620,7 +620,7 @@ static void em29_R1_AtkDash(cEm29* em)
         }
         em29SetSPeed(em, 0.3f);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else if ((em->Motion.Seq_old.Free & 1) && w->atkHit == 0 && em29AtkCk(em, 0)) {
             Ctrl12Set(w->pCtrl12, CTRL12_ID_EM29_RUSH, 60);
             em->r_no_2++;
@@ -637,7 +637,7 @@ static void em29_R1_AtkDash(cEm29* em)
     case 3:
         em29SetSPeed(em, 0.5f);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -726,7 +726,7 @@ static void em29_R1_AtkRush(cEm29* em)
     if (Ctrl12Ck(w->pCtrl12, CTRL12_ID_EM29_RUSH) == 0 || (s16) pG->pl_life <= 0) {
         w->escTimer = 30;
         w->atkTimer = 180;
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
     } else {
         em29CallSe(em, 1);
     }
@@ -817,9 +817,9 @@ static void em29_R1_Dm_Air(cEm29* em)
     case 5:
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 3, 0, 0);
+                em->setRno(2, 3, 0, 0);
             }
         }
         break;
@@ -880,9 +880,9 @@ static void em29_R1_Dm_Ceiling(cEm29* em)
     case 3:
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 3, 0, 0);
+                em->setRno(2, 3, 0, 0);
             }
         }
         break;
@@ -899,9 +899,9 @@ static void em29_R1_Dm_Land(cEm29* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 3, 0, 0);
+                em->setRno(2, 3, 0, 0);
             }
         }
         break;
@@ -917,7 +917,7 @@ static void em29_R1_Dm_Recovery(cEm29* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -952,7 +952,7 @@ static void em29_R1_Die_Normal(cEm29* em)
                 em->invisible_factor = 0.0f;
                 em->be_flag &= ~2;
                 if (em29FriendCk(em) && !(w->flags & 0x80)) {
-                    EmRoutineSet(em, 3, 1, 0, 0);
+                    em->setRno(3, 1, 0, 0);
                 } else {
                     em->r_no_2++;
                 }
@@ -997,7 +997,7 @@ static void em29_R1_Die_Reset(cEm29* em)
             w->tgtSpd.x = 0.0f;
             w->tgtSpd.y = 0.0f;
             w->tgtSpd.z = 0.0f;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }

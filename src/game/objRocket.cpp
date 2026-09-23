@@ -52,9 +52,9 @@ void cObjRocket::move()
     switch (r_no_0) {
     case 0:
         if (pl->Wep->m_pWep && pl->Wep->m_pWep->isTrans()) {
-            be_flag |= 2;
+            setTrans(1);
         } else {
-            be_flag &= ~2;
+            setTrans(0);
         }
         matUpdate();
         break;
@@ -323,7 +323,7 @@ void cObjLauncher::launch()
     pRocket->ang.z = 0.0f;
     pRocket->pos = lpos;
     pRocket->pList->pParent = pRocket;
-    pRocket->be_flag |= 2;
+    pRocket->setTrans(1);
     pRocket->fire();
     flg.on(FLAG_REQ_DROP);
     pRocket = 0;
