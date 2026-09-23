@@ -1215,7 +1215,7 @@ void PlSetLockPitch(cModel* pEm)
     p *= 2.0f / PI;
     do {
         // COMPILER-DIFF: candidate (sched barrier): the first insn after LOOP_BEG is the sched1
-        // barrier. Ours would be the `lis m3r` of the m3r.m_Delay store's address, the target's order
+        // barrier. Ours would be the `lis m3r` of the setDelay store's address, the target's order
         // (`lis 0.0; lis m3r; lfs z; addi`) is what the ready list gives when the barrier insn
         // emits no code.
         asm("" : : "f"(p));

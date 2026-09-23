@@ -233,7 +233,7 @@ static void wep17_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r.m_Delay = zero;
+    m3r.setDelay(zero);
     pitch *= 2.0f / PI;
     m3r.reset(pitch);
     pl->m_Fwork0 = zero;
@@ -373,14 +373,13 @@ static void wep17_r3_ready20(cPlayer* pl)
 }
 
 // ready step 3: the lock-on turn (PlWepLockCtrl's request): turn towards `tgt` (PI/8 per frame),
-// slide towards `pos`, aim the pitch target m3r.m_Val1 at the target's elevation in 0.05 steps
-// (clamped -1..1); motion end -> set state. (The form of wep/pl_handgun.cpp.)
+// slide towards `pos`, aim the pitch target at the target's elevation in 0.05 steps
+// (clamped -1..1); motion end -> set state.
 static void wep17_r3_ready30(cPlayer* pl)
 {
     f32 dist;
     f32 x;
     f64 a;
-    f32* r;
     Vec* t;
 
     if (MotionMove(pl, 0)) {
@@ -396,31 +395,15 @@ static void wep17_r3_ready30(cPlayer* pl)
     t = &tgt;
     dist = GetDistance3(&pos, t);
     a = atan2(t->y - pos.y, dist);
-    r = &m3r.m_Val0;
-    x = a / (PI / 4.0f) - r[0];
+    x = a / (PI / 4.0f) - m3r;
     if (x > 0.05f) {
         x = 0.05f;
     }
     if (x < -0.05f) {
         x = -0.05f;
     }
-    r[1] += x;
-    if (r[2] == 0.0f) {
-        m3r.m_Val0 = r[1];
-    }
-    {
-        f32 lo = -1.0f;
-        f32 hi = 1.0f;
-
-        if (r[1] < lo) {
-            r[1] = lo;
-        } else if (r[1] > hi) {
-            r[1] = hi;
-        }
-    }
-    if (r[2] == 0.0f) {
-        r[0] = r[1];
-    }
+    m3r += x;
+    m3r.limit(-1.0f, 1.0f);
     m3r.move();
     mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);

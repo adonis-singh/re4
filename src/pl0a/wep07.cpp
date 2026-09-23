@@ -79,9 +79,8 @@ static void wep07_r3_ready00(cPlayer* pl)
     }
     pl->Wep->pitch = pitch;
     pitch *= 2.0f / PI;
-    m3r.m_Val1 = pitch;
-    m3r.m_Delay = 0.0f;
-    m3r.m_Val0 = pitch;
+    m3r.reset(pitch);
+    m3r.setDelay(0.0f);
     pl->m_Fwork0 = 0.0f;
     pl->Neck->init(0, 0, 0);
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();

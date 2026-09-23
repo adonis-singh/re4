@@ -128,7 +128,7 @@ static void wep13_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r.m_Delay = 0.0f;
+    m3r.setDelay(0.0f);
     pitch *= 2.0f / PI;
     m3r.reset(pitch);
     pl->m_Fwork0 = 0.0f;
@@ -138,9 +138,8 @@ static void wep13_r3_ready00(cPlayer* pl)
     mot = WEP_ARC_PTR(0x18);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
     mot3.move(m3r);
-    m3r.m_Val0 = 0.0f;
-    m3r.m_Val1 = 0.0f;
-    m3r.m_Delay = 0.0f;
+    m3r.reset(0.0f);
+    m3r.setDelay(0.0f);
     lockCtr = 0;
     if (pl->stat & 0x400) {
         pl->Wep->m_pWep->setDisp(0, 1);

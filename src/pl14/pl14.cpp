@@ -118,8 +118,8 @@ cSubLuis::cSubLuis()
     pFsdTbl = pl_fs_tbl;
     pEm = this;
     pSUB = (cSubChar*) this;
-    luisEye.m_Val0 = luisEye.m_Val1 = 0.0f;   // chain: m_Val1 first in RTL, the 0.0 dies at m_Val0 (issued first)
-    luisEye.m_Delay = 0.4f;
+    luisEye.reset(0.0f);
+    luisEye.setDelay(0.4f);
 }
 
 // Destructor (killEm / room change): destroys the gun object and clears pSUB.
@@ -1471,21 +1471,6 @@ void cSubLuis::endDamage()
     routine.end();
 }
 
-// The eye rates are handled through inlines taking the object pointer (cDelay methods in the original):
-// each inlined call copies `&luisEye` into its own pseudo, so r[1]/r[2] go through `4(rP)`/`8(rP)` while
-// cse rewrites the offset-0 `r[0]` access to the `luisEye@l(rHigh)` form inside the same extended block
-// and leaves the pointer form after a join label (EyeLimit's snap store `stfs f0, 0(r10)`); the tail's
-// EyeGet/EyeMove then get a fresh high/pointer pair after the getPartsPtr call instead of reusing the
-// clamp's. The clamp bounds are inline arguments: both constants are loaded before the first compare.
-static inline void EyeSet(cDelayF* e, f32 v) { e->m_Val1 = v; if (e->m_Delay == 0.0f) e->m_Val0 = e->m_Val1; }
-static inline void EyeLimit(cDelayF* e, f32 lo, f32 hi)
-{
-    if (e->m_Val1 < lo) e->m_Val1 = lo;
-    else if (e->m_Val1 > hi) e->m_Val1 = hi;
-    if (e->m_Delay == 0.0f) e->m_Val0 = e->m_Val1;
-}
-static inline f32 EyeGet(cDelayF* e) { return e->m_Val0; }
-static inline void EyeMove(cDelayF* e) { e->m_Val0 = e->m_Val0 * e->m_Delay + e->m_Val1 * (1.0f - e->m_Delay); }
 
 // Eyes: the eyelid (parts 0x1C) blink animation on luisEyeTimer (a blink at 0..6, a double blink
 // from 0x5A, random pause), the eye yaw target (luisEye) picked randomly at each blink and
@@ -1501,7 +1486,7 @@ void cSubLuis::moveEye()
     default: p->ang.x = 0.0f; break;
     case 0: {
         u8 r = Rnd() % 200;
-        EyeSet(&luisEye, (r * 0.01f - 1.0f) * PI * 0.1f);
+        luisEye = (r * 0.01f - 1.0f) * PI * 0.1f;
         p->ang.x = 0.17453292f;
         break;
     }
@@ -1512,7 +1497,7 @@ void cSubLuis::moveEye()
     case 5: p->ang.x = 0.34906584f; break;
     case 6: p->ang.x = 0.17453292f; break;
     case 0x1E:
-        EyeSet(&luisEye, 0.0f);
+        luisEye = 0.0f;
         break;
     case 0x58:
         luisEyeTimer = (Rnd() & 3) ? 0 : 0x5A;
@@ -1534,16 +1519,16 @@ void cSubLuis::moveEye()
 
     if (--luisBlink < 0) {
         u8 r = Rnd() % 200;
-        EyeSet(&luisEye, (r * 0.01f - 1.0f) * 0.03141593f + luisEye.m_Val1);
+        luisEye += (r * 0.01f - 1.0f) * 0.03141593f;
         luisBlink = (u8) (Rnd() % 3) + 2;
     }
-    EyeLimit(&luisEye, -0.31415927f, 0.31415927f);
+    luisEye.limit(-0.31415927f, 0.31415927f);
 
-    getPartsPtr(0x20)->ang.y = EyeGet(&luisEye);
+    getPartsPtr(0x20)->ang.y = luisEye;
     getPartsPtr(0x20)->cCoord::matUpdate();
-    getPartsPtr(0x21)->ang.y = EyeGet(&luisEye);
+    getPartsPtr(0x21)->ang.y = luisEye;
     getPartsPtr(0x21)->cCoord::matUpdate();
-    EyeMove(&luisEye);
+    luisEye.move();
 }
 
 // Turns the head yaw neckY towards `ang` by at most `limit` this frame and marks it set (flags bit3).

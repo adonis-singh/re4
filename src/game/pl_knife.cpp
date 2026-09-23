@@ -115,7 +115,7 @@ void knife_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r.m_Delay = 0.0f;
+    m3r.setDelay(0.0f);
     pitch *= 2.0f / PI;
     m3r.reset(pitch);
     pl->m_Fwork0 = 0.0f;

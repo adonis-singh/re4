@@ -57,45 +57,7 @@ void waterProc(cSubChar* pl);
 const Vec cSubChar::atckPos = { -100.0f, 0.0f, -500.0f };
 const Vec cSubChar::atckPos2 = { 300.0f, 0.0f, -500.0f };
 
-// Eye direction state (moveFace): a class with a constructor, so the file-scope static gets the
-// dynamic initialiser the original has.
-struct SubEyeDir {
-    f32 x;
-    f32 y;
-    f32 z;
-    SubEyeDir()
-    {
-        z = 0.0f;
-        y = 0.0f;
-        x = 0.0f;
-        if (x > 1000.0f) {   // folded away by cse (x is known to be 0), but its 1000 stays in the pool
-            x = 1000.0f;
-        }
-    }
-    // Blend the current direction towards the target. A member function like limit(): the loads
-    // through `this` give the original's z-before-1.0 load order.
-    void mix()
-    {
-        x = x * z + y * (1.0f - z);
-    }
-    // Clamp the target and latch it into the current value while the mix is 0. A member function so
-    // the accesses go through `this` (the original's pointer-form clamp block).
-    void limit()
-    {
-        f32 lo = -0.3141592741012573f;   // plain locals: both bounds are loaded before the first test
-        f32 hi = 0.3141592741012573f;
-
-        if (y < lo) {
-            y = lo;
-        } else if (y > hi) {
-            y = hi;
-        }
-        if (z == 0.0f) {
-            x = y;
-        }
-    }
-};
-static SubEyeDir eyeDir;
+static cDelayF eyeDir;
 
 // 1 while the partner has at least half her life: picks the healthy motion set (0x12..) over
 // the hurt one (0x6E..).
@@ -112,9 +74,8 @@ cSubChar::cSubChar() : flg(0), status(0)
     m_pFunc = 0;
     m_pLiF = 0;
     neckInit();
-    eyeDir.y = 0.0f;
-    eyeDir.z = 0.4f;
-    eyeDir.x = 0.0f;
+    eyeDir.reset(0.0f);
+    eyeDir.setDelay(0.4f);
 }
 
 // Frees her back light and clears the global pSUB.
@@ -3617,8 +3578,8 @@ void cSubChar::moveBust()
     parts->world.z = parts->mat[2][3];
 }
 
-// Eyelid (parts 0x1C) blink sequence on `timer` and the eye direction (parts 0x20/0x21) wander:
-// eyeDir = { current, target, mix } (pl_class moveEyeNormal). The switch is written sorted with
+// Eyelid (parts 0x1C) blink sequence on `timer` and the eye direction (parts 0x20/0x21) wander
+// (eyeDir), as in pl_class moveEyeNormal. The switch is written sorted with
 // `default` first and every case spelled out (no shared labels): cross-jumping merges the identical
 // bodies into the LAST copy, which is why the original's block order is 0,3,4,1E,58,5A,5D,5E,5F,60,
 // 61,62 while its pool is in ascending case order.
@@ -3633,13 +3594,7 @@ void cSubChar::moveFace()
         p->ang.x = 0.0f;
         break;
     case 0: {
-        // computed into a local first: the constant loads precede the eyeDir.z test
-        f32 y = ((f32) (int) (u8) (Rnd() % 200) * 0.01f - 1.0f) * 3.1415927f * 0.1f;
-
-        eyeDir.y = y;
-        if (eyeDir.z == 0.0f) {
-            eyeDir.x = y;
-        }
+        eyeDir = ((f32) (int) (u8) (Rnd() % 200) * 0.01f - 1.0f) * 3.1415927f * 0.1f;
         p->ang.x = 0.0872664600610733f;
         break;
     }
@@ -3662,10 +3617,7 @@ void cSubChar::moveFace()
         p->ang.x = 0.0872664600610733f;
         break;
     case 0x1E:
-        eyeDir.y = 0.0f;
-        if (eyeDir.z == 0.0f) {
-            eyeDir.x = 0.0f;
-        }
+        eyeDir = 0.0f;
         break;
     case 0x58:
         timer = (Rnd() & 3) ? 0 : 0x5A;
@@ -3704,21 +3656,16 @@ void cSubChar::moveFace()
         static int eyetime = 0;
 
         if (--eyetime < 0) {
-            f32 d = ((f32) (int) (u8) (Rnd() % 200) * 0.01f - 1.0f) * 0.03141592815518379f;
-
-            eyeDir.y += d;
-            if (eyeDir.z == 0.0f) {
-                eyeDir.x = eyeDir.y;
-            }
+            eyeDir += ((f32) (int) (u8) (Rnd() % 200) * 0.01f - 1.0f) * 0.03141592815518379f;
             eyetime = (u8) (Rnd() % 3) + 2;
         }
     }
-    eyeDir.limit();
+    eyeDir.limit(-0.3141592741012573f, 0.3141592741012573f);
     p = getPartsPtr(0x20);
-    p->ang.y = eyeDir.x;
+    p->ang.y = eyeDir;
     p = getPartsPtr(0x21);
-    p->ang.y = eyeDir.x;
-    eyeDir.mix();
+    p->ang.y = eyeDir;
+    eyeDir.move();
 }
 
 // Fade the shadow (shdCol) out while she is on a ledge / above the camera / on a slope.

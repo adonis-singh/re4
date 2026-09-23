@@ -1292,20 +1292,11 @@ void cPlayer::moveEye()
     }
 }
 
-// Eye direction state of moveEyeNormal: a class with a constructor, so the static local gets the
-// `_.tmp_0` guard and three float stores the original has.
-struct PlEyeDir {
-    f32 x;   // current
-    f32 y;   // target
-    f32 z;   // mix
-    PlEyeDir() { x = y = z = 0.0f; }
-};
-
-// Eyelid (parts 0x1C) blink sequence on `timer` and the eye direction (parts 0x20/0x21) wander:
-// eyeDir = { current, target, mix }.
+// Eyelid (parts 0x1C) blink sequence on `timer` and the eye direction (parts 0x20/0x21) wander
+// (eyeDir).
 void cPlayer::moveEyeNormal()
 {
-    static PlEyeDir eyeDir;
+    static cDelayF eyeDir;
     static int timer;
     cModel* p;
 
@@ -1318,11 +1309,7 @@ void cPlayer::moveEyeNormal()
         p->ang.x = 0.0f;
         break;
     case 0: {
-        f32 y = ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 3.1415927f * 0.1f;
-        eyeDir.y = y;
-        if (eyeDir.z == 0.0f) {
-            eyeDir.x = y;
-        }
+        eyeDir = ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 3.1415927f * 0.1f;
         p->ang.x = 0.0872664600610733f;
         break;
     }
@@ -1345,10 +1332,7 @@ void cPlayer::moveEyeNormal()
         p->ang.x = 0.0872664600610733f;
         break;
     case 0x1E:
-        eyeDir.y = 0.0f;
-        if (eyeDir.z == 0.0f) {
-            eyeDir.x = 0.0f;
-        }
+        eyeDir = 0.0f;
         break;
     case 0x58:
         if (Rnd() & 3) {
@@ -1391,34 +1375,18 @@ void cPlayer::moveEyeNormal()
         static int eyetime = 0;
 
         if (--eyetime < 0) {
-            f32 d = ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 0.03141592815518379f;
-            eyeDir.y += d;
-            if (eyeDir.z == 0.0f) {
-                eyeDir.x = eyeDir.y;
-            }
+            eyeDir += ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 0.03141592815518379f;
             eyetime = Rnd() % 3 + 2;
         }
     }
-    {
-        PlEyeDir* e = &eyeDir;
-        f32 mn = -0.3141592741012573f;
-        f32 mx = 0.3141592741012573f;
-        if (e->y < mn) {
-            e->y = mn;
-        } else if (e->y > mx) {
-            e->y = mx;
-        }
-        if (e->z == 0.0f) {
-            e->x = e->y;
-        }
-    }
+    eyeDir.limit(-0.3141592741012573f, 0.3141592741012573f);
     p = getPartsPtr(0x20);
-    p->ang.y = eyeDir.x;
+    p->ang.y = eyeDir;
     p->matUpdate();
     p = getPartsPtr(0x21);
-    p->ang.y = eyeDir.x;
+    p->ang.y = eyeDir;
     p->matUpdate();
-    eyeDir.x = eyeDir.x * eyeDir.z + eyeDir.y * (1.0f - eyeDir.z);
+    eyeDir.move();
 }
 
 int lbl_80314CDC = 0;   // unreferenced 4-byte .sdata word between moveEyeNormal's statics and the neck

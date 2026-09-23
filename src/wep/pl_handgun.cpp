@@ -196,21 +196,17 @@ static void wep02_r3_ready20(cPlayer* pl)
 
 // ready step 3: the lock-on turn (set by PlWepLockCtrl's ready-turn request): the player turns
 // towards `tgt` (PI/8 per frame) and slides 40 % per frame towards `pos` while the motion plays;
-// the aim pitch target m3r.m_Val1 follows atan2(height difference, distance) in 0.05 steps, clamped
+// the aim pitch target follows atan2(height difference, distance) in 0.05 steps, clamped
 // to -1..1. Motion end: SE 5/0 and -> set state step 0.
 // The pitch control is the
 // shared PlWepAutoTrack tail (game/pl_wep.cpp). Forms that matter: `t` is assigned AFTER the Muku
 // call and lives across GetDistance3 (a pseudo that already crosses a call is hoisted by sched1 above
-// the earlier call and reload_cse turns its `addi` into the copy `mr r29, r4` of Muku's argument);
-// m3r is walked through the pointer `r` (assigned after atan2) except for the first m3r store,
-// which is a direct reference (fresh `lis`); the clamp bounds are variables (both loaded before the
-// first compare).
+// the earlier call and reload_cse turns its `addi` into the copy `mr r29, r4` of Muku's argument).
 static void wep02_r3_ready30(cPlayer* pl)
 {
     f32 dist;
     f32 x;
     f64 a;
-    f32* r;
     Vec* t;
 
     if (MotionMove(pl, 0)) {
@@ -226,31 +222,15 @@ static void wep02_r3_ready30(cPlayer* pl)
     t = &tgt;
     dist = GetDistance3(&pos, t);
     a = atan2(t->y - pos.y, dist);
-    r = &m3r.m_Val0;
-    x = a / (PI / 4.0f) - r[0];
+    x = a / (PI / 4.0f) - m3r;
     if (x > 0.05f) {
         x = 0.05f;
     }
     if (x < -0.05f) {
         x = -0.05f;
     }
-    r[1] += x;
-    if (r[2] == 0.0f) {
-        m3r.m_Val0 = r[1];
-    }
-    {
-        f32 lo = -1.0f;
-        f32 hi = 1.0f;
-
-        if (r[1] < lo) {
-            r[1] = lo;
-        } else if (r[1] > hi) {
-            r[1] = hi;
-        }
-    }
-    if (r[2] == 0.0f) {
-        r[0] = r[1];
-    }
+    m3r += x;
+    m3r.limit(-1.0f, 1.0f);
     m3r.move();
     mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);

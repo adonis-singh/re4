@@ -70,11 +70,11 @@ extern cMot3 mot3;      // game/player.cpp
 // A value that follows a target: m_Val0 is the current value, m_Val1 the target and m_Delay the share
 // of the current value kept by each move() (0 = the current value follows the target at once).
 template <class T> class cDelay {
-public:
     T m_Val0;
     T m_Val1;
     T m_Delay;
 
+public:
     cDelay() { m_Val0 = m_Val1 = m_Delay = 0.0f; }
     void setDelay(T delay) { m_Delay = delay; }
     void reset(T v) { m_Val1 = v; m_Val0 = v; }

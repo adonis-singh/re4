@@ -432,18 +432,7 @@ static void wep07_r3_fire00(cPlayer* pl)
     obj->wep.step = 0;
     pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r.m_Val1 = pitch;
-    {
-        // COMPILER-DIFF: #13: the original never allocates the REG_EQUIV 0.0 pseudo; reload
-        // re-materialises `lis/lfs` for the compare in the first free FPR (f0, so m3r.m_Delay takes f13)
-        // and sched2 issues it before the m3r.m_Delay load. Ours would local-alloc the shorter m3r.m_Delay
-        // load to f0 and keep the RTL order (m3r.m_Delay first).
-        register f32 zero asm("fr0"); // COMPILER-DIFF: #13
-        zero = 0.0f;
-        if (m3r.m_Delay == zero) {
-            m3r.m_Val0 = pitch;
-        }
-    }
+    m3r = pitch;
     pl->r_no_3 = 1;
 }
 

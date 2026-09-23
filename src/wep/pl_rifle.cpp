@@ -395,9 +395,8 @@ static void wepDown(cPlayer* pl)
 
     pl->endCamera();
     e = VecElevation(&pl->m_VecWork0);
-    m3r.m_Val0 = e;
-    m3r.m_Val1 = e;
-    m3r.m_Delay = 0.0f;
+    m3r.reset(e);
+    m3r.setDelay(0.0f);
     pl->Wep->m_pWep->setDisp(1, 1);
     if (dmMotCk()) {
         if (pG->weapon_no == 0xA) {

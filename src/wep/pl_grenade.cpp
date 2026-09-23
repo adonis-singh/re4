@@ -148,7 +148,7 @@ static void wep19_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r.m_Delay = 0.0f;
+    m3r.setDelay(0.0f);
     pitch *= 2.0f / PI;
     m3r.reset(pitch);
     pl->m_Fwork0 = 0.0f;
@@ -157,9 +157,8 @@ static void wep19_r3_ready00(cPlayer* pl)
     mot = WEP_ARC_PTR(0xF);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
     mot3.move(m3r);
-    m3r.m_Val0 = 0.0f;
-    m3r.m_Val1 = 0.0f;
-    m3r.m_Delay = 0.0f;
+    m3r.reset(0.0f);
+    m3r.setDelay(0.0f);
     SndCall(1, 0x28, &pl->pParts->world, 0, 0, 0);
     lockCtr = 0;
     pl->r_no_3 = 1;
@@ -203,17 +202,14 @@ static void wep19_r3_ready20(cPlayer* pl)
 }
 
 // ready step 3: the lock-on turn (PlWepLockCtrl's ready-turn request): turn towards `tgt` (PI/8
-// per frame), slide towards `pos`, aim the pitch target m3r.m_Val1 at the target's elevation in 0.05
-// steps (clamped -1..1); motion end -> set state step 0.
-// (the pl_handgun form: `t` is
-// assigned after the Muku call and lives across GetDistance3, m3r is walked through `r`, the
-// first m3r store is a direct reference, the clamp bounds are variables).
+// per frame), slide towards `pos`, aim the pitch target at the target's elevation in 0.05
+// steps (clamped -1..1); motion end -> set state step 0. `t` is assigned after the Muku call and
+// lives across GetDistance3, as in pl_handgun.
 static void wep19_r3_ready30(cPlayer* pl)
 {
     f32 dist;
     f32 x;
     f64 a;
-    f32* r;
     Vec* t;
 
     if (MotionMove(pl, 0)) {
@@ -229,31 +225,15 @@ static void wep19_r3_ready30(cPlayer* pl)
     t = &tgt;
     dist = GetDistance3(&pos, t);
     a = atan2(t->y - pos.y, dist);
-    r = &m3r.m_Val0;
-    x = a / (PI / 4.0f) - r[0];
+    x = a / (PI / 4.0f) - m3r;
     if (x > 0.05f) {
         x = 0.05f;
     }
     if (x < -0.05f) {
         x = -0.05f;
     }
-    r[1] += x;
-    if (r[2] == 0.0f) {
-        m3r.m_Val0 = r[1];
-    }
-    {
-        f32 lo = -1.0f;
-        f32 hi = 1.0f;
-
-        if (r[1] < lo) {
-            r[1] = lo;
-        } else if (r[1] > hi) {
-            r[1] = hi;
-        }
-    }
-    if (r[2] == 0.0f) {
-        r[0] = r[1];
-    }
+    m3r += x;
+    m3r.limit(-1.0f, 1.0f);
     m3r.move();
     mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
