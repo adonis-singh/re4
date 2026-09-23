@@ -12,7 +12,7 @@
 
 // Obstacle model (Oba): an invisible collision model attached to a parent object (type 0: to
 // one of its parts, type 1: to the object itself) or standing alone.
-class cObjObaModel : public cObj {
+class cObjObaModel : public cObjUnion {
 public:
     virtual void move();
 };
@@ -28,7 +28,7 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
     if (obj == 0) {
         return 0;
     }
-    w = &obj->obaModel;
+    w = &((cObjObaModel*) obj)->obaModel;
     if (obj->modelInit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore),
                        (void*) (pG->pCore->ofs_24 + (u32) pG->pCore)) == 0) {
         pLog->err(0, 0, "SetObaModel() failed.");

@@ -146,7 +146,7 @@ enum HitNoEnum {
 
 // Giant statue (Salazar's robot) of room 4-2: waits on the gondola, walks the passage, waits at
 // the door, then chases the player over the bridge, breaking its pieces one by one.
-class cObjRobo : public cObj {
+class cObjRobo : public cObjUnion {
 public:
     virtual void move();
 

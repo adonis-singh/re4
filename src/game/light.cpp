@@ -533,7 +533,7 @@ void cLightMgr::setModel2(cModel* pMod)
         if (!checkKind(l->Kind)) {
             continue;
         }
-        if (pMod->id == 2 && (((cObj*) pMod)->attr & 1) && (l->Attribute & 4)) {
+        if (pMod->id == 2 && (((cObjUnion*) pMod)->attr & 1) && (l->Attribute & 4)) {
             continue;
         }
         if (i <= 31 && !((1 << i) & pMod->LightInfo.SelectMask) && !StaFlagChk(pG, STA_NO_LIGHTMASK)) {

@@ -366,7 +366,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
                 void* m;
 
                 if (e->GetMod(&m, "pl0100", 0, 0) == 1) {
-                    ((cObj*) m)->o18.be_flag |= 0x40;
+                    ((cObjUnion*) m)->o18.be_flag |= 0x40;
                 }
             }
         } else {
@@ -374,7 +374,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
                 void* m;
 
                 if (e->GetMod(&m, "pl0100", 0, 0) == 1) {
-                    ((cObj*) m)->o18.be_flag &= ~0x40;
+                    ((cObjUnion*) m)->o18.be_flag &= ~0x40;
                 }
             }
         }

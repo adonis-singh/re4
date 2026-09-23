@@ -2034,8 +2034,8 @@ static void edit_light_parent()
             case 0x18: {
                 Obj18Work* w;
                 eprintf(0x40, 0xD2, 0, pTool->PageNo, "OBJID %02x : EVENT MODEL", 0x18);
-                w = (Obj18Work*) obj->work;
-                eprintf(0x40, 0xE0, 0, pTool->PageNo, "NAME %s", ((Obj18Work*) obj->work)->NameMod);
+                w = (Obj18Work*) ((cObjUnion*) obj)->work;
+                eprintf(0x40, 0xE0, 0, pTool->PageNo, "NAME %s", ((Obj18Work*) ((cObjUnion*) obj)->work)->NameMod);
                 eprintf(0x40, 0xEE, 0, pTool->PageNo, "TYPE %2d", w->obj18_type);
                 break;
             }

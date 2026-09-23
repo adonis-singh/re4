@@ -15,7 +15,7 @@
 
 // Floating island (the lake raft): drifts back to its home position, gets pushed and plays a
 // crash motion when hit, spawns water effects while alive.
-class cObj1c : public cObj {
+class cObj1c : public cObjUnion {
 public:
     virtual void move();
 
@@ -44,7 +44,7 @@ cObj* SetFloatIsland(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->island;
+    w = &((cObj1c*) obj)->island;
     if (pos) {
         obj->pos = *pos;
     }

@@ -10,7 +10,7 @@
 
 // Chain link: a model hung between two parts of a parent (the interpolated orientation and
 // position of the two parts), with an optional pendulum cloth. Fades out when the parent is lost.
-class cObjChain : public cObj {
+class cObjChain : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObjChain() {}
@@ -41,7 +41,7 @@ cObj* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->chain;
+    w = &((cObjChain*) obj)->chain;
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetChain() modelInit() failed.");
         ObjMgr.destroy(obj);

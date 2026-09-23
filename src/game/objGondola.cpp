@@ -24,7 +24,7 @@
 
 // Cable car (gondola): carries the player, the partner and up to five enemies along its motion,
 // with five collision quads following the car; the break routine hands the camera over.
-class cObjGondola : public cObj {
+class cObjGondola : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObjGondola() {}
@@ -78,7 +78,7 @@ cObj* SetGondola(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->gondola;
+    w = &((cObjGondola*) obj)->gondola;
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");
         ObjMgr.destroy(obj);

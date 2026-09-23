@@ -153,14 +153,6 @@ struct Obj26Work {
     Vec Scale;         // 0x18
 };
 
-// Bell work (game/obj14.cpp): a hit-receiving enemy plus a pendulum chain for the swing.
-struct BellWork {
-    u8 pad_0[0xA];
-    u16 ringTimer;        // 0x0A  frames the "rung" state is reported to pG (90 after a hit)
-    class cEmHit* pEmHit; // 0x0C
-    struct PenCloth cloth;  // 0x10 .. 0x70
-};
-
 // Floating island work (game/obj1c.cpp): drifts back toward its home position, plays crash
 // motions and spawns effects while the player is on it.
 struct IslandWork {
@@ -415,38 +407,6 @@ struct GondolaWork {
     void* Sub_mot2;       // 0x64  break motion (R0_Break)
 };
 
-// Mine trolley work (game/objTrolley.cpp `cObjTrolley`): three cars (parts 0 / 4 / 8) with a
-// scenario and an effect collision piece each.
-struct TrolleyWork {
-    u32 Be_flg;            // 0x00  bit0: start (setStart), bit1: 2nd start, bit2: stopped (ckStop)
-    int Timer;            // 0x04
-    void* Mot_tbl[9];         // 0x08  setMotion table: 0 run, 1 2nd run, 2/3 break (xFF), 4..8 player escape / die
-    class cSat* pSat[3];   // 0x2C  scenario pieces per car (the SetTrolley / SatClear loops run over 5)
-    class cSat* pEat[5];  // 0x38  effect pieces per car
-    u8 Ride_pl;              // 0x4C  the player rides the trolley
-};
-
-// Falling pillar work (game/objPillar.cpp `cObjPillar`).
-struct PillarWork {
-    u32 Be_flg;            // 0x00  bit0: set (ckSet), cleared by setBreak / setThrow / setFall
-    int Timer;            // 0x04  frames before the fade out
-    int TmpU32;              // 0x08  Rnd() & 1: action button type 3 / 4
-    void* Mot;       // 0x0C  setMotion
-    void* Mot_catch;      // 0x10  setThrow: lift, throw
-    void* Mot_throw;      // 0x14
-    void* Mot_escape;      // 0x18  R0_Escape
-    void* Mot_fall;       // 0x1C  setFall: fall, land
-    void* Mot_landing;       // 0x20
-    void* Mot_pl_escape;          // 0x24  player escape motion (plemEscape MotionSetCore)
-    void* Seq_pl_escape;         // 0x28  its 4th argument (PS2 u32 Seq_pl_escape)
-    Vec St_pos;          // 0x2C  position at R0_Set (attack line end, plemEscape2 heading)
-    Vec Break_pos;           // 0x38  setBreak position (plemEscape heading)
-    Vec Spd;              // 0x44  throw / fall speed
-    u32 Seid;         // 0x50  SndCall handle of the rolling SE
-    class cSat* pEat;      // 0x54  effect collision piece (objPillarEatSet)
-    u8 Act_ck;           // 0x58  1: the player escaped / was hit (no more action button)
-};
-
 // Chain link work (game/obj1d.cpp): hangs between two parts of a parent model, fades out when
 // the parent is lost.
 struct ChainWork {
@@ -459,12 +419,6 @@ struct ChainWork {
     Vec ofs1;             // 0x18  offset in parts1
     Vec ofs2;             // 0x24  offset in parts2
     struct PenCloth* cloth;  // 0x30
-};
-
-// Ladder / tower work (game/objYagura.cpp).
-struct YaguraWork {
-    u8 pad_0[0x20];
-    void* Mot_vib;     // 0x20  vibration motion set by setVib()
 };
 
 // Player weapon object work (game/objWep.cpp `cObjWep`, a cObj subclass; see pl_wep.h).
@@ -671,6 +625,18 @@ class cObj : public cModel {
 public:
     u8 pad_320[4];        // 0x320
     s32 blk;              // 0x324  scroll block the object belongs to (-2 free, -1 SetObjSmd)
+
+    cObj();
+    virtual ~cObj() {}
+};
+
+// One pool block per object: the manager's stride is the largest cObj subclass.
+#define OBJ_WORK_SIZE 0x3D8
+
+// Transitional: the per-class work structs overlaid on the bytes after cObj, for the subclasses
+// that do not declare their own fields yet. A subclass moves off it once its fields are its own.
+class cObjUnion : public cObj {
+public:
     // 0x328: per-object work area (Efm09Work runs to the end of the object: attr / callBack are
     // inside the union so that they keep their offsets)
     union {
@@ -687,8 +653,6 @@ public:
         Efm09Work efm09;
         ObaModelWork obaModel;
         Obj26Work obj26;
-        YaguraWork yagura;
-        BellWork bell;
         IslandWork island;
         Obj08Work o8;
         ChainWork chain;
@@ -700,8 +664,6 @@ public:
         GatlingWork gatling;
         MissileWork missile;
         GondolaWork gondola;
-        TrolleyWork trolley;
-        PillarWork pillar;
         ObjWepWork wep;
         LauncherWork launcher;
         BowWork bow;
@@ -713,9 +675,6 @@ public:
         LadderWork ladder;
         Obj16Work o16;
     };
-
-    cObj();
-    virtual ~cObj() {}
 };
 
 class cObjMgr : public cManager<cObj> {

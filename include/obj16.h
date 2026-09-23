@@ -6,7 +6,7 @@
 #include "obj.h"
 
 // Enemy head object (game/obj16.cpp): the head / mouth model of the plaga-carrying enemies.
-class cObj16 : public cObj {
+class cObj16 : public cObjUnion {
 public:
     int ckAtkEnable();
     void setDamage();

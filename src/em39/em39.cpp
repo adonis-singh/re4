@@ -5787,7 +5787,7 @@ static void plem39_CliffAtk(cPlayer* pl)
             em39CliffObj.p->atari.m_flag &= 0xFCFF;
             em39CliffObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
             em39CliffObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            em39CliffObj.p->wep.parent = pPL;
+            ((cObjUnion*) em39CliffObj.p)->wep.parent = pPL;
             em39CliffObj.p->setNoSuspend(1);
         }
         pl->Wep->setTrans(0, 0);

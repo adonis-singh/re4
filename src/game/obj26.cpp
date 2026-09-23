@@ -11,7 +11,7 @@
 
 // Attachment that follows parts 2 of its parent, scales toward a target size (routine 0) and
 // then shrinks/fades away (routine 1). Routine index in xFD, step in xFE.
-class cObj26 : public cObj {
+class cObj26 : public cObjUnion {
 public:
     virtual void move();
 };
@@ -44,8 +44,8 @@ static cObj* SetObj26(cObj* parent, Vec* scale)
     static const Vec p1 = { 1000.0f, 1000.0f, 1000.0f };
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    obj->obj26.parent = parent;
-    obj->obj26.Scale = *scale;
+    ((cObj26*) obj)->obj26.parent = parent;
+    ((cObj26*) obj)->obj26.Scale = *scale;
     obj->scale.x = obj->scale.y = obj->scale.z = 0.0f;
     obj->invisible_factor = 1.0f;
     return obj;

@@ -748,8 +748,8 @@ static void r212_DrillMove()
     cObj* d0 = SmdGetObjPtr(0x2A);
     cObj* d1 = SmdGetObjPtr(0x2B);
     cObj* d2 = SmdGetObjPtr(0x2C);
-    R212DrillWork* w1 = (R212DrillWork*) &d1->work;
-    R212DrillWork* w2 = (R212DrillWork*) &d2->work;
+    R212DrillWork* w1 = (R212DrillWork*) &((cObjUnion*) d1)->work;
+    R212DrillWork* w2 = (R212DrillWork*) &((cObjUnion*) d2)->work;
 
     d0->be_flag |= 0x20;
     d1->be_flag |= 0x20;

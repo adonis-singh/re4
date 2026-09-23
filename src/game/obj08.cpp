@@ -20,7 +20,7 @@
 
 // Thrown object (bottle, dynamite, ...): flies under gravity, optionally spinning, and checks
 // the scenario, the enemies and the player for hits.
-class cObj08 : public cObj {
+class cObj08 : public cObjUnion {
 public:
     virtual void move();
 };
@@ -53,7 +53,7 @@ cObj* SetObj08(cModel* parent, void* bin, void* tpl, Vec* pos, Vec* rot, int fla
     if (obj == 0) {
         return 0;
     }
-    w = &obj->o8;
+    w = &((cObj08*) obj)->o8;
     obj->id = 8;
     if (bin == 0) {
         if (obj->modelInit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore),
@@ -112,7 +112,7 @@ void SetObj08Spd(cObj* obj, Vec* spd, int life, f32 grav, f32 rad)
     if (obj->id != 8) {
         return;
     }
-    w = &obj->o8;
+    w = &((cObj08*) obj)->o8;
     w->spd = *spd;
     w->gravity = grav;
     w->timer = life;
@@ -137,7 +137,7 @@ void SetObj08Est(cObj* obj, int no0, int prm0, int no1, int prm1, int no2, int p
     if (obj->id != 8) {
         return;
     }
-    w = &obj->o8;
+    w = &((cObj08*) obj)->o8;
     w->estNo[0] = no0;
     w->estNo[1] = no1;
     w->estNo[2] = no2;
@@ -163,7 +163,7 @@ void SetObj08Se(cObj* obj, u16 blk, u16 no)
     if (obj->id != 8) {
         return;
     }
-    w = &obj->o8;
+    w = &((cObj08*) obj)->o8;
     w->blk_no = blk;
     w->call_no = no;
 }

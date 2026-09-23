@@ -253,7 +253,7 @@ extern "C" void Evt_R330S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100a", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag |= 0x40;
+                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
                 }
             }
             break;
@@ -262,7 +262,7 @@ extern "C" void Evt_R330S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100a", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag &= ~0x40;
+                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
                 }
             }
             break;

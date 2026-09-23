@@ -18,7 +18,7 @@
 
 // Thrown weapon item (bottle / explosive): the grenade (obj01) flight model with its own
 // landing sounds, a player hit check on the explosion and no flash / underwater variants.
-class cWepItem : public cObj {
+class cWepItem : public cObjUnion {
 public:
     virtual void move();
     virtual void beginEvent(u32 mode);
@@ -351,7 +351,7 @@ cObj* SetObj10(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
     obj->sub2B4.atari.throughOn();
     obj->sub2B4.atari.m_flag |= 0x400;
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
-    w = &obj->wepItem;
+    w = &((cWepItem*) obj)->wepItem;
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
@@ -399,7 +399,7 @@ void Obj10SetEst(cObj* obj, int no0, int prm0, u32 type, int no1, int prm1, int 
     if (obj == 0) {
         return;
     }
-    w = &obj->wepItem;
+    w = &((cWepItem*) obj)->wepItem;
     w->eff = no0;
     w->est = prm0;
     w->eff2 = no1;

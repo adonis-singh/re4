@@ -7,7 +7,7 @@
 
 // Room-script view of the bulldozer (game/objBull.cpp defines the class with its virtuals; the
 // rooms only call the out-of-line members, so no vtable is emitted here).
-class cObjBull : public cObj {
+class cObjBull : public cObjUnion {
 public:
     void setMotion(void** pMot);
     int ckBullRide(Vec* pPos, u8* pParts_no, Vec* pOffset);

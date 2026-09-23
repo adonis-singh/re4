@@ -19,7 +19,7 @@
 
 // Spear (obj 0x1B): thrown by an enemy (R1_Throw), sticks into the enemy it hits (R1_Parent:
 // follows a parts of the target), falls off as a three-point rope (R1_Fall) and fades out (Lost).
-class cObjSpear : public cObj {
+class cObjSpear : public cObjUnion {
 public:
     virtual void move();
     virtual void beginEvent(u32 mode);
@@ -72,7 +72,7 @@ cObj* SetSpear(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->spear;
+    w = &((cObjSpear*) obj)->spear;
     if (pos) {
         obj->pos = *pos;
     }

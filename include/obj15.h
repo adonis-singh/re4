@@ -7,7 +7,7 @@
 
 // Mounted gatling gun: aims at `target` (the player unless an enemy rides it), fires every third
 // frame once spun up, takes weapon damage on three cEmHit boxes and breaks (R1_Break).
-class cObjGatling : public cObj {
+class cObjGatling : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObjGatling() {}

@@ -236,7 +236,7 @@ extern "C" void Evt_R329S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag |= 0x40;
+                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
                 }
             }
         } else {
@@ -244,7 +244,7 @@ extern "C" void Evt_R329S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag &= ~0x40;
+                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
                 }
             }
         }
@@ -254,26 +254,26 @@ extern "C" void Evt_R329S00_Func(Event* e)
             if (e->NowCut <= 0x14) {
                 if (e->NowFrame == 0) {
                     if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                        ((cObj*) mod)->o18.be_flag |= 0x40;
+                        ((cObjUnion*) mod)->o18.be_flag |= 0x40;
                     }
                 }
             } else {
                 if (e->NowFrame == 0) {
                     if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                        ((cObj*) mod)->o18.be_flag &= ~0x40;
+                        ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
                     }
                 }
             }
             if (e->NowCut == 0x1A) {
                 if (e->NowFrame == 0) {
                     if (e->GetMod(&mod, "em3000a", 0, 0) == 1) {
-                        ((cObj*) mod)->o18.be_flag |= 0x40;
+                        ((cObjUnion*) mod)->o18.be_flag |= 0x40;
                     }
                 }
             } else {
                 if (e->NowFrame == 0) {
                     if (e->GetMod(&mod, "em3000a", 0, 0) == 1) {
-                        ((cObj*) mod)->o18.be_flag &= ~0x40;
+                        ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
                     }
                 }
             }

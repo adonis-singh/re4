@@ -757,11 +757,11 @@ static void moveWheel()
     f32 spdA = 0.0f;
     f32 gateSpd = 0.0f;
     f32 poolSpd = 30.0f;
-    R10cRotWork* wheelA = (R10cRotWork*) SmdGetObjPtr(6)->work;
-    R10cRotWork* wheelA2 = (R10cRotWork*) SmdGetObjPtr(0xA)->work;
+    R10cRotWork* wheelA = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(6))->work;
+    R10cRotWork* wheelA2 = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(0xA))->work;
     R10cRotWork* wheelB;
-    R10cRotWork* wheelA3 = (R10cRotWork*) SmdGetObjPtr(0x33)->work;
-    wheelB = (R10cRotWork*) SmdGetObjPtr(8)->work;
+    R10cRotWork* wheelA3 = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(0x33))->work;
+    wheelB = (R10cRotWork*) ((cObjUnion*) SmdGetObjPtr(8))->work;
     cObj* cogA;
     cObj* cogB;
     cObj* gate;

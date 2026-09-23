@@ -12,7 +12,7 @@
 
 // Hanging object (lamp, sign, ...): follows a parts of its parent with a slerp blend, falls as a
 // three-point rope when cut, fades out when flagged.
-class cObj00 : public cObj {
+class cObj00 : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObj00() {}
@@ -84,7 +84,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->o0;
+    w = &((cObj00*) obj)->o0;
     if (obj->modelInit(bin, tpl) == 0) {
         ObjMgr.destroy(obj);
         return 0;
@@ -119,7 +119,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Starts motion `mot` on the object with Mot_attr prm.
 void MotSetObj00(cObj* obj, void* mot, int prm, int a)
 {
-    Obj00Work* w = &obj->o0;
+    Obj00Work* w = &((cObj00*) obj)->o0;
 
     if (obj == 0) {
         return;
@@ -133,7 +133,7 @@ void MotSetObj00(cObj* obj, void* mot, int prm, int a)
 // Attaches the object to parts partsNo of `oya` (motion cleared, no catch-up blend).
 void OyaSetObj00(cObj* obj, cModel* oya, int partsNo)
 {
-    Obj00Work* w = &obj->o0;
+    Obj00Work* w = &((cObj00*) obj)->o0;
 
     if (obj == 0) {
         return;
@@ -153,7 +153,7 @@ static void obj00SetRate(cObj* obj, u32 rate)
     if (r < 1.0f) {
         r = 1.0f;
     }
-    obj->o0.oya_hokan_add = r / 100.0f;
+    ((cObj00*) obj)->o0.oya_hokan_add = r / 100.0f;
 }
 
 // Fall simulation (be_flag bit 2): three rope nodes 300 units around the object fall under gravity

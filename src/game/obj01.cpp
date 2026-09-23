@@ -17,7 +17,7 @@
 
 // Grenade (hand / incendiary / flash): thrown under gravity, bounces off the scenario, explodes
 // or drowns when its fuse runs out; can be held by a model until `holdTimer` expires.
-class cObj01 : public cObj {
+class cObj01 : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObj01() {}
@@ -344,7 +344,7 @@ cObj* SetObj01(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
 
     obj->sub2B4.atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
-    w = &obj->o1;
+    w = &((cObj01*) obj)->o1;
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
@@ -399,7 +399,7 @@ void Obj01SetEst(cObj* pObj, u32 eff, u32 est, u32 action, u32 eff2, u32 est2, u
     if (pObj == 0) {
         return;
     }
-    w = &pObj->o1;
+    w = &((cObj01*) pObj)->o1;
     w->eff = eff;
     w->est = est;
     w->eff2 = eff2;

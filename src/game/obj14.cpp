@@ -4,6 +4,7 @@
 #include "atari.h"
 #include "light.h"
 #include "obj.h"
+#include "obj14.h"
 #include "pendulum.h"
 #include "emhit.h"
 #include "esp.h"
@@ -12,17 +13,6 @@
 #include "snd.h"
 #include <string.h>
 
-
-// Bell: a pendulum model with a hit-receiving enemy work; a shot swings it, rings it (reported to
-// pG for 90 frames) and setBreak() lets it fall.
-class cObjBell : public cObj {
-public:
-    virtual void move();
-
-    void setBreak();
-    int ckBreakEnable();
-    int ckBreak();
-};
 
 extern "C" {
 void obj14_R1_Set(cObjBell* obj);
@@ -51,7 +41,7 @@ cObj* SetObjBell(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->bell;
+    w = BELL_WK((cObjBell*) obj);
     if (pos) {
         obj->pos = *pos;
     } else {
@@ -110,7 +100,7 @@ void cObjBell::move()
 // 250 units in front) as the ringing bell (Status_flg[1] 0x20000000, SeInfo.type 2).
 void obj14_R1_Set(cObjBell* pObj)
 {
-    BellWork* w = &pObj->bell;
+    BellWork* w = BELL_WK(pObj);
 
     obj14MatCalc(pObj);
     if (w->ringTimer) {
@@ -131,7 +121,7 @@ void obj14_R1_Set(cObjBell* pObj)
 // Rno1 == 1: broken: hides the bell, kills its hit body and spawns the break effect (est 1/7) once.
 void obj14_R1_Break(cObjBell* pObj)
 {
-    BellWork* w = &pObj->bell;
+    BellWork* w = BELL_WK(pObj);
 
     if (pObj->r_no_2 == 0) {
         pObj->be_flag &= ~2;
@@ -161,7 +151,7 @@ void obj14MatCalc(cObjBell* pObj)
 // and a swing impulse (50/30/100 by weapon) from the hit direction on the two pendulum links.
 void obj14DmCk(cObjBell* pObj)
 {
-    BellWork* w = &pObj->bell;
+    BellWork* w = BELL_WK(pObj);
     Vec dm;
     Vec dm2;
     Vec dir;
@@ -282,7 +272,7 @@ int cObjBell::ckBreak()
 // Pendulum set-up: parts 1 -> 2 chain with max swing 45 / 25 degrees, gravity 15.
 void obj14ClothSet(cObjBell* pObj)
 {
-    BellWork* w = &pObj->bell;
+    BellWork* w = BELL_WK(pObj);
 
     w->cloth.Num = 2;
     w->cloth.pCloth = obj14ClothP;
@@ -314,7 +304,7 @@ void obj14ClothSet(cObjBell* pObj)
 // Pendulum step (PenClothMove3).
 void obj14ClothMove(cObjBell* pObj)
 {
-    PenClothMove3(pObj, &pObj->bell.cloth);
+    PenClothMove3(pObj, &BELL_WK(pObj)->cloth);
 }
 
 // The next unit's .sdata starts 8-byte aligned in the original link.

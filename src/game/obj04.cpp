@@ -15,7 +15,7 @@ void Efm04RotMatrix(cObj* obj, Mtx m);
 
 // Effect model (Efm): a model thrown from an effect that flies, fades and bounces off the
 // scenario/floor, following its parent until `rotFrame`.
-class cObj04 : public cObj {
+class cObj04 : public cObjUnion {
 public:
     virtual void move();
 };
@@ -185,7 +185,7 @@ void Efm04RotMatrix(cObj* pObj, Mtx pMat)
 
     PSMTXMultVec(pMat, &pObj->pos, &pObj->pos);
     PSMTXMultVecSR(pMat, &pObj->speed, &pObj->speed);
-    PSMTXMultVecSR(pMat, &pObj->efm04.acc, &pObj->efm04.acc);
+    PSMTXMultVecSR(pMat, &((cObj04*) pObj)->efm04.acc, &((cObj04*) pObj)->efm04.acc);
     RotMatrix(tmp, &pObj->ang);
     PSMTXConcat(pMat, tmp, tmp);
     Matrix2AxisAngle(tmp, &pObj->ang);

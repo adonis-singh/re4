@@ -16,7 +16,7 @@ void Efm05RotMatrix(cObj* obj, Mtx m);
 // Effect model with loose parts (Efm05): the model scales and fades like obj04 while each parts
 // bursts away from `center` once it comes within `range`, flying with its own speed / rotation
 // speed (kept in the parts' cModel at 0x128) and bouncing off the scenario / floor.
-class cObj05 : public cObj {
+class cObj05 : public cObjUnion {
 public:
     virtual void move();
 };
@@ -220,5 +220,5 @@ void Efm05RotMatrix(cObj* pObj, Mtx pMat)
     tmp[0][3] = 0.0f;
     tmp[1][3] = 0.0f;
     tmp[2][3] = 0.0f;
-    PSMTXMultVec(tmp, &pObj->efm05.center, &pObj->efm05.center);
+    PSMTXMultVec(tmp, &((cObj05*) pObj)->efm05.center, &((cObj05*) pObj)->efm05.center);
 }

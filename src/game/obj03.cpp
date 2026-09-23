@@ -8,7 +8,7 @@
 #include "dbmodule.h"
 
 // Path object: every parts is placed along a path, spaced 40 units apart.
-class cObj03 : public cObj {
+class cObj03 : public cObjUnion {
 public:
     cObj03();
     virtual void move();

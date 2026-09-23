@@ -15,7 +15,7 @@
 
 // Hanging object that can be thrown and falls as a three-point rope (obj00 variant with a rope
 // type, a life counter and a throw routine).
-class cObj12 : public cObj {
+class cObj12 : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObj12() {}
@@ -235,7 +235,7 @@ void cObj12::chainMove()
 // (double 0.0, the u32 -> f32 magic, 1.0).
 static void obj12SetRate(cObj* obj, u32 rate)
 {
-    Obj12Work* w = &obj->o12;
+    Obj12Work* w = &((cObj12*) obj)->o12;
 
     if (w->oya_hokan == 0.0) {
         return;
@@ -470,7 +470,7 @@ void cObj12::fallMove()
 // Never called (dead-stripped, STRIP_UNUSED): constant pool only (10, 75, 350, 0.0, pi/2).
 static void obj12ThrowSet(cObj* obj, Vec* spd)
 {
-    Obj12Work* w = &obj->o12;
+    Obj12Work* w = &((cObj12*) obj)->o12;
     f32 ang;
 
     w->fallSpd[0][0] = (s16) (spd->x * 10.0f);

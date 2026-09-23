@@ -27,7 +27,7 @@ struct ObjScrRotWork {
 };
 
 // Scripted map object: per-type mover selected by `type`, optional motion and callback.
-class cObjScr : public cObj {
+class cObjScr : public cObjUnion {
 public:
     cObjScr();
     virtual void move();

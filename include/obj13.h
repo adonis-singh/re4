@@ -7,7 +7,7 @@
 // Room-script view of the ladder object (game/obj13.cpp defines the full class with its virtuals;
 // this declares only the out-of-line members the rooms call on a getRoomEtcLadder() result, so no
 // vtable is emitted here).
-class cObjLadder : public cObj {
+class cObjLadder : public cObjUnion {
 public:
     int getStatus();
     void setStand();

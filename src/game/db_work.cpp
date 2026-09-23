@@ -130,7 +130,7 @@ void cDbWork::dispObj()
         y = 20;
         if (obj->id == 2) {
             int id;
-            eprintf(32, 280, 0, 0, "ATTR     %02X", obj->attr);
+            eprintf(32, 280, 0, 0, "ATTR     %02X", ((cObjUnion*) obj)->attr);
             y++;
             id = SmdGetWorkId(obj);
             if (id >= 0) {
@@ -140,7 +140,7 @@ void cDbWork::dispObj()
             }
         }
         if (obj->id == 0x18) {
-            DbObj18Work* w = (DbObj18Work*) obj->work;
+            DbObj18Work* w = (DbObj18Work*) ((cObjUnion*) obj)->work;
             eprintf(x * 8, y * 14, 0, 0, "NAME     %s", w->name);
             y++;
             eprintf(x * 8, y * 14, 0, 0, "TYPE     %2d", w->type);

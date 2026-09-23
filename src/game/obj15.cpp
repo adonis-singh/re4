@@ -41,7 +41,7 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->gatling;
+    w = &((cObjGatling*) obj)->gatling;
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetObj15() failed.");
         ObjMgr.destroy(obj);
@@ -50,7 +50,7 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    w = &obj->gatling;
+    w = &((cObjGatling*) obj)->gatling;
     obj->sub2B4.atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     w->ride = 0;

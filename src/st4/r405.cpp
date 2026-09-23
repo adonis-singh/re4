@@ -205,10 +205,10 @@ extern "C" void Evt_R405S00_Func(Event* e)
                     ((cModel*) mod)->LightInfo.EnableMask = 1;
                 }
                 if (e->GetMod(&mod, "pl0c00", 0, 0) == 1) {
-                    Obj18Work* w = &((cObj*) mod)->o18;
+                    Obj18Work* w = &((cObjUnion*) mod)->o18;
 
                     if (w && w->child) {
-                        ((cObj*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
+                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
                         w->child->be_flag &= ~2;
                     }
                 }

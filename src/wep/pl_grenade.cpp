@@ -26,7 +26,7 @@
 #include "math_sub.h"
 
 // game/objSubWep.cpp: the thrown grenade / egg objects (init only, the module never touches the rest)
-class cSubWep : public cObj {
+class cSubWep : public cObjUnion {
 public:
     int init(Vec* rot, f32 power);
 };

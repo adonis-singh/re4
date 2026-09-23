@@ -16,7 +16,7 @@
 // flash grenade (cObjGreLight) and the egg (cObjEgg) share cSubWep's flight, bounce and water
 // handling; each supplies its explosion.
 
-class cSubWep : public cObj {
+class cSubWep : public cObjUnion {
 public:
     cSubWep();
     virtual ~cSubWep() {}

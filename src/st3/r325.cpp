@@ -80,13 +80,13 @@ extern "C" void Evt_R325S00_Func(Event* e)
         if (e->NowCut == 7) {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0000", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag |= 0x40;
+                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
                 }
             }
         } else {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0000", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag &= ~0x40;
+                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
                 }
             }
         }
@@ -168,10 +168,10 @@ extern "C" void Evt_R325S00_Func(Event* e)
         if (e->NowCut == 8) {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObj*) mod)->o18;
+                    Obj18Work* w = &((cObjUnion*) mod)->o18;
 
                     if (w && w->child) {
-                        ((cObj*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
+                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
                         w->child->be_flag &= ~2;
                     }
                 }
@@ -179,10 +179,10 @@ extern "C" void Evt_R325S00_Func(Event* e)
         } else {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObj*) mod)->o18;
+                    Obj18Work* w = &((cObjUnion*) mod)->o18;
 
                     if (w && w->child) {
-                        ((cObj*) mod)->o18.ObjChainFlagCommon &= ~0x04000000;
+                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon &= ~0x04000000;
                         w->child->be_flag |= 2;
                     }
                 }

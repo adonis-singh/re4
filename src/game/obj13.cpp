@@ -27,7 +27,7 @@
 // Ladder (obj 0x13): the player and the partner climb it (plobjLadderClimb / subobjLadderClimb),
 // the player kicks it down (plobjLadderDown) and puts it up again (plobjLadderReset); the ladder
 // falls with a damage area (R1_Fall) and breaks the windows it lands on (breakWindow).
-class cObjLadder : public cObj {
+class cObjLadder : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObjLadder() {}
@@ -101,7 +101,7 @@ cObj* SetLadder(void* bin, void* tpl, Vec* pos, Vec* rot, int no)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->ladder;
+    w = &((cObjLadder*) obj)->ladder;
     w->etcNo = no;
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");

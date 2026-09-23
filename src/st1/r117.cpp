@@ -854,7 +854,7 @@ extern "C" void Evt_R117S00_Func(Event* e)
 
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag |= 0x40;
+                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
                 }
             }
             break;
@@ -864,7 +864,7 @@ extern "C" void Evt_R117S00_Func(Event* e)
 
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag &= ~0x40;
+                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
                 }
             }
             break;

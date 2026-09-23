@@ -4,7 +4,7 @@
 #include "obj.h"
 
 // Item pickup model: a static model with a light set, placed once by setItemObj().
-class cItemObj : public cObj {
+class cItemObj : public cObjUnion {
 public:
     static const Vec zero;
 

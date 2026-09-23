@@ -13,7 +13,7 @@ class cPlayer;
 // The vtable order is objWep's `cObjWep virtual table`; the in-class bodies are the ones the
 // original emits after the destructor (objWep owns the vtable, so every in-class inline is
 // emitted there: add none that the target lacks).
-class cObjWep : public cObj {
+class cObjWep : public cObjUnion {
 public:
     cObjWep();
     virtual ~cObjWep() {}
@@ -55,7 +55,7 @@ public:
 
 // Rocket (game/objRocket.cpp): hangs on the launcher, flies with its motion and explodes on the
 // scenario / water / player weapon target line (`rocket`, obj.h).
-class cObjRocket : public cObj {
+class cObjRocket : public cObjUnion {
 public:
     virtual ~cObjRocket() {}
     virtual void beginEvent(u32 flag);

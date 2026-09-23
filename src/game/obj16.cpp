@@ -28,7 +28,7 @@
 // Enemy head (obj 0x16): the head / mouth model of the plaga-carrying enemies, hung on a parts of
 // its body (`o16.body`). It turns toward the player (obj16NeckMove), bites (R1_Atk, R1_Critical),
 // takes damage motions (R1_Damage) and fades out once its enemies are dead.
-class cObj16 : public cObj {
+class cObj16 : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObj16() {}
@@ -106,7 +106,7 @@ cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, 
     if (obj == 0) {
         return 0;
     }
-    w = &obj->o16;
+    w = &((cObj16*) obj)->o16;
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetObj16() failed.");
         ObjMgr.destroy(obj);
@@ -1327,7 +1327,7 @@ int cObj16::ckAtkHit()
 // Player damage routine while the head holds him (SetPlDamage callback).
 void plemDmMStar(cPlayer* pEm)
 {
-    Obj16Work* w = &((cObj*) pPL->pEmCatch)->o16;
+    Obj16Work* w = &((cObj16*) pPL->pEmCatch)->o16;
     int hokan;
 
     if (pEm->r_no_3 == 0) {

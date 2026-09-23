@@ -2575,7 +2575,7 @@ static void plem2b_Strangle(cPlayer* pl)
             em2bCatchObj.p->atari.m_flag &= 0xFCFF;
             em2bCatchObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
             em2bCatchObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            em2bCatchObj.p->wep.parent = pPL;
+            ((cObjUnion*) em2bCatchObj.p)->wep.parent = pPL;
             em2bCatchObj.p->setNoSuspend(1);
             em2bCatchObj.p->getPartsPtr(1)->ang.y = 3.14159274f;
         }
@@ -3463,7 +3463,7 @@ static void plem2b_AtkParasite(cPlayer* pl)
             em2bCatchObj.p->atari.m_flag &= 0xFCFF;
             em2bCatchObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
             em2bCatchObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            em2bCatchObj.p->wep.parent = pPL;
+            ((cObjUnion*) em2bCatchObj.p)->wep.parent = pPL;
             em2bCatchObj.p->setNoSuspend(1);
         }
         pl->atari.m_flag &= 0xFCFF; // throughOn(): the inline's `this` pseudo gives `addi r9,pl,692` and keeps the xFE load below the store

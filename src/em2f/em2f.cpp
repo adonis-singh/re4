@@ -43,7 +43,7 @@ asm(".comm common_em2f,52,4");
 
 
 // Floating island (game/obj1c.cpp): only what the crash check calls.
-class cObj1c : public cObj {
+class cObj1c : public cObjUnion {
 public:
     void setCrashBig(Vec* from);
     int ckCrash();

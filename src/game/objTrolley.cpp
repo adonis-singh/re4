@@ -5,6 +5,7 @@
 #include "map_obj.h"
 #include "widget.h"
 #include "obj.h"
+#include "objTrolley.h"
 #include "em.h"
 #include "emwep.h"
 #include "global.h"
@@ -26,22 +27,6 @@ struct TrolleyEmWork {
 };
 #define TROLLEY_EM_WK(em) ((TrolleyEmWork*) ((u8*) (em) + 0x3E0))
 
-
-// Mine trolley (obj 0x3B): three cars (parts 0 / 4 / 8) running along their motion with a scenario
-// collision piece and an effect collision piece per car; the player and the enemies standing on a
-// car are carried along, the break routine throws them off.
-class cObjTrolley : public cObj {
-public:
-    virtual void move();
-    virtual ~cObjTrolley() {}
-
-    void setMotion(void** tbl);
-    int ckTrolleyRide(Vec* pos, u8* partsNo, Vec* out);
-    int ckTrolleyRideAdjust(Vec* pos, Vec* out);
-    void setStart();
-    void set2ndStart();
-    int ckStop();
-};
 
 // Room module enemy (the em1x classes): a cEm with the module's own virtuals; the trolley only
 // calls the one the cars' break throws them with (vtable slot 31).
@@ -116,7 +101,7 @@ cObj* SetTrolley(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->trolley;
+    w = TROLLEY_WK((cObjTrolley*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");
         ObjMgr.destroy(obj);
@@ -172,7 +157,7 @@ void cObjTrolley::move()
 // setStart (Be_flg bit0) the player rides (Ride_pl, Status_flg[0] 0x20) and the run begins.
 void objTrolley_R0_Set(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
 
     if (w->Mot_tbl[0]) {
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[0], 0, 0, 0x8001, 0);
@@ -200,7 +185,7 @@ void objTrolley_R0_Set(cObjTrolley* pObj)
 // (plobjTrolleyDie). Every frame the riders are carried along and the front of the car hits enemies.
 void objTrolley_R0_Move(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
 
     objTrolleyPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -272,7 +257,7 @@ void objTrolley_R0_Move(cObjTrolley* pObj)
 // ends, are told setTrolleyLost and the cars vanish.
 void objTrolley_R0_Break(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
 
     objTrolleyPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -303,7 +288,7 @@ void objTrolley_R0_Break(cObjTrolley* pObj)
 // Marks all scenario / effect pieces inactive (m_Flag bit2) until objTrolleySatSet re-places them.
 static void objTrolleySatClear(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
     int i;
 
     for (i = 0; i < 5; i++) {
@@ -320,7 +305,7 @@ static void objTrolleySatClear(cObjTrolley* pObj)
 // effect) one collision piece per car at the car's parts position + 500, following its yaw.
 void objTrolleySatSet(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
     Vec pos;
     Vec rot;
     Vec v;
@@ -380,7 +365,7 @@ void objTrolleySatSet(cObjTrolley* pObj)
 // Action button callback: the player jumps off (plobjTrolleyEscape) and the trolley crashes.
 void objTrolleyEscapeAction(cObjTrolley* ptr)
 {
-    ptr->trolley.Ride_pl = 0;
+    TROLLEY_WK(ptr)->Ride_pl = 0;
     SetPlDamage((cEm*) ptr, plobjTrolleyEscape);
     ptr->r_no_0 = 2;
     ptr->r_no_1 = 0;
@@ -395,7 +380,7 @@ void plobjTrolleyEscape(cPlayer* pEm)
 {
     cEm* em = (cEm*) pEm;
     cObjTrolley* obj = (cObjTrolley*) em->pEmCatch;
-    TrolleyWork* w = &obj->trolley;
+    TrolleyWork* w = TROLLEY_WK((cObjTrolley*) obj);
     cModel* parts = em->getPartsPtr(4);
 
     em->subArc = pPL->pEmCatch->subArc;
@@ -501,7 +486,7 @@ void plobjTrolleyDie(cPlayer* pEm)
 {
     cEm* em = (cEm*) pEm;
     cObjTrolley* obj = (cObjTrolley*) em->pEmCatch;
-    TrolleyWork* w = &obj->trolley;
+    TrolleyWork* w = TROLLEY_WK((cObjTrolley*) obj);
     u8 step;
 
     em->subArc = pPL->pEmCatch->subArc;
@@ -528,7 +513,7 @@ void plobjTrolleyDie(cPlayer* pEm)
 // Copies the 9 motions from the room and starts the first run motion (frame 0).
 void cObjTrolley::setMotion(void** mot_tbl)
 {
-    TrolleyWork* w = &trolley;
+    TrolleyWork* w = TROLLEY_WK(this);
     int i;
 
     for (i = 0; i < 9; i++) {
@@ -721,20 +706,20 @@ int cObjTrolley::ckTrolleyRideAdjust(Vec* pPos, Vec* pPos2)
 // Scenario: begin the ride (Be_flg bit0).
 void cObjTrolley::setStart()
 {
-    trolley.Be_flg |= 1;
+    TROLLEY_WK(this)->Be_flg |= 1;
 }
 
 // Scenario: begin the second run (Be_flg bit1), clears "stopped".
 void cObjTrolley::set2ndStart()
 {
-    trolley.Be_flg |= 2;
-    trolley.Be_flg &= ~4;
+    TROLLEY_WK(this)->Be_flg |= 2;
+    TROLLEY_WK(this)->Be_flg &= ~4;
 }
 
 // 1 while the trolley has stopped after the first run (Be_flg bit2).
 int cObjTrolley::ckStop()
 {
-    if (trolley.Be_flg & 4) {
+    if (TROLLEY_WK(this)->Be_flg & 4) {
         return 1;
     }
     return 0;

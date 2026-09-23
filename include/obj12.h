@@ -6,7 +6,7 @@
 #include "obj.h"
 
 // Hanging object (game/obj12.cpp): the Ganado's sack / lantern, the door's locks and chain.
-class cObj12 : public cObj {
+class cObj12 : public cObjUnion {
 public:
     void setParent(cModel* pCoord, int parts, int flag);
     void setFall(Vec* pSpd, u8 type);

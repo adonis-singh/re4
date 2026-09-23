@@ -15,7 +15,7 @@
 
 // Event costume / cloth model: follows a parts of its parent with a slerp blend and runs the
 // cloth simulation selected by `type` (player costumes, enemy cloth sets, the ribbon / rope).
-class cObj18 : public cObj {
+class cObj18 : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObj18() {}
@@ -68,7 +68,7 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->o18;
+    w = &((cObj18*) obj)->o18;
     memset(w, 0, sizeof(Obj18Work));
     if (obj->modelInit(bin, tpl) == 0) {
         ObjMgr.destroy(obj);
@@ -272,8 +272,8 @@ int DelObj18(cObj* pObj)
         pLog->err(0, 0, "Evt_SetElgiganteRope : pointer failed");
         return 0;
     }
-    if (pObj->o18.child) {
-        ObjMgr.destroy(pObj->o18.child);
+    if (((cObj18*) pObj)->o18.child) {
+        ObjMgr.destroy(((cObj18*) pObj)->o18.child);
     }
     return 1;
 }
@@ -385,7 +385,7 @@ void OyaSetObj18(cObj* obj, cModel* oya, int partsNo)
     if (obj->id != 0x18) {
         return;
     }
-    w = &obj->o18;
+    w = &((cObj18*) obj)->o18;
     w->pEm_oya = oya;
     w->oya_parts = partsNo;
     w->be_flag &= ~8;
@@ -396,13 +396,13 @@ void OyaSetObj18(cObj* obj, cModel* oya, int partsNo)
 int obj18GetOya(cModel** pOya, cObj* pObj)
 {
     *pOya = 0;
-    if (pObj->o18.pEm_oya == 0) {
+    if (((cObj18*) pObj)->o18.pEm_oya == 0) {
         return 0;
     }
-    if (pObj->o18.pEm_oya->pParts == 0) {
+    if (((cObj18*) pObj)->o18.pEm_oya->pParts == 0) {
         return 0;
     }
-    *pOya = pObj->o18.pEm_oya;
+    *pOya = ((cObj18*) pObj)->o18.pEm_oya;
     return 1;
 }
 
@@ -492,7 +492,7 @@ void Obj18CmfSet(cObj* pObj, u32 commonFlag)
     if (pObj->id != 0x18) {
         return;
     }
-    pObj->o18.CommonFlag = commonFlag;
+    ((cObj18*) pObj)->o18.CommonFlag = commonFlag;
 }
 
 // Event control flags of an obj18 (0 for other objects).
@@ -504,7 +504,7 @@ u32 Obj18CmfGet(cObj* pObj)
     if (pObj->kindid != 1 || pObj->id != 0x18) {
         return 0;
     }
-    return pObj->o18.CommonFlag;
+    return ((cObj18*) pObj)->o18.CommonFlag;
 }
 
 // Sets one event control flag bit.

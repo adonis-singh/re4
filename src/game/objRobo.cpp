@@ -56,7 +56,7 @@ cObjRobo* SetObjRobo(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->robo;
+    w = &((cObjRobo*) obj)->robo;
     memset(w, 0, sizeof(RoboWork));
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");

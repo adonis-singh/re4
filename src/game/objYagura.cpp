@@ -9,17 +9,9 @@
 #include "map_obj.h"
 #include "widget.h"
 #include "obj.h"
+#include "objYagura.h"
 #include "global.h"
 #include "motion.h"
-
-// Ladder (yagura = tower): a static collision model that can play a vibration motion.
-class cObjYagura : public cObj {
-public:
-    virtual void move();
-
-    void setMotionVib(void* mot);
-    void setVib();
-};
 
 extern "C" {
 void objYagura_R0_Set(cObjYagura* obj);
@@ -38,7 +30,7 @@ cObj* SetYagura(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->yagura;
+    w = YAGURA_WK((cObjYagura*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");
         ObjMgr.destroy(obj);
@@ -94,14 +86,14 @@ void objYagura_R0_Set(cObjYagura* pObj)
 // Remembers the motion setVib() plays (room scenario sets it from its archive).
 void cObjYagura::setMotionVib(void* mot)
 {
-    yagura.Mot_vib = mot;
+    YAGURA_WK(this)->Mot_vib = mot;
 }
 
 // Starts the vibration motion (the ladder shakes when the player climbs / kicks it).
 void cObjYagura::setVib()
 {
-    if (yagura.Mot_vib) {
-        MotionSetCore(this, &Motion, yagura.Mot_vib, 0, 0, 0, 0);
+    if (YAGURA_WK(this)->Mot_vib) {
+        MotionSetCore(this, &Motion, YAGURA_WK(this)->Mot_vib, 0, 0, 0, 0);
     }
 }
 

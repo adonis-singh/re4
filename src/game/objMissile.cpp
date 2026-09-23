@@ -19,7 +19,7 @@
 
 // Helicopter missile: follows a parts of the helicopter (R0_Parent), waits (R0_FireWait), flies
 // toward its target and explodes on the scenario / an enemy (R0_Fire, objMissileBomb).
-class cObjMissile : public cObj {
+class cObjMissile : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObjMissile() {}

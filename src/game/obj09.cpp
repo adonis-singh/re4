@@ -23,7 +23,7 @@ f32 LinerEquation3(f32 a[][3], f32* b, f32* x);
 // second order Runge-Kutta step (CalcVel / Calc), colliding with the scenario at its eight
 // corners (calcPointHit), with the other rigid bodies (Obj09HitCheck), the water, the sand and
 // the player.
-class cObj09 : public cObj {
+class cObj09 : public cObjUnion {
 public:
     virtual void move();
 };
@@ -59,7 +59,7 @@ static cObj* pObj_ck;
 // Apply `force` at world point `point`: the force and the torque about the centre accumulate.
 void AddForce(cObj* pObj, Vec* pos, Vec* f)
 {
-    Efm09Work* w = &pObj->efm09;
+    Efm09Work* w = &((cObj09*) pObj)->efm09;
     Vec t;
     Vec r;
 
@@ -84,7 +84,7 @@ void dwdt(Vec* w, Vec* tq, Vec* I, Vec* pRet)
 // Integrate the linear and angular velocities over `dt` and clear the accumulators.
 static void CalcVel(cObj* pObj, f32 dt)
 {
-    Efm09Work* w = &pObj->efm09;
+    Efm09Work* w = &((cObj09*) pObj)->efm09;
     Vec a;
     Vec lt;
     Mtx inv;
@@ -117,7 +117,7 @@ static void CalcVel(cObj* pObj, f32 dt)
 // is re-orthonormalised from its z axis.
 void Calc(cObj* pObj, f32 dt)
 {
-    Efm09Work* w = &pObj->efm09;
+    Efm09Work* w = &((cObj09*) pObj)->efm09;
     Vec v;
     Vec av;
     Mtx n;
@@ -239,13 +239,13 @@ static void Obj09HitCheck(cObj* pObj)
     if (pObj == ck) {
         return;
     }
-    PSMTXCopy(pObj->efm09.mat, m2);
-    TransMatrix(m2, &pObj->efm09.basePos);
-    w2 = &pObj->efm09;
+    PSMTXCopy(((cObj09*) pObj)->efm09.mat, m2);
+    TransMatrix(m2, &((cObj09*) pObj)->efm09.basePos);
+    w2 = &((cObj09*) pObj)->efm09;
     PSMTXInverse(m2, inv);
-    PSMTXCopy(ck->efm09.mat, m1);
-    TransMatrix(m1, &ck->efm09.basePos);
-    w1 = &ck->efm09;
+    PSMTXCopy(((cObj09*) ck)->efm09.mat, m1);
+    TransMatrix(m1, &((cObj09*) ck)->efm09.basePos);
+    w1 = &((cObj09*) ck)->efm09;
     maxDepth = 0.0f;
     n.x = n.y = n.z = 0.0f;
     for (i = 0; i < 8; i++) {

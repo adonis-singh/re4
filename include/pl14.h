@@ -185,7 +185,7 @@ struct LuisItemWork {
     Vec acc;              // 0x10 (0x338)
 };
 
-class cObjLuisItem : public cObj {
+class cObjLuisItem : public cObjUnion {
 public:
     virtual void move();
     void init(Vec* pos, f32 rotY);

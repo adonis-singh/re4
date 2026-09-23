@@ -3314,7 +3314,7 @@ static void plem32_P_CatchHit(cPlayer* pl)
             w->pCatchObj->atari.m_flag &= 0xFCFF;
             w->pCatchObj->pParts->pParent = pPL->getPartsPtr(0xA);
             w->pCatchObj->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            w->pCatchObj->wep.parent = pPL;
+            ((cObjUnion*) w->pCatchObj)->wep.parent = pPL;
             w->pCatchObj->getPartsPtr(1)->ang.y = 3.14159274f;
         }
         pl->m_Work0 = 15;
@@ -4798,7 +4798,7 @@ void em32PlDivideModelInit(cEm32* em)
     }
 }
 
-class cObj00 : public cObj {
+class cObj00 : public cObjUnion {
 public:
     void setScrAtari(f32 r);
 };

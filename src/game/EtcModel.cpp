@@ -27,7 +27,7 @@
 #include "esp.h"
 
 // obj13.cpp's ladder object; only the two setters the etc list calls are needed here.
-class cObjLadder : public cObj {
+class cObjLadder : public cObjUnion {
 public:
     void setLadderInfo(int num, u8 type);
     void setMotion(void** tbl);

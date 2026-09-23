@@ -27,7 +27,7 @@
 // Bulldozer (obj 0x3E): parts 2 carries the player, the partner and the enemies standing on it
 // through the break / move / lift routines of its motion table; the partner drives it
 // (Sub_bull_*) while the player shoots the pursuers (objBullHitCk).
-class cObjBull : public cObj {
+class cObjBull : public cObjUnion {
 public:
     virtual void move();
     virtual ~cObjBull() {}
@@ -109,7 +109,7 @@ cObj* SetBull(void* bin, void* tpl, Vec* pos, Vec* rot, u32 type)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->bull;
+    w = &((cObjBull*) obj)->bull;
     if (pos) {
         obj->pos = *pos;
     } else {

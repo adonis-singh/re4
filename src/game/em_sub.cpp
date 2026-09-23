@@ -18,6 +18,7 @@
 #include "item.h"
 #include "sce_at.h"
 #include "obj.h"
+#include "objTrolley.h"
 #include "game.h"
 #include "pad.h"
 #include "dbmodule.h"
@@ -29,14 +30,7 @@
 #include "motion.h"
 #include "em.h"
 
-// The vehicle objects (objTrolley.cpp / objBull.cpp) as seen from here: the ride checks only.
-class cObjTrolley : public cObj {
-public:
-    int ckTrolleyRide(Vec* pos, u8* partsNo, Vec* out);
-    int ckTrolleyRideAdjust(Vec* pos, Vec* out);
-};
-
-class cObjBull : public cObj {
+class cObjBull : public cObjUnion {
 public:
     int ckBullRide(Vec* pos, u8* partsNo, Vec* out);
     int ckBullRideAdjust(Vec* pos, Vec* out);
