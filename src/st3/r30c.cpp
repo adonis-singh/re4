@@ -104,7 +104,7 @@ void R30cInit()
             pa->y = rotY;
             ang.z = 0.0f;
             sub->setAng(pa);
-            AtariOffV(&pSUB->atari, ~0x100);
+            pSUB->atari.offSca();
             pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x1F), 0, 0, 9, 0);
             pSUB->dmg.m_Timer = 0x80;
         } else {
@@ -119,8 +119,8 @@ void R30cInit()
             pa->y = rotY;
             ang.z = 0.0f;
             sub->setAng(pa);
-            AtariOffV(&pSUB->atari, ~0x100);
-            AtariOffV(&pSUB->atari, ~0x200);
+            pSUB->atari.offSca();
+            pSUB->atari.offOba();
             pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x24), 0, 0, 4, 0);
             r30c_work->shout = SceExec(0x12, (TaskFunc) r30c_AshleyShout, 0, 0, 2, 0);
             if (RsfCheck(*(u16*) &pG->stage_no, 1) == 0) {
@@ -202,7 +202,7 @@ static void R30cEventS00()
         }
         StaFlagOn(pG, STA_SUB_ASHLEY);
         pSUB = r30c_work->ashley;
-        AtariOnV(&pSUB->atari, 0x100);
+        pSUB->atari.onSca();
         MotionClear(pSUB, 1);
         pSUB->be_flag |= 0x200000;
         SubCharCtrl(4, 0);

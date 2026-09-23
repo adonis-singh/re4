@@ -331,7 +331,7 @@ cObj* SetObj01(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    obj->atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
     w = OBJ01_WK((cObj01*) obj);
     obj->pos = *pos;

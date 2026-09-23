@@ -476,7 +476,7 @@ static void r20e_execThrough(int no)
     u32 i;
 
     pl->beginAction();
-    AtariOff(&pPL->atari, 0xFEFF);
+    pPL->atari.offSca();
     pPL->atari.setPriority(PRI_LV1);
     pPL->dmg.set(0, 0x80);
     t = &r20e_throughTbl[no];
@@ -548,7 +548,7 @@ static void r20e_execThrough(int no)
     }
     pl->endAction(8);
     pPL->dmg.clear();
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     pPL->atari.setPriority(0);
 }
 

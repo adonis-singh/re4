@@ -1651,7 +1651,7 @@ static void em32_R1_Threat(cEm32* em)
     case 0: {
         int hokan = 10;
 
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         if (em->r_no_3) {
             w->flags |= 0x40;
             hokan = 0;
@@ -1945,7 +1945,7 @@ static void em32_R1_CatchHit(cEm32* em)
             w->timer--;
             EmCatchMotionMove(em, 1.0f, 1.0f);
         } else {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if (MotionMove(em, 0)) {
                 if ((w->flags & 0x1000) && em32StepUpCk2(em)) {
                     break;
@@ -2013,7 +2013,7 @@ static void plem32_CatchHit(cPlayer* pl)
             pl->m_Work0--;
             EmCatchMotionMove(pl, 1.0f, 1.0f);
         } else if (MotionMove(pl, 0)) {
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
         end:
             EndPlDamage();
             pl->dmg.set(0, 30);
@@ -2936,7 +2936,7 @@ static void em32_R1_C_AtkHit(cEm32* em)
         EmCatchPLSet(em, 3.14159274f, 1, -83.8300018f, 0.0f, -2411.40991f, plem32_C_AtkHit);
         GameAddPoint(LVADD_PL_DAMAGE);
         PlGachaInit();
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         EstSet(em, -1, 0, 0, EFF_EM32, 0xD, 0, ESP_CORE_KIND_NONE, em, (void*) step);
         EstSet(pPL, -1, 0, 0, EFF_EM32, 0x14, 0, w->espKind[1], em, (void*) step);
         SndStop(w->sndId, 0);
@@ -2994,7 +2994,7 @@ static void em32_R1_C_AtkHit(cEm32* em)
             w->timer--;
             EmCatchMotionMove(em, 1.0f, 1.0f);
         } else if (MotionMove(em, 0)) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if ((w->Atk_ck || (Rnd() & 1)) && em32JumpDownCk(em)) {
                 break;
             }
@@ -3022,7 +3022,7 @@ static void plem32_C_AtkHit(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, EM_ARC(pl, 0x87), 0, 0, 0x201, 0);
-        AtariOff(&pl->atari, 0xFCFF);
+        pl->atari.off();
         PlSetFace(1);
         pl->r_no_2++;
     case 1:
@@ -3041,9 +3041,9 @@ static void plem32_C_AtkHit(cPlayer* pl)
             pl->m_Work0--;
             EmCatchMotionMove(pl, 1.0f, 1.0f);
         } else {
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
             if (MotionMove(pl, 0)) {
-                AtariOn(&pl->atari, 0x300);
+                pl->atari.on();
                 EndPlDamage();
                 pl->dmg.set(0, 30);
             }
@@ -3236,7 +3236,7 @@ static void em32_R1_P_CatchHit(cEm32* em)
             w->timer--;
             EmCatchMotionMove(em, 1.0f, 1.0f);
         } else {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if (MotionMove(em, 0)) {
                 if ((w->flags & 0x1000) && em32StepUpCk2(em)) {
                     break;
@@ -3329,7 +3329,7 @@ static void plem32_P_CatchHit(cPlayer* pl)
                 w->pCatchObj = 0;
             }
             pl->Wep->setTrans(1, 0);
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
             EndPlDamage();
             pl->dmg.set(0, 30);
         }
@@ -3368,11 +3368,11 @@ static void em32_R1_Ground(cEm32* em)
         } else if (w->timer) {
             w->timer--;
         } else {
-            AtariOff(&em->atari, 0xFCFF);
+            em->atari.off();
         }
         break;
     case 2:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->Atk_ck = 0;
         w->actionSet = 0;
         w->TmpU32 = Rnd() & 1;
@@ -3460,7 +3460,7 @@ static void em32_R1_Ground(cEm32* em)
         } else if (w->timer) {
             w->timer--;
         } else {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
         }
         break;
     }
@@ -3612,7 +3612,7 @@ static void em32_R1_Die_Normal(cEm32* em)
     w->flags |= 0x4000;
     switch (step) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->setPos(&pos);
         em->ang.y = 0.0f;
         MotionSetCore(em, &em->Motion, ARC(0x77), ARC(0x78), 3, 1, 0);
@@ -4400,7 +4400,7 @@ void cEm32::setNext(int no)
             w->mode = n;
         }
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
+        atari.off();
         EmRoutineSet(this, 1, 4, 0, 0);
         break;
     case 4:
@@ -4411,7 +4411,7 @@ void cEm32::setNext(int no)
             w->mode = n;
         }
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
+        atari.off();
         flag &= ~1;
         w->flags |= 0x100000;
         if (w->pTexModel) {
@@ -4428,7 +4428,7 @@ void cEm32::setNext(int no)
             w->mode = n;
         }
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
+        atari.off();
         flag &= ~1;
         w->flags |= 0x100000;
         if (w->pTexModel) {
@@ -4440,7 +4440,7 @@ void cEm32::setNext(int no)
         break;
     case 6:
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
+        atari.off();
         flag &= ~1;
         r_no_1 = 0xD;
         r_no_2 = 0;
@@ -4855,7 +4855,7 @@ static void plemDivide(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, EM_ARC(pl, 0x9E), 0, 3, 1, 0);
-        AtariOff(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pl->r_no_2++;
     case 1:
         MotionMove(pl, 0);

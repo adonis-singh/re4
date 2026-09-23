@@ -3125,21 +3125,21 @@ void em10InitRtnSet(cEm10* em)
         w->pDragon = GetCtrlDragon(0);
         em10SetWaitMotion(em, 0);
         em->setStatus(EM_STATUS_ACTIVE);
-        em->atari.throughOn();
+        em->atari.off();
         EmRoutineSet(em, 1, 0x52, 0, 0);
         break;
     case 0x28:
         w->pDragon = GetCtrlDragon(1);
         em10SetWaitMotion(em, 0);
         em->setStatus(EM_STATUS_ACTIVE);
-        em->atari.throughOn();
+        em->atari.off();
         EmRoutineSet(em, 1, 0x53, 0, 0);
         break;
     case 0x29:
         w->pDragon = GetCtrlDragon(2);
         em10SetWaitMotion(em, 0);
         em->setStatus(EM_STATUS_ACTIVE);
-        em->atari.throughOn();
+        em->atari.off();
         EmRoutineSet(em, 1, 0x54, 0, 0);
         break;
     case 0x2A:
@@ -3957,7 +3957,7 @@ static void em10_R1_R222DragonA(cEm10* em)
     f32 ay;
     f32 ang;
 
-    em->atari.throughOn();
+    em->atari.off();
     em->setStatus(EM_STATUS_IK_OFF);
     switch (em->r_no_2) {
     case 0:
@@ -4113,7 +4113,7 @@ static void em10_R1_R222DragonB(cEm10* em)
     f32 ay;
     f32 ang;
 
-    em->atari.throughOn();
+    em->atari.off();
     em->setStatus(EM_STATUS_IK_OFF);
     switch (em->r_no_2) {
     case 0:
@@ -4274,7 +4274,7 @@ static void em10_R1_R222DragonC(cEm10* em)
     f32 ay;
     f32 ang;
 
-    em->atari.throughOn();
+    em->atari.off();
     em->setStatus(EM_STATUS_IK_OFF);
     switch (em->r_no_2) {
     case 0:
@@ -4539,7 +4539,7 @@ static void em10_R1_R10FGJump(cEm10* em)
     case 0:
         em10SetWaitMotion(em, 0);
         w->Timer = 90;
-        em->atari.throughOn();
+        em->atari.off();
         em->hp = 1;
         em->r_no_2++;
     case 1:
@@ -4711,7 +4711,7 @@ static void em10_R1_R10FGondola(cEm10* em)
     case 0:
         em10SetWaitMotion(em, 0);
         em->Motion.Mot_attr &= ~1;
-        em->atari.throughOn();
+        em->atari.off();
         w->Timer = 90;
         em->r_no_2++;
     case 1:
@@ -5056,7 +5056,7 @@ static void em10_R1_R212Drill(cEm10* em)
     switch (em->r_no_2) {
     case 0:
         em10SetWaitMotion(em, 0);
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->Scale.x = 1.0f;
         w->Scale.y = 1.0f;
         w->Scale.z = 1.0f;
@@ -5117,7 +5117,7 @@ static void em10_R1_R209Gatling(cEm10* em)
         } else {
             em10SetWaitMotion(em, 0);
         }
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->Scale.x = 1.0f;
         w->Scale.y = 1.0f;
         w->Scale.z = 1.0f;
@@ -5210,7 +5210,7 @@ static void em10_R1_R201EventWait(cEm10* em)
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, MOTION(em), PL_ARC_PTR(em->subArc, 0x108), 0, 0, 5, 0);
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->r_no_2++;
     case 1:
         em->atari.m_flag |= 8;
@@ -5251,11 +5251,11 @@ static void em10_R1_R201EventWait(cEm10* em)
             w->Timer--;
             w->Be_flg |= 8;
             if (w->Timer == 0) {
-                em->atari.setFlag100();
+                em->atari.onSca();
             }
         }
         if (MotionMove(em, 0)) {
-            em->atari.setFlag100();
+            em->atari.onSca();
             EmRoutineSet(em, 1, 0x59, 0, 0);
         } else if (MOTION(em)->Seq_frame > 14.7f && MOTION(em)->Seq_frame < 15.3f) {
             SndCall(6, 0x11, &em->pos, 0, 0, em);
@@ -5870,7 +5870,7 @@ static void em10_R1_UFOCatch(cEm10* em)
     em->dmg.m_Timer = 2;
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         if (w->evtMot[0]) {
             MotionSetCore(em, MOTION(em), w->evtMot[0], 0, 10, 5, 0);
         } else {
@@ -8952,7 +8952,7 @@ static void em10_R1_RockPush(cEm10* em)
     Em10Work* w = EM10_WK(em);
 
     w->Be_flg |= 0x8000;
-    em->atari.throughOn();
+    em->atari.off();
     em->dmg.m_Timer = 2;
     switch (em->r_no_2) {
     case 0:
@@ -11386,7 +11386,7 @@ static void plem10_ClawCriHit(cPlayer* pl)
     pl->subArc = em->subArc;
     switch (pl->r_no_2) {
     case 0:
-        pl->atari.throughOn();
+        pl->atari.off();
         MotionSetCore(pl, MOTION(pl), PL_ARC_PTR(pl->subArc, 0x123), 0, 5, 1, 0);
         EstSet(pl, -1, 0, 0, EFF_EM10, 0x8B, 0, ESP_CORE_KIND_NONE, pl, 0);
         pl->atari.set(10, 400.0f, 700.0f);
@@ -13200,9 +13200,9 @@ static void em10_R1_TakeAway(cEm10* em)
                 em->setNoSuspend(1);
                 em->dmg.m_Timer = 0x80;
                 pG->ashley_life = 0;
-                em->atari.throughOn();
+                em->atari.off();
                 if (pSUB) {
-                    pSUB->atari.throughOn();
+                    pSUB->atari.off();
                     pSUB->setNoSuspend(1);
                 }
                 em->r_no_2++;
@@ -13306,8 +13306,8 @@ static void subem10_TakeAway(cSubChar* sub)
     switch (s->r_no_2) {
     case 0:
         MotionSetCore(s, MOTION(s), PL_ARC_PTR(s->subArc, 0x2A2), 0, 5, 1, 0);
-        s->atari.setFlag100();
-        s->atari.clrFlag200();
+        s->atari.onSca();
+        s->atari.offOba();
         {
             int no;
             if (Rnd() & 1) {
@@ -13320,8 +13320,8 @@ static void subem10_TakeAway(cSubChar* sub)
         s->m_Work0 = 10;
         s->r_no_2++;
     case 1:
-        s->atari.setFlag100();
-        s->atari.clrFlag200();
+        s->atari.onSca();
+        s->atari.offOba();
         if (s->m_Work0) {
             s->m_Work0--;
             r = EmCatchMotionMove(s, 0.3f, 0.2f);
@@ -13342,8 +13342,8 @@ static void subem10_TakeAway(cSubChar* sub)
         s->m_Work2 = 0;
         s->r_no_2++;
     case 3:
-        s->atari.setFlag100();
-        s->atari.clrFlag200();
+        s->atari.onSca();
+        s->atari.offOba();
         SUB_TAKEAWAY_POS(-176.17f, 40.95f)
         MotionMove(s, 0);
         if (SUB_TAKEAWAY_HOLD_CK) {
@@ -13360,7 +13360,7 @@ static void subem10_TakeAway(cSubChar* sub)
         s->m_Work2 = 0;
         s->r_no_2++;
     case 5:
-        s->atari.throughOn();
+        s->atari.off();
         MotionMove(s, 0);
         if (SUB_TAKEAWAY_HOLD_CK) {
             s->r_no_2 = 0xA;
@@ -13376,7 +13376,7 @@ static void subem10_TakeAway(cSubChar* sub)
         s->m_Work2 = 0;
         s->r_no_2++;
     case 7:
-        s->atari.throughOn();
+        s->atari.off();
         s->dmg.m_Timer = 2;
         MotionMove(s, 0);
         if (SUB_TAKEAWAY_HOLD_CK) {
@@ -13393,7 +13393,7 @@ static void subem10_TakeAway(cSubChar* sub)
         s->m_Work2 = 0;
         s->r_no_2++;
     case 9:
-        s->atari.throughOn();
+        s->atari.off();
         MotionMove(s, 0);
         if (SUB_TAKEAWAY_HOLD_CK) {
             s->r_no_2 = 0xA;
@@ -13418,7 +13418,7 @@ static void subem10_TakeAway(cSubChar* sub)
         break;
     case 0xA:
         MotionSetCore(s, MOTION(s), PL_ARC_PTR(s->subArc, 0x2A4), 0, 5, 1, 0);
-        s->atari.throughOff();
+        s->atari.on();
         if (ChkWaterEffectEnable(&s->pos)) {
             EstSet(s, -1, 0, 0, EFF_PL01, 0xC, 0, ESP_CORE_KIND_NONE, s, 0);
         } else {
@@ -13443,7 +13443,7 @@ static void subem10_TakeAway(cSubChar* sub)
         MotionSetCore(s, MOTION(s), PL_ARC_PTR(s->subArc, 0x2A3), 0, 3, 1, 0);
         s->r_no_2++;
     case 0xF:
-        s->atari.throughOn();
+        s->atari.off();
         SUB_TAKEAWAY_POS(-116.87f, 40.67f)
         MotionMove(s, 0);
         if (SUB_TAKEAWAY_HOLD_CK) {
@@ -25506,7 +25506,7 @@ void cEm10::setLost()
 {
     Em10Work* w = EM10_WK(this);
 
-    atari.throughOn();
+    atari.off();
     EmSetDie(this);
     EmReserveDropItem(this);
     clearStatus(EM_STATUS_ACTIVE);

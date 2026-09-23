@@ -426,7 +426,7 @@ static void funcAshley(cEm* p)
     pSUB->setPos(&d);
     switch (p->r_no_2) {
     case 0:
-        AtariOff(&pSUB->atari, 0xFCFF);
+        pSUB->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x21), 0xA, 0, 1, 0);
         SndCall(6, 0xD, &pSUB->pos, 0, 0, 0);
         p->r_no_2 = 1;
@@ -449,7 +449,7 @@ static void funcAshley(cEm* p)
     default:
         if (p->motionMove() != 0) {
             EmRoutineSet(p, 0, 0, 0, 0);
-            AtariOn(&pSUB->atari, 0x300);
+            pSUB->atari.on();
             SubCharCtrl(SCC_CHASE, 0);
         }
         break;
@@ -461,13 +461,13 @@ static void funcAshley(cEm* p)
 static void funcAshley2(cEm* p)
 {
     if (p->r_no_2 == 0) {
-        AtariOff(&pSUB->atari, 0xFCFF);
+        pSUB->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x27), 0x19, 0, 1, 0);
         p->r_no_2 = 1;
     }
     if (p->motionMove() != 0) {
         EmRoutineSet(p, 0, 0, 0, 0);
-        AtariOn(&pSUB->atari, 0x300);
+        pSUB->atari.on();
         SubCharCtrl(SCC_CHASE, 0);
     }
 }
@@ -479,7 +479,7 @@ static void funcAshley3(cEm* p)
 
     switch (step) {
     case 0:
-        AtariOff(&pSUB->atari, 0xFCFF);
+        pSUB->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x31), 0x19, 0, 1, 0);
         r206_work->cnt3 = step;
         p->r_no_2 = 1;
@@ -496,7 +496,7 @@ static void funcAshley3(cEm* p)
         break;
     default:
         EmRoutineSet(p, 0, 0, 0, 0);
-        AtariOn(&pSUB->atari, 0x300);
+        pSUB->atari.on();
         SubCharCtrl(SCC_CHASE, 0);
         break;
     }

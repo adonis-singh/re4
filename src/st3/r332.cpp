@@ -415,7 +415,7 @@ static void playerDieBridge(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x2F), 0, 3, 0x201, 0);
-        AtariOffRaw(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pl->be_flag &= ~0x10;
         PlSetDamageSe(0xA);
         r332_work->dieY = start;
@@ -475,7 +475,7 @@ static void playerBridge(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         Cckpt.lifeMeterDisp(0);
-        AtariOffRaw(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pG->Room_flg[0] |= 0x10000000;
         pPL->pos.x = pos0[no].x;
         pPL->pos.y = pos0[no].y;
@@ -542,7 +542,7 @@ static void playerBridge(cPlayer* pl)
                 pl->r_no_2++;
             } else {
                 pG->pl_life = 0;
-                AtariOffRaw(&pl->atari, 0xFCFF);
+                pl->atari.off();
                 SndCall(1, 0x4A, &pPL->pos, 0, 0, 0);
                 MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x2F), 0, 3, 0x201, 0);
                 MotionMove(pl, 0);
@@ -555,7 +555,7 @@ static void playerBridge(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pPL->be_flag |= 0x10;
             pG->Room_flg[0] &= ~0x10000000;
-            AtariOnRaw(&pl->atari, 0x300);
+            pl->atari.on();
             SceEventStart(0);
             SceEventEnd(0);
             EndPlDamage();
@@ -962,7 +962,7 @@ static void R332RocketShootMain(int type)
     r332_work->strBlk = 0;
     VEC_COPY(r332_work->plPos, pPL->pos);
     VEC_COPY(r332_work->plRot, pPL->ang);
-    AtariOffRaw(&pPL->atari, 0xFCFF);
+    pPL->atari.off();
     pPL->beginEvent(0);
     pPL->setNoSuspend(1);
     CamCtrl.deleteAttachCamera(pPL->Motion.pAttachCam, pPL);
@@ -1112,7 +1112,7 @@ static void R332RocketShootEnd(int type)
     pPL->ang.x = 0.0f;
     pPL->ang.y = 3.14f;
     pPL->ang.z = 0.0f;
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
     if (type == 0) {
         cObjLauncher* lau;
 
@@ -1289,7 +1289,7 @@ static void R332ExecCrane(int no)
         }
         switch (step) {
         case 0:
-            AtariOffRaw(&pPL->atari, 0xFCFF);
+            pPL->atari.off();
             pPL->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x34), 3, 0, 0x200, 0);
             step = 1;
             break;
@@ -1416,7 +1416,7 @@ void R332ExecCraneEnd(int no, int atNo)
     pl->dmg.clear();
     pl->endEvent(0);
     pl->m_Hokan = 0xC;
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
 }
 
 // The s00 event (the boss appears).

@@ -83,7 +83,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 3000.0f, 3000.0f, 0.0f };
 
-    obj->atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     if (pos) {
         obj->pos = *pos;
@@ -365,5 +365,6 @@ void obj00SetOya(cObj00* pObj)
 void cObj00::setScrAtari(f32 radius)
 {
     atari.init(0.0f, 0.0f, 0.0f, radius, radius, radius * 0.8f, radius, 1, 0x2000, 10);
-    atari.scrOn();
+    atari.offOba();
+    atari.onSca();
 }

@@ -85,7 +85,7 @@ cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, 
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 2000.0f, 2000.0f, 2000.0f };
 
-    obj->atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 2);
     obj->type = type;
     if (pos) {

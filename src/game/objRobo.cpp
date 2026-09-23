@@ -69,7 +69,7 @@ cObjRobo* SetObjRobo(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p1 = { 5000.0f, 10000.0f, 5000.0f };
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    obj->atari.throughOn();
+    obj->atari.off();
     if (pos) {
         obj->pos = *pos;
     } else {

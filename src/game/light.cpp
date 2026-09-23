@@ -630,7 +630,7 @@ void cLightMgr::setEsp(EspLightList* pEnv, u8 enableMask)
     }
 }
 
-// Does the light reach the model's light volume? Dispatches on LightInfo.Flag & 3 (0 cylinder, 1/3
+// Does the light reach the model's light volume? Dispatches on LightInfo.getType() (0 cylinder, 1/3
 // sphere, 2 box).
 int lightHitCheck(cModel* pMod, cLight* pLight)
 {
@@ -640,7 +640,7 @@ int lightHitCheck(cModel* pMod, cLight* pLight)
         lightHitCheckBBox,
         lightHitCheckSphere,
     };
-    return funcTbl[pMod->LightInfo.Flag & 3](pMod, pLight);
+    return funcTbl[pMod->LightInfo.getType()](pMod, pLight);
 }
 
 // Sphere volume (Size.x) vs light radius (0 = infinite).

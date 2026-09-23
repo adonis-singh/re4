@@ -851,7 +851,7 @@ void pl_R1_Ladder(cPlayer* pEm)
         if (pEm->motionMove()) {
             pEm->m_Fwork0 += 1500.0f;
             pEm->dmg.clear();
-            pEm->atari.throughOff();
+            pEm->atari.on();
             EmRoutineSet(pEm, 0, 0, 0, 0);
             pEm->stat.on(cPlayer::F_SHADOW);
         }
@@ -917,7 +917,7 @@ void pl_R1_Ladder(cPlayer* pEm)
         if (pEm->motionMove()) {
             pEm->m_Fwork0 -= 500.0f;
             pEm->dmg.clear();
-            pEm->atari.throughOff();
+            pEm->atari.on();
             EmRoutineSet(pEm, 0, 0, 0, 0);
         }
         break;
@@ -1032,7 +1032,7 @@ void pl_R1_JumpFall(cPlayer* pEm)
     case 0:
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x5E), PL_ARC_PTR(pG->pPlayer, 0x60), 3, 0x201, 0);
         pEm->Neck->m_MotR = 0;
-        pEm->atari.throughOn();
+        pEm->atari.off();
         pEm->Shd_color = 0xFF;
         pEm->m_Work0 = 0;
         pEm->r_no_2 = 1;
@@ -1047,7 +1047,7 @@ void pl_R1_JumpFall(cPlayer* pEm)
             if (fallCheck(pEm)) {
                 MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x5F), PL_ARC_PTR(pG->pPlayer, 0x61), 3, 0x201, 0);
                 pEm->dmg.clear();
-                pEm->atari.throughOff();
+                pEm->atari.on();
                 pEm->r_no_2 = 2;
                 pEm->stat.on(cPlayer::F_LANDING).on(cPlayer::F_SHADOW);
             }
@@ -1102,7 +1102,7 @@ void pl_R1_LevelUp(cPlayer* pEm)
         void* m0;
         void* m1;
         pEm->stat.off(cPlayer::F_SHADOW);
-        pEm->atari.throughOn();
+        pEm->atari.off();
         if (pEm->m_Work0 == 1) {
             m0 = pEm->m_MotTbl2[0];
             m1 = pEm->m_MotTbl2[1];
@@ -1125,7 +1125,7 @@ void pl_R1_LevelUp(cPlayer* pEm)
         if (pEm->motionMove()) {
             pEm->stat.off(cPlayer::F_SHADOW);
             EmRoutineSet(pEm, 0, 0, 0, 0);
-            pEm->atari.throughOff();
+            pEm->atari.on();
         }
         break;
     }
@@ -1141,7 +1141,7 @@ void pl_R1_LevelDown(cPlayer* pEm)
     switch (pEm->r_no_2) {
     case 0:
         pEm->stat.off(cPlayer::F_SHADOW);
-        pEm->atari.throughOn();
+        pEm->atari.off();
         MotionSetCore(pEm, MOTION(pEm), pEm->m_MotTbl2[10], pEm->m_MotTbl2[11], 6, 5, 0);
         pEm->Neck->m_MotR = 0;
         PSVECScale(&pEm->m_ActNorm, &pos, 400.0f);
@@ -1159,7 +1159,7 @@ void pl_R1_LevelDown(cPlayer* pEm)
             }
             pEm->stat.on(cPlayer::F_SHADOW);
             EmRoutineSet(pEm, 0, 0, 0, 0);
-            pEm->atari.throughOff();
+            pEm->atari.on();
         }
         break;
     }
@@ -1239,7 +1239,7 @@ void pl_R1_Fance(cPlayer* pEm)
 
     switch (pEm->r_no_2) {
     case 0:
-        pEm->atari.clrFlag100();
+        pEm->atari.offSca();
         pEm->atari.setPriority(PRI_LV2);
         if (pG->pl_type == 1 || pG->pl_type == 2 || pG->pl_type == 4) {
             MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x53), PL_ARC_PTR(pG->pPlayer, 0x54), 3, 5, 0);
@@ -1307,7 +1307,7 @@ void pl_R1_Fance(cPlayer* pEm)
     }
     if (end) {
         pEm->atari.setPriority(0);
-        pEm->atari.setFlag100();
+        pEm->atari.onSca();
         EmRoutineSet(pEm, 0, 0, 0, 0);
     }
     pEm->dmg.set(0, 2);
@@ -1415,7 +1415,7 @@ void pl_R1_Fall(cPlayer* pEm)
     switch (pEm->r_no_2) {
     case 0:
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x2D), PL_ARC_PTR(pG->pPlayer, 0x2E), 3, 5, 0);
-        pEm->atari.throughOn();
+        pEm->atari.off();
         pEm->Neck->m_MotR = 0;
         pEm->atari.setPriority(PRI_LV2);
         if (pSUB) {
@@ -1483,7 +1483,7 @@ void pl_R1_Fall(cPlayer* pEm)
     case 4:
         if (pEm->motionMove()) {
             pEm->atari.setPriority(0);
-            pEm->atari.throughOff();
+            pEm->atari.on();
             pEm->dmg.clear();
             EmRoutineSet(pEm, 0, 0, 0, 0);
         }

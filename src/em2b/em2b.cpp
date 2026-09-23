@@ -2409,7 +2409,7 @@ static void em2b_R1_Strangle(cEm2b* em)
 
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em2bCatchPosSet(em);
         {
             int flip = em2bFlip(w, 0x41, 1);
@@ -2449,7 +2449,7 @@ static void em2b_R1_Strangle(cEm2b* em)
             }
         }
         if (MotionMove(em, 0)) {
-            AtariOnV(&em->atari, 0x300); // throughOff(): the volatile view keeps the following `lwz pG` below the sth
+            em->atari.on(); // throughOff(): the volatile view keeps the following `lwz pG` below the sth
             if ((s16) pG->pl_life <= 1) {
                 pG->pl_life = 0;
                 em->r_no_2 = 4;
@@ -2470,7 +2470,7 @@ static void em2b_R1_Strangle(cEm2b* em)
         pPL->setNoSuspend(0);
         em->setNoSuspend(0);
         StaFlagOff(pG, STA_ESP_COMPULSION_NOSUSPEND);
-        AtariOnV(&em->atari, 0x300); // throughOff(): the volatile view keeps the following `lwz pG` below the sth
+        em->atari.on(); // throughOff(): the volatile view keeps the following `lwz pG` below the sth
         w->Timer = 60;
         em->r_no_2++;
     }
@@ -2488,7 +2488,7 @@ static void em2b_R1_Strangle(cEm2b* em)
 
         MotionSetCore(em, &em->Motion, ARC(0x3B), ARC(0x7E), 10, flip, 0);
         EstSet(em, -1, 0, 0, w->Eff, 0x23, 0, ESP_CORE_KIND_NONE, em, 0);
-        AtariOnV(&em->atari, 0x300); // throughOff(): the volatile view keeps the following `lwz pG` below the sth
+        em->atari.on(); // throughOff(): the volatile view keeps the following `lwz pG` below the sth
         StaFlagOff(pG, STA_SUSPEND);
         pPL->setNoSuspend(0);
         em->setNoSuspend(0);
@@ -2510,7 +2510,7 @@ static void plem2b_CatchHand(cPlayer* pl)
     pl->dmg.m_Timer = 2;
     switch (pl->r_no_2) {
     case 0:
-        pl->atari.throughOn();
+        pl->atari.off();
         MotionSetCore(pl, &pl->Motion, EM_ARC(pl, 0xBE), 0, 0, 0, 0);
         PlSetFace(1);
         pl->be_flag &= ~0x10;
@@ -2580,7 +2580,7 @@ static void plem2b_Strangle(cPlayer* pl)
             em2bCatchObj.p->setNoSuspend(1);
             em2bCatchObj.p->getPartsPtr(1)->ang.y = 3.14159274f;
         }
-        pl->atari.throughOn();
+        pl->atari.off();
         pl->m_Hokan = 0;
         pl->m_Frame = 0;
         pl->m_Blend = 0.0f;
@@ -2996,7 +2996,7 @@ static void plem2bDmFall(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, EM_ARC(pl, 0xEA), 0, 3, 0x201, 0);
-        pl->atari.throughOn();
+        pl->atari.off();
         if ((s16) pG->pl_life > 0) {
             PlSetDamageSe(0);
         } else {
@@ -3035,7 +3035,7 @@ static void plem2bDmFall(cPlayer* pl)
         pl->r_no_2++;
     case 3:
         if (MotionMove(pl, 0) && (s16) pG->pl_life > 0) {
-            pl->atari.throughOff();
+            pl->atari.on();
             EmRoutineSet(pPL, 1, 0, 0xA, 0);
         }
         break;
@@ -3235,7 +3235,7 @@ static void em2b_R1_Dm_Parasite(cEm2b* em)
         if (w->Pl_rot < 1.57079637f) {
             side = 1;
         }
-        em->atari.throughOn();
+        em->atari.off();
         em2bCatchPosSet(em);
         MotionSetCore(em, &em->Motion, ARC(0x30), ARC(0x77), 0, 1, 0);
         SetPlDamage(em, plem2b_AtkParasite);
@@ -3283,7 +3283,7 @@ static void em2b_R1_Dm_Parasite(cEm2b* em)
             ActBtn.set(ACT_QUICK_STICK, 0xB, 0, 0, ACTCTR_ENFORCE_EXEC, DISP_A_RAPID, ACT_FUNC_NORMAL, 0);
         }
         if (MotionMove(em, 0)) {
-            em->atari.throughOff();
+            em->atari.on();
             if (w->TmpU32 == 0) {
                 em->r_no_2 = 8;
             } else {
@@ -3646,7 +3646,7 @@ static void plem2b_AtkParasite(cPlayer* pl)
                 em2bCatchObj.p = 0;
             }
             pl->Wep->setTrans(1, 0);
-            pl->atari.throughOff();
+            pl->atari.on();
             EmRoutineSet(pPL, 1, 0, 0xA, 0);
         }
         break;
@@ -3832,7 +3832,7 @@ static void em2b_R1_Die_Lost(cEm2b* em)
 
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         w->Timer = 30;
         w->Timer2 = 150;
         SndCall(8, 0x34, &em->pos, em->id, 0, em);
@@ -3899,7 +3899,7 @@ static void em2b_R1_Die_Event(cEm2b* em)
         MotionSetCore(em, &em->Motion, ARC(0x3C), 0, 0, 1, 0);
         em->clearStatus(EM_STATUS_ACTIVE);
         em->setStatus(EM_STATUS_ITEMSET);
-        em->atari.setFlag200();
+        em->atari.onOba();
         v.x = 0.0f;
         v.y = 0.0f;
         v.z = 0.0f;
@@ -4266,7 +4266,7 @@ static void plem2b_dm_Stamp(cPlayer* pl)
         em2bStampCamMove((cEm2b*)pl->pEmCatch);
         if (MotionMove(pl, 0) || (pl->Motion.Seq_frame > 49.7000008f && pl->Motion.Seq_frame < 50.2999992f)) {
             if ((s16) pG->pl_life > 0) {
-                pl->atari.throughOff();
+                pl->atari.on();
                 EmRoutineSet(pPL, 1, 0, 0xA, 0);
             }
         }
@@ -4313,7 +4313,7 @@ static void plem2b_dm_BlowKick(cPlayer* pl)
             SndCall(5, 5, &pPL->pos, pPL->id, 0, pPL);
         }
         if (MotionMove(pl, 0) && (s16) pG->pl_life > 0) {
-            pl->atari.throughOff();
+            pl->atari.on();
             EmRoutineSet(pPL, 1, 0, 0xA, 0);
         }
         break;
@@ -4343,9 +4343,9 @@ static void plem2bDashEscape(cPlayer* pl)
         } else {
             MotionSetCore(pl, &pl->Motion, EM_ARC(pl, 0xC1), EM_ARC(pl, 0xC2), 3, 0x41, 0);
         }
-        AtariOffV(&pl->atari, 0xFDFF);
+        pl->atari.offOba();
         if (pSUB) {
-            AtariOffV(&pSUB->atari, 0xFDFF);
+            pSUB->atari.offOba();
         }
         GameAddPoint(LVADD_ESCAPEATTACK);
         if (pSUB) {
@@ -4370,9 +4370,9 @@ static void plem2bDashEscape(cPlayer* pl)
         if (pl->m_Work0) {
             pl->m_Work0--;
         } else {
-            AtariOnV(&pl->atari, 0x200);
+            pl->atari.onOba();
             if (pSUB) {
-                AtariOnV(&pSUB->atari, 0x200);
+                pSUB->atari.onOba();
             }
             EndPlDamage();
             if (pSUB) {
@@ -6338,7 +6338,7 @@ int cEm2b::ckR224Drop()
     EmSetDie(this);
     EmReserveDropItem(this);
     EmSetDieCnt(this);
-    atari.throughOn();
+    atari.off();
     EmRoutineSet(this, 3, 3, 0, 0);
     return 1;
 }

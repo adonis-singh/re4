@@ -484,7 +484,7 @@ static void em23_R1_R20ALanding(cEm23* em)
         break;
     case 4:
         MotionSetCore(em, MOTION(em), ARC(0xD), ARC(0x23), 5, 5, 0);
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->timer = 20;
         em->r_no_2++;
     case 5:
@@ -492,7 +492,7 @@ static void em23_R1_R20ALanding(cEm23* em)
             if (w->timer) {
                 w->timer--;
             } else {
-                AtariOn(&em->atari, 0x300);
+                em->atari.on();
                 EmRoutineSet(em, 1, 4, 0, 0);
             }
         }
@@ -983,7 +983,7 @@ static void em23_R1_Die_Normal(cEm23* em)
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, MOTION(em), ARC(0x14), 0, 5, 1, 0);
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         SndCall(8, 8, &em->pos, em->id, 0, em);
         em->setStatus(EM_STATUS_ITEMSET);
         EmSetDropItem(em);

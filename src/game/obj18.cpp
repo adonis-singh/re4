@@ -67,7 +67,7 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
         ObjMgr.destroy(obj);
         return 0;
     }
-    obj->atari.throughOn();
+    obj->atari.off();
     lightFlag = 4;
     if (type == 1) {
         lightFlag = 0x40;

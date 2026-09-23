@@ -813,7 +813,7 @@ static void r209_LeaderEscapeToD()
         obj->pos.y += 33.0f;
         obj->matUpdate();
         SceSleep(1);
-        wp->leader.getPtr()->atari.clrFlag200();
+        wp->leader.getPtr()->atari.offOba();
     }
     RoomSeCall(4, &obj->pos, 0, 0, 0);
     while (CamCtrl.IsMotionEnd() == 0) {
@@ -852,7 +852,7 @@ static void r209_LeaderEscapeToDEndProc()
     }
     CamCtrl.Comeback(0);
     RsfSet(G_ROOM_ID, 1);
-    w->getPtr()->atari.setFlag200();
+    w->getPtr()->atari.onOba();
     w->setNoSuspend(0);
     r209_work->head->setNoSuspend(0);
     SceAtDataSet_exec(0x1A, SCE_LEVEL10, 0, (TaskFunc) r209_DoorOpen1F, (void*) 0x1A, 1);

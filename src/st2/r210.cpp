@@ -179,7 +179,7 @@ static void funcAshley2(cEm* p)
     if (p->r_no_2 == 0) {
         cAtariInfo* at = &pSUB->atari;
 
-        at->throughOn();
+        at->off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x27), 0x2D, 0x2D, 1, 0);
         p->r_no_2 = 1;
         p->Motion.Seq_speed = 0.2f;
@@ -192,7 +192,7 @@ static void funcAshley2(cEm* p)
         (p->Motion.Seq_speed = 1.0f);
         EmRoutineSet(p, 0, 0, 0, 0);
         at = &pSUB->atari;
-        at->throughOff();
+        at->on();
         SubCharCtrl(SCC_CHASE, 0);
     }
 }
@@ -211,7 +211,7 @@ static void r222_dai_go()
 
         pSUB->setNoSuspend(1);
         at = &pSUB->atari;
-        at->throughOff();
+        at->on();
         SubCharCtrl(SCC_STOP, 0);
         ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     }
@@ -267,7 +267,7 @@ static void r222_dai_go()
     {
         cAtariInfo* at = &pPL->atari;
 
-        at->throughOn();
+        at->off();
     }
     SceAtSetEnable(5, 0);
     SceAtSetEnable(6, 0);
@@ -294,7 +294,7 @@ static void r222_dai_go()
     {
         cAtariInfo* at = &pPL->atari;
 
-        AtariOnRaw(at, 0x300);
+        at->on();
     }
     pPL->setNoSuspend(0);
     if (pSUB) {
@@ -319,7 +319,7 @@ static void r222_dai_ret()
 
         pSUB->setNoSuspend(1);
         at = &pSUB->atari;
-        at->throughOff();
+        at->on();
         SubCharCtrl(SCC_STOP, 0);
         ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     }

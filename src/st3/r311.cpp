@@ -665,7 +665,7 @@ static void r311_execAshleyOperateTerminal()
     wait = 0;
     pSUB->atari.setPriority(3);
     pSUB->atari.set(0, 100.0f, 200.0f);
-    AtariOnV(&pSUB->atari, 0x300);
+    pSUB->atari.on();
     pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x2B), 10, 0, 1, 0);
     if (r311_work->throwing == 1) {
         step = 3;
@@ -710,7 +710,7 @@ static void r311_execAshleyOperateTerminal()
     }
     SubCharCtrl(1, 0);
     pSUB->atari.setPriority(0);
-    AtariOnV(&pSUB->atari, 0x300);
+    pSUB->atari.on();
     r311_work->terminal = 0;
 }
 

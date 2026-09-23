@@ -723,7 +723,7 @@ static void funcAshleyShutter(cEm* p)
         v.y = 0.0f;
         v.z = 0.0f;
         p->setAng(&v);
-        AtariOffV(&p->atari, 0xFCFF);
+        p->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x2D), 3, 0, 0x101, 0);
         SndCall(6, 6, &p->pos, 0, 0, 0);
         p->r_no_2++;
@@ -743,7 +743,7 @@ static void funcAshleyShutter(cEm* p)
     case 3:
         if (p->motionMove() != 0) {
             pG->Room_flg[0] |= 0x40000000;
-            AtariOn(&p->atari, 0x300);
+            p->atari.on();
             p->r_no_2++;
         }
         break;

@@ -17,6 +17,7 @@ public:
     u32 eff0D[2];   // 0x3C weapon 0x0D
 
     int getWepEff(int wepNo, u32* type, u32* id);
+    bool check() { bool on = true; if ((flag & 2) == 0) { on = false; } return on; }
 };
 
 #endif

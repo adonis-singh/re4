@@ -90,7 +90,7 @@ cEmShield* SetShield(void* bin, void* tpl, Vec* pos, Vec* rot)
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
     em->atari.setPriority(PRI_LV3);
-    em->atari.throughOn();
+    em->atari.off();
     w->Be_flg = 0;
     em->be_flag &= ~0x10;
     w->Fall_wait = 0;

@@ -72,7 +72,7 @@ cEmBar* SetBar(void* bin, void* tpl, Vec* pos, Vec* rot, int flagNo)
     w->size.z = 10.0f;
     w->Eff_id = 0xFF;
     em->atari.init(0.0f, 0.0f, 0.0f, 700.0f, 400.0f, 500.0f, 500.0f, 0, 2, 0);
-    em->atari.throughOn();
+    em->atari.off();
     emBarYarareInit(em);
     em->hp_max = em->hp;
     {

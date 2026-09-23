@@ -378,7 +378,7 @@ cSubWep::cSubWep()
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    atari.throughOn();
+    atari.off();
     LightInfo.init2(0, 1, &p0, &p1, 4);
     se_count = 0;
     se_count_w = 0;

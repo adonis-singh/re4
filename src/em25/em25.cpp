@@ -403,7 +403,7 @@ static void em25_R1_Hide(cEm25* em)
         em->be_flag &= ~0x10000;
         w->pEm_oya = 0;
         w->Die_ck = 0;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->setStatus(EM_STATUS_LOCKOFF);
         em->be_flag &= ~0x10;
         w->Compress_y = 1.0f;
@@ -451,7 +451,7 @@ static void em25_R1_Birth(cEm25* em)
             p->scale.z = 1.0f;
         }
         em->setStatus(EM_STATUS_ACTIVE);
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em->clearStatus(EM_STATUS_LOCKOFF);
         w->Compress_y = 1.0f;
         w->Alive_timer = 900;
@@ -679,7 +679,7 @@ static void em25_R1_Bite(cEm25* em)
         if (end) {
             at = &em->atari;
             at->setPriority(0);
-            AtariOn(at, 0x300);
+            at->on();
             w->Atk_wait = 60;
             em->dmg.m_Timer = 10;
             EmRoutineSet(em, 1, 2, 0, 0);
@@ -716,7 +716,7 @@ static void em25_R1_Bite(cEm25* em)
         if (MotionMove(em, 0)) {
             at = &em->atari;
             at->setPriority(0);
-            AtariOn(at, 0x300);
+            at->on();
             w->Atk_wait = 60;
             em->dmg.m_Timer = 10;
             EmRoutineSet(em, 1, 2, 0, 0);
@@ -1031,7 +1031,7 @@ static void em25_R1_Dm_P_GoOut(cEm25* em)
         em->r_no_2++;
         break;
     case 1:
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         if (MotionMove(em, 0)) {
             EmRoutineSet(em, fe, 2, 0, 0);
         }
@@ -1192,7 +1192,7 @@ static void em25_R1_Die_Normal(cEm25* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            AtariOff(&em->atari, 0xFCFF);
+            em->atari.off();
             em->r_no_2++;
             em->setStatus(EM_STATUS_ITEMSET);
             EmSetDropItem(em);
@@ -1234,7 +1234,7 @@ static void em25_R1_Die_Big(cEm25* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            AtariOff(&em->atari, 0xFCFF);
+            em->atari.off();
             em->r_no_2++;
             em->setStatus(EM_STATUS_ITEMSET);
             EmSetDropItem(em);
@@ -1321,7 +1321,7 @@ void cEm25::setParent(cEm* parent, int parts, Vec* ppos, Vec* prot)
         ang.y = 0.0f;
         ang.z = 0.0f;
     }
-    AtariOff(&atari, 0xFCFF);
+    atari.off();
     // A local for the 0: stored directly, it shares a register with the w->Mode/EmRoutineSet
     // literals below instead of getting its own.
     int n = 0;

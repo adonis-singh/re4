@@ -139,7 +139,7 @@ cEmWep* SetWeapon(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type)
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
     em->atari.setPriority(PRI_LV3);
-    em->atari.throughOn();
+    em->atari.off();
     em->be_flag &= ~0x10;
     w->At_no = -1;
     w->seThrow[3] = 4;

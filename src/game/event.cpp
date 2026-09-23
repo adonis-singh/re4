@@ -952,7 +952,7 @@ int Event::ExePacket_SetOm(Event* pEvt)
         return 1;
     }
     *(EvtName*) OBJ18_WK((cObj18*) obj)->NameMod = *(EvtName*) pac->mod.name;
-    obj->atari.throughOn();
+    obj->atari.off();
     switch (type) {
     case OBJ18_TYPE_LEON ... OBJ18_TYPE_LUIS:
     case OBJ18_TYPE_TRADER ... OBJ18_TYPE_ELGIGANTE:

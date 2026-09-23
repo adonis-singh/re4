@@ -43,11 +43,15 @@ public:
         r_scale.z = 1.0f;
     }
     virtual ~cCoord() {}
-    // Rebuilds l_mat (and mat) from ang / pos / scale; cModel overrides it to update the parts too.
-    virtual void matUpdate() {
+    // l_mat from ang / pos / scale.
+    void matCalc() {
         RotMatrix(l_mat, &ang);
         TransMatrix(l_mat, &pos);
         ScaleMatrix(l_mat, &scale);
+    }
+    // Rebuilds l_mat and mat; cModel overrides it to update the parts too.
+    virtual void matUpdate() {
+        matCalc();
         PSMTXCopy(l_mat, mat);
     }
 };
@@ -205,6 +209,7 @@ public:
     int init2(int type, int partsNo, const Vec* pOffset, const Vec* pSize, int mask);  // type -> Flag, partsNo -> PartsNo, mask -> EnableMask
     void updateMatrix(cModel* pMod);
     u32 getLightNum();
+    u8 getType() { return Flag & 3; }  // hit check shape
     cCoord* getPos(cModel* m, Vec* out);  // light origin of `m` (the parts x52 - 1 selects); returns the coord it belongs to
 };
 

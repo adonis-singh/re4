@@ -187,7 +187,7 @@ static void R318ExecSitMain()
     pPL->ang.x = 0.0f;
     pPL->ang.y = 0.0f;
     pPL->ang.z = 0.0f;
-    AtariOffRaw(&pPL->atari, 0xFCFF);
+    pPL->atari.off();
     pPL->beginEvent(0);
     pPL->setNoSuspend(1);
     pl->Wep->setTrans(0, 1);
@@ -225,7 +225,7 @@ static void R318ExecSitEnd()
     pPL->ang.z = 0.0f;
     pPL->setNoSuspend(0);
     pPL->endEvent(0);
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
     pl->Wep->setTrans(1, 0);
     SndStrReq(r318_work->str, 8, 0, 0);
     SceEventEnd(0);
@@ -528,7 +528,7 @@ static void R318ExecSwitchCheck()
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         pPL->beginEvent(0);
         pPL->setNoSuspend(1);
         MotionSetCore(pPL, &pPL->Motion, mot, 0, 0, 0x201, 0);
@@ -557,7 +557,7 @@ static void R318ExecSwitchCheck()
 // position / rotation, the switch effect dropped, facing -PI/2.
 void R318ExecSwitchCheckEnd()
 {
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
     pPL->setNoSuspend(0);
     pPL->endEvent(0);
     pPL->pos.x = r318_work->plPos.x;
@@ -1019,7 +1019,7 @@ static void playerEscape02(cPlayer* pl)
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         MotionSetCore(pl, &pl->Motion, mot, 0, 0, 0x201, 0);
         EstSet(pPL, -1, 0, 0, EFF_ROOM, 0xB, 0x2001, ESP_CORE_KIND_ROOM04, 0, 0);
         r318_work->str = SndStrPlayBlock(1, 0xC3, 0.0f);
@@ -1036,7 +1036,7 @@ static void playerEscape02(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pG->Room_flg[0] |= 0x00080000;
             R318EventLaserEnd(2);
-            AtariOnRaw(&pPL->atari, 0x300);
+            pPL->atari.on();
             EffectDelete(0x2001, ESP_CORE_KIND_ROOM04);
             EndPlDamage();
         }
@@ -1068,7 +1068,7 @@ static void playerEscape03(cPlayer* pl)
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         MotionSetCore(pl, &pl->Motion, mot0, 0, 0, 0x201, 0);
         EstSet(pPL, -1, 0, 0, EFF_ROOM, 0xD, 0x2001, ESP_CORE_KIND_ROOM04, 0, 0);
         r318_work->str = SndStrPlayBlock(1, 0xC4, 0.0f);
@@ -1140,7 +1140,7 @@ static void playerEscape03(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pG->Room_flg[0] |= 0x00080000;
             R318EventLaserEnd(3);
-            AtariOnRaw(&pPL->atari, 0x300);
+            pPL->atari.on();
             EffectDelete(0x2001, ESP_CORE_KIND_ROOM04);
             EndPlDamage();
         }
@@ -1169,7 +1169,7 @@ static void playerEscape04(cPlayer* pl)
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         MotionSetCore(pl, &pl->Motion, mot, 0, 0, 0x201, 0);
         EstSet(pPL, -1, 0, 0, EFF_ROOM, 0xD, 0x2001, ESP_CORE_KIND_ROOM04, 0, 0);
         r318_work->str = SndStrPlayBlock(1, 0xC6, 0.0f);
@@ -1186,7 +1186,7 @@ static void playerEscape04(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pG->Room_flg[0] |= 0x00080000;
             R318EventLaserEnd(4);
-            AtariOnRaw(&pPL->atari, 0x300);
+            pPL->atari.on();
             EffectDelete(0x2001, ESP_CORE_KIND_ROOM04);
             EndPlDamage();
         }

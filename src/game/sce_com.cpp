@@ -222,7 +222,7 @@ void SceUpCutStart()
     KeyStop(0xEFCF0000);
     DpfFlagOn(pG, DPF_PL);
     DpfFlagOn(pG, DPF_SUBCHAR);
-    pPL->atari.clrFlag100();
+    pPL->atari.offSca();
     StaFlagOn(pG, STA_SUSPEND);  // the pG load waits for the clrFlag100 store
     (pG->Stop_flg = 0xFFFFFFFF);
     SpfFlagOff(pG, SPF_CAMERA);
@@ -247,7 +247,7 @@ void SceUpCutEnd()
     SpfFlagOff(pG, SPF_KEY);
     DpfFlagOff(pG, DPF_PL);
     DpfFlagOff(pG, DPF_SUBCHAR);
-    pPL->atari.setFlag100();
+    pPL->atari.onSca();
     StaFlagOff(pG, STA_SUSPEND);  // the pG load waits for the setFlag100 store
     if (s->stop_bak_flg == 1) {
         pG->Stop_flg = s->stop_bak;

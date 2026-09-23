@@ -22,7 +22,7 @@ cObj03::cObj03()
     pathPos = 0.0f;
     speed = 0.0f;
     flag = 0;
-    atari.throughOn();
+    atari.off();
     LightInfo.init2(1, 1, &p0, &p1, 1);
 }
 

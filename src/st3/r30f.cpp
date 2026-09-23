@@ -1018,7 +1018,7 @@ static void plemRide(cPlayer* p)
     switch (p->r_no_2) {
     case 0:
         pPL->dmg.set(0, 0x80);
-        AtariOffV(&pPL->atari, 0xFEFF);
+        pPL->atari.offSca();
         pPL->atari.setPriority(2);
         MotionSetCore(pPL, &pPL->Motion, ROOM_ARC_PTR(pG->pRoom, 0x27), 0, 0, 0x201, 0);
         p->r_no_3 = 0;
@@ -1027,7 +1027,7 @@ static void plemRide(cPlayer* p)
         p->r_no_3++;
         if (MotionMove(p, 0) != 0 || p->r_no_3 == 0x3C) {
             pPL->dmg.clear();
-            AtariOnV(&pPL->atari, 0x100);
+            pPL->atari.onSca();
             pPL->atari.setPriority(0);
             EndPlDamage();
             p->dmg.set(0, 0x1E);

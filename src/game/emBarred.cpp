@@ -102,7 +102,7 @@ cEmBarred* SetEmBarred(void* bin, void* tpl, Vec* pos, Vec* rot, int flagNo, int
         AtariInit(&em->atari, 0.0f, 1750.0f, 0.0f, 1950.0f, 230.0f, 230.0f, 1750.0f, 0, 2, 0);
         break;
     }
-    em->atari.clrFlag100();
+    em->atari.offSca();
     em->atari.setPriority(PRI_LV3);
     em->setNoSuspend(1);
     em->setStatus(EM_STATUS_LOCKOFF);
@@ -788,7 +788,7 @@ void emBarred_R1_Break(cEmBarred* pEm)
         pEm->hp = 0;
         pEm->be_flag &= ~2;
         pEm->clearStatus(EM_STATUS_ACTIVE);
-        pEm->atari.throughOn();
+        pEm->atari.off();
         flg = GetEtcFlgPtr(w->Etc_no, pG->room_id);
         if (flg) {
             *flg |= 1;
@@ -813,7 +813,7 @@ void emBarredEatSet(cEmBarred* pEm)
     int attr;
 
     if (pEm->hp <= 0) {
-        pEm->atari.throughOn();
+        pEm->atari.off();
         if (w->pEat) {
             w->pEat->setDisable();
         }
@@ -1064,7 +1064,7 @@ void cEmBarred::setBreak(Vec* pPos)
         v.x = 0.0f;
         v.z = 0.0f;
         EstSet(0, -1, &pos, &v, w->Eff_id, 3, 0, ESP_CORE_KIND_NONE, 0, 0);
-        atari.throughOn();
+        atari.off();
         hp = 0;
         r_no_0 = 1;
         r_no_1 = 3;

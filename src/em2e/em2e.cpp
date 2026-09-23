@@ -181,7 +181,7 @@ static void em2e_R0_Init(cEm2e* em)
     em->lockOfs.y = 0.0f;
     em->lockOfs.z = 0.0f;
     at->init(0.0f, 0.0f, 0.0f, 150.0f, 150.0f, 150.0f, 300.0f, 1, 0x2000, 10);
-    AtariOff(at, 0xFDFF);
+    at->offOba();
     em->be_flag &= ~0x10;
     YarareInit(em, 0.0f, 0.0f, 0.0f, 100.0f, 50.0f, 1, YAT_FLAG_ON);
     w->flags = zero;
@@ -215,7 +215,7 @@ static void em2e_R0_Init(cEm2e* em)
             em->pos = hit;
             w->nrm = nrm;
         }
-        AtariOff(at, 0xFEFF);
+        at->offSca();
         EmRoutineSet(em, 1, 3, zero, zero);
         break;
     }
@@ -429,7 +429,7 @@ static void em2e_R0_Die(cEm2e* em)
 static void em2e_R1_Die_Normal(cEm2e* em)
 {
     if (em->r_no_2 == 0) {
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->be_flag &= ~2;
         em->r_no_2++;
     }

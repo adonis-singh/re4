@@ -1653,8 +1653,8 @@ static void slide_move()
         heri->setPatrolPos(&r320_posB[7]);
     }
     pl->beginAction();
-    AtariOffRaw(&pPL->atari, 0xFEFF);
-    AtariOffRaw(&pPL->atari, 0xFDFF);
+    pPL->atari.offSca();
+    pPL->atari.offOba();
     pPL->atari.setPriority(1);
     pPL->dmg.set(0, 0x80);
     pl->be_flag &= ~0x10;
@@ -1682,8 +1682,8 @@ static void slide_move()
     pl->Wep->setTrans(1, 0);
     pl->endAction(5);
     pPL->dmg.clear();
-    AtariOnRaw(&pPL->atari, 0x100);
-    AtariOnRaw(&pPL->atari, 0x200);
+    pPL->atari.onSca();
+    pPL->atari.onOba();
     pPL->atari.setPriority(0);
     pl->be_flag |= 0x10;
 }

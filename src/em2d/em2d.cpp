@@ -802,9 +802,9 @@ void cEm2d::move()
     if (w->catchGuard) {
         w->catchGuard--;
         dmg.m_Timer = 2;
-        AtariOff(at, 0xFCFF);
+        at->off();
         if (w->catchGuard == 0) {
-            AtariOn(at, 0x300);
+            at->on();
         }
     }
     partsWorldCalc();
@@ -1103,7 +1103,7 @@ static void em2d_R1_R213NestWait(cEm2d* em)
 
     w->flags |= 0x20;
     em->setStatus(EM_STATUS_IK_OFF);
-    AtariOff(&em->atari, 0xFCFF);
+    em->atari.off();
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, &em->Motion, ARC(0x46), 0, 30, 5, 0);
@@ -4395,7 +4395,7 @@ static void em2d_R1_Die_Lost(cEm2d* em)
 
     switch (fe) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->hp = fe;
         EmSetDie(em);
         EmReserveDropItem(em);

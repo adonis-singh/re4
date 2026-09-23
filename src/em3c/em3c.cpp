@@ -593,14 +593,14 @@ static void em3c_R0_Init(cEm3c* em)
         break;
     case 1:
         em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
-        em->atari.throughOn();
+        em->atari.off();
         w->Be_flg |= 0x400;
         EmRoutineSet(em, 1, 0, 0, 0);
         break;
     case 2:
         em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
         em->atari.setPriority(PRI_LV2);
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->be_flag |= 0x10000;
         w->Be_flg |= 0x400;
         EmRoutineSet(em, 1, 1, 0, 0);
@@ -650,7 +650,7 @@ static void em3c_R1_StartWait(cEm3c* em)
         em->setStatus(EM_STATUS_ACTIVE);
         em->hp = em->hp_max;
         w->Be_flg |= 0x80;
-        em->atari.throughOff();
+        em->atari.on();
         if (w->Wep_type) {
             MotionSetCore(em, MOTION(em), ARC(0x33), ARC(0x34), 0, 1, 0);
         } else {
@@ -704,7 +704,7 @@ static void em3c_R1_AtkWait(cEm3c* em)
     case 2:
         em->hp = 0;
         EmSetDie(em);
-        em->atari.throughOn();
+        em->atari.off();
         SetPlDamage(em, plemSurprised);
         if (pSUB) {
             f32 d = (em->pos.x - pSUB->pos.x) * (em->pos.x - pSUB->pos.x) + (em->pos.y - pSUB->pos.y) * (em->pos.y - pSUB->pos.y)
@@ -800,7 +800,7 @@ static void plemSurprised(cPlayer* pl)
         v.z = 1800.0f;
         PSMTXMultVec(pl->pEmCatch->mat, &v, &pl->pos);
         pl->ang.y = GetXZAngle(&pl->pos, &pl->pEmCatch->pos);
-        pl->atari.throughOn();
+        pl->atari.off();
         if (pG->pl_type == 1) {
             MotionSetCore(pl, MOTION(pl), EM_ARC(pl, 0x64), 0, 3, 1, 0);
         } else {
@@ -813,7 +813,7 @@ static void plemSurprised(cPlayer* pl)
         if (pl->m_Work0) {
             pl->m_Work0--;
         } else {
-            pl->atari.throughOff();
+            pl->atari.on();
         }
         if (MotionMove(pl, 0)) {
             EndPlDamage();
@@ -864,7 +864,7 @@ static void plemEscape(cPlayer* pEm)
             SndCall(1, 0x43, &pEm->getPartsPtr(4)->world, 0, 0, pEm);
             SndCall(1, 0x44, &pEm->getPartsPtr(4)->world, 0, 0, pEm);
         }
-        pEm->atari.throughOff();
+        pEm->atari.on();
         pEm->r_no_2++;
     case 1:
         if (pG->pl_type == 1) {
@@ -919,7 +919,7 @@ static void subemSurprised()
         sub->ang.y += -0.17453292f;
         sub->ang.y = LIMIT_ANGLE(sub->ang.y);
         MotionSetCore(sub, MOTION(sub), EM_ARC(sub, 0x64), 0, 3, 0x101, 0);
-        sub->atari.throughOn();
+        sub->atari.off();
         sub->m_Work0 = 50;
         sub->r_no_2++;
     }
@@ -932,7 +932,7 @@ static void subemSurprised()
         }
         break;
     case 2:
-        sub->atari.throughOff();
+        sub->atari.on();
         MotionSetCore(sub, MOTION(sub), EM_ARC(sub, 0x65), 0, 3, 0x101, 0);
         EstSet(sub, -1, 0, 0, EFF_PL00, 0x14, 0, ESP_CORE_KIND_NONE, sub, 0);
         SndCall(8, 4, &sub->pos, sub->id, 0, sub);
@@ -958,7 +958,7 @@ static void subemSit()
     sub->dmg.m_Timer = 2;
     switch (sub->r_no_2) {
     case 0:
-        sub->atari.throughOff();
+        sub->atari.on();
         MotionSetCore(sub, MOTION(sub), EM_ARC(sub, 0x43), 0, 3, 1, 0);
         SndCall(8, 4, &sub->pos, sub->id, 0, sub);
         sub->r_no_2++;
@@ -1593,7 +1593,7 @@ static void em3c_R1_Die_Normal(cEm3c* em)
         if (w->pChainmail) {
             w->pChainmail->be_flag &= ~8;
         }
-        em->atari.throughOn();
+        em->atari.off();
         if (w->pCore) {
             w->pCore->clearLostWait();
             EffectEspDelete(0, w->EffKindIdCore, w->pCore, 0);

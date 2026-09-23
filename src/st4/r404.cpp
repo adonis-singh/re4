@@ -748,8 +748,8 @@ static void slide_move()
     u32 i;
 
     pl->beginAction();
-    pPL->atari.clrFlag100();
-    pPL->atari.clrFlag200();
+    pPL->atari.offSca();
+    pPL->atari.offOba();
     pPL->atari.setPriority(PRI_LV1);
     pPL->dmg.set(0, 0x80);
     pl->be_flag &= ~0x10;
@@ -797,8 +797,8 @@ static void slide_move()
     pl->Wep->setTrans(1, 0);
     pl->endAction(5);
     pPL->dmg.clear();
-    pPL->atari.setFlag100();
-    pPL->atari.setFlag200();
+    pPL->atari.onSca();
+    pPL->atari.onOba();
     pPL->atari.setPriority(0);
     pl->be_flag |= 0x10;
 }

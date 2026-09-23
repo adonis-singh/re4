@@ -469,7 +469,7 @@ static void r207_EnemySet()
     RsfSet(G_ROOM_ID, 11);
     SceEventStart(1);
     if (pSUB) {
-        AtariOffV(&pSUB->atari, 0xFDFF);
+        pSUB->atari.offOba();
         r207_work->sub = SUB_CHAR();
         pSUB = zero;
     }
@@ -514,7 +514,7 @@ static void r207_EnemySetEndProc()
     r207_work->em[4].em.setNoSuspend(0);
     if (r207_work->sub) {
         pSUB = r207_work->sub;
-        AtariOn(&pSUB->atari, 0x200);
+        pSUB->atari.onOba();
     }
     SceEventEnd(0);
     do {

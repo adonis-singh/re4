@@ -212,7 +212,7 @@ static void em24_R0_Init(cEm24* em)
     em->lockOfs.y = 0.0f;
     em->lockOfs.z = 0.0f;
     at->init(0.0f, -50.0f, 0.0f, 350.0f, 150.0f, 150.0f, 100.0f, 1, 0x2000, 10);
-    AtariOff(at, 0xFDFF);
+    at->offOba();
     em->setStatus(EM_STATUS_LOCKOFF);
     em->be_flag &= ~0x10;
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
@@ -260,7 +260,7 @@ static void em24_R1_BoxWait(cEm24* em)
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, MOTION(em), ARC(0x17), 0, 0, 5, 0);
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->Timer = 45;
         em->r_no_2++;
     case 1:
@@ -459,7 +459,7 @@ static void em24_R0_Die(cEm24* em)
 
     switch (em->r_no_1) {
     case 0:
-        AtariOff(&em->atari, 0xFEFF);
+        em->atari.offSca();
         if (w->Be_flg & 0x20) {
             em->r_no_3 = 1;
         } else {

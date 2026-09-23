@@ -294,7 +294,7 @@ static void em3d_R0_Init(cEm3d* em)
     at = &em->atari;
     at->init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
     zero = 0;
-    AtariOff(at, 0xFCFF);
+    at->off();
     em->setStatus(EM_STATUS_LOCKOFF);
     em->be_flag &= ~0x01000000;
     em->be_flag &= ~0x10;

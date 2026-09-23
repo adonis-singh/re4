@@ -915,7 +915,7 @@ static void r20d_execThrough(int no)
     pl->beginAction();
     // pPL (struct view) on both sides of the `sth atari.flags` store: cse1 then invalidates the first
     // pPL load and setPriority reloads pPL (target: `lwz r3,pPL@l; addi r3,r3,0x2b4`).
-    AtariOff(&pPL->atari, 0xFEFF);
+    pPL->atari.offSca();
     pPL->atari.setPriority(PRI_LV1);
     pPL->dmg.set(0, 0x80);
     d = &r20d_throughData[no];
@@ -986,7 +986,7 @@ static void r20d_execThrough(int no)
     CamCtrl.Comeback(0);
     pl->endAction(8);
     pPL->dmg.clear();
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     pPL->atari.setPriority(0);
 }
 
@@ -1139,7 +1139,7 @@ void cLanternUnit::throwLantern(cLanternUnit* u)
     pPL->beginEvent(0);
     // pPL (struct view) for the pPL read that precedes the `sth atari.flags` store: the store then
     // invalidates it in cse1 and `dmg.set` reloads pPL (target: two `lwz pPL@l`).
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     pPL->dmg.set(0, 0x80);
     u->target = u->getTargetPos(&pos);
     // `u + st + 0x18` (not `u->mot + st + 4`): the target adds `u` first (`add r29,u,st`).

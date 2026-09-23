@@ -352,7 +352,7 @@ static void em27_R0_Init(cEm27* em)
     w->pCtrlPlAvoid = GetCtrlCtrl11();
     w->pCtrlGroup = GetCtrlCtrl12();
     em->setStatus(EM_STATUS_LOCKOFF);
-    AtariOff(at, 0xFDFF);
+    at->offOba();
     EmRoutineSet(em, 1, zero, zero, zero);
     em->ang.y = fRand1_1() * PI;
     MotionSetCore(em, MOTION(em), ARC(7), 0, 0, 1, 0);

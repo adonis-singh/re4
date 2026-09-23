@@ -1075,7 +1075,7 @@ void cPlayer::beginEvent(u32 flag)
     case 0:
         EmRoutineSet(this, 5, 0, 0, 0);
         MotionBlendOff(this);
-        atari.throughOn();
+        atari.off();
         be_flag |= 0x04000000;
         if (Wep->m_pWep) {
             Wep->m_pWep->resetMotion();
@@ -1197,7 +1197,7 @@ void cPlayer::endEvent0(u32 mode)
         return;
     }
     be_flag |= 2;
-    atari.throughOff();
+    atari.on();
     be_flag |= 0x200000;
     be_flag &= ~0x04000000;
     setNoSuspend(0);

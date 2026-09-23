@@ -173,7 +173,7 @@ cObj12* SetObj12(void* bin, void* tpl, Vec* pos, Vec* rot)
             static const Vec p0 = { 0.0f, 0.0f, 0.0f };
             static const Vec p1 = { 500.0f, 500.0f, 500.0f };
 
-            obj->atari.throughOn();
+            obj->atari.off();
             obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
             obj->pos = *pos;
             obj->pos_old = *pos;

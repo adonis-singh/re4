@@ -71,7 +71,7 @@ cObj* SetGondola(void* bin, void* tpl, Vec* pos, Vec* rot)
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     AtariInit(&obj->atari, 0.0f, 1000.0f, -700.0f, 350.0f, 700.0f, 700.0f, 1000.0f, 0, 2, 0);
-    obj->atari.throughOn();
+    obj->atari.off();
     if (pos) {
         obj->pos = *pos;
     } else {
@@ -528,7 +528,7 @@ void cObjGondola::setRideEm(cEm* em)
             if (i & 1) {
                 v.x = -300.0f;
             }
-            em->atari.throughOn();
+            em->atari.off();
             PSMTXMultVec(parts->mat, &v, &v);
             em->setPos(&v);
             break;

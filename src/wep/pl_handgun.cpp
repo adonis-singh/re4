@@ -98,7 +98,7 @@ static void wep02_r2_ready(cPlayer* pl)
             pl->r_no_1 = 0;
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
-            WEP_ATARI(pl)->clrFlag200();
+            WEP_ATARI(pl)->offOba();
         }
     } else if (pl->keyReload() && WEP_OBJ(pl)->reloadable()) {
         pl->Wep->m_Flag |= 1;
@@ -137,7 +137,7 @@ static void wep02_r3_ready00(cPlayer* pl)
     obj->r_no_0 = 1;
     obj->r_no_1 = 0;
     if (pG->weapon_no == 2) {
-        WEP_ATARI(pl)->setFlag200();
+        WEP_ATARI(pl)->onOba();
     }
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     mot0 = WEP_ARC_PTR(0x22);
@@ -365,7 +365,7 @@ static void wep02_r3_fire00(cPlayer* pl)
     m3r.move();
     mot3.move(m3r);
     pl->Waist->set(pl->m_Fwork0, 0.4f);
-    WEP_ATARI(pl)->clrFlag200();
+    WEP_ATARI(pl)->offOba();
     pl->Body->waistMove();
     pl->partsWorldCalc();
     parts = pl->getPartsPtr(10);
@@ -398,7 +398,7 @@ static void wep02_r3_fire10(cPlayer* pl)
     pl->motionMove();
     if (MotionCheckCrossFrame(&pl->Motion, (f32) ((int) (u8) PlShotFrameTbl[pG->weapon_no][pG->weapon_lv_speed] - 2))) {
         if (pG->weapon_no == 2) {
-            WEP_ATARI(pl)->setFlag200();
+            WEP_ATARI(pl)->onOba();
         }
         pl->r_no_0 = 0;
         pl->r_no_1 = 6;
@@ -444,7 +444,7 @@ void wepDown(cPlayer* pl)
     obj = WEP_OBJ(pl);
     obj->r_no_0 = 3;
     obj->r_no_1 = 0;
-    WEP_ATARI(pl)->clrFlag200();
+    WEP_ATARI(pl)->offOba();
     pl->ang.y = pl->ang.y - pl->Waist->set(0.0f, 0.4f);
 }
 

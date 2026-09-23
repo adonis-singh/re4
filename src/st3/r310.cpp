@@ -337,7 +337,7 @@ static void r310_pushBox2_leon()
     Vec goal;
 
     pPL->beginEvent(0);
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     PlSetHand(1, 0);
     Vec plPos = {0.0f, 0.0f, 0.0f};
     plPos.x = pPL->pos.x + 500.0f;
@@ -578,7 +578,7 @@ static void r310_pushBox1_leon()
     Vec goal;
 
     pPL->beginEvent(0);
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     PlSetHand(1, 0);
     Vec plPos = {0.0f, 0.0f, 0.0f};
     plPos.x = pPL->pos.x - 500.0f;

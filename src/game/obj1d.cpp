@@ -38,7 +38,7 @@ cObjChain* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 10000.0f, 10000.0f, 100000.0f };
 
-    obj->atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 2);
     obj->pos = *pos;
     obj->pos_old = *pos;

@@ -124,7 +124,7 @@ cEmDoor* SetDoor(void* bin, void* tpl, Vec* pos, Vec* rot, int type, int flagNo)
     w->Eff_id = 0xFF;
     AtariInit(&em->atari, -w->Width, w->Height * 0.5f, 0.0f, w->Width + 50.0f, 150.0f, 150.0f, w->Height * 0.5f + 50.0f, zero, 2, zero);
     em->atari.setPriority(PRI_LV3);
-    em->atari.clrFlag100();
+    em->atari.offSca();
     em->setStatus(EM_STATUS_ACTIVE);
     w->pSat[0] = 0;
     w->pSat[3] = 0;
@@ -1991,7 +1991,7 @@ void emDoorSatSet(cEmDoor* pEm)
     if (pEm->hp <= 0) {
         return;
     }
-    pEm->atari.setFlag200();
+    pEm->atari.onOba();
     switch (pEm->type) {
     case 1:
     case 4:
@@ -2115,7 +2115,7 @@ void emDoorSatClear(cEmDoor* pEm)
 {
     EmDoorWork* w = EMDOOR_WK(pEm);
 
-    pEm->atari.clrFlag200();
+    pEm->atari.offOba();
     if (w->pSat[1]) {
         w->pSat[1]->setDisable();
     }
@@ -3164,7 +3164,7 @@ void plemDoorOpen(cPlayer* pEm)
             }
         }
         pEm->dmg.set(0, 0x26);
-        pEm->atari.clrFlag200();
+        pEm->atari.offOba();
         pEm->m_Work0 = 0x2D;
         pEm->r_no_2++;
     case 1:
@@ -3176,7 +3176,7 @@ void plemDoorOpen(cPlayer* pEm)
             PSVECSubtract(&pEm->m_VecWork0, &v, &pEm->m_VecWork0);
         }
         if (MotionMove(pEm, 0)) {
-            pEm->atari.setFlag200();
+            pEm->atari.onOba();
             EndPlDamage();
             pEm->dmg.set(0, 10);
         } else if (pEm->m_Work0 != 0) {

@@ -65,7 +65,7 @@ cObj* SetObj08(cModel* parent, void* bin, void* tpl, Vec* pos, Vec* rot, int fla
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    obj->atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
     w->pEm = parent;
     obj->pos = *pos;

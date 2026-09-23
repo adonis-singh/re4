@@ -1038,7 +1038,7 @@ static void em39_R1_Talk1st(cEm39* em)
         em->ang.y = 1.8654078f;
         MotionSetCore(em, MOTION(em), ARC(0xAB), 0, 0, 5, 0);
         em->be_flag |= 2;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em39WepSet(em, 0);
         em->r_no_2++;
     case 1:
@@ -1062,7 +1062,7 @@ static void em39_R1_Talk2nd(cEm39* em)
         em->ang.y = -1.9547688f;
         MotionSetCore(em, MOTION(em), ARC(0xAB), 0, 0, 5, 0);
         em->be_flag |= 2;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em39WepSet(em, 0);
         em->r_no_2++;
     case 1:
@@ -1081,7 +1081,7 @@ static void em39_R1_Success(cEm39* em)
     em->dmg.m_Timer = 2;
     switch (em->r_no_2) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->pos.x = 220.09f;
         em->pos.y = 12000.0f;
         em->pos.z = -9402.42f;
@@ -1094,10 +1094,10 @@ static void em39_R1_Success(cEm39* em)
     case 1:
         if (MotionMove(em, 0)) {
             w->Be_flg |= 0x00800000;
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             EmRoutineSet(em, 1, 4, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             w->Arm_rno = 0;
         }
         break;
@@ -1114,7 +1114,7 @@ static void plem39_Success(cPlayer* pl)
     pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
-        AtariOff(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pl->pos.x = -1751.14f;
         pl->pos.y = 12000.0f;
         pl->pos.z = -7649.44f;
@@ -1125,7 +1125,7 @@ static void plem39_Success(cPlayer* pl)
     case 1:
         if (MotionMove(pl, 0)) {
             pl->Wep->setTrans(1, 0);
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
             EndPlDamage();
             pl->dmg.set(0, 0x1E);
         }
@@ -1145,7 +1145,7 @@ static void em39_R1_Failure(cEm39* em)
     em->dmg.m_Timer = 2;
     switch (em->r_no_2) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->pos.x = 94.95f;
         em->pos.y = 12000.0f;
         em->pos.z = -9417.92f;
@@ -1160,7 +1160,7 @@ static void em39_R1_Failure(cEm39* em)
             if (em39GetCliffPos(em)) {
                 EmRoutineSetW(em, 1, 0x2E, 0, 0);
             } else {
-                AtariOn(&em->atari, 0x300);
+                em->atari.on();
                 EmRoutineSet(em, 1, 4, 0, 0);
             }
         }
@@ -1178,7 +1178,7 @@ static void plem39_Failure(cPlayer* pl)
     pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
-        AtariOff(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pl->pos.x = -1736.93f;
         pl->pos.y = 12000.0f;
         pl->pos.z = -7639.26f;
@@ -1213,7 +1213,7 @@ static void em39_R1_Wait(cEm39* em)
     switch (em->r_no_2) {
     case 0:
         em->be_flag |= 2;
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         MotionSetCore(em, MOTION(em), ARC(0xF5), ARC(0xF6), 3, 1, 0xA);
         w->Arm_rno = 8;
         if (w->pKnife) {
@@ -1235,7 +1235,7 @@ static void em39_R1_Wait(cEm39* em)
             MotionSetCore(em, MOTION(em), ARC(0xD6), 0, 0x1E, 5, 0);
         }
         em->be_flag |= 2;
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         w->Arm_rno = 8;
         if (w->pKnife) {
             MotionSetCore(w->pKnife, MOTION(w->pKnife), ARC(0x27), 0, 0, 5, 0);
@@ -1336,7 +1336,7 @@ static void em39_R1_Sit(cEm39* em)
         em->r_no_2++;
     case 1:
         MotionMove(em, 0);
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         if (w->pGotoPoint) {
             if ((em->pos.x - w->pGotoPoint->pos.x) * (em->pos.x - w->pGotoPoint->pos.x) + (em->pos.z - w->pGotoPoint->pos.z) * (em->pos.z - w->pGotoPoint->pos.z) < 22500.0f) {
                 if (w->TmpU32) {
@@ -1364,7 +1364,7 @@ static void em39_R1_Sit(cEm39* em)
                 if (w->Atk_wait == 0) {
                     u8 r;
 
-                    AtariOn(&em->atari, 0x300);
+                    em->atari.on();
                     r = Rnd() % 3;
                     switch (r) {
                     case 0:
@@ -1404,7 +1404,7 @@ static void em39_R1_SitDown(cEm39* em)
         } else {
             MotionSetCore(em, MOTION(em), ARC(0x8E), ARC(0x8F), 3, 1, 0);
         }
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
@@ -1441,7 +1441,7 @@ static void em39_R1_WallWait(cEm39* em)
             MotionSetCore(em, MOTION(em), ARC(0x96), 0, 0xA, 5, 0);
         }
         em->be_flag |= 2;
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         w->Timer = 60;
         em->r_no_2++;
     case 1:
@@ -1613,7 +1613,7 @@ static void em39_R1_Run(cEm39* em)
     switch (em->r_no_2) {
     case 0:
         em->be_flag |= 2;
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         if (em->type == 2) {
             w->Arm_rno = 8;
             MotionSetCore(em, MOTION(em), ARC(0xD7), ARC(0xD8), 5, 5, 0);
@@ -1722,7 +1722,7 @@ static void em39_R1_Goto(cEm39* em)
     switch (em->r_no_2) {
     case 0:
         em->be_flag |= 2;
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         w->Arm_rno = 8;
         MotionSetCore(em, MOTION(em), ARC(0x40), ARC(0x41), 0xA, 5, 0);
         if (Muku(&pPL->pos, &em->pos, pPL->ang.y, PI) > 0.0f) {
@@ -2450,7 +2450,7 @@ static void em39_R1_JumpDown(cEm39* em)
             EstSet(em, -1, 0, 0, EFF_EM39, 0x12, 0, ESP_CORE_KIND_NONE, em, 0);
         }
         em->be_flag |= 2;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->Be_flg &= ~0x8000;
         if (w->pArrow) {
             w->pArrow->setFall(0, 0, 20.0f);
@@ -2469,7 +2469,7 @@ static void em39_R1_JumpDown(cEm39* em)
             fl = SatMgr.getFloor(&v, 0, 600.0f, 100000.0f, 0);
             if (em->pos.y < fl) {
                 em->pos.y = fl;
-                AtariOn(&em->atari, 0x300);
+                em->atari.on();
                 if (w->Wep_type == 3 || w->Wep_type == 4) {
                     em39WepSet(em, 0);
                 }
@@ -2534,7 +2534,7 @@ static void em39_R1_JumpUp(cEm39* em)
         PSVECSubtract(&w->Target_pos, &v, &w->TmpV);
         MotionSetCore(em, MOTION(em), ARC(0x4E), ARC(0x4F), 3, 1, 0);
         EstSet(em, -1, 0, 0, EFF_EM39, 0x10, 0, ESP_CORE_KIND_NONE, em, 0);
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->r_no_2++;
     case 1:
         em->ang.y += Muku2(em->ang.y, w->Target_dir, 0.39269908f);
@@ -2546,7 +2546,7 @@ static void em39_R1_JumpUp(cEm39* em)
             w->Be_flg |= 0x01000000;
         }
         if (MotionMove(em, 0)) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if (em39GotoCk(em)) {
                 break;
             }
@@ -2622,7 +2622,7 @@ static void em39_R1_JumpUp2(cEm39* em)
             w->Be_flg |= 0x01000000;
         }
         if (MotionMove(em, 0)) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if (em39GotoCk(em)) {
                 break;
             }
@@ -2747,7 +2747,7 @@ static void em39_R1_JumpUp3(cEm39* em)
             w->Be_flg |= 0x01000000;
         }
         if (MotionMove(em, 0)) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             w->Be_flg |= 0x8000;
             if (w->Be_flg & 0x00400000) {
                 w->Be_flg |= 0x00040000;
@@ -3025,7 +3025,7 @@ static void em39_R1_KnifeCatch(cEm39* em)
         if (w->pKnife) {
             MotionSetCore(w->pKnife, MOTION(w->pKnife), ARC(0x29), 0, 0, 5, 0);
         }
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em->be_flag |= 2;
         em39SetVoice(em, 0x19);
         em->r_no_2++;
@@ -3829,7 +3829,7 @@ static void em39_R1_AppearMG(cEm39* em)
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, MOTION(em), ARC(0x8C), ARC(0x8D), 0, 1, 0);
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em->be_flag |= 2;
         w->Timer = 10;
         em39WepSet(em, 3);
@@ -3983,7 +3983,7 @@ static void em39_R1_AppearMG2(cEm39* em)
             w->Timer = (((MotionData*) ARC(0x88))->maxFrame & 0x3FFF) - 20;
             em->r_no_3 = 0;
         }
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em->be_flag |= 2;
         w->Timer = 10;
         em39WepSet(em, 3);
@@ -4127,7 +4127,7 @@ static void em39_R1_AppearGR(cEm39* em)
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, MOTION(em), ARC(0x94), ARC(0x95), 3, 1, 0);
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em->be_flag |= 2;
         w->Act_ck = 0;
         w->Total_damage = 200;
@@ -4230,7 +4230,7 @@ static void em39_R1_AppearGR2(cEm39* em)
             w->pBomb->setParent(em, 0xA, 0);
         }
         em39WepSet(em, 2);
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em->be_flag |= 2;
         w->Act_ck = 0;
         w->Total_damage = 200;
@@ -4659,7 +4659,7 @@ static void em39_R1_Hide(cEm39* em)
     }
     switch (em->r_no_2) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em39WepSet(em, 0);
         if (w->pArrow) {
             w->pArrow->setLost();
@@ -5661,7 +5661,7 @@ static void em39_R1_T_CliffAtk(cEm39* em)
     em->dmg.m_Timer = 2;
     switch (st) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         EM39_CLIFF_POS(em, w, mat, a, -1145.15f);
         MotionSetCore(em, MOTION(em), ARC(0xED), ARC(0xEE), 0, 1, 0);
         SetPlDamage(em, plem39_CliffAtk);
@@ -5726,11 +5726,11 @@ static void em39_R1_T_CliffAtk(cEm39* em)
     case 3:
         if (MotionMove(em, 0) || (em->Motion.Seq_old.Free & 1)) {
             w->Be_flg |= 0x800000;
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             w->Atk_wait = 30;
             EmRoutineSet(em, 1, 0xE, 0, 1);
         } else if (em->Motion.Seq_old.Free & 4) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
         }
         break;
     }
@@ -5749,7 +5749,7 @@ static void plem39_CliffAtk(cPlayer* pl)
     pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
-        AtariOff(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pl->pos.x = -15.66f;
         pl->pos.y = 0.0f;
         pl->pos.z = 934.56f;
@@ -5820,7 +5820,7 @@ static void plem39_CliffAtk(cPlayer* pl)
             SndCall(5, 0xE, &pl->pos, 0, 0, pl);
         }
         if (MotionMove(pl, 0)) {
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
             EndPlDamage();
             pl->dmg.set(0, 0x1E);
         }
@@ -5879,7 +5879,7 @@ static void em39_R0_Damage(cEm39* em)
         break;                                                                                     \
     }                                                                                              \
     (w)->No_fire_timer = 0;                                                                                 \
-    AtariOn(&(em)->atari, 0x300);
+    (em)->atari.on();
 
 // Damage recovery decision on the return-to-idle frame (Motion.Seq_old.Free bit 2).
 #define EM39_DM_RECOVER(em, w)                                                                      \
@@ -6290,7 +6290,7 @@ static void em39_R1_Die_Normal(cEm39* em)
 
     switch (st) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->pos.x = 6640.0f;
         em->pos.y = 12050.0f;
         em->pos.z = -14796.0f;
@@ -6374,7 +6374,7 @@ static void em39_R1_Die_Flash(cEm39* em)
                 em->clearStatus(EM_STATUS_ACTIVE);
                 em->setStatus(EM_STATUS_ITEMSET);
                 EmSetDropItem(em);
-                AtariOff(&em->atari, 0xFCFF);
+                em->atari.off();
                 em->be_flag |= 0x10000000;
                 em->setStatus(EM_STATUS_LOCKOFF);
                 em->be_flag &= ~2;
@@ -6384,7 +6384,7 @@ static void em39_R1_Die_Flash(cEm39* em)
                 break;
             }
         }
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->be_flag |= 0x10000000;
         em->setStatus(EM_STATUS_LOCKOFF);
         em->be_flag &= ~2;
@@ -7314,7 +7314,7 @@ void em39BlendMotSet(cEm39* em, void* m0, void* m1, void* m2, void* seq0, void* 
 #define EM39_APPEAR_POS(em, w, e)                                                                   \
     (w)->pGotoPoint = e;                                                                           \
     (em)->dmg.m_Timer = 2;                                                                              \
-    AtariOff(&(em)->atari, 0xFCFF);                                                                \
+    (em)->atari.off();                                                                \
     (em)->setPos(&(e)->pos);                                                                       \
     (em)->pos = (e)->pos;                                                                          \
     (em)->pos_old = (em)->pos;
@@ -7439,7 +7439,7 @@ int em39AppearCk(cEm39* em)
             w->Total_damage = st;
             w->pGotoPoint = (EmiEntry*) st;
             em->dmg.m_Timer = 2;
-            AtariOff(&em->atari, 0xFCFF);
+            em->atari.off();
             em->setPos(&e->pos);
             em->pos = e->pos;
             em->pos_old = em->pos;
@@ -8393,7 +8393,7 @@ void cEm39::set2ndBattle()
     u32 zero;
 
     w = EM39_WK(this);
-    AtariOff(&atari, 0xFCFF);
+    atari.off();
     ang.y = 1.4660766f;
     setPos(&p);
     zero = 0;
@@ -8847,7 +8847,7 @@ void cEm39::setDie()
 // into the held last frame (3/0 step 2).
 void cEm39::setDieCancel()
 {
-    AtariOff(&atari, 0xFCFF);
+    atari.off();
     pos.x = 9210.38f;
     pos.y = 12050.0f;
     pos.z = -14974.03f;
@@ -8885,7 +8885,7 @@ void cEm39::setTalk1st()
 // or a grenade throw.
 void cEm39::setTalk1stCancel()
 {
-    AtariOn(&atari, 0x300);
+    atari.on();
     if ((u8) (Rnd() % 10) > 4 && l_pl > 25000000.0f) {
         EmRoutineSet(this, 1, 0x1D, 0, 1);
     } else {

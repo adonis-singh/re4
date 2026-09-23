@@ -1047,19 +1047,19 @@ void em2cInitRtnSet(cEm2c* em)
             MotionSetCore(em, &em->Motion, ARC(7), 0, 0, 5, 0);
             break;
         case 1:
-            AtariOff(&em->atari, 0xFCFF);
+            em->atari.off();
             EmRoutineSet(em, 1, 0x21, 0, 0);
             MotionSetCore(em, &em->Motion, ARC(0x49), 0, 0, 5, 0);
             break;
         case 2:
-            AtariOff(&em->atari, 0xFCFF);
+            em->atari.off();
             EmRoutineSet(em, 1, 0x23, 0, 0);
             MotionSetCore(em, &em->Motion, ARC(0x49), 0, 0, 5, 0);
             break;
         }
         break;
     case 1:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         switch (em->set) {
         case 0:
         default:
@@ -2640,7 +2640,7 @@ static void em2c_R1_HideWait(cEm2c* em)
         em->r_no_2++;
         w->mode = 3;
         w->actDone = fe;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->invisible_factor = 1.0f;
         em->be_flag |= 2;
         w->timer = Rnd() % 60 + 60;
@@ -2695,7 +2695,7 @@ static void em2c_R1_HideAtk(cEm2c* em)
         em->r_no_2++;
         w->actDone = fe;
         w->mode = Rnd() % 3 + 1;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->pTail->flag &= ~4;
         EstSet(em, -1, 0, 0, EFF_EM2C, 1, 0, w->espKind, em, (void*) fe);
         EstSet(em, -1, 0, 0, EFF_EM2C, 6, 0, w->espKind, em, (void*) fe);
@@ -2798,7 +2798,7 @@ static void em2c_R1_HideFall(cEm2c* em)
     w->flags |= 0x500000;
     switch (em->r_no_2) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em2cGetFallPos(em);
         em->invisible_factor = 0.0f;
         EffectEspDelete(0, w->espKind, em, 0);
@@ -2818,7 +2818,7 @@ static void em2c_R1_HideFall(cEm2c* em)
         em->r_no_2++;
         break;
     case 2:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         EstSet(em, -1, 0, 0, EFF_EM2C, 1, 0, w->espKind, em, 0);
         EstSet(em, -1, 0, 0, EFF_EM2C, 6, 0, w->espKind, em, 0);
         MotionSetCore(em, &em->Motion, ARC(0x89), 0, 5, 1, 0);
@@ -2846,7 +2846,7 @@ static void em2c_R1_HideFall(cEm2c* em)
             MotionMove(em, 0);
             em->r_no_2 = 6;
         } else if (end) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             em->r_no_2++;
         }
         break;
@@ -2881,7 +2881,7 @@ static void em2c_R1_HideFall(cEm2c* em)
         }
         break;
     case 6:
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em2cSetdLandingEff(em);
         w->wallNrm.x = 0.0f;
         w->wallNrm.y = 1.0f;
@@ -3747,7 +3747,7 @@ static void em2c_R1_C_Fall(cEm2c* em)
     w->flags |= 0x8000;
     switch (em->r_no_2) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->pos.x = -12725.0f;
         em->pos.y = 886.0f;
         em->pos.z = -80973.0f;
@@ -3775,7 +3775,7 @@ static void em2c_R1_C_Fall(cEm2c* em)
         }
         if (em->Motion.Seq_old.Free & 1) {
             em2cSetdLandingEff(em);
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
         }
         break;
     }
@@ -3797,7 +3797,7 @@ static void em2c_R1_Reset_Wait(cEm2c* em)
     fe = em->r_no_2;
     switch (fe) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->pos.y = 4330.0f;
         MotionSetCore(em, &em->Motion, ARC(0x89), 0, 5, 1, 0);
         if (!(em->flag & 1)) {
@@ -3829,7 +3829,7 @@ static void em2c_R1_Reset_Wait(cEm2c* em)
             MotionMove(em, 0);
             em->r_no_2 = 4;
         } else if (end) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             em->r_no_2++;
         }
         break;
@@ -3864,7 +3864,7 @@ static void em2c_R1_Reset_Wait(cEm2c* em)
         }
         break;
     case 4:
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         em2cSetdLandingEff(em);
         em->r_no_2++;
     case 5:
@@ -4231,7 +4231,7 @@ static void em2c_R1_Dm_Down(cEm2c* em)
                 em2cSetdLandingEff(em);                                                        \
             }                                                                                  \
             if (ATARI_ON) {                                                                    \
-                AtariOn(&(em)->atari, 0x300);                                                  \
+                (em)->atari.on();                                                  \
             }                                                                                  \
             (em)->r_no_2 = NEXT;                                                                  \
         } else {                                                                               \
@@ -4737,7 +4737,7 @@ static void em2c_R1_Die_Lost(cEm2c* em)
 
     fe = em->r_no_2;
     if (fe == 0) {
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         EmSetDie(em);
         EmReserveDropItem(em);
         em->clearStatus(EM_STATUS_ACTIVE);

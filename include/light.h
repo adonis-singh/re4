@@ -120,6 +120,7 @@ public:
     virtual ~cLight() {}
     // the position actually applied (inlined into the hit checks; the out-of-line copy is stripped)
     void getPos(Vec* dst) { *dst = World; }
+    cModel* getParent() { return pParent; }
     void move();
     cLight& operator=(cLightWork& w);
     int checkScr();

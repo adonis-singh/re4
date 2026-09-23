@@ -730,9 +730,9 @@ static void em22_R1_JumpWait(cEm22* em)
         if (w->timer) {
             w->timer--;
             em->dmg.m_Timer = 2;
-            em->atari.throughOn();
+            em->atari.off();
         } else {
-            em->atari.throughOff();
+            em->atari.on();
         }
         em22DirMatrix(em, 0.0f);
         if (MotionMove(em, 0)) {

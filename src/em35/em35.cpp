@@ -988,7 +988,7 @@ static void em35_R0_Init(cEm35* em)
         case 1:
             EstSet(em, -1, 0, 0, EFF_EM35, 4, 1, w->espKind, em, (void*) zero);
             EstSet(em, -1, 0, 0, EFF_EM35, 9, 1, w->espKind, em, (void*) zero);
-            em->atari.throughOn();
+            em->atari.off();
             EmRoutineSet(em, 1, 0xF, zero, zero);
             MotionSetCore(em, MOTION(em), ARC(0x48), 0, 0, 1, 0);
             MotionMove(em, 0);
@@ -1007,7 +1007,7 @@ static void em35_R0_Init(cEm35* em)
         case 1:
             EstSet(em, -1, 0, 0, EFF_EM35, 4, 1, w->espKind, em, (void*) zero);
             EstSet(em, -1, 0, 0, EFF_EM35, 9, 1, w->espKind, em, (void*) zero);
-            em->atari.throughOn();
+            em->atari.off();
             EmRoutineSet(em, 1, 0x1F, zero, zero);
             MotionSetCore(em, MOTION(em), ARC(0x88), 0, 0, 1, 0);
             MotionMove(em, 0);
@@ -1057,7 +1057,7 @@ static void em35_R1_Divide(cEm35* em)
         MotionSetCore(em, MOTION(em), ARC(0x46), ARC(0x47), 0, 1, 0);
         em->hp = 0;
         em->clearStatus(EM_STATUS_ACTIVE);
-        em->atari.throughOn();
+        em->atari.off();
         w->timer = 0;
         EstSet(em, -1, 0, 0, EFF_EM35, 0x18, 1, ESP_CORE_KIND_NONE, em, 0);
         em->r_no_2++;
@@ -1890,7 +1890,7 @@ static void plem35DmFall2F(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, MOTION(pl), EM_ARC(pl, 0x92), 0, 3, 1, 0);
-        pl->atari.throughOn();
+        pl->atari.off();
         if ((s16) pG->pl_life > 0) {
             PlSetDamageSe(0);
         } else {
@@ -1900,7 +1900,7 @@ static void plem35DmFall2F(cPlayer* pl)
         pl->r_no_2++;
     case 1:
         if (MotionMove(pl, 0) && (s16) pG->pl_life > 0) {
-            pl->atari.throughOff();
+            pl->atari.on();
             EmRoutineSet(pPL, 1, 0, 0xA, 0);
         } else if (pl->Motion.Seq_frame > 39.7f && pl->Motion.Seq_frame < 40.3f) {
             SndCall(5, 5, &pPL->pos, pPL->id, 0, pPL);
@@ -2425,7 +2425,7 @@ static void em35_R1_CatchHit(cEm35* em)
 
     switch (em->r_no_2) {
     case 0:
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em35CatchPosSet(em);
         MotionSetCore(em, MOTION(em), ARC(0x34), ARC(0x35), 5, 1, 0);
         SetPlDamage(em, plem35_CatchHit);
@@ -2460,7 +2460,7 @@ static void em35_R1_CatchHit(cEm35* em)
         break;
     case 2:
         MotionSetCore(em, MOTION(em), ARC(0x3E), ARC(0x3F), 0, 1, 0);
-        em->atari.setFlag100();
+        em->atari.onSca();
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
@@ -2475,7 +2475,7 @@ static void em35_R1_CatchHit(cEm35* em)
         break;
     case 4:
         MotionSetCore(em, MOTION(em), ARC(0x3C), ARC(0x3D), 0, 1, 0);
-        AtariOnV(&em->atari, 0x100);
+        em->atari.onSca();
         LifeDownSet2(pPL, 500, 0, 0);
         em->r_no_2++;
     case 5:
@@ -2505,7 +2505,7 @@ static void plem35_CatchHit(cPlayer* pl)
 
         pl->atari.m_flag &= ~0x300;
         at = &pl->atari;
-        at->clrFlag100();
+        at->offSca();
         v.x = -61.37f;
         v.y = 0.0f;
         v.z = 1774.91f;
@@ -3443,7 +3443,7 @@ static void em35_R1_Dm_Small(cEm35* em)
         SndStop(w->sndId, 0);
         w->sndId = SndCall(8, 0x29, &em->pos, em->id, 0, em);
         w->sndId = SndCall(8, 0x32, &em->pos, em->id, 0, em);
-        em->atari.setFlag100();
+        em->atari.onSca();
         em->r_no_2++;
     }
     case 1:
@@ -3472,7 +3472,7 @@ static void em35_R1_Dm_Spinal(cEm35* em)
         SndStop(w->sndId, 0);
         w->sndId = SndCall(8, 0x2F, &em->pos, em->id, 0, em);
         w->sndId = SndCall(8, 0x34, &em->pos, em->id, 0, em);
-        em->atari.setFlag100();
+        em->atari.onSca();
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
@@ -3522,7 +3522,7 @@ static void em35_R1_Dm_Big(cEm35* em)
         SndStop(w->sndId, 0);
         w->sndId = SndCall(8, 0x2C, &em->pos, em->id, 0, em);
         w->sndId = SndCall(8, 0x33, &em->pos, em->id, 0, em);
-        em->atari.setFlag100();
+        em->atari.onSca();
         em->r_no_2++;
     }
     case 1:
@@ -3568,7 +3568,7 @@ static void em35_R1_Dm_Frame(cEm35* em)
         SndStop(w->sndId, 0);
         w->sndId = SndCall(8, 0x2C, &em->pos, em->id, 0, em);
         w->sndId = SndCall(8, 0x33, &em->pos, em->id, 0, em);
-        em->atari.setFlag100();
+        em->atari.onSca();
         w->timer = 50;
         em->r_no_2++;
     }
@@ -3778,7 +3778,7 @@ static void em35_R1_Die_Pose(cEm35* em)
 
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em->pos.x = 36817.0f;
         em->pos.y = -7963.56f;
         em->pos.z = -59757.32f;
@@ -5055,7 +5055,7 @@ void em35ScaleMove(cEm35* em)
 // For the level script: puts the enemy into its cutscene death pose at the scene spot (routine 3/1).
 void cEm35::setDiePose()
 {
-    atari.throughOn();
+    atari.off();
     pos.x = 36817.0f;
     pos.y = -7963.56f;
     pos.z = -59757.32f;
@@ -5146,7 +5146,7 @@ void em35WeakInit(cEm35* em)
                 w->pWeak[i]->scale.z = 0.7f;
                 w->pWeak[i]->LightInfo.EnableMask = 0x80;
                 OyaSetObj00(w->pWeak[i], em, i + 2);
-                w->pWeak[i]->atari.throughOn();
+                w->pWeak[i]->atari.off();
             }
         }
     }

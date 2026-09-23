@@ -936,7 +936,7 @@ static void em3a_R1_Die(cEm3a* em)
         }
         em->setStatus(EM_STATUS_ACTIVE);
         em->be_flag &= ~2;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->r_no_2++;
     }
 }
@@ -951,7 +951,7 @@ static void em3a_R1_B_HideWait(cEm3a* em)
     w->flags |= 8;
     switch (em->r_no_2) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         MotionSetCore(em, MOTION(em), ARC(0x12), 0, 3, 5, 0);
         w->flags &= ~1;
         w->timer = 30;
@@ -1012,7 +1012,7 @@ static void em3a_R1_B_Hide(cEm3a* em)
 
     switch (em->r_no_2) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         MotionSetCore(em, MOTION(em), ARC(0x11), 0, 3, 1, 0);
         SndCall(8, 5, &em->getPartsPtr(0xA)->world, em->id, 0, em);
         EffectEspDelete(1, w->espKind, em, 0);
@@ -1037,7 +1037,7 @@ static void em3a_R1_B_Appear(cEm3a* em)
 
     switch (em->r_no_2) {
     case 0:
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         MotionSetCore(em, MOTION(em), ARC(0x13), 0, 3, 1, 0);
         SndCall(8, 5, &em->getPartsPtr(0xA)->world, em->id, 0, em);
         EstSet(em, -1, 0, 0, EFF_EM3A, 0xD, 0, ESP_CORE_KIND_NONE, em, 0);
@@ -1059,7 +1059,7 @@ static void em3a_R1_B_Wait(cEm3a* em)
 
     switch (em->r_no_2) {
     case 0:
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         MotionSetCore(em, MOTION(em), ARC(0xD), 0, 3, 5, 0);
         w->flags &= ~1;
         w->turnDir = 0;
@@ -1288,7 +1288,7 @@ static void em3a_R1_B_Bomb(cEm3a* em)
         p.y += 250.0f;
         PlWepHitCheck2(0, &p, &p, 0x13, 3, 3000.0f);
         em->be_flag &= ~2;
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->r_no_2++;
     }
 }

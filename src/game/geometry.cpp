@@ -18,23 +18,6 @@ static inline const char* geo_name()
     return "";
 }
 
-// Matrix whose columns are the given axes and translation.
-static inline void SetAxisMatrix(Mtx m, Vec* ax, Vec* ay, Vec* az, Vec* pos)
-{
-    m[0][0] = ax->x;
-    m[1][0] = ax->y;
-    m[2][0] = ax->z;
-    m[0][1] = ay->x;
-    m[1][1] = ay->y;
-    m[2][1] = ay->z;
-    m[0][2] = az->x;
-    m[1][2] = az->y;
-    m[2][2] = az->z;
-    m[0][3] = pos->x;
-    m[1][3] = pos->y;
-    m[2][3] = pos->z;
-}
-
 // Unit vector perpendicular to the cone direction and world up.
 // Never called: the original linker dropped the body but kept its constant pool (one 0.0f, the
 // VECNormalize strings and the {0,1,0} template are shared with collision_point_cone_rev_play).
@@ -69,7 +52,7 @@ int collision_point_cone_rev_play(Vec* pPoint, GeoCone* pConeRev, f32 play)
         PSVECCrossProduct(&axis, &up, &c);
 #line 248
         VECNormalize(&c, &c);
-        SetAxisMatrix(m, &axis, &up, &c, &pConeRev->pos);
+        MTXSetColumns(m, axis, up, c, pConeRev->pos);
     } else {
         PSMTXTrans(m, pConeRev->pos.x, pConeRev->pos.y, pConeRev->pos.z);
     }

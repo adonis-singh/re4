@@ -35,7 +35,7 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
     obj->type = type;
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     obj->atari.init(0.0f, 0.0f, 0.0f, rad, rad, rad, h, 0, 0x2000, 10);
-    obj->atari.clrFlag100();
+    obj->atari.offSca();
     obj->atari.setPriority(PRI_LV1);
     obj->be_flag &= ~2;
     w->pEm = parent;

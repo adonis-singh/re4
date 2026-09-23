@@ -614,7 +614,7 @@ void emRackSatClear(cEmRack* pEm)
 {
     FREE_EMRACK* w = EMRACK_WK(pEm);
 
-    pEm->atari.clrFlag200();
+    pEm->atari.offOba();
     if (w->pEatUnder) {
         w->pEatUnder->setDisable();
     }

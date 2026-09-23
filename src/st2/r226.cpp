@@ -1181,7 +1181,7 @@ static void playerRunMoveBridge(cPlayer* pl)
     case 0:
         pl->m_Work0 = 0x55;
         Cckpt.lifeMeterDisp(0);
-        AtariOffV(&pPL->atari, 0xFEFF);
+        pPL->atari.offSca();
         pPL->pos.x = -70500.0f;
         pPL->pos.y = 1000.0f;
         pPL->pos.z = -16430.0f;
@@ -1276,7 +1276,7 @@ static void playerRunMoveBridge(cPlayer* pl)
                 pl->r_no_2 = 6;
             } else {
                 pG->pl_life = 0;
-                AtariOffV(&pl->atari, 0xFCFF);
+                pl->atari.off();
                 MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x6C), 0, 3, 0x201, 0);
                 SndCall(1, 0x4A, &pPL->pos, 0, 0, 0);
                 MotionMove(pl, 0);
@@ -1295,7 +1295,7 @@ static void playerRunMoveBridge(cPlayer* pl)
             if (r226_work->eat[3]) {
                 r226_work->eat[3]->setDisable();
             }
-            pPL->atari.setFlag100();
+            pPL->atari.onSca();
             SceEventStart(0);
             SceEventEnd(0);
             EndPlDamage();
@@ -1351,7 +1351,7 @@ static void playerRunDieBridge(cPlayer* pl)
         MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x36), 0, 3, 1, 0);
         CamCtrl.MotionSet(ROOM_ARC_PTR(pG->pRoom, 0x60), 0, 0.0f);
         pG->pl_life = 0;
-        pl->atari.throughOn();
+        pl->atari.off();
         PlSetDamageSe(0xA);
         r226_work->dieY = start;
         pl->r_no_2++;

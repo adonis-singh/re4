@@ -607,7 +607,7 @@ static void em31_R0_Init(cEm31* em)
     em->litArea.on(1);
     em->atari.setPriority(PRI_LV1);
     if (em->type == 1) {
-        em->atari.throughOn();
+        em->atari.off();
     }
     switch (em->type) {
     case 0:
@@ -797,7 +797,7 @@ static void em31_R1_Wait(cEm31* em)
         } else {
             MotionSetCore(em, MOTION(em), ARC(0xA), 0, 30, 5, 0);
         }
-        em->atari.throughOff();
+        em->atari.on();
         w->Timer = Rnd() % 60 + 90;
         if (pG->Game_level <= 3) {
             w->Timer = Rnd() % 60 + 120;
@@ -1296,9 +1296,9 @@ static void em31_R1_Jump(cEm31* em)
             PSVECScale(&w->TmpV, &v, 0.1f);
             PSVECAdd(&em->pos, &v, &em->pos);
             PSVECSubtract(&w->TmpV, &v, &w->TmpV);
-            em->atari.throughOn();
+            em->atari.off();
         } else {
-            em->atari.throughOff();
+            em->atari.on();
         }
         if (em->Motion.Seq_old.Free & 1) {
             v = em->pos;
@@ -1720,7 +1720,7 @@ static void em31_R1_Catch(cEm31* em)
 // End of a catch: collision back on, the berserk over, the attack wait by difficulty.
 static inline void em31CatchEnd(cEm31* em, Em31Work* w)
 {
-    em->atari.throughOff();
+    em->atari.on();
     w->Berserk_timer = 0;
     w->Berserk_wait = 450;
     w->Atk_wait = 60;
@@ -1752,7 +1752,7 @@ static void em31_R1_CatchHit(cEm31* em)
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em31CatchPosSet(em, 0);
         MotionSetCore(em, MOTION(em), ARC(0x1A), ARC(0x1B), 0, 1, 0);
         SetPlDamage(em, plem31_CatchHit);
@@ -1765,7 +1765,7 @@ static void em31_R1_CatchHit(cEm31* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            em->atari.throughOff();
+            em->atari.on();
         }
         if (MotionMove(em, 0)) {
             em31CatchEnd(em, w);
@@ -1793,7 +1793,7 @@ static void em31_R1_CatchHit(cEm31* em)
         PlSetFace(1);                                                                               \
         EstSet(pl, -1, 0, 0, EFF_EM31, est, 0, ESP_CORE_KIND_NONE, pl, 0);                                   \
         SndCall(1, 0xC, &pl->getPartsPtr(4)->world, 0, 0, pl);                                   \
-        pl->atari.throughOn();                                                                      \
+        pl->atari.off();                                                                      \
         pl->r_no_2++;                                                                                  \
     case 1:                                                                                         \
         if (MotionMove(pl, 0) && (s16) pG->pl_life > 0) {                                          \
@@ -1884,7 +1884,7 @@ static void em31_R1_StepCatchHit(cEm31* em)
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em31CatchPosSet(em, 0);
         MotionSetCore(em, MOTION(em), ARC(0x1A), ARC(0x1B), 0, 1, 0);
         SetPlDamage(em, plem31_StepCatchHit);
@@ -1897,7 +1897,7 @@ static void em31_R1_StepCatchHit(cEm31* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            em->atari.throughOff();
+            em->atari.on();
         }
         if (MotionMove(em, 0)) {
             em31CatchEnd(em, w);
@@ -2924,7 +2924,7 @@ static void em31_R1_Dm_Crane(cEm31* em)
             }
         }
         w->Be_flg &= ~0x40;
-        em->atari.throughOff();
+        em->atari.on();
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
@@ -2949,7 +2949,7 @@ static void em31_R1_Dm_Climb(cEm31* em)
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em31CatchPosSet(em, 1);
         MotionSetCore(em, MOTION(em), ARC(0x2F), 0, 0, 1, 0);
         SetPlDamage(em, plem31_Climb);
@@ -2964,7 +2964,7 @@ static void em31_R1_Dm_Climb(cEm31* em)
         break;
     case 2:
         MotionSetCore(em, MOTION(em), ARC(0x80), 0, 0, 1, 0);
-        em->atari.throughOff();
+        em->atari.on();
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
@@ -2998,7 +2998,7 @@ static void plem31_Climb(cPlayer* pl)
         pl->ang.y = pl->pEmCatch->ang.y;
         MotionSetCore(pl, MOTION(pl), EM_ARC(pl, 0x82), 0, 0, 0x201, 0);
         EstSet(pl, -1, 0, 0, EFF_EM31, 0x34, 0, ESP_CORE_KIND_NONE, pl, 0);
-        pl->atari.throughOn();
+        pl->atari.off();
         pl->r_no_2++;
     case 1:
         if (MotionMove(pl, 0)) {
@@ -3061,7 +3061,7 @@ static void plem31_Climb(cPlayer* pl)
         pl->r_no_2++;
     case 5:
         if (MotionMove(pl, 0)) {
-            pl->atari.throughOff();
+            pl->atari.on();
             EndPlDamage();
             pl->dmg.set(0, 30);
             break;
@@ -3136,7 +3136,7 @@ static void em31_R1_Die_Normal(cEm31* em)
     }
     switch (em->r_no_2) {
     case 0:
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->pos.x = -52850.0f;
         em->pos.y = 17500.0f;
         em->pos.z = 67000.0f;
@@ -3156,7 +3156,7 @@ static void em31_R1_Die_Normal(cEm31* em)
         }
         break;
     case 2:
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->pos.x = -53000.0f;
         em->pos.y = 17500.0f;
         em->pos.z = 68000.0f;
@@ -3203,7 +3203,7 @@ static void em31_R1_Die_Normal(cEm31* em)
         }
         break;
     case 4:
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->pos.x = -53000.0f;
         em->pos.y = 17500.0f;
         em->pos.z = 68000.0f;
@@ -3491,7 +3491,7 @@ static void plem31_dm_Stamp(cPlayer* pl)
     case 0:
         MotionSetCore(pl, MOTION(pl), EM_ARC(pl, 0x6B), 0, 3, 1, 0);
         PlSetFace(1);
-        pl->atari.clrFlag200();
+        pl->atari.offOba();
         if ((s16) pG->pl_life > 0) {
             PlSetDamageSe(0);
         } else {
@@ -3513,7 +3513,7 @@ static void plem31_dm_Stamp(cPlayer* pl)
         em31StampCamMove((cEm31*)pl->pEmCatch);
         if (MotionMove(pl, 0) || (pl->Motion.Seq_frame > 49.7f && pl->Motion.Seq_frame < 50.3f)) {
             if ((s16) pG->pl_life > 0) {
-                pl->atari.throughOff();
+                pl->atari.on();
                 EmRoutineSet(pPL, 1, 0, 0xA, 0);
             }
         }
@@ -5133,7 +5133,7 @@ void em31WeakInit(cEm31* em)
                 e->pObj->scale.z = 1.1f;
                 e->pObj->LightInfo.EnableMask = 0x80;
                 OyaSetObj00(e->pObj, em, e->Parts2);
-                e->pObj->atari.throughOn();
+                e->pObj->atari.off();
             }
         }
         break;
@@ -5145,7 +5145,7 @@ void em31WeakInit(cEm31* em)
             w->pWeak->scale.z = 1.3f;
             w->pWeak->LightInfo.EnableMask = 0x80;
             OyaSetObj00(w->pWeak, em, 0xB);
-            w->pWeak->atari.throughOn();
+            w->pWeak->atari.off();
         }
         break;
     }

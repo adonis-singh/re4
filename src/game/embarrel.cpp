@@ -603,7 +603,7 @@ void emBarrel_R1_R227Roll(cEmBarrel* pEm)
             pEm->r_no_3 = 0;
             return;
         }
-        pEm->atari.throughOn();
+        pEm->atari.off();
         w->rollSe = 0;
         if ((Rnd() & 3) == 0) {
             w->rollSe = 1;

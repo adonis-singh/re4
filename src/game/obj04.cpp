@@ -41,7 +41,7 @@ void cObj04::move()
         }
     }
     li = &LightInfo;
-    if ((li->Flag & 3) == 2) {
+    if (li->getType() == 2) {
         li->updateMatrix(this);
     }
     if (w->Tool_flg & 8) {

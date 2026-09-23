@@ -34,7 +34,7 @@ cObjWep::cObjWep()
     static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
     flag.reset();
-    atari.throughOn();
+    atari.off();
     LightInfo.init2(1, 1, &p0, &p1, 1);
     Motion.pMot = 0;
     motReset[1] = 0;
@@ -249,11 +249,7 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
                     (lpos.z - lcross.z) * (lpos.z - lcross.z);
             info = EatMgr.getEffInfo(EatGetEffectType(attr));
             if (info) {
-                int on = 1;
-                if ((info->flag & 2) == 0) {
-                    on = 0;
-                }
-                if (on && dist2 < 400000000.0f) {
+                if (info->check() && dist2 < 400000000.0f) {
                     donfire = res;
                 }
             }
@@ -399,7 +395,7 @@ void cObjWep::interrupt()
     if (r_no_0 == 4) {
         endReload(0);
     }
-    atari.clrFlag200();
+    atari.offOba();
     resetMotion();
 }
 

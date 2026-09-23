@@ -121,8 +121,8 @@ void R224Init()
     r224_work->obj2->pos.y = 0.0f;
     r224_work->obj2->pos.z = -543.0f;
     AtariInit(&r224_work->obj2->atari, 0.0f, 0.0f, 0.0f, 0.0f, 5100.0f, 5100.0f, 50000.0f, 0, 0x18, 0);
-    AtariOff(&r224_work->obj2->atari, 0xFEFF);
-    AtariOff(&r224_work->obj2->atari, 0xFDFF);
+    r224_work->obj2->atari.offSca();
+    r224_work->obj2->atari.offOba();
     SmdGetObjPtr(0x13)->be_flag |= 0x20;
     SmdGetObjPtr(0x14)->be_flag |= 0x20;
     SceAtSetEnable(5, 0);
@@ -214,14 +214,14 @@ static void r224_em_set_exit()
     SndStop(r224_work->se0, 0);
     SndStop(r224_work->se1, 0);
     SmdGetObjPtr(0x16)->pos.y = 7838.0f;
-    AtariOn(&r224_work->em0.getPtr()->atari, 0x300);
-    AtariOn(&r224_work->em1.getPtr()->atari, 0x300);
+    r224_work->em0.getPtr()->atari.on();
+    r224_work->em1.getPtr()->atari.on();
     pG->Room_flg[0] |= 0x04000000;
     SceAtDataSet_exec(0, SCE_LEVEL10, 0, (TaskFunc) r224_door_mes, 0, 1);
     SceExec(0x12, (TaskFunc) em_die_ck, 0, 0, SCE_PRIO_DEF_2, 0);
     GamePointBossReset();
-    AtariOn(&r224_work->em0.getPtr()->atari, 0x300);
-    AtariOn(&r224_work->em1.getPtr()->atari, 0x300);
+    r224_work->em0.getPtr()->atari.on();
+    r224_work->em1.getPtr()->atari.on();
     v.x = 7812.0f;
     v.y = 0.0f;
     v.z = -2048.0f;
@@ -260,8 +260,8 @@ static void r224_em_set()
     r224_work->em0.setNoSuspend(1);
     r224_work->em1.setNoSuspend(1);
     if (r224_work->em0.getPtr()) {
-        AtariOff(&r224_work->em0.getPtr()->atari, 0xFCFF);
-        AtariOff(&r224_work->em1.getPtr()->atari, 0xFCFF);
+        r224_work->em0.getPtr()->atari.off();
+        r224_work->em1.getPtr()->atari.off();
         v.x = 16700.0f;
         v.y = 0.0f;
         v.z = -7320.0f;
@@ -291,8 +291,8 @@ static void r224_em_set()
     SceSleep(10);
     r224_work->em1.setFlag(1);
     SceSleep(60);
-    AtariOn(&r224_work->em0.getPtr()->atari, 0x300);
-    AtariOn(&r224_work->em1.getPtr()->atari, 0x300);
+    r224_work->em0.getPtr()->atari.on();
+    r224_work->em1.getPtr()->atari.on();
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
@@ -312,8 +312,8 @@ static void r224_toroko()
     }
     pG->Room_flg[0] |= 0x08000000;
     pl->beginAction();
-    AtariOff(&pPL->atari, 0xFEFF);
-    AtariOff(&pPL->atari, 0xFDFF);
+    pPL->atari.offSca();
+    pPL->atari.offOba();
     pPL->atari.setPriority(PRI_LV1);
     pPL->dmg.set(0, 0x80);
     pl->setRightHand(1);
@@ -344,8 +344,8 @@ static void r224_toroko()
     pl->Wep->setTrans(1, 0);
     pl->endAction(0);
     pPL->dmg.clear();
-    AtariOn(&pPL->atari, 0x100);
-    AtariOn(&pPL->atari, 0x200);
+    pPL->atari.onSca();
+    pPL->atari.onOba();
     pPL->atari.setPriority(0);
     pG->Room_flg[0] &= ~0x08000000;
 }
@@ -494,8 +494,8 @@ static void gnd_open()
     SmdGetObjPtr(0x13)->ang.x = 0.0f;
     SmdGetObjPtr(0x14)->ang.x = 0.0f;
     SceAtSetEnable(4, 0);
-    AtariOn(&r224_work->obj2->atari, 0x100);
-    AtariOn(&r224_work->obj2->atari, 0x200);
+    r224_work->obj2->atari.onSca();
+    r224_work->obj2->atari.onOba();
     SceAtSetEnable(5, 1);
     SceAtSetEnable(6, 1);
     SceAtSetEnable(7, 0);
@@ -519,8 +519,8 @@ void gnd_close()
 
     SmdGetObjPtr(0x13)->be_flag |= 0x20;
     SmdGetObjPtr(0x14)->be_flag |= 0x20;
-    AtariOn(&r224_work->obj2->atari, 0x100);
-    AtariOn(&r224_work->obj2->atari, 0x200);
+    r224_work->obj2->atari.onSca();
+    r224_work->obj2->atari.onOba();
     SndCall(6, 0xB, &SmdGetObjPtr(0x13)->pos, 0, 0, 0);
     for (;;) {
         spd += acc;
@@ -546,8 +546,8 @@ void gnd_close()
     }
     SceAtSetEnable(6, 0);
     SceAtSetEnable(7, 1);
-    AtariOff(&r224_work->obj2->atari, 0xFEFF);
-    AtariOff(&r224_work->obj2->atari, 0xFDFF);
+    r224_work->obj2->atari.offSca();
+    r224_work->obj2->atari.offOba();
     pG->Room_flg[0] &= ~0x40000000;
 }
 

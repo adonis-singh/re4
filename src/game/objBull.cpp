@@ -107,7 +107,7 @@ cObj* SetBull(void* bin, void* tpl, Vec* pos, Vec* rot, u32 type)
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     AtariInit(&obj->atari, 0.0f, 1000.0f, -700.0f, 350.0f, 700.0f, 700.0f, 1000.0f, 0, 2, 0);
-    obj->atari.throughOn();
+    obj->atari.off();
     w->pSat = 0;
     w->pSat2 = 0;
     w->pEat = 0;
@@ -1086,7 +1086,7 @@ void Sub_bull_drive(cEm* pEm)
     pEm->setStatus(EM_STATUS_IK_OFF);
     switch (pEm->r_no_2) {
     case 0:
-        pEm->atari.throughOn();
+        pEm->atari.off();
         if (pEm->r_no_3) {
             MotionSetCore(pEm, &pEm->Motion, ROOM_ARC_PTR(pG->pRoom, 50), 0, 0, 5, 0);
         } else {
@@ -1115,7 +1115,7 @@ void Sub_bull_operation(cEm* pEm)
     pEm->setStatus(EM_STATUS_IK_OFF);
     switch (pEm->r_no_2) {
     case 0:
-        pEm->atari.throughOn();
+        pEm->atari.off();
         MotionSetCore(pEm, &pEm->Motion, ROOM_ARC_PTR(pG->pRoom, 51), 0, 3, 1, 0);
         pEm->r_no_2++;
     case 1:
@@ -1138,7 +1138,7 @@ void Sub_bull_lookback(cEm* pEm)
     pEm->setStatus(EM_STATUS_IK_OFF);
     switch (pEm->r_no_2) {
     case 0:
-        pEm->atari.throughOn();
+        pEm->atari.off();
         MotionSetCore(pEm, &pEm->Motion, ROOM_ARC_PTR(pG->pRoom, 66), 0, 3, 1, 0);
         parts = pEm->getPartsPtr(3);
         if (pEm->r_no_3) {
@@ -1167,7 +1167,7 @@ void Sub_bull_look(cEm* pEm)
     pEm->setStatus(EM_STATUS_IK_OFF);
     switch (pEm->r_no_2) {
     case 0:
-        pEm->atari.throughOn();
+        pEm->atari.off();
         MotionSetCore(pEm, &pEm->Motion, ROOM_ARC_PTR(pG->pRoom, 67), 0, 3, 1, 0);
         pEm->r_no_2++;
     case 1:
@@ -1193,7 +1193,7 @@ void Sub_dm_bull(cEm* pEm)
     pEm->dmg.m_Timer = type;
     switch (pEm->r_no_2) {
     case 0:
-        pEm->atari.throughOn();
+        pEm->atari.off();
         dmg = 0;
         switch (pEm->dmg.m_Wep) {
         default:

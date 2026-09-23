@@ -799,7 +799,7 @@ static void em36_R1_R307Bed(cEm36* em)
         em->pos.z = -4882.06f;
         em->ang.y = 1.8358682f;
         at = &em->atari;
-        at->throughOn();
+        at->off();
         em->r_no_2++;
     }
     case 1:
@@ -834,7 +834,7 @@ static void em36_R1_R307Appear(cEm36* em)
             em->setStatus(EM_STATUS_ACTIVE);
             EmRoutineSet(em, 1, 1, 0, 0);
             at = &em->atari;
-            at->throughOff();
+            at->on();
         }
         break;
     }
@@ -925,7 +925,7 @@ static void em36_R1_R310Appear(cEm36* em)
         em->ang.y = PI;
         em->hp = 0;
         at = &em->atari;
-        at->throughOn();
+        at->off();
         em->r_no_2++;
     }
     case 1:
@@ -936,7 +936,7 @@ static void em36_R1_R310Appear(cEm36* em)
 
             em->flag &= ~1;
             at = &em->atari;
-            at->throughOff();
+            at->on();
             em->hp = em->hp_max;
             em->setStatus(EM_STATUS_ACTIVE);
             w->flags |= 0x200;
@@ -4003,7 +4003,7 @@ void em36WeakInit(cEm36* em)
             l->pObj->LightInfo.EnableMask = 0x80;
             OyaSetObj00(l->pObj, em, em36_weak_parts[i]);
             MotSetObj00(l->pObj, ARC(0x83), 4, 0);
-            l->pObj->atari.throughOn();
+            l->pObj->atari.off();
         }
         l->hp = 1000;
         switch (i) {

@@ -98,14 +98,14 @@ void mahoKaiou4()
 // Cheat: the player passes through collision.
 void mahoThroughOn()
 {
-    pPL->atari.throughOn();
+    pPL->atari.off();
     pLog->mes(0, 0, "PL THROUGH ON");
 }
 
 // Cheat: collision back on.
 void mahoThroughOff()
 {
-    pPL->atari.throughOff();
+    pPL->atari.on();
     pLog->mes(0, 0, "PL THROUGH OFF");
 }
 

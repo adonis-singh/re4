@@ -157,7 +157,7 @@ static void wep17_r2_ready(cPlayer* pl)
             pl->r_no_1 = 0;
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
-            WEP_ATARI(pl)->clrFlag200();
+            WEP_ATARI(pl)->offOba();
         }
     }
     if (pl->keyReload() && WEP_OBJ(pl)->reloadable()) {
@@ -583,7 +583,7 @@ static void wep17_r3_fire00(cPlayer* pl)
     m3r.move();
     mot3.move(m3r);
     pl->Waist->set(pl->m_Fwork0, 0.4f);
-    WEP_ATARI(pl)->clrFlag200();
+    WEP_ATARI(pl)->offOba();
     pl->Body->waistMove();
     pl->partsWorldCalc();
     parts = pl->getPartsPtr(10);
@@ -619,7 +619,7 @@ static void wep17_r3_fire10(cPlayer* pl)
     }
     if (MotionCheckCrossFrame(&pl->Motion, 11.0f)) {
         pl->m_Work4 = 0;
-        WEP_ATARI(pl)->setFlag200();
+        WEP_ATARI(pl)->onOba();
         pl->r_no_0 = 0;
         pl->r_no_1 = 6;
         pl->r_no_2 = 1;
@@ -652,7 +652,7 @@ void wepDown(cPlayer* pl)
     obj = WEP_OBJ(pl);
     obj->r_no_0 = 3;
     obj->r_no_1 = 0;
-    WEP_ATARI(pl)->clrFlag200();
+    WEP_ATARI(pl)->offOba();
     pl->ang.y = pl->ang.y - pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -932,7 +932,7 @@ static void wep17_r2_out(cPlayer* pl)
             pl->r_no_1 = 0;
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
-            WEP_ATARI(pl)->clrFlag200();
+            WEP_ATARI(pl)->offOba();
         }
         break;
     case 6:
@@ -944,7 +944,7 @@ static void wep17_r2_out(cPlayer* pl)
             pl->r_no_1 = 0;
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
-            WEP_ATARI(pl)->clrFlag200();
+            WEP_ATARI(pl)->offOba();
         }
         break;
     }

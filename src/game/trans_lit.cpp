@@ -87,7 +87,7 @@ void LightSetModel(cModel* pMod)
     }
     obj_pos = pMod->pList->world;
     obj_size = pMod->LightInfo.Size.x > pMod->LightInfo.Size.y ? pMod->LightInfo.Size.x : pMod->LightInfo.Size.y;
-    if ((pMod->LightInfo.Flag & 3) == 2) {
+    if (pMod->LightInfo.getType() == 2) {
         obj_flag = 0;
     } else {
         obj_flag = 1;

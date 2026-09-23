@@ -425,7 +425,7 @@ static void em38_R0_Init(cEm38* em)
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
     em->litArea.on(1);
-    em->atari.throughOn();
+    em->atari.off();
     switch (em->type) {
     case 0:
     default:
@@ -803,7 +803,7 @@ static void plem38_AtkHit(cPlayer* pl)
     case 0: {
         Vec v;
 
-        pl->atari.throughOn();
+        pl->atari.off();
         v.x = -106.0f;
         v.y = -5817.0f;
         v.z = 13351.18f;
@@ -1385,7 +1385,7 @@ static void plem38_CatchHit(cPlayer* pl)
     pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
-        pl->atari.throughOn();
+        pl->atari.off();
         if (pPL->r_no_3) {
             Vec v;
 
@@ -1614,7 +1614,7 @@ static void em38_R1_Die_Body(cEm38* em)
         EffectEspgenDelete(1, w->espKind2, em);
         EffectEfmDelete(1, w->espKind2, em);
         SndStrReq(1, 0x30, 0x80000003, 0, 0, 0.0f);
-        em->atari.throughOn();
+        em->atari.off();
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0) == 0) {
@@ -2812,7 +2812,7 @@ void em38WeakInit(cEm38* em)
             w->pWeak->scale.z = 1.3f;
             w->pWeak->LightInfo.EnableMask = 0x80;
             OyaSetObj00(w->pWeak, em, 0x3A);
-            w->pWeak->atari.throughOn();
+            w->pWeak->atari.off();
         }
     }
 }

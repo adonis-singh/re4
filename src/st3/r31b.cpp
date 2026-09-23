@@ -1025,7 +1025,7 @@ void R31bExecFallMainSub(int no, int flagNo, int cut)
             SndCall(6, 0x10, 0, 0, 0, 0);
             pPL->beginEvent(0);
             pPL->setNoSuspend(1);
-            AtariOffRaw(&pPL->atari, 0xFCFF);
+            pPL->atari.off();
             Vec tbl[3] = {{-14000.0f, 0.0f, 0.0f}, {5000.0f, 0.0f, 0.0f}, {23500.0f, 0.0f, 0.0f}};
             Vec ang = {0, 0, 0};
             pPL->setPos(&tbl[no]);
@@ -1114,7 +1114,7 @@ void R31bExecFallEndSub(int no, u32 objId, int satNo, int flagNo)
         }
     }
     if (pG->Room_flg[0] & 0x80000000) {
-        AtariOnRaw(&pPL->atari, 0x300);
+        pPL->atari.on();
         DiedemoExec(0, 0);
     } else {
         pPL->setPos(&r31b_fallPlPos[no]);

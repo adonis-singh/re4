@@ -308,7 +308,7 @@ void EndPlDamage()
     pl->dmg.clear();
     PlSetRoutine(0, 0, 0, 0);
     pl->subArc = pl->subArc2;
-    at->throughOff();
+    at->on();
     at->setPriority(0);
     at->set(10, 400.0f, 200.0f);
     pl->endDamage();
@@ -398,7 +398,7 @@ void EndSubDamage()
     sub->r_no_2 = 0;
     sub->r_no_3 = 0;
     at = &sub->atari;
-    at->throughOff();
+    at->on();
     at->setPriority(0);
     at->set(10, 400.0f, 200.0f);
 }
@@ -623,7 +623,7 @@ void PlSetLadder(Vec* pos, int level, f32 ang)
         return;
     }
     pl = pPL;
-    pl->atari.throughOn();
+    pl->atari.off();
     pl->dmg.set(0, 0x80);
     Vec v = {0.0f, 0.0f, 0.0f};
     Vec rot;

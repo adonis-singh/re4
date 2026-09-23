@@ -112,7 +112,7 @@ cObj* SetTrolley(void* bin, void* tpl, Vec* pos, Vec* rot)
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     AtariInit(&obj->atari, 0.0f, 1000.0f, -700.0f, 350.0f, 700.0f, 700.0f, 1000.0f, 0, 2, 0);
-    obj->atari.throughOn();
+    obj->atari.off();
     if (pos) {
         obj->pos = *pos;
     } else {
@@ -392,7 +392,7 @@ void plobjTrolleyEscape(cPlayer* pEm)
         em->pos.z = 73991.43f;
         em->ang.y = 0.0f;
         MotionSetCore(em, &em->Motion, w->Mot_tbl[4], 0, 0, 0x201, 0);
-        em->atari.throughOn();
+        em->atari.off();
         em->be_flag &= ~0x10;
         em->r_no_2++;
     case 1:
@@ -454,7 +454,7 @@ void plobjTrolleyEscape(cPlayer* pEm)
     case 5:
         if (MotionMove(em, 0)) {
             em->be_flag |= 0x10;
-            em->atari.throughOff();
+            em->atari.on();
             EndPlDamage();
         } else {
             if (em->Motion.Seq_frame == 140.0f) {
@@ -499,7 +499,7 @@ void plobjTrolleyDie(cPlayer* pEm)
         em->pos.z = 87300.0f;
         em->ang.y = 0.0f;
         MotionSetCore(em, &em->Motion, w->Mot_tbl[5], 0, 0, 1, 0);
-        em->atari.throughOn();
+        em->atari.off();
         pG->pl_life = step;
         em->be_flag &= ~0x10;
         em->r_no_2++;

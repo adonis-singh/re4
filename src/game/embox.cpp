@@ -535,7 +535,7 @@ void emBox_R1_Break(cEmBox* em)
         em->be_flag &= ~2;
         em->clearStatus(EM_STATUS_ACTIVE);
         w->Lost_wait = 150;
-        em->atari.throughOn();
+        em->atari.off();
         em->r_no_2++;
     }
     em->be_flag |= 0x4000;

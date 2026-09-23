@@ -48,6 +48,7 @@ public:
     int modeReset();
     int modeSet(int x, int y, int dispTime, int dispNum);   // window position/duration/size (t_log: 0x30, 0x2A, 0xFF, 0x19)
     void disp();
+    void setPos(int x, int y) { m_Bx = x; m_By = y; }
     int on(int time);
     cLogWork* add(int flag, int errId, const char* mes, va_list ap);
     int scrSet(s8 n);                          // scroll by `n`, clamped to [0, 100 - lines]

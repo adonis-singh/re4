@@ -66,7 +66,7 @@ cObj* SetObjBell(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec l1 = { 1000.0f, 1000.0f, 0.0f };
 
     obj14ClothSet((cObjBell*) obj);
-    obj->atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &l0, &l1, 0x10);
     w->Bell_timer = 0;
     p0.x = 0.0f;
