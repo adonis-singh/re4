@@ -8,6 +8,7 @@
 #include "sce.h"
 #include "sce_at.h"
 #include "obj.h"
+#include "obj18.h"
 #include "model.h"
 #include "etc_model.h"
 #include "est.h"
@@ -80,13 +81,13 @@ extern "C" void Evt_R325S00_Func(Event* e)
         if (e->NowCut == 7) {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0000", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
         } else {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0000", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
         }
@@ -168,10 +169,10 @@ extern "C" void Evt_R325S00_Func(Event* e)
         if (e->NowCut == 8) {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObjUnion*) mod)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
                     if (w && w->child) {
-                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
+                        OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;
                         w->child->be_flag &= ~2;
                     }
                 }
@@ -179,10 +180,10 @@ extern "C" void Evt_R325S00_Func(Event* e)
         } else {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObjUnion*) mod)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
                     if (w && w->child) {
-                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon &= ~0x04000000;
+                        OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon &= ~0x04000000;
                         w->child->be_flag |= 2;
                     }
                 }

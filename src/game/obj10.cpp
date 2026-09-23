@@ -6,6 +6,7 @@
 #include "light.h"
 #include "dmg.h"
 #include "obj.h"
+#include "obj10.h"
 #include "esp.h"
 #include "emhit.h"
 #include "global.h"
@@ -15,20 +16,6 @@
 #include "pl_wep.h"
 #include "player.h"
 #include "motion.h"
-
-// Thrown weapon item (bottle / explosive): the grenade (obj01) flight model with its own
-// landing sounds, a player hit check on the explosion and no flash / underwater variants.
-class cWepItem : public cObjUnion {
-public:
-    virtual void move();
-    virtual void beginEvent(u32 mode);
-    virtual ~cWepItem() {}
-
-    void move00();
-    void move01();
-    void dmgSet(int kind);
-    void hitCkPl();
-};
 
 extern "C" {
 int obj10AddSpeed(cWepItem* obj);
@@ -47,7 +34,7 @@ void cWepItem::move()
 // flash, 3 incendiary), pending motion, hold-on-parts / release, flight (obj10AddSpeed) and spin.
 void cWepItem::move00()
 {
-    WepItemWork* w = &wepItem;
+    WepItemWork* w = WEPITEM_WK(this);
     int life = w->timer;
     f32 wh;
 
@@ -224,7 +211,7 @@ void cWepItem::beginEvent(u32 flag)
 // player's landing sounds; returns 1 when the object should be destroyed.
 int obj10AddSpeed(cWepItem* pObj)
 {
-    WepItemWork* w = &pObj->wepItem;
+    WepItemWork* w = WEPITEM_WK(pObj);
     f32 wh;
     Vec ref;
     Vec nrm;
@@ -351,7 +338,7 @@ cObj* SetObj10(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
     obj->sub2B4.atari.throughOn();
     obj->sub2B4.atari.m_flag |= 0x400;
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
-    w = &((cWepItem*) obj)->wepItem;
+    w = WEPITEM_WK((cWepItem*) obj);
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
@@ -399,7 +386,7 @@ void Obj10SetEst(cObj* obj, int no0, int prm0, u32 type, int no1, int prm1, int 
     if (obj == 0) {
         return;
     }
-    w = &((cWepItem*) obj)->wepItem;
+    w = WEPITEM_WK((cWepItem*) obj);
     w->eff = no0;
     w->est = prm0;
     w->eff2 = no1;

@@ -13,6 +13,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "objPillar.h"
 #include "em.h"
 #include "em_set.h"
@@ -1633,14 +1634,14 @@ void R332ScrTrans(int on)
 #define R332_PL_CHILD_TRANS(e, on)                                    \
     if ((e)->NowFrame == 0) {                                            \
         if ((e)->GetMod(&mod, "pl0200", 0, 0) == 1) {                 \
-            Obj18Work* w = &((cObjUnion*) mod)->o18;                       \
+            Obj18Work* w = OBJ18_WK((cObj18*) mod);                       \
                                                                       \
             if (w && w->child) {                                      \
                 if ((on) == 0) {                                      \
-                    ((cObjUnion*) mod)->o18.ObjChainFlagCommon |= 0x04000000;\
+                    OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;\
                     w->child->be_flag &= ~2;                          \
                 } else {                                              \
-                    ((cObjUnion*) mod)->o18.ObjChainFlagCommon &= ~0x04000000;\
+                    OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon &= ~0x04000000;\
                     w->child->be_flag |= 2;                           \
                 }                                                     \
             }                                                         \
@@ -1715,14 +1716,14 @@ void Evt_R332S00_Func(Event* e)
         case 0x15:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
         default:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
             break;

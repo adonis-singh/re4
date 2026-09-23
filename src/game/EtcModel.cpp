@@ -8,6 +8,7 @@
 #include "light.h"
 #include "em.h"
 #include "obj.h"
+#include "obj13.h"
 #include "embox.h"
 #include "emdoor.h"
 #include "emrack.h"
@@ -25,13 +26,6 @@
 #include "math_sub.h"
 #include <string.h>
 #include "esp.h"
-
-// obj13.cpp's ladder object; only the two setters the etc list calls are needed here.
-class cObjLadder : public cObjUnion {
-public:
-    void setLadderInfo(int num, u8 type);
-    void setMotion(void** tbl);
-};
 
 // One file of the room etc archive: `size` bytes to the next header, name at 0x20, data at 0x40.
 struct EtcArcFile {

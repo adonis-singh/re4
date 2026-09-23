@@ -61,15 +61,8 @@ extern PlCloth adaDress;
 extern PlCloth adaHair;
 extern PlCloth adaRibbon;
 
-// Chain object (game/obj1d.cpp): really a cObj subclass, kept opaque here (see pl_wep.h cObjWep).
-// SetChain returns the cObj*; the player units only hand it back to the chain members.
-struct PenCloth;
-class cObjChain {
-public:
-    void setChain(PenCloth* c);
-    void setParent(cModel* pMod, int parts, Vec* ofs, int flag);
-    void setParent2(cModel* pEm, int parts1, Vec* pPos1, int parts2, Vec* pPos2, int mode);
-};
+// Chain object (game/obj1d.cpp, obj1d.h).
+class cObjChain;
 cObjChain* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot);
 
 void PlClothSetLeon(cModel* pl, PlCloth* pCloth1, PlCloth* pCloth2, PlCloth* pCloth3);

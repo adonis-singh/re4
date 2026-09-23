@@ -6,6 +6,7 @@
 #include "atari.h"
 #include "light.h"
 #include "obj.h"
+#include "obj1b.h"
 #include "esp.h"
 #include "est.h"
 #include "global.h"
@@ -16,20 +17,6 @@
 #include "main_mem.h"
 #include "motion.h"
 #include "em_sub.h"
-
-// Spear (obj 0x1B): thrown by an enemy (R1_Throw), sticks into the enemy it hits (R1_Parent:
-// follows a parts of the target), falls off as a three-point rope (R1_Fall) and fades out (Lost).
-class cObjSpear : public cObjUnion {
-public:
-    virtual void move();
-    virtual void beginEvent(u32 mode);
-    virtual ~cObjSpear() {}
-
-    void setParent(cModel* parent, int partsNo, int noNormalize);
-    void setFall(u8 type, Vec* dir);
-    void setThrow(Vec* dir);
-    void setLost();
-};
 
 // One point of the falling rope (obj1b_R1_Fall).
 struct Obj1bNode {
@@ -72,7 +59,7 @@ cObj* SetSpear(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &((cObjSpear*) obj)->spear;
+    w = SPEAR_WK((cObjSpear*) obj);
     if (pos) {
         obj->pos = *pos;
     }
@@ -133,7 +120,7 @@ cObj* SetSpear(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Event start: a loose spear (no parent) is removed.
 void cObjSpear::beginEvent(u32 flag)
 {
-    if (spear.parent == 0) {
+    if (SPEAR_WK(this)->parent == 0) {
         ObjMgr.destroy(this);
     }
 }
@@ -142,7 +129,7 @@ void cObjSpear::beginEvent(u32 flag)
 // invisibility and draw flag; hidden when stuck in the player during Status_flg[0] 0x400.
 void cObjSpear::move()
 {
-    SpearWork* w = &spear;
+    SpearWork* w = SPEAR_WK(this);
 
     if (w->parent && (w->parent->be_flag & 0x201) != 1) {
         ObjMgr.destroy(this);
@@ -193,7 +180,7 @@ void obj1b_R1_Set(cObjSpear* pObj)
 // Rno1 == 1: waits 120 frames then fades out (or vanishes at once when off screen) -> Lost.
 void obj1b_R1_LostWait(cObjSpear* pObj)
 {
-    SpearWork* w = &pObj->spear;
+    SpearWork* w = SPEAR_WK(pObj);
     Vec scr;
     Vec p;
 
@@ -248,7 +235,7 @@ void obj1b_R1_Lost(cObjSpear* pObj)
 // runs.
 void obj1b_R1_Parent(cObjSpear* pObj)
 {
-    SpearWork* w = &pObj->spear;
+    SpearWork* w = SPEAR_WK(pObj);
     cModel* parent = w->parent;
 
     RotMatrix(pObj->mat, &pObj->ang);
@@ -337,7 +324,7 @@ void obj1b_R1_Parent(cObjSpear* pObj)
 // damping, landing sound and effect once), then at rest (node speeds < 25) -> LostWait.
 void obj1b_R1_Fall(cObjSpear* obj)
 {
-    SpearWork* w = &obj->spear;
+    SpearWork* w = SPEAR_WK(obj);
     Vec ofs[4][3] = {
         { { 0.0f, 0.0f, 600.0f }, { 0.0f, 0.0f, -600.0f }, { 300.0f, 0.0f, 0.0f } },
         { { 0.0f, 0.0f, 1500.0f }, { 0.0f, 0.0f, 0.0f }, { 300.0f, 0.0f, 1300.0f } },
@@ -499,7 +486,7 @@ void obj1b_R1_Fall(cObjSpear* obj)
 // along the velocity; sticks into the scenario (-> LostWait) or a character (obj1bHitCk).
 void obj1b_R1_Throw(cObjSpear* pObj)
 {
-    SpearWork* w = &pObj->spear;
+    SpearWork* w = SPEAR_WK(pObj);
     Vec d;
     Vec hit;
     Vec p;
@@ -572,7 +559,7 @@ void obj1b_R1_Throw(cObjSpear* pObj)
 // speed-following variant for em2f 0x2F), sound; estTimer 600, falls off after 1800 frames.
 int obj1bHitCk(cObjSpear* pObj)
 {
-    SpearWork* w = &pObj->spear;
+    SpearWork* w = SPEAR_WK(pObj);
     Vec hit;
     Vec nrm;
     WepTarget target;
@@ -639,7 +626,7 @@ int obj1bHitCk(cObjSpear* pObj)
 // Sticks / holds the spear on parts partsNo of `parent` (noNormalize keeps the parts scale) -> Parent.
 void cObjSpear::setParent(cModel* pEm, int oya_parts, int mode)
 {
-    SpearWork* w = &spear;
+    SpearWork* w = SPEAR_WK(this);
 
     w->parent = pEm;
     w->partsNo = oya_parts;
@@ -658,7 +645,7 @@ void cObjSpear::setParent(cModel* pEm, int oya_parts, int mode)
 // a random upward toss.
 void cObjSpear::setFall(u8 type, Vec* pSpd)
 {
-    SpearWork* w = &spear;
+    SpearWork* w = SPEAR_WK(this);
     Mtx m;
     Vec v;
     u32 i;
@@ -721,7 +708,7 @@ void cObjSpear::setFall(u8 type, Vec* pSpd)
 // Throws the spear along dir (or its own forward axis * 1000) from its current position -> Throw.
 void cObjSpear::setThrow(Vec* pSpd)
 {
-    SpearWork* w = &spear;
+    SpearWork* w = SPEAR_WK(this);
     Vec d;
     f32 len;
 

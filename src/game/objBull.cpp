@@ -10,6 +10,7 @@
 #include "map_obj.h"
 #include "widget.h"
 #include "obj.h"
+#include "objBull.h"
 #include "em.h"
 #include "emwep.h"
 #include "global.h"
@@ -23,35 +24,6 @@
 #include "pl_wep.h"
 #include "motion.h"
 #include "em_sub.h"
-
-// Bulldozer (obj 0x3E): parts 2 carries the player, the partner and the enemies standing on it
-// through the break / move / lift routines of its motion table; the partner drives it
-// (Sub_bull_*) while the player shoots the pursuers (objBullHitCk).
-class cObjBull : public cObjUnion {
-public:
-    virtual void move();
-    virtual ~cObjBull() {}
-
-    void setMotion(void** tbl);
-    int ckBullRide(Vec* pos, u8* partsNo, Vec* out);
-    int ckBullRideAdjust(Vec* pos, Vec* out);
-    int ckGoal();
-    void setRide();
-    int ckBreak1st();
-    int ckBreak2nd();
-    int ckBreak3rd();
-    int ckBreak4th();
-    int ckLift();
-    int ckTruckGo();
-    int ckLiftWait();
-    void setSubBullDrive();
-    void setSubBullFinger();
-    void setSubBullLookBack();
-    int getMoveFrameToLift();
-    int getMoveFrameRtn();
-    void setAdjustMode(u8 mode, void (*func)(cObj*));
-    void setBreakTruck();
-};
 
 extern "C" {
 void objBull_R0_Set(cObjBull* obj);
@@ -109,7 +81,7 @@ cObj* SetBull(void* bin, void* tpl, Vec* pos, Vec* rot, u32 type)
     if (obj == 0) {
         return 0;
     }
-    w = &((cObjBull*) obj)->bull;
+    w = BULL_WK((cObjBull*) obj);
     if (pos) {
         obj->pos = *pos;
     } else {
@@ -169,7 +141,7 @@ void cObjBull::move()
 // Rno0 == 0: parked at the start with mot[0] on its first frame; collision placed.
 void objBull_R0_Set(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     w->Move_frame = 0;
@@ -189,7 +161,7 @@ void objBull_R0_Set(cObjBull* pObj)
 // check in front of the blade.
 void objBull_R0_Break1st(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -210,7 +182,7 @@ void objBull_R0_Break1st(cObjBull* pObj)
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[0], 0, 0, 0x8001, 0);
         if (w->break1st == 0 || --w->break1st == 0) {
-            pObj->bull.Be_flg |= 2;
+            BULL_WK(pObj)->Be_flg |= 2;
         }
         pObj->r_no_2++;
     case 3:
@@ -240,7 +212,7 @@ void objBull_R0_Break1st(cObjBull* pObj)
 // Rno0 == 2: drives to the second barrier (mot[1]), carrying the riders and hitting enemies.
 void objBull_R0_To2nd(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -274,7 +246,7 @@ void objBull_R0_To2nd(cObjBull* pObj)
 // Rno0 == 3: second barrier (mot[2], break2nd hits, Be_flg 4).
 void objBull_R0_Break2nd(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -295,7 +267,7 @@ void objBull_R0_Break2nd(cObjBull* pObj)
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[2], 0, 0, 0x8001, 0);
         if (w->break2nd == 0 || --w->break2nd == 0) {
-            pObj->bull.Be_flg |= 4;
+            BULL_WK(pObj)->Be_flg |= 4;
         }
         pObj->r_no_2++;
     case 3:
@@ -325,7 +297,7 @@ void objBull_R0_Break2nd(cObjBull* pObj)
 // Rno0 == 4: drives onto the lift (mot[3]).
 static void objBull_R0_ToLift(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -360,7 +332,7 @@ static void objBull_R0_ToLift(cObjBull* pObj)
 // 0x08000000 (the lift is called).
 void objBull_R0_LiftWait(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
     int zero;
 
     objBullPushMtx(pObj);
@@ -396,7 +368,7 @@ void objBull_R0_LiftWait(cObjBull* pObj)
 // Room_flg[0] 0x00400000.
 void objBull_R0_Lift(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
     int zero;
 
     objBullPushMtx(pObj);
@@ -406,7 +378,7 @@ void objBull_R0_Lift(cObjBull* pObj)
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[4], 0, 0, 0x8001, 0);
         SndCall(6, 0xA, &(pObj->pList)[2].world, 0, 0, pObj);
         SndCall(6, 0xB, &(pObj->pList)[2].world, 0, 0, pObj);
-        pObj->bull.Be_flg |= 0x20;
+        BULL_WK(pObj)->Be_flg |= 0x20;
         pObj->r_no_2++;
     case 1:
         w->Move_frame++;
@@ -441,7 +413,7 @@ void objBull_R0_Lift(cObjBull* pObj)
 // Rno0 == 7: drives off the lift to the third barrier (mot[5]).
 void objBull_R0_To3rd(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -450,7 +422,7 @@ void objBull_R0_To3rd(cObjBull* pObj)
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[5], 0, 0, 0x8001, 0);
         SndCall(6, 8, &(pObj->pList)[2].world, 0, 0, pObj);
         SndCall(6, 9, &(pObj->pList)[2].world, 0, 0, pObj);
-        pObj->bull.Be_flg &= ~0x20;
+        BULL_WK(pObj)->Be_flg &= ~0x20;
         pObj->r_no_2++;
     case 1:
         w->Move_frame++;
@@ -476,7 +448,7 @@ void objBull_R0_To3rd(cObjBull* pObj)
 // Rno0 == 8: third barrier (mot[6], break3rd hits, Be_flg 8).
 void objBull_R0_Break3rd(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -497,7 +469,7 @@ void objBull_R0_Break3rd(cObjBull* pObj)
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[6], 0, 0, 0x8001, 0);
         if (w->break3rd == 0 || --w->break3rd == 0) {
-            pObj->bull.Be_flg |= 8;
+            BULL_WK(pObj)->Be_flg |= 8;
         }
         pObj->r_no_2++;
     case 3:
@@ -527,7 +499,7 @@ void objBull_R0_Break3rd(cObjBull* pObj)
 // Rno0 == 9: drives to the fourth barrier (mot[7]).
 void objBull_R0_To4th(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -561,7 +533,7 @@ void objBull_R0_To4th(cObjBull* pObj)
 // Rno0 == 10: fourth barrier (mot[8], break4th hits, Be_flg 0x10).
 void objBull_R0_Break4th(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -582,7 +554,7 @@ void objBull_R0_Break4th(cObjBull* pObj)
     case 2:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[8], 0, 0, 0x8001, 0);
         if (w->break4th == 0 || --w->break4th == 0) {
-            pObj->bull.Be_flg |= 0x10;
+            BULL_WK(pObj)->Be_flg |= 0x10;
         }
         pObj->r_no_2++;
     case 3:
@@ -614,7 +586,7 @@ void objBull_R0_Break4th(cObjBull* pObj)
 // the wreck loop mot[11] (Be_flg 0x80).
 void objBull_R0_Collision(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     objBullPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -624,7 +596,7 @@ void objBull_R0_Collision(cObjBull* pObj)
         SndCall(6, 8, &(pObj->pList)[2].world, 0, 0, pObj);
         SndCall(6, 9, &(pObj->pList)[2].world, 0, 0, pObj);
         w->frame = (*(u16*) w->Mot_tbl[9] & 0x3FFF) - 30;
-        pObj->bull.Be_flg |= 0x40;
+        BULL_WK(pObj)->Be_flg |= 0x40;
         w->Act_ck = 0;
         w->Truck_down = 0;
         pObj->r_no_2++;
@@ -652,7 +624,7 @@ void objBull_R0_Collision(cObjBull* pObj)
         break;
     case 4:
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[11], 0, 0, 0x8001, 0);
-        pObj->bull.Be_flg |= 0x80;
+        BULL_WK(pObj)->Be_flg |= 0x80;
         pObj->r_no_2++;
     case 5:
         w->Move_frame++;
@@ -673,7 +645,7 @@ void objBull_R0_Collision(cObjBull* pObj)
 // Disables the bulldozer's collision (SAT, EAT, moving SAT) for this frame.
 void objBullSatClear(cObjBull* pObj)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
 
     if (w->pSat) {
         w->pSat->m_Flag &= ~4;
@@ -690,7 +662,7 @@ void objBullSatClear(cObjBull* pObj)
 // second SAT set (kind 8) used while driving.
 void objBullSatSet(cObjBull* pObj, int mode)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
     Vec pos;
     Vec rot;
     Vec v;
@@ -731,7 +703,7 @@ void objBullSatSet(cObjBull* pObj, int mode)
 // Installs the 12 route motions and starts mot[0].
 void cObjBull::setMotion(void** mot_tbl)
 {
-    BullWork* w = &bull;
+    BullWork* w = BULL_WK(this);
 
     w->Mot_tbl[0] = mot_tbl[0];
     w->Mot_tbl[1] = mot_tbl[1];
@@ -819,7 +791,7 @@ void objBullGetAdjust(cObjBull* pObj)
 // also shifting the extra camera.
 void objBullSetAdjust(cObjBull* pObj, cEm* pEm)
 {
-    BullWork* w = &pObj->bull;
+    BullWork* w = BULL_WK(pObj);
     Mtx inv;
     Vec v;
     Vec d;
@@ -853,8 +825,8 @@ void objBullSetAdjust(cObjBull* pObj, cEm* pEm)
 // Carries the player (and partner) standing on the rider parts.
 static void objBullMoveAdjustPL(cObjBull* pObj)
 {
-    if (pObj->bull.adjust_func) {
-        pObj->bull.adjust_func(pObj);
+    if (BULL_WK(pObj)->adjust_func) {
+        BULL_WK(pObj)->adjust_func(pObj);
     }
     objBullSetAdjust(pObj, pPL);
 }
@@ -961,7 +933,7 @@ void objBullHitCk(cObjBull* pObj)
 // 1 after the truck crash finished (Be_flg 1).
 int cObjBull::ckGoal()
 {
-    if (bull.Be_flg & 1) {
+    if (BULL_WK(this)->Be_flg & 1) {
         return 1;
     }
     return 0;
@@ -970,7 +942,7 @@ int cObjBull::ckGoal()
 // Puts the player on the rider parts and marks him riding.
 void cObjBull::setRide()
 {
-    BullWork* w = &bull;
+    BullWork* w = BULL_WK(this);
     Vec p;
     cModel* parts;
     int zero = 0;
@@ -1026,7 +998,7 @@ void cObjBull::setRide()
 // 1 when the first barrier is broken (Be_flg 2).
 int cObjBull::ckBreak1st()
 {
-    if (bull.Be_flg & 2) {
+    if (BULL_WK(this)->Be_flg & 2) {
         return 1;
     }
     return 0;
@@ -1035,7 +1007,7 @@ int cObjBull::ckBreak1st()
 // 1 when the second barrier is broken (Be_flg 4).
 int cObjBull::ckBreak2nd()
 {
-    if (bull.Be_flg & 4) {
+    if (BULL_WK(this)->Be_flg & 4) {
         return 1;
     }
     return 0;
@@ -1044,7 +1016,7 @@ int cObjBull::ckBreak2nd()
 // 1 when the third barrier is broken (Be_flg 8).
 int cObjBull::ckBreak3rd()
 {
-    if (bull.Be_flg & 8) {
+    if (BULL_WK(this)->Be_flg & 8) {
         return 1;
     }
     return 0;
@@ -1053,7 +1025,7 @@ int cObjBull::ckBreak3rd()
 // 1 when the fourth barrier is broken (Be_flg 0x10).
 int cObjBull::ckBreak4th()
 {
-    if (bull.Be_flg & 0x10) {
+    if (BULL_WK(this)->Be_flg & 0x10) {
         return 1;
     }
     return 0;
@@ -1062,7 +1034,7 @@ int cObjBull::ckBreak4th()
 // 1 while on the lift (Be_flg 0x20).
 int cObjBull::ckLift()
 {
-    if (bull.Be_flg & 0x20) {
+    if (BULL_WK(this)->Be_flg & 0x20) {
         return 1;
     }
     return 0;
@@ -1071,7 +1043,7 @@ int cObjBull::ckLift()
 // 1 once the truck approach started (Be_flg 0x40).
 int cObjBull::ckTruckGo()
 {
-    if (bull.Be_flg & 0x40) {
+    if (BULL_WK(this)->Be_flg & 0x40) {
         return 1;
     }
     return 0;
@@ -1080,7 +1052,7 @@ int cObjBull::ckTruckGo()
 // 1 when the lift reached the top (Be_flg 0x100).
 int cObjBull::ckLiftWait()
 {
-    if (bull.Be_flg & 0x100) {
+    if (BULL_WK(this)->Be_flg & 0x100) {
         return 1;
     }
     return 0;
@@ -1305,19 +1277,19 @@ void cObjBull::setSubBullLookBack()
 // Frames spent in the current routine (timer).
 int cObjBull::getMoveFrameToLift()
 {
-    return bull.Move_frame2;
+    return BULL_WK(this)->Move_frame2;
 }
 
 // Frames spent in the current routine (timer).
 int cObjBull::getMoveFrameRtn()
 {
-    return bull.Move_frame2;
+    return BULL_WK(this)->Move_frame2;
 }
 
 // Rider adjust mode (0 re-project, 1 displacement) and the room callback.
 void cObjBull::setAdjustMode(u8 mode, void (*func)(cObj*))
 {
-    BullWork* w = &bull;
+    BullWork* w = BULL_WK(this);
 
     w->Ride_mode = mode;
     w->adjust_func = func;
@@ -1326,7 +1298,7 @@ void cObjBull::setAdjustMode(u8 mode, void (*func)(cObj*))
 // Room call: the truck hits (Collision routine advances to the crash).
 void cObjBull::setBreakTruck()
 {
-    bull.Truck_down = 1;
+    BULL_WK(this)->Truck_down = 1;
 }
 
 // An enemy stands in the box in front of the partner's seat (the player's position widens it).

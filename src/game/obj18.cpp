@@ -6,20 +6,13 @@
 #include "atari.h"
 #include "event.h"
 #include "obj.h"
+#include "obj18.h"
 #include "global.h"
 #include "math_sub.h"
 #include "pl_cloth.h"
 #include "motion.h"
 #include <string.h>
 #include "em_cloth.h"
-
-// Event costume / cloth model: follows a parts of its parent with a slerp blend and runs the
-// cloth simulation selected by `type` (player costumes, enemy cloth sets, the ribbon / rope).
-class cObj18 : public cObjUnion {
-public:
-    virtual void move();
-    virtual ~cObj18() {}
-};
 
 extern "C" {
 void obj18SetOya(cObj18* obj);
@@ -68,7 +61,7 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
     if (obj == 0) {
         return 0;
     }
-    w = &((cObj18*) obj)->o18;
+    w = OBJ18_WK((cObj18*) obj);
     memset(w, 0, sizeof(Obj18Work));
     if (obj->modelInit(bin, tpl) == 0) {
         ObjMgr.destroy(obj);
@@ -272,8 +265,8 @@ int DelObj18(cObj* pObj)
         pLog->err(0, 0, "Evt_SetElgiganteRope : pointer failed");
         return 0;
     }
-    if (((cObj18*) pObj)->o18.child) {
-        ObjMgr.destroy(((cObj18*) pObj)->o18.child);
+    if (OBJ18_WK((cObj18*) pObj)->child) {
+        ObjMgr.destroy(OBJ18_WK((cObj18*) pObj)->child);
     }
     return 1;
 }
@@ -283,7 +276,7 @@ int DelObj18(cObj* pObj)
 // always off in the armour costume).
 void cObj18::move()
 {
-    Obj18Work* w = &o18;
+    Obj18Work* w = OBJ18_WK(this);
 
     if (w->DebugFlag) {
         pLog->mes(0, 0, "cObj18:move DebugFlag");
@@ -385,7 +378,7 @@ void OyaSetObj18(cObj* obj, cModel* oya, int partsNo)
     if (obj->id != 0x18) {
         return;
     }
-    w = &((cObj18*) obj)->o18;
+    w = OBJ18_WK((cObj18*) obj);
     w->pEm_oya = oya;
     w->oya_parts = partsNo;
     w->be_flag &= ~8;
@@ -396,13 +389,13 @@ void OyaSetObj18(cObj* obj, cModel* oya, int partsNo)
 int obj18GetOya(cModel** pOya, cObj* pObj)
 {
     *pOya = 0;
-    if (((cObj18*) pObj)->o18.pEm_oya == 0) {
+    if (OBJ18_WK((cObj18*) pObj)->pEm_oya == 0) {
         return 0;
     }
-    if (((cObj18*) pObj)->o18.pEm_oya->pParts == 0) {
+    if (OBJ18_WK((cObj18*) pObj)->pEm_oya->pParts == 0) {
         return 0;
     }
-    *pOya = ((cObj18*) pObj)->o18.pEm_oya;
+    *pOya = OBJ18_WK((cObj18*) pObj)->pEm_oya;
     return 1;
 }
 
@@ -410,7 +403,7 @@ int obj18GetOya(cModel** pOya, cObj* pObj)
 // (be_flag bit 3) from the saved matrix; copies the parent's light class 2.
 void obj18SetOya(cObj18* pObj)
 {
-    Obj18Work* w = &pObj->o18;
+    Obj18Work* w = OBJ18_WK(pObj);
     Mtx m;
     Vec v0;
     Vec v1;
@@ -492,7 +485,7 @@ void Obj18CmfSet(cObj* pObj, u32 commonFlag)
     if (pObj->id != 0x18) {
         return;
     }
-    ((cObj18*) pObj)->o18.CommonFlag = commonFlag;
+    OBJ18_WK((cObj18*) pObj)->CommonFlag = commonFlag;
 }
 
 // Event control flags of an obj18 (0 for other objects).
@@ -504,7 +497,7 @@ u32 Obj18CmfGet(cObj* pObj)
     if (pObj->kindid != 1 || pObj->id != 0x18) {
         return 0;
     }
-    return ((cObj18*) pObj)->o18.CommonFlag;
+    return OBJ18_WK((cObj18*) pObj)->CommonFlag;
 }
 
 // Sets one event control flag bit.

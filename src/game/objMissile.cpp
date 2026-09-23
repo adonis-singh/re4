@@ -9,6 +9,7 @@
 #include "map_obj.h"
 #include "widget.h"
 #include "obj.h"
+#include "objMissile.h"
 #include "esp.h"
 #include "emhit.h"
 #include "global.h"
@@ -16,17 +17,6 @@
 #include "snd.h"
 #include "pl_wep.h"
 #include "motion.h"
-
-// Helicopter missile: follows a parts of the helicopter (R0_Parent), waits (R0_FireWait), flies
-// toward its target and explodes on the scenario / an enemy (R0_Fire, objMissileBomb).
-class cObjMissile : public cObjUnion {
-public:
-    virtual void move();
-    virtual ~cObjMissile() {}
-
-    void setParent(cModel* parent, int partsNo, int noNormalize);
-    void setFire(Vec* target);
-};
 
 extern "C" {
 void objMissile_R0_Set(cObjMissile* obj);
@@ -52,7 +42,7 @@ cObjMissile* SetHeliMissile(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->missile;
+    w = MISSILE_WK(obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");
         ObjMgr.destroy(obj);
@@ -99,7 +89,7 @@ cObjMissile* SetHeliMissile(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type)
 // Per-frame: destroyed (with its hit box) when the launcher dies; runs the R0 routine.
 void cObjMissile::move()
 {
-    MissileWork* w = &missile;
+    MissileWork* w = MISSILE_WK(this);
 
     if (w->parent) {
         if ((w->parent->be_flag & 0x201) != 1 || ((cEm*) w->parent)->hp <= 0) {
@@ -123,7 +113,7 @@ void objMissile_R0_Set(cObjMissile* pObj)
 // Rno0 == 1: mounted on parts oya_parts of the launcher (axes normalised unless scale_mode).
 void objMissile_R0_Parent(cObjMissile* pObj)
 {
-    MissileWork* w = &pObj->missile;
+    MissileWork* w = MISSILE_WK(pObj);
     Mtx m;
     Vec v0;
     Vec v1;
@@ -185,7 +175,7 @@ void objMissile_R0_Parent(cObjMissile* pObj)
 // then Fire.
 void objMissile_R0_FireWait(cObjMissile* pObj)
 {
-    MissileWork* w = &pObj->missile;
+    MissileWork* w = MISSILE_WK(pObj);
     Mtx m;
     Vec v0;
     Vec v1;
@@ -271,7 +261,7 @@ void objMissile_R0_FireWait(cObjMissile* pObj)
 // scenario 300 units back along the path, on a character (type 1), or when its hit box is shot.
 void objMissile_R0_Fire(cObjMissile* pObj)
 {
-    MissileWork* w = &pObj->missile;
+    MissileWork* w = MISSILE_WK(pObj);
 
     if (pObj->r_no_2 == 0) {
         Vec d;
@@ -375,7 +365,7 @@ void objMissile_R0_Fire(cObjMissile* pObj)
 // Rno0 == 4: removes the missile and its hit box.
 void objMissile_R0_Lost(cObjMissile* pObj)
 {
-    MissileWork* w = &pObj->missile;
+    MissileWork* w = MISSILE_WK(pObj);
 
     pObj->be_flag &= ~2;
     if (w->pHit) {
@@ -388,7 +378,7 @@ void objMissile_R0_Lost(cObjMissile* pObj)
 // Mounts the missile on parts oya_parts of `parent` -> Parent.
 void cObjMissile::setParent(cModel* parent, int partsNo, int noNormalize)
 {
-    MissileWork* w = &missile;
+    MissileWork* w = MISSILE_WK(this);
 
     w->parent = parent;
     w->oya_parts = partsNo;
@@ -402,7 +392,7 @@ void cObjMissile::setParent(cModel* parent, int partsNo, int noNormalize)
 // Fires the missile at `target` (NULL = straight ahead) -> FireWait.
 void cObjMissile::setFire(Vec* pTarget)
 {
-    MissileWork* w = &missile;
+    MissileWork* w = MISSILE_WK(this);
 
     w->Target_ok = 0;
     if (pTarget) {
@@ -420,7 +410,7 @@ void cObjMissile::setFire(Vec* pTarget)
 // r320 raises Room_flg[0] 0x80000000, -> Lost.
 void objMissileBomb(cObjMissile* pObj, Vec* pPos)
 {
-    MissileWork* w = &pObj->missile;
+    MissileWork* w = MISSILE_WK(pObj);
 
     switch (pObj->type) {
     case 0:

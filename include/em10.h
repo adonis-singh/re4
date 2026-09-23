@@ -15,6 +15,9 @@
 #include "obj12.h"
 #include "obj16.h"
 #include "obj14.h"
+#include "obj15.h"
+#include "objGondola.h"
+#include "obj13.h"
 
 // Shared Ganado enemy library (em10.cpp, D:/Bio4/Prog/em10.cpp): the same object is linked into the
 // 16 Ganado modules em10..em17, em19..em1f, em20 (config/G4BE08/modules.py). The per-enemy files of
@@ -272,39 +275,6 @@ typedef void (*PlEm10Func)(cPlayer*);
 
 // .data+0: the per-enemy set function _prolog stores (EmXXSet), run by em10_R0_Init.
 extern Em10Func Em10SetFunc;
-
-// Object enemies the Ganados interact with (DOL units without a header of their own).
-class cObjGatling : public cObjUnion {
-public:
-    void stopFire();
-    void setRide(cEm* pEm);
-    void setReload();
-    void setFire();
-    int ckReload();
-    int ckBreak();
-};
-
-class cObjGondola : public cObjUnion {
-public:
-    void setVib();
-    void setGetOffEm(cEm* em);
-    void setDamage();
-    void setBreak();
-    int ckRide();
-};
-
-class cObjLadder : public cObjUnion {
-public:
-    void setDown2();
-    void setResetReserve();
-    void setReset(int a);
-    void setClimb();
-    int getType();
-    int getStatus();
-    int getLadderNum();
-    int ckReset();
-    int ckClimb();
-};
 
 
 cObj* SetObj01(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* v, f32 a, f32 b, int c, int d);

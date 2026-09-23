@@ -4,20 +4,6 @@
 #include "types.h"
 #include "obj.h"
 
-// Room-script view of the ladder object (game/obj13.cpp defines the full class with its virtuals;
-// this declares only the out-of-line members the rooms call on a getRoomEtcLadder() result, so no
-// vtable is emitted here).
-class cObjLadder : public cObjUnion {
-public:
-    int getStatus();
-    void setStand();
-    void setCamera(int cam_no);
-    void setOff();
-    void setOn();
-    void setMotion(void** pMot);   // r400 setLadderMotion: the 20-entry motion table
-    void setDowned();             // r402 R402ExecEvent01Main: the ladder falls into place
-};
-
 // game/obj13.cpp: shows / hides the ladders of the running event (r101 Evt_R101S30_Func).
 extern "C" void LadderEventTrans(int on);
 
@@ -31,5 +17,57 @@ int LadderNearCk(Vec* pPos);
 int SubLadderClimbCk(cEm* pEm);
 int SubLadderClimbCk2(cEm* pEm);
 }
+
+// Ladder work (game/obj13.cpp `cObjLadder`): a ladder the player / partner climbs (plobjLadderClimb),
+// kicks down (plobjLadderDown) and stands up again (plobjLadderReset).
+struct LadderWork {
+    u32 flags;            // 0x00  bit0 motions set, bit1 off (setOff), bit2 partner climbing, bit3 transOld
+    int status;           // 0x04  0 standing, 1 downed, 2 falling, 3 falling (timer done), 4 fall / reset motion
+    int x08;              // 0x08
+    u32 ladderNum;        // 0x0C  rungs (setLadderInfo; converted unsigned)
+    u8 pad_10[4];
+    Vec basePos;          // 0x14  position at SetLadder (R1_Set restores it)
+    f32 baseRotY;         // 0x20
+    int climbTimer;       // 0x24  frames the action button stays off after a climb (setClimb: 90)
+    int resetReserve;     // 0x28  setResetReserve: 60
+    int downTimer;        // 0x2C  setDown: 17 frames until status 3
+    cObj* pair;           // 0x30  second ladder object sharing the collision flags
+    int camera;           // 0x34  setCamera: camera cut of the climb (-1: the ladder cameras)
+    void* mot[20];        // 0x38  setMotion table (player / partner climb, down, reset motions)
+    u8 etcNo;             // 0x88  etc model number (GetEtcFlgPtr)
+};
+
+// Ladder (obj 0x13): the player and the partner climb it (plobjLadderClimb / subobjLadderClimb),
+// the player kicks it down (plobjLadderDown) and puts it up again (plobjLadderReset); the ladder
+// falls with a damage area (R1_Fall) and breaks the windows it lands on (breakWindow).
+class cObjLadder : public cObj {
+public:
+    u8 free[OBJ_WORK_SIZE - 0x328];   // 0x328  LadderWork
+
+    virtual void move();
+    virtual ~cObjLadder() {}
+    int getStatus();
+    int getType();
+    int ckClimb();
+    void setClimb();
+    int getLadderNum();
+    void setLadderInfo(int num, u8 type);
+    void setStand();
+    void setDowned();
+    void setDown(void* mot, void* seq);
+    void setDown2();
+    int ckReset();
+    void setReset(int mode);
+    void setTransOld();
+    void getTransOld();
+    void setOff();
+    void setOn();
+    void setResetReserve();
+    void setMotion(void** tbl);
+    void breakWindow();
+    void setCamera(int no);
+};
+
+#define LADDER_WK(o) ((LadderWork*) (o)->free)
 
 #endif

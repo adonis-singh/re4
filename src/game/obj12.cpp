@@ -4,6 +4,7 @@
 // (bounce factors), a landing sound, a Lost_wait despawn timer and a burn tint.
 #include "atari.h"
 #include "obj.h"
+#include "obj12.h"
 #include "emhit.h"
 #include "global.h"
 #include "math_sub.h"
@@ -12,22 +13,6 @@
 #include "pad.h"
 #include "motion.h"
 #include "em_sub.h"
-
-// Hanging object that can be thrown and falls as a three-point rope (obj00 variant with a rope
-// type, a life counter and a throw routine).
-class cObj12 : public cObjUnion {
-public:
-    virtual void move();
-    virtual ~cObj12() {}
-
-    void setParent(cModel* oya, int partsNo, int noNormalize);
-    void chainMove();
-    void setFall(Vec* spd, u8 type);
-    void setFallSe(u8 blk, u8 no, u8 id);
-    void fallMove();
-    void throwMove();
-    void setBurn();
-};
 
 // One point of the falling rope (fallMove).
 struct Obj12Node {
@@ -42,7 +27,7 @@ struct Obj12Node {
 // throw flight (bit 8), rope fall (bit 2), parts/collision update, Lost_wait countdown to removal.
 void cObj12::move()
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     Mtx m;
     Vec v0;
     Vec v1;
@@ -179,7 +164,7 @@ cObj12* SetObj12(void* bin, void* tpl, Vec* pos, Vec* rot)
 
     obj = (cObj12*) ObjMgr.createBack(cObjMgr::ID_EM12_WEAPON);
     if (obj) {
-        w = &obj->o12;
+        w = OBJ12_WK(obj);
         if (obj->modelInit(bin, tpl) == 0) {
             pLog->err(0, 0, "SetObj12() modelInit() failed.");
             ObjMgr.destroy(obj);
@@ -208,7 +193,7 @@ cObj12* SetObj12(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Attaches to parts partsNo of `oya`; noNormalize keeps the parent's scale (be_flag 0x80).
 void cObj12::setParent(cModel* oya, int partsNo, int noNormalize)
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
 
     w->pEm_oya = oya;
     w->oya_parts = partsNo;
@@ -235,7 +220,7 @@ void cObj12::chainMove()
 // (double 0.0, the u32 -> f32 magic, 1.0).
 static void obj12SetRate(cObj* obj, u32 rate)
 {
-    Obj12Work* w = &((cObj12*) obj)->o12;
+    Obj12Work* w = OBJ12_WK((cObj12*) obj);
 
     if (w->oya_hokan == 0.0) {
         return;
@@ -250,7 +235,7 @@ static void obj12SetRate(cObj* obj, u32 rate)
 // (or a random upward toss when spd is NULL), fall_type selects the bounce factors.
 void cObj12::setFall(Vec* pSpd, u8 type)
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     u32 i;
     f32 r;
 
@@ -291,7 +276,7 @@ void cObj12::setFall(Vec* pSpd, u8 type)
 // Sets the landing sound (block, number, enemy id; block 0xFF = none).
 void cObj12::setFallSe(u8 se_id, u8 se_no, u8 em_id)
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
 
     w->fall_se_id = se_id;
     w->fall_se_no = se_no;
@@ -303,7 +288,7 @@ void cObj12::setFallSe(u8 se_id, u8 se_no, u8 em_id)
 // damping, the landing sound below -50 y speed, and the resulting orientation/centre.
 void cObj12::fallMove()
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     Vec ofs[5][3] = {
         { { 0.0f, 0.0f, 600.0f }, { 0.0f, 0.0f, -600.0f }, { 300.0f, 0.0f, 0.0f } },
         { { 0.0f, 0.0f, 1500.0f }, { 0.0f, 0.0f, 0.0f }, { 300.0f, 0.0f, 1300.0f } },
@@ -470,7 +455,7 @@ void cObj12::fallMove()
 // Never called (dead-stripped, STRIP_UNUSED): constant pool only (10, 75, 350, 0.0, pi/2).
 static void obj12ThrowSet(cObj* obj, Vec* spd)
 {
-    Obj12Work* w = &((cObj12*) obj)->o12;
+    Obj12Work* w = OBJ12_WK((cObj12*) obj);
     f32 ang;
 
     w->fallSpd[0][0] = (s16) (spd->x * 10.0f);
@@ -488,7 +473,7 @@ static void obj12ThrowSet(cObj* obj, Vec* spd)
 // along its velocity.
 void cObj12::throwMove()
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     Vec spd;
     Mtx m;
     Vec up;

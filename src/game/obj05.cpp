@@ -4,6 +4,7 @@
 // the scenario/floor (flags bit 1) and settling flat (flags bit 3); the body scales/fades like Efm04.
 #include "atari.h"
 #include "obj.h"
+#include "obj05.h"
 #include "esp.h"
 #include "global.h"
 #include "math_sub.h"
@@ -13,20 +14,12 @@ extern "C" {
 void Efm05RotMatrix(cObj* obj, Mtx m);
 }
 
-// Effect model with loose parts (Efm05): the model scales and fades like obj04 while each parts
-// bursts away from `center` once it comes within `range`, flying with its own speed / rotation
-// speed (kept in the parts' cModel at 0x128) and bouncing off the scenario / floor.
-class cObj05 : public cObjUnion {
-public:
-    virtual void move();
-};
-
 // Per-frame Efm05 update: body scale/colour/life envelopes; parts within the growing radius start
 // flying (efmStat 1) with speed pow/range along the radial direction plus random spread; flying
 // parts move in parent space with damping/gravity, bounce, and stop (efmStat 2) below speed 15.
 void cObj05::move()
 {
-    Efm05Work* w = &efm05;
+    Efm05Work* w = EFM05_WK(this);
     Mtx inv;
     Vec d;
     Vec old;
@@ -220,5 +213,5 @@ void Efm05RotMatrix(cObj* pObj, Mtx pMat)
     tmp[0][3] = 0.0f;
     tmp[1][3] = 0.0f;
     tmp[2][3] = 0.0f;
-    PSMTXMultVec(tmp, &((cObj05*) pObj)->efm05.center, &((cObj05*) pObj)->efm05.center);
+    PSMTXMultVec(tmp, &EFM05_WK((cObj05*) pObj)->center, &EFM05_WK((cObj05*) pObj)->center);
 }

@@ -13,6 +13,7 @@
 // Entry points from the DOL / rooms: the cEm10 virtuals (setGoto, setEvtMotion, setReset, ck* ...),
 // Em10SetFunc (installed by the module's _prolog) and the extern "C" helpers.
 
+#include "obj1d.h"
 #include "sscrn.h"
 #include "atari.h"
 #include "atari_init.h"

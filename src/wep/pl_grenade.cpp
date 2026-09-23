@@ -1,3 +1,4 @@
+#include "objSubWep.h"
 // Grenade player routines (the pl_grenade object of the hand grenade modules wep19/30/41/42/45,
 // byte-identical in all five; real file name unknown): routine 2 of the player while a throwable is
 // equipped: ready (draw + aim, stance by the up/down keys), set (idle / turn), fire (throw), down
@@ -24,12 +25,6 @@
 #include "snd.h"
 #include "item.h"
 #include "math_sub.h"
-
-// game/objSubWep.cpp: the thrown grenade / egg objects (init only, the module never touches the rest)
-class cSubWep : public cObjUnion {
-public:
-    int init(Vec* rot, f32 power);
-};
 
 static void wep19_r2_ready(cPlayer* pl);
 static void wep19_r3_ready00(cPlayer* pl);

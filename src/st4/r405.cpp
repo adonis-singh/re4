@@ -14,6 +14,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "em_set.h"
 #include "em_wrap.h"
@@ -205,10 +206,10 @@ extern "C" void Evt_R405S00_Func(Event* e)
                     ((cModel*) mod)->LightInfo.EnableMask = 1;
                 }
                 if (e->GetMod(&mod, "pl0c00", 0, 0) == 1) {
-                    Obj18Work* w = &((cObjUnion*) mod)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
                     if (w && w->child) {
-                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
+                        OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;
                         w->child->be_flag &= ~2;
                     }
                 }

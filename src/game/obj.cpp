@@ -5,10 +5,32 @@
 #include "atari.h"
 #include "event.h"
 #include "obj.h"
+#include "obj00.h"
+#include "obj01.h"
+#include "obj03.h"
+#include "obj04.h"
+#include "obj05.h"
+#include "obj08.h"
+#include "obj09.h"
+#include "obj10.h"
+#include "obj12.h"
+#include "obj13.h"
+#include "obj14.h"
+#include "obj15.h"
+#include "obj16.h"
+#include "obj18.h"
+#include "obj1b.h"
+#include "obj1c.h"
+#include "obj1d.h"
+#include "obj20.h"
+#include "obj26.h"
+#include "objBull.h"
+#include "objGondola.h"
+#include "objMissile.h"
 #include "objPillar.h"
+#include "objRobo.h"
 #include "objTrolley.h"
 #include "objYagura.h"
-#include "obj14.h"
 #include "global.h"
 #include "db_log.h"
 #include "va_ppc.h"
@@ -26,69 +48,14 @@ extern "C" {
 void objMove(cObj* p);
 }
 
-// Per-id classes constructed by cObjMgr::construct. Each declares its `move` so the vtable stays
-// with the unit that defines it (a class without a key function would emit a linkonce copy here).
-class cObj00 : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj01 : public cObjUnion {
-public:
-    virtual void move();
-};
 class cObjScr : public cObjUnion {
 public:
     cObjScr();
     virtual void move();
 };
-class cObj03 : public cObjUnion {
-public:
-    cObj03();
-    virtual void move();
-};
-class cObj04 : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj05 : public cObjUnion {
-public:
-    virtual void move();
-};
 class cObjBox : public cObjUnion {
 public:
     cObjBox();
-    virtual void move();
-};
-class cObj08 : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj09 : public cObjUnion {
-public:
-    virtual void move();
-};
-class cWepItem : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj12 : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObjLadder : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObjGatling : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj16 : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj18 : public cObjUnion {
-public:
     virtual void move();
 };
 class cItemObj : public cObjUnion {
@@ -101,26 +68,6 @@ public:
     cObjGrenade();
     virtual void move();
 };
-class cObjSpear : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj1c : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObjChain : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObjObaModel : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObj26 : public cObjUnion {
-public:
-    virtual void move();
-};
 class cObjGreFire : public cObjUnion {
 public:
     cObjGreFire();
@@ -131,28 +78,11 @@ public:
     cObjGreLight();
     virtual void move();
 };
-class cObjGondola : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObjRobo : public cObjUnion {
-public:
-    virtual void move();
-};
-class cObjMissile : public cObjUnion {
-public:
-    virtual void move();
-};
 class cObjEgg : public cObjUnion {
 public:
     cObjEgg();
     virtual void move();
 };
-class cObjBull : public cObjUnion {
-public:
-    virtual void move();
-};
-
 void (*ObjInitFunc[0x40])(cObj*);
 
 // Manager of the 0x3D8-byte cObj works (kind 2 of the unit managers).

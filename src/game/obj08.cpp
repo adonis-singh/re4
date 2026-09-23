@@ -6,6 +6,7 @@
 #include "atari.h"
 #include "light.h"
 #include "obj.h"
+#include "obj08.h"
 #include "em.h"
 #include "esp.h"
 #include "global.h"
@@ -17,13 +18,6 @@
 #include "motion.h"
 #include "em_sub.h"
 #include "pl_npc.h"
-
-// Thrown object (bottle, dynamite, ...): flies under gravity, optionally spinning, and checks
-// the scenario, the enemies and the player for hits.
-class cObj08 : public cObjUnion {
-public:
-    virtual void move();
-};
 
 
 extern "C" {
@@ -53,7 +47,7 @@ cObj* SetObj08(cModel* parent, void* bin, void* tpl, Vec* pos, Vec* rot, int fla
     if (obj == 0) {
         return 0;
     }
-    w = &((cObj08*) obj)->o8;
+    w = OBJ08_WK((cObj08*) obj);
     obj->id = 8;
     if (bin == 0) {
         if (obj->modelInit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore),
@@ -112,7 +106,7 @@ void SetObj08Spd(cObj* obj, Vec* spd, int life, f32 grav, f32 rad)
     if (obj->id != 8) {
         return;
     }
-    w = &((cObj08*) obj)->o8;
+    w = OBJ08_WK((cObj08*) obj);
     w->spd = *spd;
     w->gravity = grav;
     w->timer = life;
@@ -137,7 +131,7 @@ void SetObj08Est(cObj* obj, int no0, int prm0, int no1, int prm1, int no2, int p
     if (obj->id != 8) {
         return;
     }
-    w = &((cObj08*) obj)->o8;
+    w = OBJ08_WK((cObj08*) obj);
     w->estNo[0] = no0;
     w->estNo[1] = no1;
     w->estNo[2] = no2;
@@ -163,7 +157,7 @@ void SetObj08Se(cObj* obj, u16 blk, u16 no)
     if (obj->id != 8) {
         return;
     }
-    w = &((cObj08*) obj)->o8;
+    w = OBJ08_WK((cObj08*) obj);
     w->blk_no = blk;
     w->call_no = no;
 }
@@ -173,7 +167,7 @@ void SetObj08Se(cObj* obj, u16 blk, u16 no)
 // be_flag bit 3.
 void cObj08::move()
 {
-    Obj08Work* w = &o8;
+    Obj08Work* w = OBJ08_WK(this);
 
     if (w->timer == 0) {
         if (w->estNo[1] && w->estPrm[1]) {
@@ -212,7 +206,7 @@ void cObj08::move()
 // Gravity + move.
 void obj08AddSpeed(cObj08* pObj)
 {
-    Obj08Work* w = &pObj->o8;
+    Obj08Work* w = OBJ08_WK(pObj);
 
     w->spd.y -= w->gravity;
     PSVECAdd(&pObj->pos, &w->spd, &pObj->pos);
@@ -222,7 +216,7 @@ void obj08AddSpeed(cObj08* pObj)
 // horizontal surface) or the break effect [1] oriented by the normal, destroys the object; returns 1.
 int obj08ScrHitCk(cObj08* pObj)
 {
-    Obj08Work* w = &pObj->o8;
+    Obj08Work* w = OBJ08_WK(pObj);
     Vec hit;
     Vec nrm;
     Vec est;
@@ -261,7 +255,7 @@ int obj08ScrHitCk(cObj08* pObj)
 // mask), spawning the hit effect. Returns 1 on a hit.
 int obj08ToEmHitCk(cObj08* pObj)
 {
-    Obj08Work* w = &pObj->o8;
+    Obj08Work* w = OBJ08_WK(pObj);
     Vec box[8];
     WepTarget list[10];
     Vec ang;
@@ -333,7 +327,7 @@ int obj08ToEmHitCk(cObj08* pObj)
 // victim's hit info, sound, controller vibration. Returns 1 on a hit.
 int obj08ToPlHitCk(cObj08* pObj)
 {
-    Obj08Work* w = &pObj->o8;
+    Obj08Work* w = OBJ08_WK(pObj);
     int hit;
 
     if (w->parent == 0) {
@@ -372,7 +366,7 @@ int obj08ToPlHitCk(cObj08* pObj)
 // surface of the hit parts (facing the projectile, clamped to 70% of the parts height), plus the sound.
 void obj08DmEstSet(cObj08* pObj, cModel* pEm, Vec* pPos, YARARE_INFO* pAt)
 {
-    Obj08Work* w = &pObj->o8;
+    Obj08Work* w = OBJ08_WK(pObj);
     Mtx m;
     Vec p;
     Vec o;

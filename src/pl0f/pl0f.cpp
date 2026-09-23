@@ -18,9 +18,12 @@
 // bow / stern (Pl0fNode) kept at their rest distance by four relaxation passes, the heading from
 // their line; the tiller adds speed to the stern node.
 
+#include "obj1d.h"
 #include "atari.h"
 #include "light.h"
 #include "pl0f.h"
+#include "obj1b.h"
+#include "obj1c.h"
 #include "em2f.h"
 #include "player.h"
 #include "pl_npc.h"

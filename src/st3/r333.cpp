@@ -18,6 +18,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "em_wrap.h"
 #include "pl0e.h"
@@ -366,7 +367,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
                 void* m;
 
                 if (e->GetMod(&m, "pl0100", 0, 0) == 1) {
-                    ((cObjUnion*) m)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) m)->be_flag |= 0x40;
                 }
             }
         } else {
@@ -374,7 +375,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
                 void* m;
 
                 if (e->GetMod(&m, "pl0100", 0, 0) == 1) {
-                    ((cObjUnion*) m)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) m)->be_flag &= ~0x40;
                 }
             }
         }

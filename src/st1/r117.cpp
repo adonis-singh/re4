@@ -15,6 +15,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "emdoor.h"
 #include "em_wrap.h"
@@ -854,7 +855,7 @@ extern "C" void Evt_R117S00_Func(Event* e)
 
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
@@ -864,7 +865,7 @@ extern "C" void Evt_R117S00_Func(Event* e)
 
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
             break;

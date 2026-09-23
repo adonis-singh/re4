@@ -6,6 +6,7 @@
 #include "atari.h"
 #include "light.h"
 #include "obj.h"
+#include "obj09.h"
 #include "esp.h"
 #include "global.h"
 #include "math_sub.h"
@@ -18,15 +19,6 @@ void Calc(cObj* obj, f32 dt);
 f32 lu(f32 a[][3], int* ip);
 f32 LinerEquation3(f32 a[][3], f32* b, f32* x);
 }
-
-// Rigid body effect model (Efm09): a box with mass and moments of inertia, integrated with a
-// second order Runge-Kutta step (CalcVel / Calc), colliding with the scenario at its eight
-// corners (calcPointHit), with the other rigid bodies (Obj09HitCheck), the water, the sand and
-// the player.
-class cObj09 : public cObjUnion {
-public:
-    virtual void move();
-};
 
 f32 grav = 400.0f;
 f32 sprg = 100.0f;
@@ -59,7 +51,7 @@ static cObj* pObj_ck;
 // Apply `force` at world point `point`: the force and the torque about the centre accumulate.
 void AddForce(cObj* pObj, Vec* pos, Vec* f)
 {
-    Efm09Work* w = &((cObj09*) pObj)->efm09;
+    Efm09Work* w = EFM09_WK((cObj09*) pObj);
     Vec t;
     Vec r;
 
@@ -84,7 +76,7 @@ void dwdt(Vec* w, Vec* tq, Vec* I, Vec* pRet)
 // Integrate the linear and angular velocities over `dt` and clear the accumulators.
 static void CalcVel(cObj* pObj, f32 dt)
 {
-    Efm09Work* w = &((cObj09*) pObj)->efm09;
+    Efm09Work* w = EFM09_WK((cObj09*) pObj);
     Vec a;
     Vec lt;
     Mtx inv;
@@ -117,7 +109,7 @@ static void CalcVel(cObj* pObj, f32 dt)
 // is re-orthonormalised from its z axis.
 void Calc(cObj* pObj, f32 dt)
 {
-    Efm09Work* w = &((cObj09*) pObj)->efm09;
+    Efm09Work* w = EFM09_WK((cObj09*) pObj);
     Vec v;
     Vec av;
     Mtx n;
@@ -239,13 +231,13 @@ static void Obj09HitCheck(cObj* pObj)
     if (pObj == ck) {
         return;
     }
-    PSMTXCopy(((cObj09*) pObj)->efm09.mat, m2);
-    TransMatrix(m2, &((cObj09*) pObj)->efm09.basePos);
-    w2 = &((cObj09*) pObj)->efm09;
+    PSMTXCopy(EFM09_WK((cObj09*) pObj)->mat, m2);
+    TransMatrix(m2, &EFM09_WK((cObj09*) pObj)->basePos);
+    w2 = EFM09_WK((cObj09*) pObj);
     PSMTXInverse(m2, inv);
-    PSMTXCopy(((cObj09*) ck)->efm09.mat, m1);
-    TransMatrix(m1, &((cObj09*) ck)->efm09.basePos);
-    w1 = &((cObj09*) ck)->efm09;
+    PSMTXCopy(EFM09_WK((cObj09*) ck)->mat, m1);
+    TransMatrix(m1, &EFM09_WK((cObj09*) ck)->basePos);
+    w1 = EFM09_WK((cObj09*) ck);
     maxDepth = 0.0f;
     n.x = n.y = n.z = 0.0f;
     for (i = 0; i < 8; i++) {
@@ -579,7 +571,7 @@ void cObj09::move()
     static f32 pl_spd_dist = 1500.0f;
     static f32 pl_spd_mul = -0.015f;
     static f32 pl_spd_mul2 = -0.25f;
-    Efm09Work* w = &efm09;
+    Efm09Work* w = EFM09_WK(this);
     f32 dt = 1.0f / 30.0f;
     Vec old;
     Vec lp;

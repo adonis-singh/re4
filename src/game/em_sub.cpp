@@ -18,6 +18,7 @@
 #include "item.h"
 #include "sce_at.h"
 #include "obj.h"
+#include "objBull.h"
 #include "objTrolley.h"
 #include "game.h"
 #include "pad.h"
@@ -29,12 +30,6 @@
 #include "db_log.h"
 #include "motion.h"
 #include "em.h"
-
-class cObjBull : public cObjUnion {
-public:
-    int ckBullRide(Vec* pos, u8* partsNo, Vec* out);
-    int ckBullRideAdjust(Vec* pos, Vec* out);
-};
 
 // Entry `n` of a target list written index first: the sum is formed with the index as the base
 // register (`add r9, r9, r31` / `stwx r29, r9, r31`) instead of the pointer.

@@ -1,3 +1,4 @@
+#include "obj1c.h"
 // em2f module (D:/Bio4/Prog/em2f.cpp): the lake monster. It swims along the room's EMI route points
 // (em2fSetNextRoute / em2fChangeRoute), dives and surfaces (em2fWaterEffSet), rams the boat from
 // below (em2f_R1_RisingDragon), swallows the player (em2f_R1_Packman), hides until the harpoons hit
@@ -41,13 +42,6 @@
 // object, merged into .bss by the REL link.
 asm(".comm common_em2f,52,4");
 
-
-// Floating island (game/obj1c.cpp): only what the crash check calls.
-class cObj1c : public cObjUnion {
-public:
-    void setCrashBig(Vec* from);
-    int ckCrash();
-};
 
 typedef void (*Em2fFunc)(cEm2f*);
 

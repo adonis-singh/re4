@@ -8,6 +8,7 @@
 #include "light.h"
 #include "ctrl.h"
 #include "obj.h"
+#include "obj16.h"
 #include "em.h"
 #include "emhit.h"
 #include "esp.h"
@@ -24,29 +25,6 @@
 #include "pl_sub.h"
 #include "motion.h"
 #include "em_sub.h"
-
-// Enemy head (obj 0x16): the head / mouth model of the plaga-carrying enemies, hung on a parts of
-// its body (`o16.body`). It turns toward the player (obj16NeckMove), bites (R1_Atk, R1_Critical),
-// takes damage motions (R1_Damage) and fades out once its enemies are dead.
-class cObj16 : public cObjUnion {
-public:
-    virtual void move();
-    virtual ~cObj16() {}
-
-    void setScale(Vec* s);
-    void setDieEff();
-    void clearLostWait();
-    void setLostWait(int n);
-    void setMotData(void* m0, void* m1, void* m2, void* m3, void* m4, void* m5, void* m6, void* m7, void* m8,
-                    void* m9, void* m10);
-    void setPlDmgMot(void* mot, void* seq);
-    void setAtk(u8 flag);
-    void setCritical();
-    void setDamage();
-    int ckAtkEnable();
-    void setBurn();
-    int ckAtkHit();
-};
 
 // Model part as obj16NeckMove writes it: the parts rotation and the override flag.
 struct Obj16Parts {
@@ -106,7 +84,7 @@ cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, 
     if (obj == 0) {
         return 0;
     }
-    w = &((cObj16*) obj)->o16;
+    w = OBJ16_WK((cObj16*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetObj16() failed.");
         ObjMgr.destroy(obj);
@@ -201,7 +179,7 @@ cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, 
 // the light class); follows the target's no-suspend flag.
 void cObj16::move()
 {
-    Obj16Work* w = &o16;
+    Obj16Work* w = OBJ16_WK(this);
     int alive;
     const f32 decRate = 0.9f;
     const f32 addRate = 0.1f;
@@ -442,7 +420,7 @@ void obj16_R1_Set(cObj16* obj)
 // kind 2 on parts 0x10..0x15 while spitting.
 void obj16_R1_CoreMove(cObj16* obj)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
     int atk;
     f32 dist;
 
@@ -577,7 +555,7 @@ void obj16_R1_CoreMove(cObj16* obj)
 // (atkTimer) with obj16AtkCk kind 0/1, 3 recovery; Atk_ck reports a hit to the body.
 void obj16_R1_Atk(cObj16* obj)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
     int atk;
     int flag;
 
@@ -691,7 +669,7 @@ void obj16_R1_Atk(cObj16* obj)
 // Timer (kills the player outright through obj16PlHeadLost).
 void obj16_R1_Critical(cObj16* obj)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
     int atk;
     Vec head;
     Vec tgt;
@@ -810,7 +788,7 @@ void obj16_R1_Critical(cObj16* obj)
 // straight to an attack for type 2).
 void obj16_R1_Damage(cObj16* obj)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
 
     switch (obj->r_no_2) {
     case 0:
@@ -891,7 +869,7 @@ void MotSetObj16(cObj* obj, void* mot, int a, int b)
 // the neck tracking rotation applied.
 void obj16MatCalc(cObj16* obj)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
     cModel* p;
 
     if (w->body) {
@@ -917,27 +895,27 @@ void obj16MatCalc(cObj16* obj)
 // Target scale the head eases towards.
 void cObj16::setScale(Vec* pScale)
 {
-    o16.Scale = *pScale;
+    OBJ16_WK(this)->Scale = *pScale;
 }
 
 // Starts the death drip effect (Eff_wait 3).
 void cObj16::setDieEff()
 {
-    o16.Eff_wait = 3;
+    OBJ16_WK(this)->Eff_wait = 3;
 }
 
 // Makes the head fade out now (Be_flag bit 0, Lost_wait 0).
 void cObj16::clearLostWait()
 {
-    o16.Lost_wait = 0;
-    o16.Be_flag |= 1;
+    OBJ16_WK(this)->Lost_wait = 0;
+    OBJ16_WK(this)->Be_flag |= 1;
 }
 
 // Fades the head out after n frames.
 void cObj16::setLostWait(int wait)
 {
-    o16.Lost_wait = wait;
-    o16.Be_flag |= 1;
+    OBJ16_WK(this)->Lost_wait = wait;
+    OBJ16_WK(this)->Be_flag |= 1;
 }
 
 // Installs the 11 head motions (idle, wait, wait2, bites 3..6, damage 7/8, spit 9, wind-up 10) and
@@ -945,7 +923,7 @@ void cObj16::setLostWait(int wait)
 void cObj16::setMotData(void* m0, void* m1, void* m2, void* m3, void* m4, void* m5, void* m6, void* m7, void* m8,
                         void* m9, void* m10)
 {
-    Obj16Work* w = &o16;
+    Obj16Work* w = OBJ16_WK(this);
 
     w->mot[0] = m0;
     w->mot[1] = m1;
@@ -981,7 +959,7 @@ void cObj16::setMotData(void* m0, void* m1, void* m2, void* m3, void* m4, void* 
 // Player damage motion (and sequence) played on a bite hit (plemDmMStar).
 void cObj16::setPlDmgMot(void* mot, void* seq)
 {
-    Obj16Work* w = &o16;
+    Obj16Work* w = OBJ16_WK(this);
 
     w->Mot_pl_dm = mot;
     w->Seq_pl_dm = seq;
@@ -992,7 +970,7 @@ void cObj16::setAtk(u8 mode)
 {
     r_no_0 = 1;
     r_no_1 = 2;
-    o16.Atk_ck = 0;
+    OBJ16_WK(this)->Atk_ck = 0;
     r_no_2 = 0;
     r_no_3 = mode;
 }
@@ -1002,7 +980,7 @@ void cObj16::setCritical()
 {
     r_no_0 = 1;
     r_no_1 = 3;
-    o16.Atk_ck = 0;
+    OBJ16_WK(this)->Atk_ck = 0;
     r_no_2 = 0;
     r_no_3 = 0;
 }
@@ -1019,7 +997,7 @@ void cObj16::setDamage()
 // 1 while the head is in its idle cycle (an attack may be started).
 int cObj16::ckAtkEnable()
 {
-    if (o16.Atk_enable == 0) {
+    if (OBJ16_WK(this)->Atk_enable == 0) {
         return 0;
     }
     return 1;
@@ -1037,7 +1015,7 @@ static inline int PlIsDead()
 // (obj16PlHeadLost); a partner hit (bit 1) kills the partner (LifeDownSet 9999). Sets Atk_ck.
 int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
     cModel* body = w->body;
     cModel* p;
     Vec* pp;
@@ -1182,7 +1160,7 @@ int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
 // The head bit the player's head off: game over.
 void obj16PlHeadLost(cObj16* obj)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
     u8 region;
 
     pG->pl_life = 0;
@@ -1223,7 +1201,7 @@ void obj16PlHeadLost(cObj16* obj)
 // Turn the neck parts (1, 2) toward the player and tilt the head (parts 0) along the body parts.
 static void obj16NeckMove(cObj16* obj)
 {
-    Obj16Work* w = &obj->o16;
+    Obj16Work* w = OBJ16_WK(obj);
     cModel* body = w->body;
     Vec tgt;
     Vec dir;
@@ -1319,7 +1297,7 @@ void cObj16::setBurn()
 // 1 when the last attack routine hit.
 int cObj16::ckAtkHit()
 {
-    return o16.Atk_ck ? 1 : 0;
+    return OBJ16_WK(this)->Atk_ck ? 1 : 0;
 }
 
 // Player damage routine for a plaga bite (SetPlDamage): plays Mot_pl_dm (mirrored blend for
@@ -1327,7 +1305,7 @@ int cObj16::ckAtkHit()
 // Player damage routine while the head holds him (SetPlDamage callback).
 void plemDmMStar(cPlayer* pEm)
 {
-    Obj16Work* w = &((cObj16*) pPL->pEmCatch)->o16;
+    Obj16Work* w = OBJ16_WK((cObj16*) pPL->pEmCatch);
     int hokan;
 
     if (pEm->r_no_3 == 0) {

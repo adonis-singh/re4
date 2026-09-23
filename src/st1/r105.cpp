@@ -14,6 +14,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "emdoor.h"
 #include "emhit.h"
@@ -746,7 +747,7 @@ extern "C" void Evt_R105S10_Func(Event* e)
                     ((cModel*) mod)->be_flag |= 0x10;
                 }
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
@@ -763,14 +764,14 @@ extern "C" void Evt_R105S10_Func(Event* e)
         case 0x14:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
         default:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
             break;
@@ -778,10 +779,10 @@ extern "C" void Evt_R105S10_Func(Event* e)
         if (e->NowCut == 0xE || e->NowCut == 0x13) {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObjUnion*) mod)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
                     if (w && w->child) {
-                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
+                        OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;
                         w->child->be_flag &= ~2;
                     }
                 }
@@ -789,10 +790,10 @@ extern "C" void Evt_R105S10_Func(Event* e)
         } else {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObjUnion*) mod)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
                     if (w && w->child) {
-                        ((cObjUnion*) mod)->o18.ObjChainFlagCommon &= ~0x04000000;
+                        OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon &= ~0x04000000;
                         w->child->be_flag |= 2;
                     }
                 }

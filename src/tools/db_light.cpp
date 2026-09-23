@@ -15,6 +15,7 @@
 #include "cam_ctrl.h"
 #include "camera.h"
 #include "obj.h"
+#include "obj18.h"
 #include "file.h"
 #include "math_sub.h"
 #include "vec.h"
@@ -2034,8 +2035,8 @@ static void edit_light_parent()
             case 0x18: {
                 Obj18Work* w;
                 eprintf(0x40, 0xD2, 0, pTool->PageNo, "OBJID %02x : EVENT MODEL", 0x18);
-                w = (Obj18Work*) ((cObjUnion*) obj)->work;
-                eprintf(0x40, 0xE0, 0, pTool->PageNo, "NAME %s", ((Obj18Work*) ((cObjUnion*) obj)->work)->NameMod);
+                w = OBJ18_WK((cObj18*) obj);
+                eprintf(0x40, 0xE0, 0, pTool->PageNo, "NAME %s", OBJ18_WK((cObj18*) obj)->NameMod);
                 eprintf(0x40, 0xEE, 0, pTool->PageNo, "TYPE %2d", w->obj18_type);
                 break;
             }

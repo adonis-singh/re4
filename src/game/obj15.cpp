@@ -41,7 +41,7 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &((cObjGatling*) obj)->gatling;
+    w = GATLING_WK((cObjGatling*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetObj15() failed.");
         ObjMgr.destroy(obj);
@@ -50,7 +50,7 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    w = &((cObjGatling*) obj)->gatling;
+    w = GATLING_WK((cObjGatling*) obj);
     obj->sub2B4.atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     w->ride = 0;
@@ -114,7 +114,7 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
 // the gun, target timeout.
 void cObjGatling::move()
 {
-    GatlingWork* w = &gatling;
+    GatlingWork* w = GATLING_WK(this);
 
     if (w->ride) {
         if ((w->ride->be_flag & 0x201) != 1) {
@@ -149,7 +149,7 @@ void cObjGatling::move()
 // out of ammo / rider gone / fire stopped, then back to 0. Fires only while the player is alive.
 void obj15_R1_Set(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     f32 dist;
     f32 lim;
     f32 ang;
@@ -232,7 +232,7 @@ void obj15_R1_Set(cObjGatling* pObj)
 // Rno1 == 1 (broken): once spawns the explosion (est 1/0xD) and does the break work.
 void obj15_R1_Break(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     u32 i;
 
     if (pObj->r_no_2 == 0) {
@@ -257,7 +257,7 @@ void obj15_R1_Break(cObjGatling* pObj)
 // firing (with the spin sound); stops the sound when not firing.
 void obj15BarrelMove(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     Vec tpos;
     cModel* parts;
 
@@ -304,7 +304,7 @@ void obj15BarrelMove(cObjGatling* pObj)
 // Rebuilds the gun matrix and parts.
 void obj15MatCalc(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
 
     if (w->target == 0) {
         w->target = pPL;
@@ -407,38 +407,38 @@ static void obj15GunHitckDbg(cObjGatling* obj)
 // Sets the enemy operating the gun.
 void cObjGatling::setRide(cEm* pEm)
 {
-    gatling.ride = pEm;
+    GATLING_WK(this)->ride = pEm;
 }
 
 // Rider request: start firing.
 void cObjGatling::setFire()
 {
-    gatling.fire = 1;
+    GATLING_WK(this)->fire = 1;
 }
 
 // Rider request: stop firing.
 void cObjGatling::stopFire()
 {
-    gatling.firing = 0;
+    GATLING_WK(this)->firing = 0;
 }
 
 // 1 when the gun is empty.
 int cObjGatling::ckReload()
 {
-    return gatling.ammo == 0;
+    return GATLING_WK(this)->ammo == 0;
 }
 
 // Refills 40 rounds.
 void cObjGatling::setReload()
 {
-    gatling.ammo = 40;
+    GATLING_WK(this)->ammo = 40;
 }
 
 // Weapon hits on the three hit bodies (only when breakable, stat 0x0101): spark effects; breakMode
 // 0 breaks the gun (R1 1) with a sound.
 void obj15DmCk(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     u32 i;
 
     if (pObj->r_no_0 == 1 && pObj->r_no_1 == 1) {
@@ -472,7 +472,7 @@ void obj15DmCk(cObjGatling* pObj)
 // Creates the eat collision that follows the gun.
 void cObjGatling::setEat(void* data, int type)
 {
-    GatlingWork* w = &gatling;
+    GatlingWork* w = GATLING_WK(this);
 
     w->eat = EatMgr.create(data, 0, &pos, &ang, type);
 }
@@ -480,7 +480,7 @@ void cObjGatling::setEat(void* data, int type)
 // Max yaw away from the rest angle (radians).
 void cObjGatling::setMaxRot(f32 rot_max)
 {
-    gatling.maxRot = rot_max;
+    GATLING_WK(this)->maxRot = rot_max;
 }
 
 // 1 when the gun is flagged breakable/broken (stat high half 0x0101).
@@ -492,13 +492,13 @@ int cObjGatling::ckBreak()
 // 0 = weapon hits break it, else only setBreak does.
 void cObjGatling::setBreakMode(u8 mode)
 {
-    gatling.breakMode = mode;
+    GATLING_WK(this)->breakMode = mode;
 }
 
 // Breaks the gun from the room script (break work, R1 1 without the explosion effect).
 void cObjGatling::setBreak()
 {
-    GatlingWork* w = &gatling;
+    GatlingWork* w = GATLING_WK(this);
     u32 i;
 
     if (r_no_0 == 1 && r_no_1 == 1) {

@@ -1,6 +1,7 @@
 // game/em_cloth.cpp: cloth / hair chain tables of the enemy costume models (obj18 type 34, 18,
 // 37, 33, 30) and the em2b short rope; PenCloth* (pendulum.cpp) does the simulation.
 
+#include "obj1d.h"
 #include "pl_cloth.h"
 #include "pendulum.h"
 #include "model.h"

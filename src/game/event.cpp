@@ -707,8 +707,8 @@ void Event::ControlTransFlag()
                 m->be_flag |= 2;
             }
             if (m->kindid == 1 && m->id == cObjMgr::ID_EVENT) {
-                w = &((cObjUnion*) m)->o18;
-                if (w->obj18_type == OBJ18_TYPE_ADA && w->child != 0 && !(((cObjUnion*) m)->o18.ObjChainFlagCommon & 0x04000000)) {
+                w = OBJ18_WK((cObj18*) m);
+                if (w->obj18_type == OBJ18_TYPE_ADA && w->child != 0 && !(OBJ18_WK((cObj18*) m)->ObjChainFlagCommon & 0x04000000)) {
                     if ((m->be_flag & 0x20) == 0) {
                         w->child->be_flag &= ~0x20;
                     } else {
@@ -951,7 +951,7 @@ int Event::ExePacket_SetOm(Event* pEvt)
         pLog->err(0, 0, "Event::ExePacket_SetOm : om set failed");
         return 1;
     }
-    *(EvtName*) ((cObjUnion*) obj)->o18.NameMod = *(EvtName*) pac->mod.name;
+    *(EvtName*) OBJ18_WK((cObj18*) obj)->NameMod = *(EvtName*) pac->mod.name;
     obj->sub2B4.atari.throughOn();
     switch (type) {
     case OBJ18_TYPE_LEON ... OBJ18_TYPE_LUIS:
@@ -1251,7 +1251,7 @@ int Event::ExePacket_Mot(Event* pEvt)
     }
     ClrShape(m);
     if (m->kindid == 1 && m->id == cObjMgr::ID_EVENT) {
-        Obj18Work* w = &((cObjUnion*) m)->o18;
+        Obj18Work* w = OBJ18_WK((cObj18*) m);
         t = w->obj18_type;
         if ((t >= 1 && t <= 4) || t == 7 || t == 8 || t == 9 || t == 0xA || t == 0x13 || t == 0x14 || t == 0x15 || t == 0x16
             || t == 0xB) {

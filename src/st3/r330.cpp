@@ -10,6 +10,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "em_set.h"
 #include "emBarred.h"
@@ -253,7 +254,7 @@ extern "C" void Evt_R330S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100a", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
@@ -262,7 +263,7 @@ extern "C" void Evt_R330S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100a", 0, 0) == 1) {
-                    ((cObjUnion*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
             break;

@@ -17,6 +17,7 @@
 #include "TexRender.h"
 #include "foot_shadow.h"
 #include "obj.h"
+#include "obj1d.h"
 #include "main.h"
 #include "em_set.h"
 #include "em_sub.h"

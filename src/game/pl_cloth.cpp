@@ -2,6 +2,7 @@
 // sweater / ribbon (Ashley), hair (Luis), dress / hair / ribbon (Ada). The chain tables give each
 // link its model part and neighbours; PenCloth* (pendulum.cpp) does the simulation.
 
+#include "obj1d.h"
 #include "event.h"
 #include "atari.h"
 #include "pl_cloth.h"

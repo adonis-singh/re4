@@ -2,6 +2,7 @@
 #include "light.h"
 #include "dmg.h"
 #include "obj.h"
+#include "objSubWep.h"
 #include "esp.h"
 #include "est.h"
 #include "emhit.h"
@@ -15,25 +16,6 @@
 // Player sub weapons: the thrown hand grenade (cObjGrenade), incendiary grenade (cObjGreFire),
 // flash grenade (cObjGreLight) and the egg (cObjEgg) share cSubWep's flight, bounce and water
 // handling; each supplies its explosion.
-
-class cSubWep : public cObjUnion {
-public:
-    cSubWep();
-    virtual ~cSubWep() {}
-    virtual void beginEvent(u32 mode);
-    virtual void move();
-    virtual void explode() = 0;
-    virtual void waterExplode() = 0;
-
-    void moveNormal();
-    void moveWater();
-    void scrAdjust();
-    void dmgSet(int kind);
-    void addSpeed();
-    void bounce(Vec* nrm);
-    int getEffectType();
-    int init(Vec* rot, f32 power);
-};
 
 class cObjGrenade : public cSubWep {
 public:
@@ -79,15 +61,15 @@ void cSubWep::move()
     (this->*funcTbl[r_no_0])();
 }
 
-// Flight frame: counts subWep.life down (a timed grenade, type 0, explodes when it reaches 0;
+// Flight frame: counts SUBWEP_WK(this)->life down (a timed grenade, type 0, explodes when it reaches 0;
 // the others are only destroyed), moves by the speed / bounces (addSpeed) and spins parts 0 by
 // rotSpd.
 void cSubWep::moveNormal()
 {
 
-    if (subWep.life >= 0) {
-        if (subWep.life > 0) {
-            subWep.life--;
+    if (SUBWEP_WK(this)->life >= 0) {
+        if (SUBWEP_WK(this)->life > 0) {
+            SUBWEP_WK(this)->life--;
         } else {
             if (type == 0) {
                 scrAdjust();
@@ -101,7 +83,7 @@ void cSubWep::moveNormal()
     {
         cModel* parts = getPartsPtr(0);
         if (parts) {
-            PSVECAdd(&parts->ang, &subWep.rotSpd, &parts->ang);
+            PSVECAdd(&parts->ang, &SUBWEP_WK(this)->rotSpd, &parts->ang);
             parts->ang.x = LIMIT_ANGLE(parts->ang.x);
             parts->ang.y = LIMIT_ANGLE(parts->ang.y);
             parts->ang.z = LIMIT_ANGLE(parts->ang.z);
@@ -118,13 +100,13 @@ void cSubWep::moveNormal()
 void cSubWep::moveWater()
 {
 
-    subWep.life--;
-    if (subWep.life > 0) {
+    SUBWEP_WK(this)->life--;
+    if (SUBWEP_WK(this)->life > 0) {
         return;
     }
-    if (!(subWep.effNo == 0xD2 && subWep.effPrm == 1)) {
-        EstSet(0, -1, &pos, 0, subWep.effNo, subWep.effPrm, 0, ESP_CORE_KIND_NONE, 0, 0);
-        if (subWep.effNo == 0 && subWep.effPrm == 0x15) {
+    if (!(SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1)) {
+        EstSet(0, -1, &pos, 0, SUBWEP_WK(this)->effNo, SUBWEP_WK(this)->effPrm, 0, ESP_CORE_KIND_NONE, 0, 0);
+        if (SUBWEP_WK(this)->effNo == 0 && SUBWEP_WK(this)->effPrm == 0x15) {
             Vec a;
             Vec b;
             Vec nrm;
@@ -247,8 +229,8 @@ void cSubWep::addSpeed()
 
     VehicleAdjust(&pos);
     old = pos;
-    subWep.spd.y -= subWep.grav;
-    PSVECAdd(&pos, &subWep.spd, &pos);
+    SUBWEP_WK(this)->spd.y -= SUBWEP_WK(this)->grav;
+    PSVECAdd(&pos, &SUBWEP_WK(this)->spd, &pos);
     EatMgr.hitCheck(&old, &pos, &hit, 0, 0, 0x4000);
     if (GetWaterHeight(&pos, &wh) && pos.y <= wh && hit.y < wh) {
         pos.y = wh + 20.0f;
@@ -258,32 +240,32 @@ void cSubWep::addSpeed()
             pLog->err(0, 0, "  PLEASE SET EatMgr.registEffInfo()");
             return;
         }
-        subWep.attr = info->flag;
+        SUBWEP_WK(this)->attr = info->flag;
         switch (type) {
         case 0:
         default:
-            subWep.effNo = info->eff13[0];
-            subWep.effPrm = info->eff13[1];
+            SUBWEP_WK(this)->effNo = info->eff13[0];
+            SUBWEP_WK(this)->effPrm = info->eff13[1];
             break;
         case 1:
-            subWep.effNo = info->eff16[0];
-            subWep.effPrm = info->eff16[1];
+            SUBWEP_WK(this)->effNo = info->eff16[0];
+            SUBWEP_WK(this)->effPrm = info->eff16[1];
             break;
         case 2:
-            subWep.effNo = info->eff17[0];
-            subWep.effPrm = info->eff17[1];
+            SUBWEP_WK(this)->effNo = info->eff17[0];
+            SUBWEP_WK(this)->effPrm = info->eff17[1];
             break;
         case 3:
-            subWep.effNo = info->eff17[0];
-            subWep.effPrm = info->eff17[1];
+            SUBWEP_WK(this)->effNo = info->eff17[0];
+            SUBWEP_WK(this)->effPrm = info->eff17[1];
             break;
         case 4:
-            subWep.effNo = info->eff17[0];
-            subWep.effPrm = info->eff17[1];
+            SUBWEP_WK(this)->effNo = info->eff17[0];
+            SUBWEP_WK(this)->effPrm = info->eff17[1];
             break;
         case 5:
-            subWep.effNo = info->eff17[0];
-            subWep.effPrm = info->eff17[1];
+            SUBWEP_WK(this)->effNo = info->eff17[0];
+            SUBWEP_WK(this)->effPrm = info->eff17[1];
             break;
         }
         if (type > 2) {
@@ -306,7 +288,7 @@ void cSubWep::addSpeed()
             r_no_0 = 1;
             be_flag &= ~2;
         } else {
-            subWep.life = 1;
+            SUBWEP_WK(this)->life = 1;
             moveWater();
         }
         return;
@@ -314,32 +296,32 @@ void cSubWep::addSpeed()
     nrm.x = 0.0f;
     nrm.y = 0.0f;
     nrm.z = 0.0f;
-    EatMgr.adjust(&nrm, &pos_old, &pos, subWep.rad * 0.5f, 0x2001, 0x4000);
+    EatMgr.adjust(&nrm, &pos_old, &pos, SUBWEP_WK(this)->rad * 0.5f, 0x2001, 0x4000);
     if (nrm.x == 0.0f && nrm.y == 0.0f && nrm.z == 0.0f) {
         return;
     }
     info = EatMgr.getEffInfo(getEffectType());
     if (info) {
-        subWep.attr = info->flag | 0x80000000;
+        SUBWEP_WK(this)->attr = info->flag | 0x80000000;
         switch (type) {
         case 0:
         default:
-            subWep.effNo = info->eff13[0];
-            subWep.effPrm = info->eff13[1];
+            SUBWEP_WK(this)->effNo = info->eff13[0];
+            SUBWEP_WK(this)->effPrm = info->eff13[1];
             break;
         case 1:
-            subWep.effNo = info->eff16[0];
-            subWep.effPrm = info->eff16[1];
+            SUBWEP_WK(this)->effNo = info->eff16[0];
+            SUBWEP_WK(this)->effPrm = info->eff16[1];
             break;
         case 2:
-            subWep.effNo = info->eff17[0];
-            subWep.effPrm = info->eff17[1];
+            SUBWEP_WK(this)->effNo = info->eff17[0];
+            SUBWEP_WK(this)->effPrm = info->eff17[1];
             break;
         }
     } else {
-        subWep.attr = 0;
+        SUBWEP_WK(this)->attr = 0;
     }
-    if (subWep.attr & 1) {
+    if (SUBWEP_WK(this)->attr & 1) {
         if (type > 2) {
             if (info->eff0[0] != 0xD2) {
                 EstSet(0, -1, &pos, 0, info->eff0[0], (u8) info->eff0[1], 0, ESP_CORE_KIND_NONE, 0, 0);
@@ -359,7 +341,7 @@ void cSubWep::addSpeed()
             r_no_0 = 1;
             be_flag &= ~2;
         } else {
-            subWep.life = 1;
+            SUBWEP_WK(this)->life = 1;
             moveWater();
         }
     } else {
@@ -379,33 +361,33 @@ void cSubWep::bounce(Vec* norm)
     const f32 rate = 0.5f;
     const f32 rotRate = -0.8f;
 
-    len = RootSumSquare3(&subWep.spd);
-    C_VECReflect(&subWep.spd, norm, &ref);
-    PSVECScale(&ref, &subWep.spd, len * rate);
+    len = RootSumSquare3(&SUBWEP_WK(this)->spd);
+    C_VECReflect(&SUBWEP_WK(this)->spd, norm, &ref);
+    PSVECScale(&ref, &SUBWEP_WK(this)->spd, len * rate);
     if (norm->y > 0.0f && norm->y < lim) {
-        if (subWep.spd.y < minSpd) {
-            subWep.spd.y = minSpd;
+        if (SUBWEP_WK(this)->spd.y < minSpd) {
+            SUBWEP_WK(this)->spd.y = minSpd;
         }
     }
-    PSVECScale(&subWep.rotSpd, &subWep.rotSpd, rotRate);
+    PSVECScale(&SUBWEP_WK(this)->rotSpd, &SUBWEP_WK(this)->rotSpd, rotRate);
     if (norm->y > lim) {
-        if (fabsf(subWep.spd.y) > 10.0f) {
-            if (subWep.flags & 1) {
+        if (fabsf(SUBWEP_WK(this)->spd.y) > 10.0f) {
+            if (SUBWEP_WK(this)->flags & 1) {
                 scrAdjust();
                 explode();
                 ObjMgr.destroy(this);
-            } else if (subWep.seCnt0 <= 3) {
+            } else if (SUBWEP_WK(this)->seCnt0 <= 3) {
                 SndCall(5, 6, &pos, 0, 0, 0);
-                subWep.seCnt0++;
+                SUBWEP_WK(this)->seCnt0++;
             }
         }
-    } else if ((subWep.flags & 2) || (type == 1 && norm->y > lim)) {
-        subWep.flags |= 0x10;
+    } else if ((SUBWEP_WK(this)->flags & 2) || (type == 1 && norm->y > lim)) {
+        SUBWEP_WK(this)->flags |= 0x10;
         explode();
         ObjMgr.destroy(this);
-    } else if (subWep.seCnt1 <= 3) {
+    } else if (SUBWEP_WK(this)->seCnt1 <= 3) {
         SndCall(1, 0x21, &pos, 0, 0, 0);
-        subWep.seCnt1++;
+        SUBWEP_WK(this)->seCnt1++;
     }
 }
 
@@ -416,7 +398,7 @@ int cSubWep::getEffectType()
     u32 attr;
 
 #line 484 "D:/Bio4/Prog/objSubWep.cpp"
-    VECNormalize(&subWep.spd, &d);
+    VECNormalize(&SUBWEP_WK(this)->spd, &d);
     PSVECScale(&d, &d, 3000.0f);
     PSVECAdd(&d, &pos, &d);
     attr = EatMgr.hitCheck(&pos, &d, 0, 0, 0, 0);
@@ -434,21 +416,21 @@ cSubWep::cSubWep()
 
     sub2B4.atari.throughOn();
     LightInfo.init2(0, 1, &p0, &p1, 4);
-    subWep.seCnt0 = 0;
-    subWep.seCnt1 = 0;
-    subWep.flags = 0;
-    subWep.grav = 20.0f;
-    subWep.rad = 50.0f;
-    subWep.life = 10;
-    subWep.x7C = 3;
-    subWep.rotSpd.x = fRand0_1() * 0.19634955f + 0.09817477f;
-    subWep.rotSpd.y = 0.0f;
-    subWep.rotSpd.z = fRand0_1() * 0.09817477f + 0.09817477f;
+    SUBWEP_WK(this)->seCnt0 = 0;
+    SUBWEP_WK(this)->seCnt1 = 0;
+    SUBWEP_WK(this)->flags = 0;
+    SUBWEP_WK(this)->grav = 20.0f;
+    SUBWEP_WK(this)->rad = 50.0f;
+    SUBWEP_WK(this)->life = 10;
+    SUBWEP_WK(this)->x7C = 3;
+    SUBWEP_WK(this)->rotSpd.x = fRand0_1() * 0.19634955f + 0.09817477f;
+    SUBWEP_WK(this)->rotSpd.y = 0.0f;
+    SUBWEP_WK(this)->rotSpd.z = fRand0_1() * 0.09817477f + 0.09817477f;
     if (Rnd() & 1) {
-        subWep.rotSpd.x = -subWep.rotSpd.x;
+        SUBWEP_WK(this)->rotSpd.x = -SUBWEP_WK(this)->rotSpd.x;
     }
     if (Rnd() & 1) {
-        subWep.rotSpd.z = -subWep.rotSpd.z;
+        SUBWEP_WK(this)->rotSpd.z = -SUBWEP_WK(this)->rotSpd.z;
     }
 }
 
@@ -509,25 +491,25 @@ int cSubWep::init(Vec* angS, f32 rx)
     }
     setPos(&p);
     this->ang = *angS;
-    setThrowSpeed(&subWep.spd, rx);
+    setThrowSpeed(&SUBWEP_WK(this)->spd, rx);
     switch (type) {
     case 0:
-        subWep.life = 45;
+        SUBWEP_WK(this)->life = 45;
         break;
     case 1:
-        subWep.life = 300;
+        SUBWEP_WK(this)->life = 300;
         break;
     case 2:
-        subWep.life = 300;
+        SUBWEP_WK(this)->life = 300;
         break;
     case 3:
-        subWep.life = 300;
+        SUBWEP_WK(this)->life = 300;
         break;
     case 4:
-        subWep.life = 300;
+        SUBWEP_WK(this)->life = 300;
         break;
     case 5:
-        subWep.life = 300;
+        SUBWEP_WK(this)->life = 300;
         break;
     }
     return 1;
@@ -601,12 +583,12 @@ void cObjGrenade::explode()
         AddWaterPower(pos, 1.0f);
         SndCall(1, 0x17, &pos, 0, 0, 0);
     } else {
-        if (subWep.effNo == 0xD2 && subWep.effPrm == 1) {
+        if (SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1) {
             return;
         }
-        if (subWep.attr < 0 && subWep.effNo != 0xD2) {
-            no = (u8) subWep.effNo;
-            prm = subWep.effPrm;
+        if (SUBWEP_WK(this)->attr < 0 && SUBWEP_WK(this)->effNo != 0xD2) {
+            no = (u8) SUBWEP_WK(this)->effNo;
+            prm = SUBWEP_WK(this)->effPrm;
         } else {
             Vec a;
             Vec b;
@@ -650,7 +632,7 @@ void cObjGrenade::waterExplode()
 // Incendiary: explodes on the first floor hit (flags bit0).
 cObjGreFire::cObjGreFire()
 {
-    subWep.flags |= 1;
+    SUBWEP_WK(this)->flags |= 1;
 }
 
 // Incendiary burst: surface effect (default 0x0B fire, plus 0x26 burning floor when within 200 of
@@ -668,12 +650,12 @@ void cObjGreFire::explode()
         AddWaterPower(pos, 1.0f);
         SndCall(1, 0x17, &pos, 0, 0, 0);
     } else {
-        if (subWep.effNo == 0xD2 && subWep.effPrm == 1) {
+        if (SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1) {
             return;
         }
-        if (subWep.attr < 0 && subWep.effNo != 0xD2) {
-            no = (u8) subWep.effNo;
-            prm = subWep.effPrm;
+        if (SUBWEP_WK(this)->attr < 0 && SUBWEP_WK(this)->effNo != 0xD2) {
+            no = (u8) SUBWEP_WK(this)->effNo;
+            prm = SUBWEP_WK(this)->effPrm;
         } else {
             Vec a;
             Vec b;
@@ -714,7 +696,7 @@ void cObjGreFire::waterExplode()
 // Flash grenade: explodes on the first floor hit (flags bit0).
 cObjGreLight::cObjGreLight()
 {
-    subWep.flags |= 1;
+    SUBWEP_WK(this)->flags |= 1;
 }
 
 // Flash: screen flash 0x3F plus the 0x0C effect, flash SE, and the 0x17 (flash) hit check in a
@@ -730,12 +712,12 @@ void cObjGreLight::explode()
         AddWaterPower(pos, 1.0f);
         SndCall(1, 0x17, &pos, 0, 0, 0);
     } else {
-        if (subWep.effNo == 0xD2 && subWep.effPrm == 1) {
+        if (SUBWEP_WK(this)->effNo == 0xD2 && SUBWEP_WK(this)->effPrm == 1) {
             return;
         }
-        if (subWep.attr < 0 && subWep.effNo != 0xD2) {
-            no = (u8) subWep.effNo;
-            prm = subWep.effPrm;
+        if (SUBWEP_WK(this)->attr < 0 && SUBWEP_WK(this)->effNo != 0xD2) {
+            no = (u8) SUBWEP_WK(this)->effNo;
+            prm = SUBWEP_WK(this)->effPrm;
         } else {
             EstSet(0, -1, 0, 0, EFF_CORE, 0x3F, 0, ESP_CORE_KIND_NONE, 0, 0);
             no = 0;
@@ -760,7 +742,7 @@ void cObjGreLight::waterExplode()
 // Egg: breaks on the first floor or wall hit (flags bits 0 and 1).
 cObjEgg::cObjEgg()
 {
-    subWep.flags |= 3;
+    SUBWEP_WK(this)->flags |= 3;
 }
 
 // Egg splat: effect 0x42 (0x43 on a wall), SE, and the 0x19 (egg) hit check in a 2000 radius.
@@ -771,7 +753,7 @@ void cObjEgg::explode()
     if (GetWaterHeight(&pos, &wh) && pos.y <= wh) {
         AddWaterPower(pos, 1.0f);
     } else {
-        if (subWep.flags & 0x10) {
+        if (SUBWEP_WK(this)->flags & 0x10) {
             EstSet(0, -1, &pos, 0, EFF_CORE, 0x43, 0, ESP_CORE_KIND_NONE, 0, 0);
         } else {
             EstSet(0, -1, &pos, 0, EFF_CORE, 0x42, 0, ESP_CORE_KIND_NONE, 0, 0);

@@ -7,6 +7,7 @@
 #include "light.h"
 #include "dmg.h"
 #include "obj.h"
+#include "obj01.h"
 #include "esp.h"
 #include "global.h"
 #include "math_sub.h"
@@ -14,18 +15,6 @@
 #include "rnd.h"
 #include "pl_wep.h"
 #include "motion.h"
-
-// Grenade (hand / incendiary / flash): thrown under gravity, bounces off the scenario, explodes
-// or drowns when its fuse runs out; can be held by a model until `holdTimer` expires.
-class cObj01 : public cObjUnion {
-public:
-    virtual void move();
-    virtual ~cObj01() {}
-
-    void move00();
-    void move01();
-    void dmgSet(int kind);
-};
 
 extern "C" {
 int obj01AddSpeed(cObj01* obj);
@@ -47,7 +36,7 @@ void cObj01::move()
 // (destroyed when it says so) and the spin is applied to parts 0.
 void cObj01::move00()
 {
-    Obj01Work* w = &o1;
+    Obj01Work* w = OBJ01_WK(this);
     int life = w->timer;
     f32 wh;
 
@@ -230,7 +219,7 @@ void cObj01::dmgSet(int type)
 // the object should be destroyed.
 int obj01AddSpeed(cObj01* pObj)
 {
-    Obj01Work* w = &pObj->o1;
+    Obj01Work* w = OBJ01_WK(pObj);
     f32 wh;
     Vec ref;
     Vec nrm;
@@ -344,7 +333,7 @@ cObj* SetObj01(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
 
     obj->sub2B4.atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
-    w = &((cObj01*) obj)->o1;
+    w = OBJ01_WK((cObj01*) obj);
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
@@ -399,7 +388,7 @@ void Obj01SetEst(cObj* pObj, u32 eff, u32 est, u32 action, u32 eff2, u32 est2, u
     if (pObj == 0) {
         return;
     }
-    w = &((cObj01*) pObj)->o1;
+    w = OBJ01_WK((cObj01*) pObj);
     w->eff = eff;
     w->est = est;
     w->eff2 = eff2;

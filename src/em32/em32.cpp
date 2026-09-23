@@ -4798,11 +4798,6 @@ void em32PlDivideModelInit(cEm32* em)
     }
 }
 
-class cObj00 : public cObjUnion {
-public:
-    void setScrAtari(f32 r);
-};
-
 // The player is cut in two by the tail: the halves take his place and fall.
 void em32PlDivideSet(cEm32* em)
 {

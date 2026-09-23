@@ -11,6 +11,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj1d.h"
 #include "em.h"
 #include "emhit.h"
 #include "emdoor.h"

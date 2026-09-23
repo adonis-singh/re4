@@ -56,7 +56,7 @@ cObjRobo* SetObjRobo(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &((cObjRobo*) obj)->robo;
+    w = ROBO_WK((cObjRobo*) obj);
     memset(w, 0, sizeof(RoboWork));
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");
@@ -105,13 +105,13 @@ void cObjRobo::move()
         R0WalkBridge, R0WaitBreak,   R0WaitDie,     R0Event,
     };
 
-    R0Tbl[robo.r_no_0](this);
+    R0Tbl[ROBO_WK(this)->r_no_0](this);
 }
 
 // Event start: the statue keeps moving during the event in the Event routine.
 void cObjRobo::SetBeginEvent(u32 a)
 {
-    RoboWork* w = &robo;
+    RoboWork* w = ROBO_WK(this);
 
     setNoSuspend(1);
     w->r_no_0 = 7;
@@ -130,7 +130,7 @@ void cObjRobo::SetEndEvent(u32 a)
 // (RoboHitTbl), and picks R0 1 (gondola wait) or 7 by room flag 9.
 void cObjRobo::R0Init(cObjRobo* pObj)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
     cObj* smd;
     cEmHit* hit;
 
@@ -211,7 +211,7 @@ void cObjRobo::R0Init(cObjRobo* pObj)
 // shot hand boxes (hit 12/13) start the hand switch tasks, and every hit box shows sparks when shot.
 void cObjRobo::R0WaitGondola(cObjRobo* pObj)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
     cPlayer* pl = pPL;
     Vec ft[2];
     Vec p;
@@ -273,7 +273,7 @@ void cObjRobo::R0WaitGondola(cObjRobo* pObj)
 // -60000, where it is clamped.
 void cObjRobo::R0WalkPassage(cObjRobo* pObj)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
     Vec v;
 
     switch (w->r_no_1) {
@@ -299,7 +299,7 @@ void cObjRobo::R0WalkPassage(cObjRobo* pObj)
 // (Room_flg[0] 0x10000 = door broken).
 void cObjRobo::R0WaitDoor(cObjRobo* pObj)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
     Vec v;
 
     switch (w->r_no_1) {
@@ -348,7 +348,7 @@ void cObjRobo::R0WaitDoor(cObjRobo* pObj)
 // (est 3..8 -> 0x17..0x1C) and 15 frames later the plate-gone flag (0x18..0x1D).
 void cObjRobo::R0WalkBridge(cObjRobo* pObj)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
     u32 smdNo[6] = { 0x43, 0x44, 0x4F, 0x50, 0x51, 0x52 };
     u32 flagNo[6] = { 0x12, 0x13, 0x14, 0x15, 0x16, 0x17 };
     u32 flagNo2[6] = { 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D };
@@ -442,7 +442,7 @@ void cObjRobo::R0WalkBridge(cObjRobo* pObj)
 // R0 5: broken: plays the idle motion 0x3C.
 void cObjRobo::R0WaitBreak(cObjRobo* pObj)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
 
     if (w->r_no_1 == 0) {
         MotionSetCore(pObj, &pObj->Motion, ROOM_ARC_PTR(pG->pRoom, 0x3C), 0, 0, 4, 0);
@@ -455,7 +455,7 @@ void cObjRobo::R0WaitBreak(cObjRobo* pObj)
 // R0 6: dying: plays the idle motion 0x3C.
 void cObjRobo::R0WaitDie(cObjRobo* pObj)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
 
     if (w->r_no_1 == 0) {
         MotionSetCore(pObj, &pObj->Motion, ROOM_ARC_PTR(pG->pRoom, 0x3C), 0, 0, 4, 0);
@@ -699,7 +699,7 @@ static f32 roboDead2(f32 a)
 // standing on it along.
 void cObjRobo::SatMove(cObjRobo* pObj, Vec* pPosOld, int armNo)
 {
-    RoboWork* w = &pObj->robo;
+    RoboWork* w = ROBO_WK(pObj);
     cPlayer* pl = pPL;
     Vec a = { 0.0f, 0.0f, 0.0f };
     Vec b = { 0.0f, 0.0f, 0.0f };

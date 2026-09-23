@@ -18,6 +18,7 @@ asm(".section .rodata\n\t.balign 8\n\t.text");
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "emdoor.h"
 #include "em_set.h"
@@ -863,17 +864,17 @@ extern "C" void Evt_R20BS00_Func(Event* e)
         if (e->NowCut == 0x2A) {
             if (e->NowFrame <= 0x10) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod2)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod2)->be_flag |= 0x40;
                 }
             } else {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod2)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod2)->be_flag &= ~0x40;
                 }
             }
         } else {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    ((cObjUnion*) mod2)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod2)->be_flag &= ~0x40;
                 }
             }
         }
@@ -883,10 +884,10 @@ extern "C" void Evt_R20BS00_Func(Event* e)
         case 0x13:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObjUnion*) mod2)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod2);
 
                     if (w && w->child) {
-                        ((cObjUnion*) mod2)->o18.ObjChainFlagCommon |= 0x04000000;
+                        OBJ18_WK((cObj18*) mod2)->ObjChainFlagCommon |= 0x04000000;
                         w->child->be_flag &= ~2;
                     }
                 }
@@ -895,10 +896,10 @@ extern "C" void Evt_R20BS00_Func(Event* e)
         default:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObjUnion*) mod2)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod2);
 
                     if (w && w->child) {
-                        ((cObjUnion*) mod2)->o18.ObjChainFlagCommon &= ~0x04000000;
+                        OBJ18_WK((cObj18*) mod2)->ObjChainFlagCommon &= ~0x04000000;
                         w->child->be_flag |= 2;
                     }
                 }

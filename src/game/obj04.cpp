@@ -4,6 +4,7 @@
 // scenario and floor (flags bit 1) until it comes to rest.
 #include "atari.h"
 #include "obj.h"
+#include "obj04.h"
 #include "esp.h"
 #include "global.h"
 #include "math_sub.h"
@@ -13,19 +14,12 @@ extern "C" {
 void Efm04RotMatrix(cObj* obj, Mtx m);
 }
 
-// Effect model (Efm): a model thrown from an effect that flies, fades and bounces off the
-// scenario/floor, following its parent until `rotFrame`.
-class cObj04 : public cObjUnion {
-public:
-    virtual void move();
-};
-
 // Per-frame Efm04 update: dies with its parent (pointer + serial), detaches from the parent at
 // rotFrame, position/speed/scale/rotation/colour envelopes (fadeStart / fadeLen / life like the
 // esp sprites), floor + scenario bounces with bounceXZ/bounceY and stops below speed 15.
 void cObj04::move()
 {
-    Efm04Work* w = &efm04;
+    Efm04Work* w = EFM04_WK(this);
     cLightInfo* li;
     Vec ref;
     Vec hitPos;
@@ -185,7 +179,7 @@ void Efm04RotMatrix(cObj* pObj, Mtx pMat)
 
     PSMTXMultVec(pMat, &pObj->pos, &pObj->pos);
     PSMTXMultVecSR(pMat, &pObj->speed, &pObj->speed);
-    PSMTXMultVecSR(pMat, &((cObj04*) pObj)->efm04.acc, &((cObj04*) pObj)->efm04.acc);
+    PSMTXMultVecSR(pMat, &EFM04_WK((cObj04*) pObj)->acc, &EFM04_WK((cObj04*) pObj)->acc);
     RotMatrix(tmp, &pObj->ang);
     PSMTXConcat(pMat, tmp, tmp);
     Matrix2AxisAngle(tmp, &pObj->ang);

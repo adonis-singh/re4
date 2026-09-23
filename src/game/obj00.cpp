@@ -5,20 +5,11 @@
 #include "atari.h"
 #include "atari_init.h"
 #include "obj.h"
+#include "obj00.h"
 #include "global.h"
 #include "math_sub.h"
 #include "snd.h"
 #include "motion.h"
-
-// Hanging object (lamp, sign, ...): follows a parts of its parent with a slerp blend, falls as a
-// three-point rope when cut, fades out when flagged.
-class cObj00 : public cObjUnion {
-public:
-    virtual void move();
-    virtual ~cObj00() {}
-
-    void setScrAtari(f32 r);
-};
 
 // One point of the falling rope (obj00FallMove).
 struct Obj00Node {
@@ -38,7 +29,7 @@ void obj00SetOya(cObj00* obj);
 // simulation, updates the parts and collision unless flagged, fades out on be_flag 0x20.
 void cObj00::move()
 {
-    Obj00Work* w = &o0;
+    Obj00Work* w = OBJ00_WK(this);
 
     if (Motion.pMot) {
         MotionMove(this, 0);
@@ -84,7 +75,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &((cObj00*) obj)->o0;
+    w = OBJ00_WK((cObj00*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         ObjMgr.destroy(obj);
         return 0;
@@ -119,7 +110,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Starts motion `mot` on the object with Mot_attr prm.
 void MotSetObj00(cObj* obj, void* mot, int prm, int a)
 {
-    Obj00Work* w = &((cObj00*) obj)->o0;
+    Obj00Work* w = OBJ00_WK((cObj00*) obj);
 
     if (obj == 0) {
         return;
@@ -133,7 +124,7 @@ void MotSetObj00(cObj* obj, void* mot, int prm, int a)
 // Attaches the object to parts partsNo of `oya` (motion cleared, no catch-up blend).
 void OyaSetObj00(cObj* obj, cModel* oya, int partsNo)
 {
-    Obj00Work* w = &((cObj00*) obj)->o0;
+    Obj00Work* w = OBJ00_WK((cObj00*) obj);
 
     if (obj == 0) {
         return;
@@ -153,7 +144,7 @@ static void obj00SetRate(cObj* obj, u32 rate)
     if (r < 1.0f) {
         r = 1.0f;
     }
-    ((cObj00*) obj)->o0.oya_hokan_add = r / 100.0f;
+    OBJ00_WK((cObj00*) obj)->oya_hokan_add = r / 100.0f;
 }
 
 // Fall simulation (be_flag bit 2): three rope nodes 300 units around the object fall under gravity
@@ -162,7 +153,7 @@ static void obj00SetRate(cObj* obj, u32 rate)
 // Obj00Work::fallSpd (1/10 units).
 void obj00FallMove(cObj00* obj)
 {
-    Obj00Work* w = &obj->o0;
+    Obj00Work* w = OBJ00_WK(obj);
     Vec ofs[3] = { { 0.0f, 0.0f, 300.0f }, { 0.0f, 0.0f, -300.0f }, { 300.0f, 0.0f, 0.0f } };
     Obj00Node node[3];
     Vec vx;
@@ -288,7 +279,7 @@ void obj00FallMove(cObj00* obj)
 // copies the parent's light class 2.
 void obj00SetOya(cObj00* pObj)
 {
-    Obj00Work* w = &pObj->o0;
+    Obj00Work* w = OBJ00_WK(pObj);
     Mtx m;
     Vec v0;
     Vec v1;

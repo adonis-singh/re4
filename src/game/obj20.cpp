@@ -5,17 +5,11 @@
 #include "light.h"
 #include "dmg.h"
 #include "obj.h"
+#include "obj20.h"
 #include "global.h"
 #include "math_sub.h"
 #include "at_mod.h"
 
-
-// Obstacle model (Oba): an invisible collision model attached to a parent object (type 0: to
-// one of its parts, type 1: to the object itself) or standing alone.
-class cObjObaModel : public cObjUnion {
-public:
-    virtual void move();
-};
 
 // Creates the obstacle on `parent` (parts partsNo + ofs for type 0, parent origin + ofs for type 1),
 // collision radius rad / height h, priority level 1, not drawn.
@@ -28,7 +22,7 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
     if (obj == 0) {
         return 0;
     }
-    w = &((cObjObaModel*) obj)->obaModel;
+    w = OBAMODEL_WK((cObjObaModel*) obj);
     if (obj->modelInit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore),
                        (void*) (pG->pCore->ofs_24 + (u32) pG->pCore)) == 0) {
         pLog->err(0, 0, "SetObaModel() failed.");
@@ -56,7 +50,7 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
 // collision update.
 void cObjObaModel::move()
 {
-    ObaModelWork* w = &obaModel;
+    ObaModelWork* w = OBAMODEL_WK(this);
 
     if (w->parent) {
         if ((w->parent->be_flag & 0x201) != 1) {
