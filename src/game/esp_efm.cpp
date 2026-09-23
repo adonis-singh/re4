@@ -239,7 +239,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.throughOn();
         light = 0x10;
         if (gen->Tool_flg & 0x80) {
             light = 4;
@@ -276,7 +276,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.throughOn();
         light = 0x10;
         if (gen->Tool_flg & 0x80) {
             light = 4;
@@ -302,7 +302,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.throughOn();
         obj->LightInfo.init2(0, 1, &efm_light_pos, &efm_light_size, 0x10);
         obj->id = GetEfmMoveId(2);
         obj = EfmSetObj09(obj, gen, info, seed, parent, m, x, rate);
@@ -753,7 +753,7 @@ cObj* SetEffModel(void* bin, void* tpl, Vec* pos, Vec* rot)
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.throughOn();
         obj->LightInfo.init2(0, 1, &efm_light_pos, &efm_light_size, 0x10);
         obj->id = 4;
         obj->setNoSuspend(1);

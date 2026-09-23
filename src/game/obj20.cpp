@@ -34,9 +34,9 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
 
     obj->type = type;
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    obj->sub2B4.atari.init(0.0f, 0.0f, 0.0f, rad, rad, rad, h, 0, 0x2000, 10);
-    obj->sub2B4.atari.clrFlag100();
-    obj->sub2B4.atari.setPriority(PRI_LV1);
+    obj->atari.init(0.0f, 0.0f, 0.0f, rad, rad, rad, h, 0, 0x2000, 10);
+    obj->atari.clrFlag100();
+    obj->atari.setPriority(PRI_LV1);
     obj->be_flag &= ~2;
     w->pEm = parent;
     w->Offset = *ofs;
@@ -67,10 +67,10 @@ void cObjObaModel::move()
         if (type == 1) {
             PSMTXMultVec(w->pEm->mat, &w->Offset, &pos);
         }
-        if (w->pEm->sub2B4.atari.m_flag & 0x200) {
-            sub2B4.atari.m_flag |= 0x200;
+        if (w->pEm->atari.m_flag & 0x200) {
+            atari.m_flag |= 0x200;
         } else {
-            sub2B4.atari.m_flag &= ~0x200;
+            atari.m_flag &= ~0x200;
         }
     }
     RotMatrix(mat, &ang);
@@ -78,5 +78,5 @@ void cObjObaModel::move()
     ScaleMatrix(mat, &scale);
     matUpdate();
     EmAtCheck(this);
-    sub2B4.atari.move();
+    atari.move();
 }

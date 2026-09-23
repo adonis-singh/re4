@@ -68,7 +68,7 @@ void cObjGovernment::init(cModel* parent)
         pLog->err(0, 0, "cObjWep::init() failed.");
         return;
     }
-    sub2B4.atari.m_flag &= 0xFCFF;
+    atari.m_flag &= 0xFCFF;
     pParts->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };

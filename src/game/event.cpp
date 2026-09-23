@@ -952,7 +952,7 @@ int Event::ExePacket_SetOm(Event* pEvt)
         return 1;
     }
     *(EvtName*) OBJ18_WK((cObj18*) obj)->NameMod = *(EvtName*) pac->mod.name;
-    obj->sub2B4.atari.throughOn();
+    obj->atari.throughOn();
     switch (type) {
     case OBJ18_TYPE_LEON ... OBJ18_TYPE_LUIS:
     case OBJ18_TYPE_TRADER ... OBJ18_TYPE_ELGIGANTE:
@@ -967,15 +967,15 @@ int Event::ExePacket_SetOm(Event* pEvt)
     case OBJ18_TYPE_LEON ... OBJ18_TYPE_LUIS:
     case OBJ18_TYPE_NO3:
         obj->be_flag |= 0x10;
-        obj->sub2B4.pFsdTbl = pl_fs_tbl;
+        obj->pFsdTbl = pl_fs_tbl;
         break;
     case OBJ18_TYPE_GANADO:
         obj->be_flag |= 0x10;
-        obj->sub2B4.pFsdTbl = Em10_fs_tbl;
+        obj->pFsdTbl = Em10_fs_tbl;
         break;
     case OBJ18_TYPE_INSECTBOSS0 ... OBJ18_TYPE_INSECTBOSS1S:
         obj->be_flag |= 0x10;
-        obj->sub2B4.pFsdTbl = Em2c_fs_tbl;
+        obj->pFsdTbl = Em2c_fs_tbl;
         break;
     }
     obj->be_flag |= 0x02001000;

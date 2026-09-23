@@ -34,7 +34,7 @@ void cObjHkSniper::init(cModel* parent)
         ObjMgr.destroy(this);
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
+    AtariFlagsAnd(&atari, 0xFCFF);
     pParts->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };

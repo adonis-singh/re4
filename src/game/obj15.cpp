@@ -51,7 +51,7 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
     w = GATLING_WK((cObjGatling*) obj);
-    obj->sub2B4.atari.throughOn();
+    obj->atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     w->pEm = 0;
     w->Break_mode = 0;

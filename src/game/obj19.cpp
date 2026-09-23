@@ -13,7 +13,7 @@ cItemObj::cItemObj()
 {
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    sub2B4.clrFlags(0xFCFF);
+    atari.throughOn();
     LightInfo.init2(0, 1, &zero, &p1, 4);
 }
 

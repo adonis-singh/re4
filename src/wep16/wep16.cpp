@@ -44,7 +44,7 @@ void cObjKnife::init()
         pLog->err(0, 0, "cObjKnife::init() failed.");
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
+    AtariFlagsAnd(&atari, 0xFCFF);
     pParts->pParent = pPL->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };

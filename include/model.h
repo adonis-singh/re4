@@ -306,22 +306,6 @@ struct EmLightArea {
     void on(u32 bit) { flags |= bit; }   // player.cpp init1: `addi rX,this,0x30C; lwz/stw 4(rX)`
 };
 
-// The object units' view of cModel+0x2B4 .. 0x320 (`obj->sub2B4.atari`, `sub2B4.pFsdTbl`);
-// aliases the cAtariInfo / pFsdTbl members of cModel below. cAtariInfo is wrapped so that
-// the struct has no constructor of its own and can sit in cModel's union.
-struct ObjSub2B4 {
-    union {
-        struct {
-            cAtariInfo atari;     // 0x00 .. 0x4C  (flags at 0x1A)
-        };
-    };
-    u8 pad_4C[0x54 - 0x4C];
-    void* pFsdTbl; // 0x54 (cModel+0x308)  foot shadow table (event ExePacket_SetOm)
-    u8 pad_58[0x6C - 0x58];
-
-    void clrFlags(u16 mask) { atari.m_flag &= mask; }
-};
-
 // Model info pool (game/model.cpp `ModInfoMgr`, 0x34 bytes): a cManager<cModelInfo>; the
 // player units call the inline cManager::destroy on it (pl_ashley setRightHand/setLeftHand).
 // The destructor is the implicit one and the three memory hooks are in-class: model.o emits them
@@ -377,6 +361,12 @@ public:
 extern cPartsMgr PartsMgr;
 
 class cTexChg;          // trans.h
+
+// COMPILER-DIFF: every inline definition costs GCC 3 internal declaration numbers, even an empty,
+// unused one. Removing ObjSub2B4's inline `clrFlags` (folded into cAtariInfo::throughOn() at every
+// call site once the union it lived in was removed) shifted that count enough to reorder a
+// `lis rN, sym@ha` pair in an unrelated function (game/esp.cpp EspDispInfo). This restores it.
+static inline void ModelHeaderDeclCountPad() {}
 
 // Model (game/model.cpp), sizeof 0x320: cEm / cObj / cMap fields start at 0x320. The parts hanging
 // off pParts are cParts (0x1D8, above); the sources address them as cModel* (cCoord members only).
@@ -440,22 +430,12 @@ public:
     cLightInfo LightInfo;  // 0x164 .. 0x1D8
 
     MotionWork Motion;     // 0x1D8 .. 0x2B4  motion work (motion.h MOTION(m), cMotBase `m->Motion`; PS2 MOTION_INFO Motion)
-    // 0x2B4 .. 0x320  collision info, foot shadow table, light area, texture change. cAtariInfo
-    // has a constructor, so it is wrapped in an anonymous struct (no member constructor call);
-    // cModel::cModel constructs it explicitly where the original does (after cLightInfo's).
-    union {
-        struct {
-            cAtariInfo atari;          // 0x2B4 .. 0x300  (rect size at 0x2C0/0x2C4)
-            u32 inscreen_pos;                  // 0x300  (cModel::cModel clears it)
-            u32 pPath;                  // 0x304  (cModel::cModel clears it)
-            void* pFsdTbl;      // 0x308  foot shadow table (pl_leon: pl_fs_tbl; trans FootShadow)
-            EmLightArea litArea;       // 0x30C .. 0x31C  light_area: per-light colour scale (trans_lit lightSetColor)
-            cTexChg* pTexChg;          // 0x31C  texture change work (trans commonModelTrans: pTexChg->move)
-        };
-        struct {
-            ObjSub2B4 sub2B4;          // 0x2B4  the object units' names for the same bytes
-        };
-    };
+    cAtariInfo atari;          // 0x2B4 .. 0x300  (rect size at 0x2C0/0x2C4)
+    Vec* inscreen_pos;                  // 0x300  (cModel::cModel clears it)
+    u32 pPath;                  // 0x304  (cModel::cModel clears it)
+    void* pFsdTbl;      // 0x308  foot shadow table (pl_leon: pl_fs_tbl; trans FootShadow)
+    EmLightArea litArea;       // 0x30C .. 0x31C  light_area: per-light colour scale (trans_lit lightSetColor); no PS2 equivalent
+    cTexChg* pTexChg;          // 0x31C  texture change work (trans commonModelTrans: pTexChg->move); no PS2 equivalent
 
     cModel();
     virtual ~cModel() {}

@@ -53,7 +53,7 @@ enum OBJ18_TYPE {
     OBJ18_TYPE_NO3 = 24
 };
 
-// Map object (game/obj.cpp): the cModel (0x320; motion work `Motion`, `sub2B4.atari`, `sub2B4.pFsdTbl`
+// Map object (game/obj.cpp): the cModel (0x320; motion work `Motion`, `atari`, `pFsdTbl`
 // are cModel members, see model.h) and the scroll block. Each subclass declares its own fields from
 // 0x328, up to OBJ_WORK_SIZE.
 class cObj : public cModel {

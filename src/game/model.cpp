@@ -52,7 +52,6 @@ static inline void LightAreaInit(EmLightArea* la)
 // alpha_omit 0xFF.
 cModel::cModel()
 {
-    new (&atari) cAtariInfo;
     LightAreaInit(&litArea);
     alpha_omit = 0xFF;
     speed.x = 0.0f;

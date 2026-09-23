@@ -94,8 +94,8 @@ cObj* SetPillar(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p1 = { 5000.0f, 5000.0f, 5000.0f };
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    AtariInit(&obj->sub2B4.atari, 0.0f, 0.0f, 0.0f, 400.0f, 400.0f, 400.0f, 5000.0f, 0, 2, 0);
-    obj->sub2B4.atari.clrFlag100();
+    AtariInit(&obj->atari, 0.0f, 0.0f, 0.0f, 400.0f, 400.0f, 400.0f, 5000.0f, 0, 2, 0);
+    obj->atari.clrFlag100();
     w->Mot_pl_escape = 0;
     w->Seq_pl_escape = 0;
     w->St_pos = obj->pos;
@@ -442,7 +442,7 @@ void cObjPillar::setBreak(Vec* pos, void* mot, void* pl_seq)
     w->Mot_pl_escape = mot;
     w->Seq_pl_escape = pl_seq;
     w->Break_pos = *pos;
-    sub2B4.atari.throughOn();
+    atari.throughOn();
     r_no_0 = 1;
     r_no_1 = 0;
     r_no_2 = 0;
@@ -464,7 +464,7 @@ void cObjPillar::setThrow(void* mot0, void* mot1, void* motEscape, void* plMot, 
     w->Mot_escape = motEscape;
     w->Mot_pl_escape = plMot;
     w->Seq_pl_escape = pl_seq;
-    sub2B4.atari.throughOn();
+    atari.throughOn();
     r_no_0 = 2;
     r_no_1 = 0;
     r_no_2 = 0;
@@ -480,7 +480,7 @@ void cObjPillar::setFall(void* mot0, void* mot1)
     pos = getPartsPtr(0)->world;
     w->Mot_fall = mot0;
     w->Mot_landing = mot1;
-    sub2B4.atari.throughOn();
+    atari.throughOn();
     r_no_0 = 4;
     r_no_1 = 0;
     r_no_2 = 0;

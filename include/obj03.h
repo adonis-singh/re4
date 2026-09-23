@@ -17,7 +17,7 @@ public:
     f32 speed;            // 0x334
     u32 flag;             // 0x338  bit0: debug draw
     cModel* pPathParent;  // 0x33C  the path follower (PathGetMatEm pMod)
-    void* path;           // 0x340  (PS2 pPath; cModel's anonymous-union pPath takes the name here)
+    void* pPath;          // 0x340
 
     cObj03();
     virtual void move();

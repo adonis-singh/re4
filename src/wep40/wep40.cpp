@@ -75,7 +75,7 @@ void cObjHkSniper::init(cModel* parent)
         ObjMgr.destroy(this);
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
+    AtariFlagsAnd(&atari, 0xFCFF);
     pParts->pParent = parent->getPartsPtr(0xA);
     pParts->pos.x = 0.5f;
     pParts->pos.y = -5.0f;

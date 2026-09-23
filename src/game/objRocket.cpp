@@ -32,7 +32,7 @@ void cObjRocket::init()
         info->color[2] = 0x80;
         info->color[3] = 0xFF;
     }
-    sub2B4.atari.throughOn();
+    atari.throughOn();
     LightInfo.init2(1, 1, &lightPos, &lightSize, 1);
     type = 0;
 }
@@ -220,7 +220,7 @@ void cObjLauncher::init(cModel* pMod)
         info->color[2] = 0xE0;
         info->color[3] = 0xFF;
     }
-    sub2B4.atari.throughOn();
+    atari.throughOn();
     LightInfo.init2(1, 1, &cObjRocket::lightPos, &cObjRocket::lightSize, 1);
     grip(0);
     m_pParent = pMod;

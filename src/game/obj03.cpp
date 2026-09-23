@@ -22,7 +22,7 @@ cObj03::cObj03()
     pathPos = 0.0f;
     speed = 0.0f;
     flag = 0;
-    sub2B4.clrFlags(0xFCFF);
+    atari.throughOn();
     LightInfo.init2(1, 1, &p0, &p1, 1);
 }
 
@@ -54,7 +54,7 @@ void cObj03::move()
     for (i = nParts - 1; i >= 0; i--) {
         cModel* parts = getPartsPtr(i);
         h = 0;
-        PathGetMatEm(path, pPathParent, t, &h, parts->mat);
+        PathGetMatEm(pPath, pPathParent, t, &h, parts->mat);
         if (flag & 1) {
             Mtx m;
             PSMTXConcat(pG->Camera.v_mat, parts->mat, m);
@@ -69,7 +69,7 @@ void cObj03::move()
         Mtx m;
         int j;
         for (j = 0; j < 500; j++) {
-            PathGetMatEm(path, pPathParent, pathLen * (f32)j / 500.0f, &hist, m);
+            PathGetMatEm(pPath, pPathParent, pathLen * (f32)j / 500.0f, &hist, m);
             pos1.x = m[0][3];
             pos1.y = m[1][3];
             pos1.z = m[2][3];

@@ -48,7 +48,7 @@ cObj* SetFloatIsland(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 3000.0f, 3000.0f, 0.0f };
 
-    obj->sub2B4.atari.throughOn();
+    obj->atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     w->Be_flg = 0;
     w->Eff_wait = (u8) ((u32) Rnd() % 30);

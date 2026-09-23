@@ -84,9 +84,9 @@ cObj* SetLadder(void* bin, void* tpl, Vec* pos, Vec* rot, int no)
     static const Vec p1 = { 5000.0f, 5000.0f, 5000.0f };
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    AtariInit(&obj->sub2B4.atari, 0.0f, 1000.0f, -700.0f, 330.0f, 600.0f, 600.0f, 1000.0f, 0, 2, 0);
-    obj->sub2B4.atari.m_flag &= ~0x100;
-    obj->sub2B4.atari.m_flag |= 0x10;
+    AtariInit(&obj->atari, 0.0f, 1000.0f, -700.0f, 330.0f, 600.0f, 600.0f, 1000.0f, 0, 2, 0);
+    obj->atari.m_flag &= ~0x100;
+    obj->atari.m_flag |= 0x10;
     if (pos) {
         obj->pos = *pos;
     } else {
@@ -129,14 +129,14 @@ void cObjLadder::move()
         w->Reset_wait--;
     }
     if (LADDER_WK(this)->be_flag & 2) {
-        sub2B4.atari.clrFlag200();
+        atari.clrFlag200();
         if (w->pHosei) {
-            w->pHosei->sub2B4.atari.clrFlag200();
+            w->pHosei->atari.clrFlag200();
         }
     } else {
         ObjLadder_R1_move_tbl[r_no_1](this);
         EmAtCheck((cEm*) this);
-        sub2B4.atari.move();
+        atari.move();
     }
 }
 
@@ -160,9 +160,9 @@ void objLadder_R1_Set(cObjLadder* pObj)
     objLadderClimbActEvtCk(pObj);
     objLadderDownActEvtCk(pObj);
     LADDER_WK(pObj)->be_flag &= ~4;
-    pObj->sub2B4.atari.setFlag200();
+    pObj->atari.setFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.setFlag200();
+        w->pHosei->atari.setFlag200();
     }
 }
 
@@ -211,9 +211,9 @@ void objLadder_R1_Fall(cObjLadder* pObj)
     v.y = pObj->pos.y;
     DmgMgr.set(DMG_TYPE_PUSH, 2, &v, 1500.0f, 1000.0f);
     objLadderSatSet(pObj);
-    pObj->sub2B4.atari.clrFlag200();
+    pObj->atari.clrFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.clrFlag200();
+        w->pHosei->atari.clrFlag200();
     }
 }
 
@@ -226,9 +226,9 @@ void objLadder_R1_Down(cObjLadder* pObj)
     pObj->matUpdate();
     objLadderResetActEvtCk(pObj);
     objLadderSatSet(pObj);
-    pObj->sub2B4.atari.clrFlag200();
+    pObj->atari.clrFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.clrFlag200();
+        w->pHosei->atari.clrFlag200();
     }
 }
 
@@ -260,9 +260,9 @@ void objLadder_R1_Reset(cObjLadder* pObj)
     }
     pObj->partsWorldCalc();
     objLadderSatSet(pObj);
-    pObj->sub2B4.atari.clrFlag200();
+    pObj->atari.clrFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.clrFlag200();
+        w->pHosei->atari.clrFlag200();
     }
 }
 
@@ -329,9 +329,9 @@ void cObjLadder::setDowned()
     cModel* parts;
 
     w->Status = 1;
-    sub2B4.atari.clrFlag200();
+    atari.clrFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.clrFlag200();
+        w->pHosei->atari.clrFlag200();
     }
     parts = getPartsPtr(0);
     parts->ang.x = 0.0f;
@@ -350,9 +350,9 @@ void cObjLadder::setDown(void* mot, void* seq)
 
     w->Status = 2;
     w->Down_wait = 17;
-    sub2B4.atari.clrFlag200();
+    atari.clrFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.clrFlag200();
+        w->pHosei->atari.clrFlag200();
     }
     MotionSetCore(this, &Motion, mot, seq, 0, 1, 0);
     r_no_0 = 1;
@@ -399,9 +399,9 @@ void cObjLadder::setDown2()
     if (parts->ang.x > -0.34906584f) {
         frame = 0xE;
     }
-    sub2B4.atari.clrFlag200();
+    atari.clrFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.clrFlag200();
+        w->pHosei->atari.clrFlag200();
     }
     MotionSetCore(this, &Motion, mot, a, 0, 1, frame);
     r_no_0 = 1;
@@ -487,16 +487,16 @@ void objLadderSatSet(cObjLadder* pObj)
 {
     LadderWork* w = LADDER_WK(pObj);
 
-    pObj->sub2B4.atari.clrFlag200();
+    pObj->atari.clrFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.clrFlag200();
+        w->pHosei->atari.clrFlag200();
     }
     if (w->Status != 0) {
         return;
     }
-    pObj->sub2B4.atari.setFlag200();
+    pObj->atari.setFlag200();
     if (w->pHosei) {
-        w->pHosei->sub2B4.atari.setFlag200();
+        w->pHosei->atari.setFlag200();
     }
 }
 

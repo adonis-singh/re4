@@ -53,7 +53,7 @@ void cObj00::move()
         }
     }
     partsWorldCalc();
-    sub2B4.atari.move();
+    atari.move();
     SatMgr.check(this, 0);
     if (w->be_flag & 0x20) {
         invisible_factor -= 0.1f;
@@ -83,7 +83,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 3000.0f, 3000.0f, 0.0f };
 
-    obj->sub2B4.atari.throughOn();
+    obj->atari.throughOn();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     if (pos) {
         obj->pos = *pos;
@@ -364,6 +364,6 @@ void obj00SetOya(cObj00* pObj)
 // Gives the object a scenario collision sphere of radius r.
 void cObj00::setScrAtari(f32 radius)
 {
-    sub2B4.atari.init(0.0f, 0.0f, 0.0f, radius, radius, radius * 0.8f, radius, 1, 0x2000, 10);
-    sub2B4.atari.scrOn();
+    atari.init(0.0f, 0.0f, 0.0f, radius, radius, radius * 0.8f, radius, 1, 0x2000, 10);
+    atari.scrOn();
 }

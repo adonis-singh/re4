@@ -39,8 +39,8 @@ void cObjCivilian::init(cModel* parent)
         pLog->err(0, 0, "cObjWep::init() failed.");
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
     pParts->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };

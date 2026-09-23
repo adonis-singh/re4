@@ -158,7 +158,7 @@ public:
 // The weapon object of player `pl` and its own cAtariInfo (the object's collision with enemies
 // while it is held).
 #define WEP_OBJ(pl) ((pl)->Wep->m_pWep)
-#define WEP_ATARI(pl) (&WEP_OBJ(pl)->sub2B4.atari)
+#define WEP_ATARI(pl) (&WEP_OBJ(pl)->atari)
 
 // knife/weapon collision (pl, top, bottom, type, flags, length)
 u32 PlWepHitCheck2(cModel* pl, Vec* pPos, Vec* pPos2, int weapon_no, u32 flag, f32 radius);

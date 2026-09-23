@@ -60,7 +60,7 @@ void cObjMine::init(cModel* parent)
         pLog->err(0, 0, "cObjMine::init() failed.");
         return;
     }
-    at = &sub2B4.atari;
+    at = &atari;
     at->init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
     AtariFlagsAnd(at, 0xFCFF);
     pParts->pParent = parent->getPartsPtr(9);

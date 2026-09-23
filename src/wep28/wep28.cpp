@@ -131,8 +131,8 @@ void cObjBow::init(cModel* parent)
         wepInitErr();
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
     pParts->pParent = parent->getPartsPtr(0x10);
     wepLightInit(this);
     m_pParent = parent;
@@ -257,8 +257,8 @@ void cObjAllow::init(cModel* parent)
         wepInitErr();
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
     wepLightInit(this);
     pos.x = -850.0f;
     pos.y = 5.0f;

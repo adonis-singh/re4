@@ -37,7 +37,7 @@ cObjWep::cObjWep()
     static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
     flag = 0;
-    sub2B4.atari.throughOn();
+    atari.throughOn();
     LightInfo.init2(1, 1, &p0, &p1, 1);
     Motion.pMot = 0;
     motReset[1] = 0;
@@ -401,7 +401,7 @@ void cObjWep::interrupt()
     if (r_no_0 == 4) {
         endReload(0);
     }
-    sub2B4.atari.clrFlag200();
+    atari.clrFlag200();
     resetMotion();
 }
 

@@ -106,8 +106,8 @@ cObj* SetBull(void* bin, void* tpl, Vec* pos, Vec* rot, u32 type)
     static const Vec p1 = { 5000.0f, 5000.0f, 5000.0f };
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    AtariInit(&obj->sub2B4.atari, 0.0f, 1000.0f, -700.0f, 350.0f, 700.0f, 700.0f, 1000.0f, 0, 2, 0);
-    obj->sub2B4.atari.throughOn();
+    AtariInit(&obj->atari, 0.0f, 1000.0f, -700.0f, 350.0f, 700.0f, 700.0f, 1000.0f, 0, 2, 0);
+    obj->atari.throughOn();
     w->pSat = 0;
     w->pSat2 = 0;
     w->pEat = 0;
