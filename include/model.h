@@ -275,6 +275,9 @@ struct MotionWork : public MotionWorkSub {
     u16* blendTbl;        // 0xD8  {count, (dst, a, b, percent)...} quaternion blended parts
 };
 
+// One key history entry (HermiteInterpolation's search start per axis).
+typedef u16 HERMITE_KEY[3];
+
 // Parts-side motion state (cParts::motParts at 0x174): a parts has no light set, the cLightInfo
 // area of a cModel holds this instead.
 struct MotionParts {
@@ -282,7 +285,7 @@ struct MotionParts {
     Vec rot;         // 0x180
     Vec scale;       // 0x18C
     f32 ikAng;       // 0x198  ik: previous twist angle of the effector (InverseKinematics; PS2 cParts ang_x_bak)
-    u16 hist[6][3];  // 0x19C  key history: rot, pos, scale; then the same for the flipped histories
+    HERMITE_KEY hist[6];  // 0x19C  key history: rot, pos, scale; then the same for the flipped histories
     u32 flags;       // 0x1C0  bit0 / bit16: animated this frame, bit1: skip partsWorldCalc, bit17: scale cancelled, bit24-25: skip blend, bit26: no cross frame, bit28: hokan pending, bit29: skip, bit30: apply cParts::inv_offset, bit31: hokan pending (blend)
                      //        ik (game/ik.cpp): bit2: IK chain root, bit4: 4-joint chain, bit6/bit11: floor search range, bit7: no IK,
                      //        bit8: heel-to-toe, bit9: no floor, bit10: reach limit, bit12: twist, bit13-15: IK plane axis
@@ -341,6 +344,7 @@ public:
 
     cParts();
     virtual ~cParts() {}
+    HERMITE_KEY* getKeyHist() { return motParts.hist; }
 };
 
 // Parts pool (game/model.cpp `PartsMgr`, 0x34 bytes): a cManager<cParts> (game.cpp instantiates
@@ -361,12 +365,6 @@ public:
 extern cPartsMgr PartsMgr;
 
 class cTexChg;          // trans.h
-
-// COMPILER-DIFF: every inline definition costs GCC 3 internal declaration numbers, even an empty,
-// unused one. Removing ObjSub2B4's inline `clrFlags` (folded into cAtariInfo::throughOn() at every
-// call site once the union it lived in was removed) shifted that count enough to reorder a
-// `lis rN, sym@ha` pair in an unrelated function (game/esp.cpp EspDispInfo). This restores it.
-static inline void ModelHeaderDeclCountPad() {}
 
 // Model (game/model.cpp), sizeof 0x320: cEm / cObj / cMap fields start at 0x320. The parts hanging
 // off pParts are cParts (0x1D8, above); the sources address them as cModel* (cCoord members only).
