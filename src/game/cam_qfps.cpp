@@ -371,14 +371,6 @@ void CameraQuasiFPS::setPlayerLocation(Mtx mat, Vec* p_norm)
     m_p_floor_norm = p_norm;
 }
 
-
-// Builds a matrix from four column vectors (right, up, look, position), as cam_sys.
-// local copy: a header definition changes game/esp's allocation (static-local renumbering)
-static inline void setColumns(Mtx m, Vec* c0, Vec* c1, Vec* c2, Vec* c3)
-{
-    MTX_SET_COLUMNS(m, c0, c1, c2, c3);
-}
-
 // The player-space frame the shoulder offsets are applied in: the player's matrix (or the
 // stored one after the search delay), one-shot translation / look-direction overrides, the up
 // axis tilted toward the floor normal by the floor ratio while not aiming, and the crouch drop
@@ -425,7 +417,7 @@ void CameraQuasiFPS::calcBaseMatrix(Mtx mat)
 #line 650 "D:/Bio4/Prog/cam_qfps.cpp"
         VECNormalize(&v0, &v0);
         PSVECCrossProduct(&v0, &v1, &v3);
-        setColumns(mat, &v0, &v1, &v3, &v4);
+        MTXSetColumns(mat, v0, v1, v3, v4);
         memclr_asm(&m_pl_dir, sizeof(Vec));
     }
     if (!pl->isKamae() && m_p_floor_norm != NULL && !StaFlagChk(pG, STA_SUB_SCRN)) {
@@ -452,7 +444,7 @@ void CameraQuasiFPS::calcBaseMatrix(Mtx mat)
             break;
         }
         }
-        setColumns(mat, &v0, &v1, &v2, &v3);
+        MTXSetColumns(mat, v0, v1, v2, v3);
     }
 }
 

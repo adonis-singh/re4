@@ -9,13 +9,6 @@
 #include "db_log.h"
 #include "math_sub.h"
 
-// Builds a matrix from four column vectors (right, up, look, position).
-// local copy: a header definition changes game/esp's allocation (static-local renumbering)
-static inline void setColumns(Mtx m, Vec* c0, Vec* c1, Vec* c2, Vec* c3)
-{
-    MTX_SET_COLUMNS(m, c0, c1, c2, c3);
-}
-
 // Rebuilds mat from pos / at keeping the current `up`: Look = pos - at, Right = up x Look, up
 // re-orthogonalised.
 void CameraSetOrientationUp(Camera* pCam)
@@ -27,7 +20,7 @@ void CameraSetOrientationUp(Camera* pCam)
 #line 37 "D:/Bio4/Prog/cam_sys.cpp"
     VECNormalize(&pCam->Right, &pCam->Right);
     PSVECCrossProduct(&pCam->Look, &pCam->Right, &pCam->Up);
-    setColumns(pCam->mat, &pCam->Right, &pCam->Up, &pCam->Look, &pCam->param.pos);
+    MTXSetColumns(pCam->mat, pCam->Right, pCam->Up, pCam->Look, pCam->param.pos);
 }
 
 // Rebuilds mat from pos / at with world up, then rolls right / up about the look axis by
@@ -66,7 +59,7 @@ void CameraSetOrientationRoll(Camera* pCam)
 #line 93 "D:/Bio4/Prog/cam_sys.cpp"
         VECNormalize(&dir, &dir);
     }
-    setColumns(pCam->mat, &right, &up, &dir, &pCam->param.pos);
+    MTXSetColumns(pCam->mat, right, up, dir, pCam->param.pos);
     pCam->Up = up;
     pCam->Look = dir;
     pCam->Right = right;
@@ -97,7 +90,7 @@ void CameraSetOrientationZeroRoll(Camera* pCam)
     VECNormalize(&up, &up);
 #line 151 "D:/Bio4/Prog/cam_sys.cpp"
     VECNormalize(&dir, &dir);
-    setColumns(pCam->mat, &right, &up, &dir, &pCam->param.pos);
+    MTXSetColumns(pCam->mat, right, up, dir, pCam->param.pos);
     pCam->Up = up;
     pCam->Look = dir;
     pCam->Right = right;

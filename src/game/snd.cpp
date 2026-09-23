@@ -2095,21 +2095,7 @@ void getCam2SndAngle(f32* h_angle, f32* v_angle, f32* dist, Vec* pos)
     fwd.y = pG->Camera.mat[1][0];
     fwd.z = pG->Camera.mat[2][0];
     PSVECCrossProduct(&fwd, &up, &right);
-    m[0][0] = fwd.x;
-    m[1][0] = fwd.y;
-    m[2][0] = fwd.z;
-    m[0][1] = up.x;
-    m[1][1] = up.y;
-    m[2][1] = up.z;
-    m[0][2] = right.x;
-    m[1][2] = right.y;
-    m[2][2] = right.z;
-    {
-        Vec* pp = &pPL->pos;
-        m[0][3] = pp->x;
-        m[1][3] = pp->y;
-        m[2][3] = pp->z;
-    }
+    MTXSetColumns(m, fwd, up, right, pPL->pos);
     PSMTXInverse(m, inv);
     PSMTXMultVec(inv, pos, &out);
     if (h_angle != NULL) {

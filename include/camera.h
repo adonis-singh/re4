@@ -28,13 +28,6 @@ struct Camera {
     f32 Distance;           // 0xF4 |pos - at| (db_cam keeps it current for the debug camera)
 };
 
-// Matrix from four column vectors (Vec*: right, up, look, position), as twelve stores.
-#define MTX_SET_COLUMNS(m, c0, c1, c2, c3)                                                    \
-    (m)[0][0] = (c0)->x; (m)[1][0] = (c0)->y; (m)[2][0] = (c0)->z;                            \
-    (m)[0][1] = (c1)->x; (m)[1][1] = (c1)->y; (m)[2][1] = (c1)->z;                            \
-    (m)[0][2] = (c2)->x; (m)[1][2] = (c2)->y; (m)[2][2] = (c2)->z;                            \
-    (m)[0][3] = (c3)->x; (m)[1][3] = (c3)->y; (m)[2][3] = (c3)->z
-
 extern "C" {
 // game/cam_sys.cpp
 void CameraSetOrientationUp(Camera* pCam);

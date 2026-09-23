@@ -62,6 +62,7 @@ public:
 
     int lineOverlap(Vec* center, Vec* w, Vec* v);
     int hitCheckSphere(Vec* pos0, Vec* pos1, f32 radius);
+    u16* getPolyPtr() { return idx; }
 };
 
 // One scenario collision piece (game/atari.cpp), returned by cSatMgr::create. Owners toggle

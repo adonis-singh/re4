@@ -59,6 +59,13 @@ public:
     void clrFlag200() { m_flag &= ~0x200; }  // emhit setParent: the parent no longer collides with enemies
     void setFlag200() { m_flag |= 0x200; }   // obj13 objLadderSatSet
     void scrOn() { m_flag &= ~0x200; m_flag |= 0x100; }  // obj00 setScrAtari
+    // PS2's collision switches: 0x100 against the scenario (Sca), 0x200 against other characters (Oba).
+    void on() { m_flag |= 0x300; }
+    void off() { m_flag &= ~0x300; }
+    void onSca() { m_flag |= 0x100; }
+    void offSca() { m_flag &= ~0x100; }
+    void onOba() { m_flag |= 0x200; }
+    void offOba() { m_flag &= ~0x200; }
 };
 
 // Collision flag bits of a cAtariInfo changed through helpers. Applied inline the same stores compile

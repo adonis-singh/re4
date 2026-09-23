@@ -347,7 +347,7 @@ void debugCamera::camera_type_00(Camera* pCam, JOY* pJoy)
 #line 452 "D:/Bio4/Prog/db_cam.cpp"
             VECNormalize(&dir, &dir);
             PSVECCrossProduct(&up, &dir, &axis);
-            MTX_SET_COLUMNS(m, &axis, &up, &dir, &trans);
+            MTXSetColumns(m, axis, up, dir, trans);
         } else {
             PSMTXIdentity(m);
         }
@@ -1093,7 +1093,7 @@ void moveOnPlaneXZ(Vec* src, Vec* dst)
         PSVECSubtract(&r, &s, &dz);
 #line 1434 "D:/Bio4/Prog/db_cam.cpp"
         VECNormalize(&dz, &dz);
-        MTX_SET_COLUMNS(m, &dx, &dz, &zero0, &zero1);
+        MTXSetColumns(m, dx, dz, zero0, zero1);
         PSMTXMultVecSR(m, src, dst);
     } else {
         Vec v;

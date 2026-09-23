@@ -2418,7 +2418,7 @@ void tcCameraMovePoint(TcCdat* c, int mode)
 #line 3204 "D:/Bio4/Prog/t_camera.cpp"
             VECNormalize(&fwd, &fwd);
             PSVECCrossProduct(&axis, &fwd, &right);
-            MTX_SET_COLUMNS(m, &right, &axis, &fwd, &zero);
+            MTXSetColumns(m, right, axis, fwd, zero);
             PSMTXMultVecSR(m, &d, &d);
         }
         break;
