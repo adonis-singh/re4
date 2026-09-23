@@ -328,16 +328,64 @@ public:
 
 extern cModInfoMgr ModInfoMgr;
 
+// Pendulum / cloth link state (game/pendulum.cpp), cParts::Pen. PS2's PEN_INFO with GC packing
+// (12-byte Vec, Fix_pos after the rates).
+struct PEN_INFO {
+    Vec Offset;      // 0x00  link vector in parts space (0, -Length, 0)
+    Vec Normal;      // 0x0C  unit link direction in parts space
+    f32 Length_l;    // 0x18  half distance to the left neighbour
+    f32 Length_r;    // 0x1C  right
+    f32 Length_lu;   // 0x20  third
+    f32 Length_ru;   // 0x24  fourth
+    Vec Speed;       // 0x28
+    Vec Pos;         // 0x34  world position of the link end
+    Vec Pos_old;     // 0x40
+    f32 Length;      // 0x4C  link length
+    f32 Gravity;     // 0x50  the five rates are not used on GC
+    f32 Fix_rate;    // 0x54
+    f32 Max_rad;     // 0x58
+    f32 Spd_rate;    // 0x5C
+    f32 Wind_rate;   // 0x60
+    Vec Fix_pos;     // 0x64  PenClothFixSet position
+    u8 At_ck;        // 0x70  bit0: collided this frame
+    u8 Flag;         // 0x71  bit0: fixed at Fix_pos
+};
+
+// Falling parts of the burst head (em3c.cpp em3cPartsBombSet / em3cPartsBombControl), cParts::Bomb.
+struct PBOMB_INFO {
+    Vec Pos[5];      // 0x00  world positions of the five corner points
+    Vec Speed[5];    // 0x3C
+    u16 Flag;        // 0x78  points on the floor this frame
+    s16 Delay;       // 0x7A  frames until the parts starts falling
+};
+
 // Model parts (game/model.cpp), 0x1D8 bytes, allocated from PartsMgr (cManager<cParts>(0x1D8)):
-// a cCoord with the parts chain and the bind matrix; the rest holds the motion / IK state
-// (motion.h IkParts at 0xF8 / MotionParts at 0x174, pendulum.h PenParts).
+// a cCoord with the parts chain and the bind matrix; from 0x128 a union by what the parts is used for
+// (motion, IK chain, pendulum link, loose burst, falling bomb piece), as on PS2.
 class cParts : public cCoord {
 public:
     cParts* pList;   // 0xF4  next parts of the model (createSequential links them). Not `next`: cManager<cParts> must keep using cUnit::next
     Mtx lt_inv_mat;     // 0xF8  bind pose matrix; setPartsOffset: identity with -mat translation
-    Vec inv_offset;      // 0x128  rotation partsWorldCalc applies (x, then z, then y) while motParts.flags bit30 is set (ik.cpp overlays IkParts len / mat here)
-    u8 pad_134[0x174 - 0x134];
-    MotionParts motParts;  // 0x174 .. 0x1C4
+    union {
+        struct {
+            Vec inv_offset;        // 0x128  rotation partsWorldCalc applies (x, then z, then y) while motParts.flags bit30 is set
+            u8 pad_134[0x174 - 0x134];
+            MotionParts motParts;  // 0x174 .. 0x1C4
+        };
+        struct {                   // IK chain parts (game/ik.cpp); motParts stays in use
+            f32 length;            // 0x128  bone length to the child parts
+            Mtx ik_inv_mat;        // 0x12C  orientation of the IK plane (SetOrientationZY transposed)
+            Vec up_vector;         // 0x15C  bend axis in parts space
+            Vec ik_dir;            // 0x168  bind pose direction from the effector to the root
+        };
+        PEN_INFO Pen;              // 0x128  pendulum / cloth link
+        struct {                   // loose parts burst (obj05.cpp Efm05)
+            u32 Kaboom_flg;        // 0x128  0 waiting, 1 flying, 2 at rest
+            Vec Kaboom_spd;        // 0x12C
+            Vec Kaboom_ang_spd;    // 0x138
+        };
+        PBOMB_INFO Bomb;           // 0x128  falling bomb piece (em3c.cpp)
+    };
     u8 pad_1C4[0x1D8 - 0x1C4];
 
     cParts();
@@ -403,13 +451,6 @@ public:
     u8 invisible_old;         // 0x14D
     u8 invisible_mode;         // 0x14E
     u8 invisible_busy;         // 0x14F
-    // 0x128 on: a *parts* cModel (never the top-level model) reuses these same bytes for a
-    // different purpose depending on what kind of parts they are -- pendulum.cpp's PEN_WORK,
-    // motion.h's IK_PARTS, em3c.h's EM3C_BOMB and obj05.h's OBJ05_KABOOM all cast starting here
-    // (`&p->pFloor_norm` or a fixed offset) instead of naming a field for every use; none of
-    // these fields are meaningful on parts that aren't in one of those specific states.
-    // 0x150..0x15C: on pendulum parts these three words are PenParts::speed (pendulum.h overlays the
-    // parts' cModel from 0x128; obj14 adds the hit impulse there); the object itself keeps its alpha at 0x154.
     u32 invisible_timer;         // 0x150  (cModel::cModel clears it as a word)
     f32 invisible_factor;             // 0x154  0..1 (obj04: work color a / 255)
     f32 invisible_factor2;              // 0x158

@@ -15,9 +15,9 @@ static void heel2toe(Mtx m, cParts* p, Vec* pos);
 }
 
 #define IK_FLAGS(p) ((p)->motParts.flags)
-#define BIND_X(p) (IK_PARTS(p)->bindMat[0][3])
-#define BIND_Y(p) (IK_PARTS(p)->bindMat[1][3])
-#define BIND_Z(p) (IK_PARTS(p)->bindMat[2][3])
+#define BIND_X(p) (p->lt_inv_mat[0][3])
+#define BIND_Y(p) (p->lt_inv_mat[1][3])
+#define BIND_Z(p) (p->lt_inv_mat[2][3])
 
 // Called by MotionSetCore for a new motion: clears the IK flags of every parts, then for each
 // joint of the motion's joint table flagged as an IK root (kind bits 0x30) marks the chain root
@@ -111,7 +111,7 @@ void IKInit(cModel* pEm, MotionWorkSub* pInfo)
         v.x = BIND_X(joint) - BIND_X(root);
         v.y = BIND_Y(joint) - BIND_Y(root);
         v.z = BIND_Z(joint) - BIND_Z(root);
-        IK_PARTS(root)->len = PSVECMag(&v);
+        root->length = PSVECMag(&v);
         if (v.y == 0.0f && v.z == 0.0f) {
             IK_FLAGS(root) |= 0x2000;
         } else if (v.x == 0.0f && v.z == 0.0f) {
@@ -124,12 +124,12 @@ void IKInit(cModel* pEm, MotionWorkSub* pInfo)
         v.x = BIND_X(eff) - BIND_X(joint);
         v.y = BIND_Y(eff) - BIND_Y(joint);
         v.z = BIND_Z(eff) - BIND_Z(joint);
-        IK_PARTS(joint)->len = PSVECMag(&v);
-        IK_PARTS(root)->dir.x = BIND_X(root) - BIND_X(eff);
-        IK_PARTS(root)->dir.y = BIND_Y(root) - BIND_Y(eff);
-        IK_PARTS(root)->dir.z = BIND_Z(root) - BIND_Z(eff);
+        joint->length = PSVECMag(&v);
+        root->ik_dir.x = BIND_X(root) - BIND_X(eff);
+        root->ik_dir.y = BIND_Y(root) - BIND_Y(eff);
+        root->ik_dir.z = BIND_Z(root) - BIND_Z(eff);
         {
-            Vec* d = &IK_PARTS(root)->dir;
+            Vec* d = &root->ik_dir;
             int n;
             if (d->x == 0.0f && d->y == 0.0f && d->z == 0.0f) {
                 goto plane_error;
@@ -149,12 +149,12 @@ void IKInit(cModel* pEm, MotionWorkSub* pInfo)
                 IK_FLAGS(root) &= ~4;
                 pLog->err(2, 0, "IKInit(): IK plane error");
             } else {
-                SetOrientationZY(&IK_PARTS(root)->dir, &axis, mtx);
-                PSMTXTranspose(mtx, IK_PARTS(root)->mat);
+                SetOrientationZY(&root->ik_dir, &axis, mtx);
+                PSMTXTranspose(mtx, root->ik_inv_mat);
                 axis.x = 1.0f;
                 axis.y = 0.0f;
                 axis.z = 0.0f;
-                PSMTXMultVec(mtx, &axis, &IK_PARTS(root)->axis);
+                PSMTXMultVec(mtx, &axis, &root->up_vector);
             }
         }
     }
@@ -180,8 +180,8 @@ void ikCalc(cParts* root, cParts* joint, cParts* eff)
     f32 c2;
 
     d = GetDistance3(&root->world, &eff->world);
-    la = IK_PARTS(root)->len;
-    lb = IK_PARTS(joint)->len;
+    la = root->length;
+    lb = joint->length;
     if (d < la + lb) {
         c1 = (la * la + d * d - lb * lb) / ((la + la) * d);
         c2 = (d * d + lb * lb - la * la) / ((d + d) * lb);
@@ -200,14 +200,14 @@ void ikCalc(cParts* root, cParts* joint, cParts* eff)
         ang1 = acosf(c1);
         ang2 = acosf(c2);
     }
-    PSMTXMultVecSR(root->mat, &IK_PARTS(root)->axis, &axis);
+    PSMTXMultVecSR(root->mat, &root->up_vector, &axis);
     PSVECSubtract(&eff->world, &root->world, &dir);
     SetOrientationZX(&dir, &axis, m);
-    PSMTXConcat(m, IK_PARTS(root)->mat, m);
-    PSMTXRotAxisRad(r1, &IK_PARTS(root)->axis, -ang1);
+    PSMTXConcat(m, root->ik_inv_mat, m);
+    PSMTXRotAxisRad(r1, &root->up_vector, -ang1);
     PSMTXConcat(m, r1, root->mat);
     TransMatrix(root->mat, &root->world);
-    PSMTXRotAxisRad(r2, &IK_PARTS(root)->axis, ang2);
+    PSMTXRotAxisRad(r2, &root->up_vector, ang2);
     PSMTXConcat(m, r2, joint->mat);
     PSMTXMultVec(root->mat, &joint->pos, &joint->world);
     TransMatrix(joint->mat, &joint->world);
@@ -345,7 +345,7 @@ void InverseKinematics(cModel* pEm, int arm_flag)
                 a.y = floorY + eff->pos.y;
                 a.z = target.z;
                 dist = GetDistance3(&p->world, &a);
-                reach = IK_PARTS(p)->len + IK_PARTS(p->pList)->len;
+                reach = p->length + p->pList->length;
                 if (target.y < floorY + eff->pos.y || ((IK_FLAGS(p) & 0x400) && dist < reach) || (IK_FLAGS(p) & 0x800)) {
                     if ((IK_FLAGS(p) & 0x800) && floorY < target.y) {
                         a.y = target.y;

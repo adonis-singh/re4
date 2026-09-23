@@ -58,17 +58,6 @@ struct Em3cWork {
 
 #define EM3C_WK(em) ((Em3cWork*) (((cEm3c*) (em))->free))
 
-// Falling parts of the burst head (em3cPartsBombSet / em3cPartsBombControl), overlaid on
-// cParts from 0x128 (inv_offset .. the motion history).
-struct Em3cPartsBomb {
-    Vec pt[5];            // 0x00 (0x128)  world positions of the five corner points
-    Vec spd[5];           // 0x3C (0x164)
-    u16 hitBits;          // 0x78 (0x1A0)  points on the floor this frame
-    u16 timer;            // 0x7A (0x1A2)  frames until the parts starts falling
-};
-
-#define EM3C_BOMB(p) ((Em3cPartsBomb*) &(p)->inv_offset)
-
 class cEm3c : public cEm {
 public:
     u8 free[0xDE0 - 0x3E0];   // 0x3E0  this class's own work (EM3C_WK)

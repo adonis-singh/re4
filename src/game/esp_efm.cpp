@@ -668,7 +668,7 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
         break;
     }
     for (p = obj->pList, i = 0; i < obj->nParts; i++, p = p->pList) {
-        OBJ05_KABOOM(p)->Kaboom_flg = 0;
+        p->Kaboom_flg = 0;
     }
     obj->matUpdate();
     if (w->Tool_flg & 4) {

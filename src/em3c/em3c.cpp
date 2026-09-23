@@ -1904,7 +1904,7 @@ void em3cPartsBombSet(cEm3c* em, int add)
     for (i = 0; i < 25; i++) {
         int no = em3c_bomb_parts[i];
         cParts* p = (cParts*) em->getPartsPtr(no);
-        Em3cPartsBomb* b;
+        PBOMB_INFO* b;
         Vec* tbl;
         int kind;
 
@@ -1912,7 +1912,7 @@ void em3cPartsBombSet(cEm3c* em, int add)
             continue;
         }
         p->motParts.flags |= 0x25000002;
-        b = EM3C_BOMB(p);
+        b = &p->Bomb;
         switch (no) {
         default:
             kind = 0;
@@ -1937,15 +1937,15 @@ void em3cPartsBombSet(cEm3c* em, int add)
         }
         tbl = pt[kind];
         for (j = 0; j < 5; j++) {
-            PSMTXMultVec(p->mat, &tbl[j], &b->pt[j]);
-            b->spd[j].x = fRand1_1() * 50.0f;
-            b->spd[j].y = fRand1_1() * 30.0f;
-            b->spd[j].z = fRand1_1() * 50.0f;
+            PSMTXMultVec(p->mat, &tbl[j], &b->Pos[j]);
+            b->Speed[j].x = fRand1_1() * 50.0f;
+            b->Speed[j].y = fRand1_1() * 30.0f;
+            b->Speed[j].z = fRand1_1() * 50.0f;
         }
         {
             u16* tp = tm + i;
             int t = *tp;
-            b->timer = add + t;
+            b->Delay = add + t;
         }
     }
 }
@@ -1958,7 +1958,7 @@ void em3cPartsBombHead(cEm3c* em)
 {
     Em3cWork* w = EM3C_WK(em);
     cParts* p;
-    Em3cPartsBomb* b;
+    PBOMB_INFO* b;
     Vec v;
     u32 j;
 
@@ -1976,14 +1976,14 @@ void em3cPartsBombHead(cEm3c* em)
     v.y = 0.0f;
     v.z = 10.0f;
     PSMTXMultVecSR(em->mat, &v, &v);
-    b = EM3C_BOMB(p);
+    b = &p->Bomb;
     for (j = 0; j < 5; j++) {
-        PSMTXMultVec(p->mat, &em3c_bomb_pt[0][j], &b->pt[j]);
-        b->spd[j].x = fRand1_1() * 10.0f + v.x;
-        b->spd[j].y = fRand1_1() * 10.0f + v.y;
-        b->spd[j].z = fRand1_1() * 10.0f + v.z;
+        PSMTXMultVec(p->mat, &em3c_bomb_pt[0][j], &b->Pos[j]);
+        b->Speed[j].x = fRand1_1() * 10.0f + v.x;
+        b->Speed[j].y = fRand1_1() * 10.0f + v.y;
+        b->Speed[j].z = fRand1_1() * 10.0f + v.z;
     }
-    b->timer = 0;
+    b->Delay = 0;
     w->HeadOffTimer = 45;
     w->Be_flg |= 0x10;
     EstSet(em, -1, 0, 0, EFF_EM3C, 4, 0, ESP_CORE_KIND_NONE, em, 0);
@@ -2012,7 +2012,7 @@ void em3cPartsBombControl(cEm3c* em)
     // declared right after `i`: gcse creates the PRE'd `bomb+C` / `p+C` / `fp+D` address pseudos in
     // hash-bucket order (hash = K + REGNO + C), and their spill slots follow that order -- `bomb`
     // must be pseudo p+2 (or p+3) for the target's 0xb0/0xb4/0xbc slots
-    Em3cPartsBomb* bomb;
+    PBOMB_INFO* bomb;
     u32 n;
     u32 j;
     u32 k;
@@ -2051,16 +2051,16 @@ void em3cPartsBombControl(cEm3c* em)
             kind = 3;
             break;
         }
-        bomb = EM3C_BOMB(p);
-        if (bomb->timer) {
-            bomb->timer--;
+        bomb = &p->Bomb;
+        if (bomb->Delay) {
+            bomb->Delay--;
             continue;
         }
         for (k = 0; k < 5; k++) {
-            bomb->spd[k].y -= 10.0f;
-            old[k] = bomb->pt[k];
-            PSVECAdd(&bomb->pt[k], &bomb->spd[k], &bomb->pt[k]);
-            bomb->hitBits = 0;
+            bomb->Speed[k].y -= 10.0f;
+            old[k] = bomb->Pos[k];
+            PSVECAdd(&bomb->Pos[k], &bomb->Speed[k], &bomb->Pos[k]);
+            bomb->Flag = 0;
         }
         for (n = 0; n < 5; n++) {
             for (j = 0; j < 5; j++) {
@@ -2072,20 +2072,20 @@ void em3cPartsBombControl(cEm3c* em)
                         // the length is the routine-scope `sum` (the same pseudo accumulates the speeds
                         // below): a multi-block pseudo that crosses calls, so it takes the callee-saved
                         // f31 (`fmr f31,f1`) and the 0.5/1.0 constants fall to f29/f30 like the target
-                        PSVECSubtract(&bomb->pt[k], &bomb->pt[j], &cen);
+                        PSVECSubtract(&bomb->Pos[k], &bomb->Pos[j], &cen);
                         sum = PSVECMag(&cen);
                         s = (em3c_bomb_dist[kind][j][k] - sum) * 0.5f;
                         r = 1.0f / sum;
                         PSVECScale(&cen, &cen, r * s);
-                        PSVECAdd(&bomb->pt[k], &cen, &bomb->pt[k]);
-                        PSVECSubtract(&bomb->pt[j], &cen, &bomb->pt[j]);
-                        if (bomb->pt[j].y < em->pos.y) {
-                            bomb->pt[j].y = em->pos.y;
-                            bomb->hitBits |= 1 << j;
+                        PSVECAdd(&bomb->Pos[k], &cen, &bomb->Pos[k]);
+                        PSVECSubtract(&bomb->Pos[j], &cen, &bomb->Pos[j]);
+                        if (bomb->Pos[j].y < em->pos.y) {
+                            bomb->Pos[j].y = em->pos.y;
+                            bomb->Flag |= 1 << j;
                         }
-                        if (bomb->pt[k].y < em->pos.y) {
-                            bomb->pt[k].y = em->pos.y;
-                            bomb->hitBits |= 1 << k;
+                        if (bomb->Pos[k].y < em->pos.y) {
+                            bomb->Pos[k].y = em->pos.y;
+                            bomb->Flag |= 1 << k;
                         }
                     }
                 }
@@ -2093,25 +2093,25 @@ void em3cPartsBombControl(cEm3c* em)
         }
         sum = 0.0f;
         for (j = 0; j < 5; j++) {
-            if ((bomb->hitBits >> j) & 1) {
-                bomb->spd[j].x *= 0.8f;
-                bomb->spd[j].y *= fRand0_1() * 0.2f + -0.6f;
-                bomb->spd[j].z *= 0.8f;
+            if ((bomb->Flag >> j) & 1) {
+                bomb->Speed[j].x *= 0.8f;
+                bomb->Speed[j].y *= fRand0_1() * 0.2f + -0.6f;
+                bomb->Speed[j].z *= 0.8f;
                 if (no == 3 && (w->Be_flg & 0x50) == 0x10) {
                     SndCall(8, 8, &em->pos, em->id, 0, em);
                     w->Be_flg |= 0x40;
                 }
             } else {
-                PSVECSubtract(&bomb->pt[j], &old[j], &bomb->spd[j]);
-                PSVECScale(&bomb->spd[j], &bomb->spd[j], 0.999f);
+                PSVECSubtract(&bomb->Pos[j], &old[j], &bomb->Speed[j]);
+                PSVECScale(&bomb->Speed[j], &bomb->Speed[j], 0.999f);
             }
-            sum += bomb->spd[j].x * bomb->spd[j].x + bomb->spd[j].y * bomb->spd[j].y + bomb->spd[j].z * bomb->spd[j].z;
+            sum += bomb->Speed[j].x * bomb->Speed[j].x + bomb->Speed[j].y * bomb->Speed[j].y + bomb->Speed[j].z * bomb->Speed[j].z;
         }
         if (sum < 1.0f) {
             p->motParts.flags &= ~0x01000000;
         }
-        PSVECSubtract(&bomb->pt[0], &bomb->pt[1], &c);
-        PSVECSubtract(&bomb->pt[2], &bomb->pt[3], &a);
+        PSVECSubtract(&bomb->Pos[0], &bomb->Pos[1], &c);
+        PSVECSubtract(&bomb->Pos[2], &bomb->Pos[3], &a);
         PSVECCrossProduct(&c, &a, &b);
         PSVECCrossProduct(&b, &c, &a);
 #line 2959 "D:/Bio4/Prog/em3c.cpp"
@@ -2127,7 +2127,7 @@ void em3cPartsBombControl(cEm3c* em)
         p->mat[0][2] = c.x;
         p->mat[1][2] = c.y;
         p->mat[2][2] = c.z;
-        PSVECAdd(&bomb->pt[0], &bomb->pt[1], &cen);
+        PSVECAdd(&bomb->Pos[0], &bomb->Pos[1], &cen);
         PSVECScale(&cen, &cen, 0.5f);
         TransMatrix(p->mat, &cen);
         ScaleMatrix(p->mat, &p->scale);
@@ -2140,7 +2140,7 @@ void em3cPartsBombControl(cEm3c* em)
             for (j = 0; j < 5; j++) {
                 for (k = 0; k < 5; k++) {
                     if (j != k) {
-                        Draw_line3d(&bomb->pt[j], &bomb->pt[k], 0xFFFFFFFF, 0);
+                        Draw_line3d(&bomb->Pos[j], &bomb->Pos[k], 0xFFFFFFFF, 0);
                     }
                 }
             }

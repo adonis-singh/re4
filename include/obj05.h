@@ -6,8 +6,8 @@
 #include "obj.h"
 
 // Effect model with loose parts (game/obj05.cpp `Efm05`): the obj04 scale / colour fade with the
-// parts burst parameters; each parts keeps its own state in its cModel (Kaboom_flg / Kaboom_spd /
-// Kaboom_ang_spd, OBJ05_KABOOM below).
+// parts burst parameters; each parts keeps its own state in cParts (Kaboom_flg / Kaboom_spd /
+// Kaboom_ang_spd).
 struct Efm05Work {
     EfmCore Eff_core;       // 0x00
     Vec Ang_plus;           // 0x0C  added to rot every frame
@@ -46,17 +46,6 @@ struct Efm05Work {
     Vec RefRate;            // 0x7C  x/z: horizontal, y: vertical rebound rate (EfmSetObj05: EspGenWork xE4 * 0.1; PS2 OBJ05_FREE RefRate)
     u32 Rand_seed;          // 0x88  fRandSeed1_1 seed
 };
-
-// Loose-parts burst state (PS2 cParts anonymous union, Kaboom_flg/Kaboom_spd/Kaboom_ang_spd
-// branch), overlaid on the parts from 0x128 (cParts::inv_offset on): same idiom as
-// pendulum.cpp's PEN_WORK, motion.h's IK_PARTS and em3c.h's EM3C_BOMB.
-struct Obj05PartsKaboom {
-    u32 Kaboom_flg;      // 0x128  0 waiting, 1 flying, 2 at rest
-    Vec Kaboom_spd;      // 0x12C
-    Vec Kaboom_ang_spd;  // 0x138
-};
-
-#define OBJ05_KABOOM(p) ((Obj05PartsKaboom*) &(p)->inv_offset)
 
 // Effect model with loose parts (Efm05): the model scales and fades like obj04 while each parts
 // bursts away from `center` once it comes within `range`, flying with its own speed / rotation

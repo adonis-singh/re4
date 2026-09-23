@@ -100,33 +100,33 @@ void cObj05::move()
     rotAmp = (f32) (int) w->Kaboom_rot * 0.005f;
 
     for (i = 0, p = pList; i < nParts; i++, p = p->pList) {
-        if (OBJ05_KABOOM(p)->Kaboom_flg == 0) {
+        if (p->Kaboom_flg == 0) {
             PSVECAdd(&pos, &w->Kaboom_pos, &d);
             PSVECSubtract(&p->world, &d, &d);
             if (PSVECMag(&d) < range || w->Kaboom_spd == 0xFF) {
-                OBJ05_KABOOM(p)->Kaboom_flg = 1;
+                p->Kaboom_flg = 1;
                 if (d.x == 0.0f && d.y == 0.0f && d.z == 0.0f) {
                     d.y = 1.0f;
                 }
 #line 162 "D:/Bio4/Prog/obj05.cpp"
-                VECNormalize(&d, &OBJ05_KABOOM(p)->Kaboom_spd);
+                VECNormalize(&d, &p->Kaboom_spd);
                 amp = pow * rnd;
-                PSVECScale(&OBJ05_KABOOM(p)->Kaboom_spd, &OBJ05_KABOOM(p)->Kaboom_spd, pow);
-                OBJ05_KABOOM(p)->Kaboom_spd.x += amp * fRandSeed1_1(&w->Rand_seed);
-                OBJ05_KABOOM(p)->Kaboom_spd.y += amp * fRandSeed1_1(&w->Rand_seed);
-                OBJ05_KABOOM(p)->Kaboom_spd.z += amp * fRandSeed1_1(&w->Rand_seed);
-                OBJ05_KABOOM(p)->Kaboom_ang_spd.x = rotAmp * fRandSeed1_1(&w->Rand_seed);
-                OBJ05_KABOOM(p)->Kaboom_ang_spd.y = rotAmp * fRandSeed1_1(&w->Rand_seed);
-                OBJ05_KABOOM(p)->Kaboom_ang_spd.z = rotAmp * fRandSeed1_1(&w->Rand_seed);
+                PSVECScale(&p->Kaboom_spd, &p->Kaboom_spd, pow);
+                p->Kaboom_spd.x += amp * fRandSeed1_1(&w->Rand_seed);
+                p->Kaboom_spd.y += amp * fRandSeed1_1(&w->Rand_seed);
+                p->Kaboom_spd.z += amp * fRandSeed1_1(&w->Rand_seed);
+                p->Kaboom_ang_spd.x = rotAmp * fRandSeed1_1(&w->Rand_seed);
+                p->Kaboom_ang_spd.y = rotAmp * fRandSeed1_1(&w->Rand_seed);
+                p->Kaboom_ang_spd.z = rotAmp * fRandSeed1_1(&w->Rand_seed);
             }
         }
-        if (OBJ05_KABOOM(p)->Kaboom_flg == 1) {
+        if (p->Kaboom_flg == 1) {
             PSMTXInverse(p->pParent->mat, inv);
-            PSMTXMultVecSR(inv, &OBJ05_KABOOM(p)->Kaboom_spd, &v);
+            PSMTXMultVecSR(inv, &p->Kaboom_spd, &v);
             PSVECAdd(&p->pos, &v, &p->pos);
-            PSVECScale(&OBJ05_KABOOM(p)->Kaboom_spd, &OBJ05_KABOOM(p)->Kaboom_spd, w->Kaboom_d_spd);
-            OBJ05_KABOOM(p)->Kaboom_spd.y += w->Kaboom_gravity;
-            PSVECAdd(&p->ang, &OBJ05_KABOOM(p)->Kaboom_ang_spd, &p->ang);
+            PSVECScale(&p->Kaboom_spd, &p->Kaboom_spd, w->Kaboom_d_spd);
+            p->Kaboom_spd.y += w->Kaboom_gravity;
+            PSVECAdd(&p->ang, &p->Kaboom_ang_spd, &p->ang);
             p->ang.x = LIMIT_ANGLE(p->ang.x);
             p->ang.y = LIMIT_ANGLE(p->ang.y);
             p->ang.z = LIMIT_ANGLE(p->ang.z);
@@ -138,13 +138,13 @@ void cObj05::move()
                     p->world = hitPos;
                     hit = 1;
                     PSVECAdd(&nrm, &p->world, &p->world);
-                    len = RootSumSquare3(&OBJ05_KABOOM(p)->Kaboom_spd);
+                    len = RootSumSquare3(&p->Kaboom_spd);
                     nrm.x = -nrm.x;
                     nrm.y = -nrm.y;
                     nrm.z = -nrm.z;
-                    C_VECReflect(&OBJ05_KABOOM(p)->Kaboom_spd, &nrm, &ref);
-                    PSVECScale(&ref, &OBJ05_KABOOM(p)->Kaboom_spd, len * w->RefRate.x);
-                    PSVECScale(&OBJ05_KABOOM(p)->Kaboom_ang_spd, &OBJ05_KABOOM(p)->Kaboom_ang_spd, -0.8f);
+                    C_VECReflect(&p->Kaboom_spd, &nrm, &ref);
+                    PSVECScale(&ref, &p->Kaboom_spd, len * w->RefRate.x);
+                    PSVECScale(&p->Kaboom_ang_spd, &p->Kaboom_ang_spd, -0.8f);
                 }
             } else if (w->Tool_flg & 1) {
                 f32 floor = EatMgr.getFloor(&p->world, &attr, 600.0f, 100000.0f, 0);
@@ -154,12 +154,12 @@ void cObj05::move()
                     floor = 0.0f;
                 }
                 if (p->world.y - ofs < floor) {
-                    OBJ05_KABOOM(p)->Kaboom_spd.x = OBJ05_KABOOM(p)->Kaboom_spd.x * w->RefRate.x;
-                    OBJ05_KABOOM(p)->Kaboom_spd.y = OBJ05_KABOOM(p)->Kaboom_spd.y * -w->RefRate.y;
-                    OBJ05_KABOOM(p)->Kaboom_spd.z = OBJ05_KABOOM(p)->Kaboom_spd.z * w->RefRate.x;
+                    p->Kaboom_spd.x = p->Kaboom_spd.x * w->RefRate.x;
+                    p->Kaboom_spd.y = p->Kaboom_spd.y * -w->RefRate.y;
+                    p->Kaboom_spd.z = p->Kaboom_spd.z * w->RefRate.x;
                     p->world.y = floor + ofs;
                     hit = 1;
-                    PSVECScale(&OBJ05_KABOOM(p)->Kaboom_ang_spd, &OBJ05_KABOOM(p)->Kaboom_ang_spd, 0.8f);
+                    PSVECScale(&p->Kaboom_ang_spd, &p->Kaboom_ang_spd, 0.8f);
                     if (w->Tool_flg & 8) {
                         f32 ry;
 
@@ -167,7 +167,7 @@ void cObj05::move()
                         p->ang.y = LIMIT_ANGLE(p->ang.y);
                         p->ang.z = LIMIT_ANGLE(p->ang.z);
                         p->ang.x += PI / 2;
-                        PSVECScale(&OBJ05_KABOOM(p)->Kaboom_ang_spd, &OBJ05_KABOOM(p)->Kaboom_ang_spd, -0.9f);
+                        PSVECScale(&p->Kaboom_ang_spd, &p->Kaboom_ang_spd, -0.9f);
                         ry = p->ang.y;
                         PSVECScale(&p->ang, &p->ang, 0.55f);
                         p->ang.y = ry;
@@ -177,7 +177,7 @@ void cObj05::move()
             }
             if (hit) {
                 PSMTXMultVec(inv, &p->world, &p->pos);
-                if (PSVECMag(&OBJ05_KABOOM(p)->Kaboom_spd) < 15.0f) {
+                if (PSVECMag(&p->Kaboom_spd) < 15.0f) {
                     if ((w->Tool_flg & 8) && fabsf(p->ang.x + PI / 2) > 0.4f) {
                         f32 ry;
 
@@ -185,13 +185,13 @@ void cObj05::move()
                         p->ang.y = LIMIT_ANGLE(p->ang.y);
                         p->ang.z = LIMIT_ANGLE(p->ang.z);
                         p->ang.x += PI / 2;
-                        PSVECScale(&OBJ05_KABOOM(p)->Kaboom_ang_spd, &OBJ05_KABOOM(p)->Kaboom_ang_spd, -0.7f);
+                        PSVECScale(&p->Kaboom_ang_spd, &p->Kaboom_ang_spd, -0.7f);
                         ry = p->ang.y;
                         PSVECScale(&p->ang, &p->ang, 0.8f);
                         p->ang.y = ry;
                         p->ang.x -= PI / 2;
                     } else {
-                        OBJ05_KABOOM(p)->Kaboom_flg = 2;
+                        p->Kaboom_flg = 2;
                     }
                 }
             }

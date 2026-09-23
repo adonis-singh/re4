@@ -2190,7 +2190,7 @@ void cSubChar::neckCtrl()
             m_NeckVec.y = -0.78539819f;
         }
     }
-    IK_PARTS(p)->mat[0][0] = m_NeckVec.y;
+    p->ik_inv_mat[0][0] = m_NeckVec.y;
     m_NeckTimer = 0;
 }
 
