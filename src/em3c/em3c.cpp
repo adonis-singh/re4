@@ -449,7 +449,7 @@ void cEm3c::move()
     if (w->HeadOffTimer) {
         w->HeadOffTimer--;
         if (w->HeadOffTimer == 0) {
-            cModel* p;
+            cParts* p;
 
             p = getPartsPtr(3);
             p->scale.x = 0.0f;
@@ -479,10 +479,10 @@ void cEm3c::move()
                 break;
             }
         }
-        if (w->pCore && w->pCore->pParts && (w->pCore->be_flag & 0x201) == 1) {
+        if (w->pCore && w->pCore->pList && (w->pCore->be_flag & 0x201) == 1) {
             Mtx inv;
             Vec v;
-            cModel* p;
+            cParts* p;
 
             PSMTXInverse(getPartsPtr(2)->mat, inv);
             switch (type) {
@@ -1640,7 +1640,7 @@ int em3cAtkCk(cEm3c* em, Vec* pos, int no)
 {
     Em3cWork* w = EM3C_WK(em);
     EmAtkInfo* atk = &em3c_atk_tbl[no];
-    cModel* p = GetPartsAddr(em->pParts, 0x1A);
+    cParts* p = GetPartsAddr(em->pList, 0x1A);
     int hit = EmAtkHitCk(atk, pos, &p->world_old2, no == 2);
 
     if (hit) {
@@ -1683,7 +1683,7 @@ int em3cAtkCk(cEm3c* em, Vec* pos, int no)
 int em3cAtkCk2(cEm3c* em, int no)
 {
     Em3cWork* w = EM3C_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
 
     if (w->Atk_ck) {
@@ -1692,7 +1692,7 @@ int em3cAtkCk2(cEm3c* em, int no)
     if (!(em->Motion.Seq_old.Free & 1)) {
         return 0;
     }
-    p = GetPartsAddr(em->pParts, 0x1A);
+    p = GetPartsAddr(em->pList, 0x1A);
     v.x = 0.0f;
     v.y = 0.0f;
     v.z = 0.0f;
@@ -1700,7 +1700,7 @@ int em3cAtkCk2(cEm3c* em, int no)
     if (em3cAtkCk(em, &v, no)) {
         return 1;
     }
-    p = GetPartsAddr(em->pParts, 0x1A);
+    p = GetPartsAddr(em->pList, 0x1A);
     v.x = 0.0f;
     v.y = 0.0f;
     v.z = 500.0f;
@@ -1708,7 +1708,7 @@ int em3cAtkCk2(cEm3c* em, int no)
     if (em3cAtkCk(em, &v, no)) {
         return 1;
     }
-    p = GetPartsAddr(em->pParts, 0x1A);
+    p = GetPartsAddr(em->pList, 0x1A);
     v.x = 0.0f;
     v.y = 0.0f;
     v.z = 1000.0f;
@@ -1717,7 +1717,7 @@ int em3cAtkCk2(cEm3c* em, int no)
         return 1;
     }
     if (w->Wep_type == 0) {
-        p = GetPartsAddr(em->pParts, 0x1A);
+        p = GetPartsAddr(em->pList, 0x1A);
         v.x = 0.0f;
         v.y = 0.0f;
         v.z = 1500.0f;

@@ -58,7 +58,7 @@ void cObjObaModel::move()
             return;
         }
         if (type == 0) {
-            cModel* parts = w->pEm->getPartsPtr(w->Parts_no);
+            cParts* parts = w->pEm->getPartsPtr(w->Parts_no);
             PSMTXMultVec(parts->mat, &w->Offset, &pos);
             if (pos.y < w->pEm->pos.y + 2000.0f) {
                 pos.y = w->pEm->pos.y;

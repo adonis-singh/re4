@@ -4986,7 +4986,7 @@ address	size	section	unit	scope	name	demangled
 0x80159530	0x2DC	.text	game/model.cpp	global	matBlend__6cModelf	cModel::matBlend
 0x8015980C	0x60	.text	game/model.cpp	global	zeroPartsPosInit__6cModelP3VecT1	cModel::zeroPartsPosInit
 0x8015986C	0x2E0	.text	game/model.cpp	global	partsWorldCalc__6cModel	cModel::partsWorldCalc
-0x80159B4C	0x44	.text	game/model.cpp	global	setParent__6cModelP6cModelP3VecT2	cModel::setParent
+0x80159B4C	0x44	.text	game/model.cpp	global	setParent__6cModelP6cCoordP3VecT2	cModel::setParent
 0x80159B90	0xE8	.text	game/model.cpp	global	setParent__6cModelP6cModeliP3VecT3	cModel::setParent
 0x80159C78	0x78	.text	game/model.cpp	global	updateOldPos__6cModel	cModel::updateOldPos
 0x80159CF0	0x11C	.text	game/model.cpp	global	setPos__6cModelP3Vec	cModel::setPos

@@ -250,10 +250,10 @@ static void R318ExecSitEnd()
 void R318LaserCallBackFunc(cObj* obj)
 {
     if ((pG->Room_flg[0] & 0x00020000) && obj->isTrans() == 1) {
-        register cModel* q asm("r28");
+        register cParts* q asm("r28");
         register Vec* pa asm("r10");
-        cModel* p2 = GetPartsAddr(obj->pParts, 2);
-        cModel* p4 = GetPartsAddr(obj->pParts, 4);
+        cParts* p2 = GetPartsAddr(obj->pList, 2);
+        cParts* p4 = GetPartsAddr(obj->pList, 4);
         int k = 2;
         do {
         } while (0);
@@ -857,8 +857,8 @@ static void R318EventLaserMove(int no)
                 for (i = 0; i < num; i++) {
                     laser = r318_work->laser[i];
                     if (laser) {
-                        cModel* p2 = laser->getPartsPtr(2);
-                        cModel* p4 = laser->getPartsPtr(4);
+                        cParts* p2 = laser->getPartsPtr(2);
+                        cParts* p4 = laser->getPartsPtr(4);
 
                         if (p2 && p4 && EmAtkLineHitCk(&p2->world, &p4->world, &hit, &nrm, 0)) {
                             LaserHit();
@@ -869,7 +869,7 @@ static void R318EventLaserMove(int no)
             if (mode == 1) {
                 laser = r318_work->laser[0];
                 if (laser) {
-                    cModel* p2 = laser->getPartsPtr(2);
+                    cParts* p2 = laser->getPartsPtr(2);
 
                     if (p2) {
                         if (__builtin_fabsf(p2->world.x - pPL->pos.x) <= dist[no]) {
@@ -908,7 +908,7 @@ static void R318EventLaserMove(int no)
             if (mode == 0) {
                 laser = r318_work->laser[0];
                 if (laser) {
-                    cModel* p2 = laser->getPartsPtr(2);
+                    cParts* p2 = laser->getPartsPtr(2);
 
                     if (p2) {
                         if (__builtin_fabsf(p2->world.x - pPL->pos.x) <= dist[no]) {
@@ -960,10 +960,10 @@ void R318EventLaserEnd(int no)
 
             laser->be_flag &= ~2;
             if (no != 4) {
-                register cModel* t asm("r28");
-                cModel* p2 = GetPartsAddr(laser->pParts, 2);
+                register cParts* t asm("r28");
+                cParts* p2 = GetPartsAddr(laser->pList, 2);
                 t = p2;
-                cModel* p4 = GetPartsAddr(laser->pParts, 4);
+                cParts* p4 = GetPartsAddr(laser->pList, 4);
                 Vec rot[2];  // one array: rot[1] at fp+0x1c (two Vec locals would be 8-aligned)
 
                 Matrix2AxisAngle(t->mat, &rot[0]);

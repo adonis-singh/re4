@@ -63,7 +63,7 @@ cModel::cModel()
     Wall_norm.x = 0.0f;
     Wall_norm.y = 0.0f;
     Wall_norm.z = 0.0f;
-    pParts = 0;
+    pList = 0;
     r_no_0 = 0;
     r_no_1 = 0;
     r_no_2 = 0;
@@ -161,7 +161,7 @@ int cModel::initJoint(void* bin)
     }
     if (makePartsList(0) == 0) {
         nParts = 0;
-        pParts = 0;
+        pList = 0;
         return 0;
     }
     setPartsParent();
@@ -173,7 +173,7 @@ int cModel::initJoint(void* bin)
 // Frees the parts list.
 void cModel::releaseJoint()
 {
-    if (pParts != NULL) {
+    if (pList != NULL) {
         releasePartsList(0);
     }
 }
@@ -286,23 +286,23 @@ inline int cModel::isTrans()
 
 // Parts `no` (-1: the model itself); NULL and a log when the chain is shorter. Defined here so
 // that the callers below inline it while setPartsParent above calls it.
-inline cModel* cModel::getPartsPtr(int idx)
+inline cParts* cModel::getPartsPtr(int idx)
 {
-    cModel* p = pParts;
+    cParts* p = pList;
     int cnt;
 
     if (idx < 0) {
-        return this;
+        return (cParts*) this;
     }
     cnt = idx;
     if (!VALID_PTR(p)) {
         return 0;
     }
     if (be_flag & 0x2000) {
-        p = (cModel*) ((cParts*) p + idx);
+        p += idx;
     } else if (idx--) {
         do {
-            cModel* next = p->pParts;
+            cParts* next = p->pList;
             if (!VALID_PTR(next)) {
                 pLog->err(0, 0, "cModel::getPartsPtr() cParts NO ERROR %d", cnt);
                 return 0;
@@ -470,7 +470,7 @@ void cModel::partsWorldCalc()
 }
 
 // Attaches the root parts to another model (parent coordinate) with an offset and rotation.
-void cModel::setParent(cModel* pCoord, Vec* pos0, Vec* ang0)
+void cModel::setParent(cCoord* pCoord, Vec* pos0, Vec* ang0)
 {
     cParts* p = pList;
 
@@ -688,9 +688,9 @@ void cModel::addModel(cModelInfo* pInfo)
 // Remembers parts `no`'s world position so partsFixAdjust can keep it planted (foot lock).
 void cModel::partsFixMemory(int fix_parts)
 {
-    cModel* p;
+    cParts* p;
 
-    if (pParts == NULL) {
+    if (pList == NULL) {
         Fix_parts = 0;
         return;
     }
@@ -703,7 +703,7 @@ void cModel::partsFixMemory(int fix_parts)
 // world positions; clears the lock.
 void cModel::partsFixAdjust()
 {
-    cModel* p;
+    cParts* p;
     Vec d;
 
     if (Fix_parts == 0) {
@@ -1141,7 +1141,7 @@ void cModel::setJointInfo(void* pHead)
     }
 }
 
-// Frees the parts from index `no` to the end (0 = all, clearing pParts/nParts).
+// Frees the parts from index `no` to the end (0 = all, clearing pList/nParts).
 void cModel::releasePartsList(int idx)
 {
     cParts* p;
@@ -1160,7 +1160,7 @@ void cModel::releasePartsList(int idx)
         pm->destroy(dead);
     }
     if (idx == 0) {
-        pParts = 0;
+        pList = 0;
         nParts = 0;
         return;
     }
@@ -1190,7 +1190,7 @@ void cModel::motionPause()
 void cModel::matUpdate()
 {
     cCoord::matUpdate();
-    if (pParts != NULL) {
+    if (pList != NULL) {
         partsMatCalc();
         partsWorldCalc();
     }
@@ -1373,8 +1373,8 @@ cModelInfo* cModInfoMgr::create(void* bin, void* tpl)
 
 cModInfoMgr ModInfoMgr;
 
-// Parts `no` by walking the pParts chain from `parts`.
-cModel* GetPartsAddr(cModel* pList, int idx)
+// Parts `no` by walking the pList chain from `parts`.
+cParts* GetPartsAddr(cParts* pList, u32 idx)
 {
     int cnt = idx;
 
@@ -1384,7 +1384,7 @@ cModel* GetPartsAddr(cModel* pList, int idx)
     }
     if (idx--) {
         do {
-            cModel* next = pList->pParts;
+            cParts* next = pList->pList;
             if (!VALID_PTR(next)) {
                 pLog->err(0, 0, "GetPartsAddr() cParts NO ERROR %d", cnt);
                 break;

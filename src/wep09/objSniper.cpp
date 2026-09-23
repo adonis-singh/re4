@@ -47,7 +47,7 @@ void cObjSniper::init(cModel* parent)
         return;
     }
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -89,7 +89,7 @@ void cObjSniper::moveFire()
 // at (-240, -20, 70) with a random +-15 spread, gravity 10, 40 frames, landing effect 0x13.
 void cObjSniper::setCartridge()
 {
-    cModel* parts = getPartsPtr(1);
+    cParts* parts = getPartsPtr(1);
     Vec pos;
     Vec rot;
     Vec spd;

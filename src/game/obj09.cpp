@@ -645,7 +645,7 @@ void cObj09::move()
     if (dist < pl_spd_dist) {
 #line 990 "D:/Bio4/Prog/obj09.cpp"
         VECNormalize(&d, &n2);
-        PSVECSubtract(&pPL->pParts->world, &pPL->pParts->world_old2, &v);
+        PSVECSubtract(&pPL->pList->world, &pPL->pList->world_old2, &v);
         PSVECScale(&v, &v, (dist - pl_spd_dist) * pl_spd_mul * w->m);
         PSVECScale(&n2, &n2, (dist - pl_spd_dist) * pl_spd_mul2 * w->m);
         PSVECAdd(&v, &n2, &v);

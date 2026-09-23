@@ -532,7 +532,7 @@ static void em2f_R1_Swim(cEm2f* em)
         w->timer--;
     }
     {
-        cModel* p = em->getPartsPtr(8);
+        cParts* p = em->getPartsPtr(8);
 
         d = (p->world.x - w->nextPos.x) * (p->world.x - w->nextPos.x)
             + (p->world.z - w->nextPos.z) * (p->world.z - w->nextPos.z);
@@ -1339,7 +1339,7 @@ static void em2fScaleSet(cEm2f* em)
 // Water splash on the parts `no`.
 static inline void em2fWaterPower(cEm2f* em, int no)
 {
-    cModel* p = em->getPartsPtr(no);
+    cParts* p = em->getPartsPtr(no);
 
     AddWaterPower(p->world, fRand0_1() * 0.3f + 0.3f);
 }
@@ -1697,7 +1697,7 @@ void em2fIslandCrashCk(cEm2f* em)
 
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj1c* o = (cObj1c*) ObjMgr.fastAt(i);
-        cModel* p;
+        cParts* p;
         f32 r;
         f32 d;
 

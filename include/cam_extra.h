@@ -6,6 +6,7 @@
 #include "camera.h"
 
 class cModel;
+class cParts;
 
 // Placement new used to construct camera objects inside CameraControl::extra_buf.
 #ifndef PLACEMENT_NEW_DEFINED
@@ -146,7 +147,7 @@ public:
 class CameraLookAt : public cCamera {
 public:
     u8 pad_FC[4];
-    cModel* m_target_parts;  // 0x100  hand parts looked at
+    cParts* m_target_parts;  // 0x100  hand parts looked at
 
     CameraLookAt(Camera* cam);
     virtual ~CameraLookAt();
@@ -155,7 +156,7 @@ public:
 
 class CameraLookDownEm : public cCamera {
 public:
-    cModel* m_target_parts;  // 0xFC
+    cParts* m_target_parts;  // 0xFC
 
     CameraLookDownEm(void* em, Vec* ofs);
     virtual ~CameraLookDownEm();

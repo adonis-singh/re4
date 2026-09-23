@@ -1136,7 +1136,7 @@ void caseModelMove(int sw)
     IdUnit* u = IdSub.unitPtr(0xFE, IDC_SSCRN_BACK_GROUND);
     IdUnit* u2 = IdSub.unitPtr(0xFD, IDC_SSCRN_BACK_GROUND);
     cModel* m = MapMgr.getWork(3);
-    cModel* parts = m->getPartsPtr(1);
+    cParts* parts = m->getPartsPtr(1);
     Vec scr;
     Vec q;
     pzlBoard* b;

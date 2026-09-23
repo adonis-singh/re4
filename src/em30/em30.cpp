@@ -444,12 +444,12 @@ void em30RouteCk(cEm30* em)
 void em30NeckMove(cEm30* em)
 {
     Em30Work* w = EM30_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
 
     p = em->getPartsPtr(4);
     {
-        cModel* h = pPL->getPartsPtr(4);
+        cParts* h = pPL->getPartsPtr(4);
 
         v.x = 0.0f;
         v.y = 250.0f;

@@ -41,7 +41,7 @@ void cObjCivilian::init(cModel* parent)
     }
     atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -110,7 +110,7 @@ void cObjCivilian::moveReload()
             se = 0x21;
             break;
         }
-        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();

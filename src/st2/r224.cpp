@@ -320,7 +320,7 @@ static void r224_toroko()
     pl->Wep->setTrans(0, 0);
     PlSetHand(1, 0);
     {
-        cModel* parts = r224_work->obj->getPartsPtr(0);
+        cParts* parts = r224_work->obj->getPartsPtr(0);
 
         v.x = -29.17f;
         v.y = 0.0f;

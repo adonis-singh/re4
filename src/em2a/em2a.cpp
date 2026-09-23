@@ -246,7 +246,7 @@ static void em2a_R0_Init(cEm2a* em)
         // (temp in f0, scale in f31); a shared `goto wire` block ties the whole chain to f31
         {
             f32 hp = (f32) em->hp;
-            cModel* p;
+            cParts* p;
 
             scale = hp * 0.001f * 0.5f;
             p = em->getPartsPtr(1);
@@ -266,7 +266,7 @@ static void em2a_R0_Init(cEm2a* em)
         }
         {
             f32 hp = (f32) em->hp;
-            cModel* p;
+            cParts* p;
 
             scale = hp * 0.001f * 0.5f;
             p = em->getPartsPtr(1);
@@ -811,8 +811,8 @@ int em2aTrap2HitCk(cEm2a* em)
 // sets hp 0 and returns 1.
 int em2aTrap2HitCkPL(cEm2a* em)
 {
-    cModel* p0;
-    cModel* p2;
+    cParts* p0;
+    cParts* p2;
     f32 len;
     Mtx inv;
     Vec v;
@@ -833,8 +833,8 @@ int em2aTrap2HitCkPL(cEm2a* em)
 // An alive Ganado (ids 0x10..0x20) inside the wire box: 1 when found.
 int em2aTrap2HitCkEM(cEm2a* em)
 {
-    cModel* p0;
-    cModel* p2;
+    cParts* p0;
+    cParts* p2;
     f32 len;
     Mtx inv;
     Vec v;
@@ -877,8 +877,8 @@ int em2aTrap2HitCkEM(cEm2a* em)
 void em2aTrap2Bomb(cEm2a* em)
 {
     Em2aWork* w = EM2A_WK(em);
-    cModel* p1;
-    cModel* p;
+    cParts* p1;
+    cParts* p;
     Vec d;
     Vec e;
     f32 wh;

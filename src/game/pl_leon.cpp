@@ -338,10 +338,10 @@ int cPlLeon::checkXbutton()
         return 0;
     }
     if (SubCharGetStatus() & 0x40000000) {
-        SndCall(1, 0x37, &pParts->world, 0, 0, 0);
+        SndCall(1, 0x37, &pList->world, 0, 0, 0);
         SubCharCtrl(1, 0);
     } else {
-        SndCall(1, 0x36, &pParts->world, 0, 0, 0);
+        SndCall(1, 0x36, &pList->world, 0, 0, 0);
         SubCharCtrl(0, 0);
     }
     m_CmdTimer = 8;

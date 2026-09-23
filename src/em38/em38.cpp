@@ -524,7 +524,7 @@ static void em38_R1_br_Dummy(cEm38* em)
 static void em38_R1_Wait(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
     f32 t;
     f32 ang;
 
@@ -579,7 +579,7 @@ static void em38_R1_Wait(cEm38* em)
 static void em38_R1_HeadUp(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
     f32 t;
     f32 ang;
 
@@ -662,7 +662,7 @@ static void em38_R1_HeadUp(cEm38* em)
 static void em38_R1_HeadStamp(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
 
     switch (em->r_no_2) {
     case 0:
@@ -722,7 +722,7 @@ static void em38_R1_br_Atk(cEm38* em)
 static void em38_R1_Atk(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
     f32 t;
     f32 ang;
 
@@ -1775,7 +1775,7 @@ void em38UpperOnBody(cEm38* em)
 
     em->Motion.Mot_flag &= ~0x40000000;
     if (em->type == 3 && w->pBody) {
-        cModel* p = w->pBody->getPartsPtr(4);
+        cParts* p = w->pBody->getPartsPtr(4);
 
         em->pos.x = 0.0f;
         em->pos.y = -128.0f;
@@ -1982,7 +1982,7 @@ void em38BlendMotSet(cEm38* em, void* m0, void* m1, void* m2, void* m3, int a, i
 void em38BloodSet(cEm38* em)
 {
     YARARE_INFO* part = em->dmg.m_pDamageYarare;
-    cModel* p;
+    cParts* p;
     int near;
 
     near = 0;
@@ -2215,7 +2215,7 @@ int em38SetDmVal(cEm38* em)
 // Tests attack `no` swept from part `parts`' previous to its current world position.
 int em38AtkCk(cEm38* em, int no, int parts)
 {
-    cModel* p = em->getPartsPtr(parts);
+    cParts* p = em->getPartsPtr(parts);
 
     return em38AtkCk2(em, no, &p->world, &p->world_old);
 }
@@ -2699,7 +2699,7 @@ void em38RootMove(cEm38* em)
             f32 a1;
             f32 a2;
             f32 scale;
-            cModel* m;
+            cParts* m;
 
             if (rem > 14) {
                 a1 = 0.5235988f;

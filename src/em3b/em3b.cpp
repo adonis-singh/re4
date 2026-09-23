@@ -89,7 +89,7 @@ void em3bDmCkTruck(cEm3b* em)
     int wep;
     int dmg;
     Vec* pos;
-    cModel* p;
+    cParts* p;
 
     if (em->dmg.m_Flag == 0) {
         return;
@@ -525,7 +525,7 @@ static void em3b_R1_Truck_Wait(cEm3b* em)
 static void em3b_R1_Truck_Run(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
-    cModel* p = em->getPartsPtr(0);
+    cParts* p = em->getPartsPtr(0);
     f32 f;
 
     switch (em->r_no_2) {
@@ -608,7 +608,7 @@ static void em3b_R1_Truck_Run(cEm3b* em)
 static void em3b_R1_Truck_RunInto(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
-    cModel* p = em->getPartsPtr(0);
+    cParts* p = em->getPartsPtr(0);
     int st = em->r_no_2;
     f32 f;
 
@@ -800,7 +800,7 @@ static void em3b_R1_Cart_Lost(cEm3b* em)
 // Run over the player, the partner and the Ganados in front of the truck.
 // x/z squared distance: the temp computed BEFORE d fuses dx into d's register and keeps dz*dz standalone
 // (em21 VsElgigante rule).
-static inline f32 em3bDistXZ(cModel* p, Vec* q)
+static inline f32 em3bDistXZ(cParts* p, Vec* q)
 {
     f32 t;
     f32 d;
@@ -818,7 +818,7 @@ void em3bRunDownCkTruck(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
     int parts[3] = { 0, 1, 4 };
-    cModel* p;
+    cParts* p;
     u32 i;
 
     if ((s16) pG->pl_life > 0) {
@@ -888,7 +888,7 @@ void em3bRunDownCkTruck(cEm3b* em)
 // motion 8; Ganados (ids 0x10..0x20) within 1.7 m die (routine 3/4).
 void em3bRunDownCkCart(cEm3b* em)
 {
-    cModel* p;
+    cParts* p;
     u32 i;
 
     if ((s16) pG->pl_life > 0 && !EmDeadCk(pPL)) {

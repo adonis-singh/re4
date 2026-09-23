@@ -644,7 +644,7 @@ extern "C" void DB_WorkPop(int flags, int emArray)
 // Hides parts `no` of a model.
 static inline void carPartsClear(cModel* m, int no)
 {
-    cModel* p = m->getPartsPtr(no);
+    cParts* p = m->getPartsPtr(no);
     if (p) {
         p->scale.z = p->scale.y = p->scale.x = 0.0f;
     }
@@ -983,7 +983,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 size.x = b->size.x;
                 size.y = b->size.y;
                 size.z = b->size.z;
-                PSVECSubtract(&b->center, &em->pParts->pos, &center);
+                PSVECSubtract(&b->center, &em->pList->pos, &center);
                 em->LightInfo.init2(2, 1, &center, &size, lit);
             }
             NAME_SET(MA->name);
@@ -991,7 +991,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 DbModCarSet(em);
             }
             if (G_ROOM_ID == 0x10B && nameIs4(name, 'p', 'l', '0', 'f')) {
-                cModel* p = em->getPartsPtr(3);
+                cParts* p = em->getPartsPtr(3);
                 p->scale.z = p->scale.y = p->scale.x = 0.0f;
             }
             NAME_SET(MA->name);
@@ -1424,7 +1424,7 @@ extern "C" void DB_VecNullPartsPos(EspSeqData* head, Vec* in, Vec* out, Mtx* m)
             out->z = in->z + head->pos.z;
             SET_MTX_POS;
         } else if (parts < em->nParts) {
-            cModel* p = em->getPartsPtr(parts);
+            cParts* p = em->getPartsPtr(parts);
             zero.x = 0.0f;
             zero.y = 0.0f;
             zero.z = 0.0f;
@@ -1505,7 +1505,7 @@ extern "C" void DB_VecMulEmPartsMat(u32 parts, Vec* in, Vec* out, Mtx* m, EspGen
         goto none;
     }
     if (gen->Tool_flg & 0x20) {
-        cModel* p = em->getPartsPtr(parts);
+        cParts* p = em->getPartsPtr(parts);
         PSMTXIdentity(*m);
         RotMatrix(*m, &em->ang);
         PSMTXMultVecSR(*m, in, &v);
@@ -1517,7 +1517,7 @@ extern "C" void DB_VecMulEmPartsMat(u32 parts, Vec* in, Vec* out, Mtx* m, EspGen
         v.z = 0.0f;
         PSMTXMultVec(*m, &v, out);
     } else {
-        cModel* p = em->getPartsPtr(parts);
+        cParts* p = em->getPartsPtr(parts);
         MtxPtr pm = p->mat;
         PSMTXMultVec(pm, in, out);
         PSMTXCopy(pm, *m);
@@ -1931,8 +1931,8 @@ extern "C" void sp_nobigenkai_trans(EspSeqData* head, EspGenWork* gen)
 extern "C" void sp_PosRand_trans_1a(EspSeqData* head, EspGenWork* gen)
 {
     cModel* em = GetActiveModel(gen);
-    cModel* p0;
-    cModel* p1;
+    cParts* p0;
+    cParts* p1;
     Vec a;
     Vec b;
     Vec ofs;

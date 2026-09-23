@@ -131,7 +131,7 @@ void R10cInit()
         SceAtDataSet_exec(5, SCE_LEVEL10, 0, (TaskFunc) chkSwitchA, 0, 1);
     } else {
         SmdGetObjPtr(0xC)->be_flag |= 0x20;
-        SmdGetObjPtr(0xC)->pParts->ang.z = -1.6f;
+        SmdGetObjPtr(0xC)->pList->ang.z = -1.6f;
     }
     if (RsfCheck(G_ROOM_ID, 1) == 0) {
         SceAtDataSet_exec(1, SCE_LEVEL10, 0, (TaskFunc) r10c_EmEvent, 0, 1);
@@ -533,18 +533,18 @@ extern "C" int SwitchExec(cObj* obj, f32* spd, int no, f32 lim, f32 cur)
     int dir;
 
     if (lim > cur) {
-        obj->pParts->ang.z += *spd;
+        obj->pList->ang.z += *spd;
         dir = 1;
     } else {
-        obj->pParts->ang.z -= *spd;
+        obj->pList->ang.z -= *spd;
         dir = 0;
     }
     if (*spd >= 0.0f) {
-        if (dir ? (obj->pParts->ang.z < lim) : (obj->pParts->ang.z > lim)) {
+        if (dir ? (obj->pList->ang.z < lim) : (obj->pList->ang.z > lim)) {
             *spd += r10c_switchAcc * 1.85f;
         } else {
             *spd = -r10c_switchAcc;
-            obj->pParts->ang.z = lim;
+            obj->pList->ang.z = lim;
             return 1;
         }
     }

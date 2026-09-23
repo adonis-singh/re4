@@ -1428,7 +1428,7 @@ void playerRunCamDiePassage(cPlayer* pl)
 {
     Camera* cam = &r226_cam;
     GlobalWork* g = pG;
-    cModel* parts;
+    cParts* parts;
 
     cam->param.fovy = r226_fovyDie;
     parts = pl->getPartsPtr(0);

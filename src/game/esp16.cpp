@@ -21,7 +21,7 @@ struct Esp16Work {
     f32 nen;    // 0x24 how much of the constraint correction feeds back into the speed (gen->Vec0.z / 100)
     f32 del;       // 0x28 speed damping (gen->Vec0.y / 100)
     f32 max_len;        // 0x2C segment length (gen->Vec0.x)
-    cModel* pParts;  // 0x30 model part the far end is attached to
+    cParts* pParts;  // 0x30 model part the far end is attached to
 };
 
 // Rope / chain: a string of points held together by distance constraints, drawn as a textured

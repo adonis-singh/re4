@@ -309,7 +309,7 @@ void objTrolleySatSet(cObjTrolley* pObj)
     Vec pos;
     Vec rot;
     Vec v;
-    cModel* parts;
+    cParts* parts;
     cSat** sat = w->pSat;
     u32 i;
 
@@ -381,7 +381,7 @@ void plobjTrolleyEscape(cPlayer* pEm)
     cEm* em = (cEm*) pEm;
     cObjTrolley* obj = (cObjTrolley*) em->pEmCatch;
     TrolleyWork* w = TROLLEY_WK((cObjTrolley*) obj);
-    cModel* parts = em->getPartsPtr(4);
+    cParts* parts = em->getPartsPtr(4);
 
     em->subArc = pPL->pEmCatch->subArc;
     em->dmg.set(0, 0xF);
@@ -574,7 +574,7 @@ void objTrolleyGetAdjust(cObjTrolley* pObj)
     Vec p1;
     Vec p0;
     Vec d;
-    cModel* parts;
+    cParts* parts;
     f32 a0;
     f32 a1;
     u32 i;
@@ -612,7 +612,7 @@ void objTrolleySetAdjust(cObjTrolley* pObj, cEm* em)
     Mtx inv;
     Vec v;
     Vec d;
-    cModel* parts;
+    cParts* parts;
     int no;
 
     no = objTrolleyGetTrolleyNo(pObj, &em->pos);
@@ -669,7 +669,7 @@ void objTrolleyMoveAdjustEM(cObjTrolley* pObj)
 int cObjTrolley::ckTrolleyRide(Vec* pPos, u8* pParts_no, Vec* pOffset)
 {
     Mtx inv;
-    cModel* parts;
+    cParts* parts;
     int no;
 
     no = objTrolleyGetTrolleyNo2(this, pPos);
@@ -688,7 +688,7 @@ int cObjTrolley::ckTrolleyRideAdjust(Vec* pPos, Vec* pPos2)
 {
     Mtx inv;
     Vec v;
-    cModel* parts;
+    cParts* parts;
     int no;
 
     *pPos2 = *pPos;
@@ -730,7 +730,7 @@ int cObjTrolley::ckStop()
 void objTrolleyHitCk(cObjTrolley* pObj)
 {
     Vec v;
-    cModel* parts;
+    cParts* parts;
 
     parts = pObj->getPartsPtr(0);
     if ((parts->world.x - parts->world_old2.x) * (parts->world.x - parts->world_old2.x) +

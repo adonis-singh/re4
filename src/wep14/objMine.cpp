@@ -63,7 +63,7 @@ void cObjMine::init(cModel* parent)
     at = &atari;
     at->init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
     AtariFlagsAnd(at, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(9);
+    pList->pParent = parent->getPartsPtr(9);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -79,7 +79,7 @@ void cObjMine::init(cModel* parent)
 // The mine model (parts 1) hangs on the player's right hand (parts 0xA) at the parts origin.
 void partsSet(cObjMine* obj)
 {
-    cModel* p;
+    cParts* p;
 
     obj->getPartsPtr(1)->pParent = pPL->getPartsPtr(0xA);
     p = obj->getPartsPtr(1);
@@ -99,7 +99,7 @@ void cObjMine::moveReady()
     switch (r_no_1) {
     case 0:
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x22), 0, 0, 0, 0);
-        getPartsPtr(1)->pParent = pParts;
+        getPartsPtr(1)->pParent = pList;
         r_no_1 = 1;
     case 1:
         if (MotionGetState(this)) {
@@ -160,7 +160,7 @@ void cObjMine::setBullet()
 
     normal = !(pG->weapon_type & 1);
     if (normal) {
-        cModel* parts = pPL->getPartsPtr(0xA);
+        cParts* parts = pPL->getPartsPtr(0xA);
 
         PSMTXMultVecSR(parts->mat, &mineSpd[pG->bullet_type], &spd);
         pos = &parts->world;
@@ -192,7 +192,7 @@ void cObjMine::moveDown()
     switch (r_no_1) {
     case 0:
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x23), 0, 0, 0, 0);
-        getPartsPtr(1)->pParent = pParts;
+        getPartsPtr(1)->pParent = pList;
         r_no_1 = 1;
         break;
     case 1:
@@ -233,7 +233,7 @@ void cObjMine::moveReload()
             se = 0x20;
             break;
         }
-        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     } else {
         // reload frame (the mine change) by reload tune level
@@ -243,7 +243,7 @@ void cObjMine::moveReload()
             ItemMgr.reload();
         }
         if (MotionGetState(this)) {
-            pParts->pParent = pPL->getPartsPtr(9);
+            pList->pParent = pPL->getPartsPtr(9);
             r_no_0 = 0;
             r_no_1 = 0;
         }
@@ -254,7 +254,7 @@ void cObjMine::moveReload()
 // port (-348, -63, 38), rolled 90 degrees, with a random +-15 spread, gravity 10, 30 frames, effect 0x13.
 void cObjMine::setCartridge()
 {
-    cModel* parts = getPartsPtr(0);
+    cParts* parts = getPartsPtr(0);
     Vec pos;
     Vec rot;
     Vec spd;
@@ -286,7 +286,7 @@ void cObjMine::setCartridge()
 void cObjMine::interrupt()
 {
     cObjWep::interrupt();
-    getPartsPtr(1)->pParent = pParts;
+    getPartsPtr(1)->pParent = pList;
     resetMotion();
     r_no_0 = 0;
     r_no_1 = 0;

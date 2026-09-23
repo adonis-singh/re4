@@ -320,7 +320,7 @@ void em2dDmCk(cEm2d* em)
     Em2dWork* w = EM2D_WK(em);
     Camera* cam = &pG->Camera;
     YARARE_INFO* part;
-    cModel* p;
+    cParts* p;
     Vec pos;
     Vec dir;
     Mtx inv;
@@ -1460,7 +1460,7 @@ static void em2d_R1_SideStep(cEm2d* em)
             break;
         }
         if ((em->Motion.Seq_old.Free & 1) && !(em->flag & 0x40000000)) {
-            cModel* p = em->getPartsPtr(0);
+            cParts* p = em->getPartsPtr(0);
             RotMatrix(m, &em->ang);
             TransMatrix(m, &p->world);
             // The whole probe is written in both arms (jump2 cross-jumps everything from `addi &b` on; the arms
@@ -4316,7 +4316,7 @@ static void em2d_R1_Dm_Ceiling(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
     Vec d;
-    cModel* p;
+    cParts* p;
     f32 fl;
     int end;
 
@@ -4787,7 +4787,7 @@ int em2dAtkCk(cEm2d* em, int no, int parts)
 {
     Em2dWork* w = EM2D_WK(em);
     EmAtkInfo* atk;
-    cModel* p;
+    cParts* p;
     int hit;
 
     if (w->atkHit) {
@@ -4850,7 +4850,7 @@ void em2dScaleCompress(cEm2d* em)
     Em2dWork* w = EM2D_WK(em);
     Mtx m;
     Vec scale;
-    cModel* p;
+    cParts* p;
 
     if (em->r_no_0 != 3) {
         return;
@@ -4863,7 +4863,7 @@ void em2dScaleCompress(cEm2d* em)
     scale.y = w->Compress_y;
     scale.z = 1.0f;
     ScaleMatrix(m, &scale);
-    for (p = em->pParts; p; p = p->pParts) {
+    for (p = em->pList; p; p = p->pList) {
         PSMTXConcat(m, p->mat, p->mat);
         p->mat[0][3] = p->world.x;
         p->mat[1][3] = p->world.y;
@@ -5566,7 +5566,7 @@ void em2dPlHeadLost()
     Vec ofs;
     Vec spd;
     Vec rot;
-    cModel* p3;
+    cParts* p3;
     cObj* obj;
     int zero;
 
@@ -5613,7 +5613,7 @@ void em2dSetPoison(cEm2d* em, int type)
 {
     cObj* obj;
     EmAtkInfo* atk;
-    cModel* p;
+    cParts* p;
     Vec spd;
 
     SndStop(EM2D_WK(em)->sndId, 0);
@@ -5802,8 +5802,8 @@ void em2dDoorOpenCk(cEm2d* em)
 void em2dFootSeMove(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p;
-    cModel* p0;
+    cParts* p;
+    cParts* p0;
     Vec pos;
     int parts;
     u32 no;
@@ -5871,9 +5871,9 @@ void em2dFootSeMove(cEm2d* em)
 void em2dSetdLandingEff(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
     Vec pos;
-    cModel* p;
+    cParts* p;
 
     if ((w->flags & 0x80000) && (pG->room_id == 0x205 || pG->room_id == 0x21D)) {
         SndCall(8, 0x2E, &em->pos, em->id, 0, em);
@@ -5899,7 +5899,7 @@ void em2dSetdLandingEff(cEm2d* em)
 void em2dSetDownEff(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
 
     if (ChkWaterEffectEnable(&em->pos)) {
         SndCall(8, 2, &p0->world, 0, 0, em);
@@ -5918,7 +5918,7 @@ void em2dSetDownEff(cEm2d* em)
 void em2dSetJumpEff(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
 
     if (ChkWaterEffectEnable(&em->pos)) {
         SndCall(8, 2, &p0->world, 0, 0, em);
@@ -6376,7 +6376,7 @@ void cEm2d::setReset(Vec* pos, Vec* rot)
 {
     Em2dWork* w = EM2D_WK(this);
     Vec p;
-    cModel* parts;
+    cParts* parts;
 
     invisible_factor = 1.0f;
     atari.m_flag |= 0x300;
@@ -6417,7 +6417,7 @@ void cEm2d::setReset(Vec* pos, Vec* rot)
     MotionMove(this, 0);
     em2d_R0_Move(this);
     partsWorldCalc();
-    for (parts = pParts; parts; parts = parts->pParts) {
+    for (parts = pList; parts; parts = parts->pList) {
         parts->world_old = parts->world;
         parts->world_old2 = parts->world_old;
     }

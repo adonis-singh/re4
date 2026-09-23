@@ -659,7 +659,7 @@ cObj* SetObjSmd(void* bin, void* tpl, Vec* pos, Vec* rot, int lightFlag, int fro
     size.x = b->size.x;
     size.y = b->size.y;
     size.z = b->size.z;
-    PSVECSubtract(&mi->bound.center, &obj->pParts->pos, &d);
+    PSVECSubtract(&mi->bound.center, &obj->pList->pos, &d);
     obj->LightInfo.init2(2, 1, &d, &size, lightFlag);
     return obj;
 }

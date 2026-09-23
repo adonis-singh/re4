@@ -687,10 +687,10 @@ void dai_down_stop()
         r223_work->toroko->pos.y -= 10.0f;
         SmdGetObjPtr(0x16)->pos.y -= 10.0f;
         r223_work->dai->pos.y -= 10.0f;
-        SmdGetObjPtr(0xA)->pParts->ang.z += 0.035f;
-        SmdGetObjPtr(0xB)->pParts->ang.z -= 0.035f;
-        SmdGetObjPtr(0xC)->pParts->ang.y += 0.035f;
-        SmdGetObjPtr(0xD)->pParts->ang.x += 0.035f;
+        SmdGetObjPtr(0xA)->pList->ang.z += 0.035f;
+        SmdGetObjPtr(0xB)->pList->ang.z -= 0.035f;
+        SmdGetObjPtr(0xC)->pList->ang.y += 0.035f;
+        SmdGetObjPtr(0xD)->pList->ang.x += 0.035f;
         if (first == 1) {
             if (CamCtrl.IsMotionEnd() == 0) {
                 SceSleep(1);
@@ -749,10 +749,10 @@ void dai_down_end()
         r223_work->toroko->pos.y -= spd;
         SmdGetObjPtr(0x16)->pos.y -= spd;
         r223_work->dai->pos.y -= spd;
-        SmdGetObjPtr(0xA)->pParts->ang.z += 0.035f;
-        SmdGetObjPtr(0xB)->pParts->ang.z -= 0.035f;
-        SmdGetObjPtr(0xC)->pParts->ang.y += 0.035f;
-        SmdGetObjPtr(0xD)->pParts->ang.x += 0.035f;
+        SmdGetObjPtr(0xA)->pList->ang.z += 0.035f;
+        SmdGetObjPtr(0xB)->pList->ang.z -= 0.035f;
+        SmdGetObjPtr(0xC)->pList->ang.y += 0.035f;
+        SmdGetObjPtr(0xD)->pList->ang.x += 0.035f;
         SceSleep(1);
     }
     r223_work->se[2] = SndCall(6, 6, &r223_work->toroko->pos, 0, 0, 0);

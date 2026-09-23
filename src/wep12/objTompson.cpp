@@ -31,7 +31,7 @@ void cObjTompson::init(cModel* parent)
         return;
     }
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -60,7 +60,7 @@ void cObjTompson::moveFire()
         }
         MotionSetCore(this, &this->Motion, mot, 0, 0, 0, 0);
         EstSet(this, -1, 0, 0, EFF_WEP12, 0, 0, ESP_CORE_KIND_NONE, this, 0);
-        SndCall(2, 0, &pParts->world, 0, 0, 0);
+        SndCall(2, 0, &pList->world, 0, 0, 0);
         SndCall(2, 0x15, &pos, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
         setCartridge();
@@ -103,7 +103,7 @@ void cObjTompson::moveReload()
             se = 0x21;
             break;
         }
-        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
@@ -114,7 +114,7 @@ void cObjTompson::moveReload()
 // offset (-216, -24, 105.9) with a random +-15 spread, gravity 10, 40 frames, landing effect 0x13.
 void cObjTompson::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

@@ -5,6 +5,7 @@
 #include "vec.h"
 
 class cModel;
+class cParts;
 struct CLOTH_AT_SET;
 
 // Pendulum / cloth chain work (game/pendulum.cpp), 0x60 bytes (same object as pl_cloth.h's
@@ -32,7 +33,7 @@ struct PenCloth {
     f32 WindSin;             // 0x48  wind phase
     f32 Stretchy;             // 0x4C  constraint stiffness (Move2 / Move3)
     f32 Move_rate;             // 0x50  parent speed rate
-    cModel** pPtbl;        // 0x54  parts pointer table (NULL: cModel::getPartsPtr)
+    cParts** pPtbl;        // 0x54  parts pointer table (NULL: cModel::getPartsPtr)
     cModel* pEm_at;         // 0x58  model the collision volumes hang on (NULL: the chain model)
     u32 Flag;           // 0x5C  (0x100)
 };

@@ -575,7 +575,7 @@ void emMineSearchEm(cEmMine* pEm, int mode)
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        cModel* parts;
+        cParts* parts;
 
         if ((e->be_flag & 0x201) != 1) {
             continue;
@@ -644,7 +644,7 @@ void emMineHomingEm(cEmMine* pEm)
     Mtx m;
     Vec dir;
     Vec to;
-    cModel* parts;
+    cParts* parts;
     f32 ang;
 
     if (w->pEm_homing == 0) {
@@ -846,7 +846,7 @@ void emMine_R1_Parent(cEmMine* pEm)
                 w->Bomb_wait = 30;
             }
         }
-        if (parent->pParts) {
+        if (parent->pList) {
             Mtx m;
             Vec v0;
             Vec v1;

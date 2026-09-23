@@ -50,7 +50,7 @@ void cObjRuger::init(cModel* parent)
     }
     atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -83,12 +83,12 @@ void cObjRuger::moveFire()
         }
         MotionSetCore(this, &Motion, m, 0, 0, 0, 0);
         if (pG->weapon_type == 0) {
-            SndCall(2, 0, &pParts->world, 0, 0, 0);
-            SndCall(2, 1, &pParts->world, 0, 0, 0);
-            SndCall(2, 2, &pParts->world, 0, 0, 0);
+            SndCall(2, 0, &pList->world, 0, 0, 0);
+            SndCall(2, 1, &pList->world, 0, 0, 0);
+            SndCall(2, 2, &pList->world, 0, 0, 0);
             StaFlagOn(pG, STA_PL_FIRE);
         } else {
-            SndCall(2, 0x18, &pParts->world, 0, 0, 0);
+            SndCall(2, 0x18, &pList->world, 0, 0, 0);
         }
         EstSet(this, -1, 0, 0, EFF_WEP02, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
@@ -150,7 +150,7 @@ void cObjRuger::moveReload()
             se = 0x21;
             break;
         }
-        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
@@ -161,7 +161,7 @@ void cObjRuger::moveReload()
 // offset (-109, -22, 90) with a random +-15 spread, gravity 10, 30 frames, landing effect 0x13.
 void cObjRuger::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

@@ -392,7 +392,7 @@ static void em25_R1_Hide(cEm25* em)
 {
     Em25Work* w = EM25_WK(em);
     cModelInfo* info;
-    cModel* p;
+    cParts* p;
 
     switch (em->r_no_2) {
     case 0:
@@ -412,7 +412,7 @@ static void em25_R1_Hide(cEm25* em)
             info->color[1] = 0xFF;
             info->color[2] = 0xFF;
         }
-        for (p = em->pParts; p; p = p->pParts) {
+        for (p = em->pList; p; p = p->pList) {
             p->scale.x = 1.0f;
             p->scale.y = 1.0f;
             p->scale.z = 1.0f;
@@ -431,7 +431,7 @@ static void em25_R1_Hide(cEm25* em)
 static void em25_R1_Birth(cEm25* em)
 {
     Em25Work* w = EM25_WK(em);
-    cModel* p;
+    cParts* p;
 
     switch (em->r_no_2) {
     case 0:
@@ -445,7 +445,7 @@ static void em25_R1_Birth(cEm25* em)
         TransMatrix(em->mat, &em->pos);
         TransMatrix(em->mat, &em->scale);
         MotionSetCore(em, &em->Motion, ARC(0x26), ARC(0x2E), 0, 1, 0);
-        for (p = em->pParts; p; p = p->pParts) {
+        for (p = em->pList; p; p = p->pList) {
             p->scale.x = 1.0f;
             p->scale.y = 1.0f;
             p->scale.z = 1.0f;
@@ -821,7 +821,7 @@ static void em25_R1_P_Wait(cEm25* em)
 {
     Em25Work* w = EM25_WK(em);
     Vec v;
-    cModel* p;
+    cParts* p;
     f32 ang;
     f32 d;
 
@@ -1259,8 +1259,8 @@ void em25OnParent(cEm25* em)
 {
     Em25Work* w = EM25_WK(em);
     cEm* parent;
-    cModel* p;
-    cModel* t;
+    cParts* p;
+    cParts* t;
     Vec tgt;
     f32 d;
     f32 ang;
@@ -1426,7 +1426,7 @@ int em25AtkCk(cEm25* em, int no, int parts)
 {
     Em25Work* w = EM25_WK(em);
     EmAtkInfo* atk;
-    cModel* p;
+    cParts* p;
     int hit;
 
     if (w->Atk_ck) {
@@ -1552,14 +1552,14 @@ void em25ScaleCompress(cEm25* em)
     Em25Work* w = EM25_WK(em);
     Mtx m;
     Vec scale;
-    cModel* p;
+    cParts* p;
 
     PSMTXIdentity(m);
     scale.x = 1.0f;
     scale.y = w->Compress_y;
     scale.z = 1.0f;
     ScaleMatrix(m, &scale);
-    for (p = em->pParts; p; p = p->pParts) {
+    for (p = em->pList; p; p = p->pList) {
         PSMTXConcat(m, p->mat, p->mat);
         p->mat[0][3] = p->world.x;
         p->mat[1][3] = p->world.y;
@@ -1754,7 +1754,7 @@ void em25PlHeadLost()
 {
     Vec ofs;
     Vec spd;
-    cModel* p;
+    cParts* p;
     cObj* obj;
     int zero;
 
@@ -1794,8 +1794,8 @@ void em25SetPoison(cEm25* em)
     Vec tgt;
     Vec rot;
     cEm* parent;
-    cModel* p;
-    cModel* t;
+    cParts* p;
+    cParts* t;
     cObj* obj;
     EmAtkInfo* atk;
     f32 d;

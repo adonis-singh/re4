@@ -70,7 +70,7 @@ void espgen00_UpdateMatrix(EspgenWork* pEspgen)
     }
     if (!(p->flags2 & 1)) {
         if (p->parts < model->nParts) {
-            cModel* part;
+            cParts* part;
             Vec ofs;
             Vec r;
 

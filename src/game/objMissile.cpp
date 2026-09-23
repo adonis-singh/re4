@@ -123,7 +123,7 @@ void objMissile_R0_Parent(cObjMissile* pObj)
     RotMatrix(pObj->mat, &pObj->ang);
     TransMatrix(pObj->mat, &pObj->pos);
     ScaleMatrix(pObj->mat, &pObj->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pObj->mat, m);
         if (w->scale_mode == 0) {
             v0.x = m[0][0];
@@ -208,7 +208,7 @@ void objMissile_R0_FireWait(cObjMissile* pObj)
     RotMatrix(pObj->mat, &pObj->ang);
     TransMatrix(pObj->mat, &pObj->pos);
     ScaleMatrix(pObj->mat, &pObj->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pObj->mat, m);
         if (w->scale_mode == 0) {
             v0.x = m[0][0];

@@ -1159,7 +1159,7 @@ void emDoorSetDmgLock_R(cEmDoor* pEm, int type)
 void emDoorSetDmgChain(cEmDoor* pEm, u32 no)
 {
     EmDoorWork* w = EMDOOR_WK(pEm);
-    cModel* parts;
+    cParts* parts;
     u16* flg;
 
     if (w->pChain == 0) {
@@ -1220,7 +1220,7 @@ void emDoorSetDmgDoor(cEmDoor* pEm)
     EmDoorWork* w = EMDOOR_WK(pEm);
     YARARE_INFO* part = pEm->dmg.m_pDamageYarare;
     EmListData* d = &pG->Em_list[pEm->emset_no];
-    cModel* parts;
+    cParts* parts;
     u16* flg;
     Vec v;
     Vec rot;
@@ -1939,7 +1939,7 @@ void emDoor_R1_CloseLock(cEmDoor* pEm)
 void emDoorLockBendMove(cEmDoor* pEm)
 {
     EmDoorWork* w = EMDOOR_WK(pEm);
-    cModel* parts;
+    cParts* parts;
 
     if (w->pLockL) {
         parts = w->pLockL->getPartsPtr(1);
@@ -2435,7 +2435,7 @@ void cEmDoor::setChain(void* bin, void* tpl)
             YarareAddCube(this, &w->hit[13], -650.0f, 1350.0f, 50.0f, 650.0f, 350.0f, 100.0f, 0, YAT_FLAG_ON);
             w->Chain_hp[0] = 2;
         } else {
-            cModel* parts = w->pChain->getPartsPtr(1);
+            cParts* parts = w->pChain->getPartsPtr(1);
 
             parts->scale.x = 0.0f;
             parts->scale.y = 0.0f;
@@ -2445,7 +2445,7 @@ void cEmDoor::setChain(void* bin, void* tpl)
             YarareAddCube(this, &w->hit[14], -650.0f, 1000.0f, 50.0f, 650.0f, 350.0f, 100.0f, 0, YAT_FLAG_ON);
             w->Chain_hp[1] = 2;
         } else {
-            cModel* parts = w->pChain->getPartsPtr(2);
+            cParts* parts = w->pChain->getPartsPtr(2);
 
             parts->scale.x = 0.0f;
             parts->scale.y = 0.0f;
@@ -2455,7 +2455,7 @@ void cEmDoor::setChain(void* bin, void* tpl)
             YarareAddCube(this, &w->hit[15], -650.0f, 700.0f, 50.0f, 650.0f, 300.0f, 100.0f, 0, YAT_FLAG_ON);
             w->Chain_hp[2] = 2;
         } else {
-            cModel* parts = w->pChain->getPartsPtr(3);
+            cParts* parts = w->pChain->getPartsPtr(3);
 
             parts->scale.x = 0.0f;
             parts->scale.y = 0.0f;
@@ -2489,7 +2489,7 @@ void cEmDoor::setYarare()
     u16 flags;
     u32 bit;
     u16* flg;
-    cModel* parts;
+    cParts* parts;
 
     if (type == 0 || type == 4) {
         flags = 0x21;

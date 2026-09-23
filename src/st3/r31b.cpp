@@ -63,7 +63,7 @@ struct R31bWork {
 // The work pointer is a struct member: every store through the work reloads it (r203).
 static R31bWork* r31b_work;
 // Global in the original (.sym scope:global): the REL relocation carries the symbol, the ADDR16 field is 0.
-cModel* r31b_plParts;   // .bss 0x18  player parts 10 (R31bMain)
+cParts* r31b_plParts;   // .bss 0x18  player parts 10 (R31bMain)
 
 // The player after the fall; the room's scroll objects ([no] = the cage room, the count in
 // r31b_objNum); the lattice (kanaami) objects, 25 per room; the room-3 lattice pair lists; the

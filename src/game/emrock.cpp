@@ -348,7 +348,7 @@ void emRock_R1_Parent(cEmRock* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];
@@ -1905,7 +1905,7 @@ void plemRockDropDieCamMove(cEmRock* pEm)
 {
     Vec p;
     f32 len;
-    cModel* parts;
+    cParts* parts;
     Camera* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
@@ -1942,7 +1942,7 @@ void emRockPushCamMove(cEmRock* pEm)
 {
     Vec p;
     f32 len;
-    cModel* parts;
+    cParts* parts;
     Camera* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
@@ -2074,7 +2074,7 @@ void emRockDropCamMove(cEmRock* em)
 void emRockRunDownCk(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p = pEm->getPartsPtr(0);
+    cParts* p = pEm->getPartsPtr(0);
     cEm* e;
     Vec v;
     f32 len;
@@ -2225,7 +2225,7 @@ void cEmRock::setDropMot2(void* a, void* b, void* c, void* d, void* e, void* f, 
 int emRockDropHitCk(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p;
+    cParts* p;
     int dead;
     f32 len;
     f32 r;
@@ -2258,7 +2258,7 @@ int emRockDropHitCk(cEmRock* pEm)
 int emRockDropHitCkSub(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p;
+    cParts* p;
     int dead;
     f32 len;
     f32 r;
@@ -2294,9 +2294,9 @@ int emRockDropHitCkSub(cEmRock* pEm)
 int emRockDropHitCkEm2b(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p = pEm->getPartsPtr(0);
+    cParts* p = pEm->getPartsPtr(0);
     cEm* e;
-    cModel* q;
+    cParts* q;
     f32 len;
     f32 r;
     u32 i;

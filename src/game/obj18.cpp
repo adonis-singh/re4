@@ -162,7 +162,7 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
     sz.x = b->size.x;
     sz.y = b->size.y;
     sz.z = b->size.z;
-    PSVECSubtract(&info->bound.center, &obj->pParts->pos, &ofs);
+    PSVECSubtract(&info->bound.center, &obj->pList->pos, &ofs);
     obj->LightInfo.init2(2, 1, &ofs, &sz, lightFlag);
     if (pos) {
         obj->pos = *pos;
@@ -392,7 +392,7 @@ int obj18GetOya(cModel** pOya, cObj* pObj)
     if (OBJ18_WK((cObj18*) pObj)->pEm_oya == 0) {
         return 0;
     }
-    if (OBJ18_WK((cObj18*) pObj)->pEm_oya->pParts == 0) {
+    if (OBJ18_WK((cObj18*) pObj)->pEm_oya->pList == 0) {
         return 0;
     }
     *pOya = OBJ18_WK((cObj18*) pObj)->pEm_oya;
@@ -416,7 +416,7 @@ void obj18SetOya(cObj18* pObj)
     if (w->pEm_oya == 0) {
         return;
     }
-    if (w->pEm_oya->pParts == 0) {
+    if (w->pEm_oya->pList == 0) {
         return;
     }
     PSMTXConcat(w->pEm_oya->getPartsPtr(w->oya_parts)->mat, pObj->mat, m);

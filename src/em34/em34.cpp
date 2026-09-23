@@ -594,12 +594,12 @@ void em34RouteCk(cEm34* em)
 void em34NeckMove(cEm34* em)
 {
     Em34Work* w = EM34_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
 
     p = em->getPartsPtr(4);
     {
-        cModel* h = pPL->getPartsPtr(4);
+        cParts* h = pPL->getPartsPtr(4);
 
         v.x = 0.0f;
         v.y = 250.0f;
@@ -630,7 +630,7 @@ int em34AtkCk(cEm34* em, int no, int parts)
     }
     {
         EmAtkInfo* atk = &em34_atk_tbl[no];
-        cModel* p = em->getPartsPtr(parts);
+        cParts* p = em->getPartsPtr(parts);
         int hit = EmAtkHitCk(atk, &p->world, &p->world_old, 0);
 
         if (hit) {

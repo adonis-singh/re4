@@ -814,7 +814,7 @@ extern "C" void Evt_R10BSXX_Func_Pl0f(Event* e)
     void* mod;
 
     if (e->GetMod(&mod, "pl0f00", 0, 0) == 1) {
-        cModel* p;
+        cParts* p;
 
         ((cModel*) mod)->be_flag |= 0x80;
         ((cModel*) mod)->LightInfo.EnableMask = 4;

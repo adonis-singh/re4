@@ -358,7 +358,7 @@ static void em3a_R0_Init(cEm3a* em)
     if (em->type == 1) {
         Vec pos;
         Vec rot;
-        cModel* p;
+        cParts* p;
 
         pos.x = 0.0f;
         pos.y = -101.0f;
@@ -1315,7 +1315,7 @@ void em3aGunMove(cEm3a* em)
     if (em->type != 2 && (w->flags & 2)) {
         Vec t;
         Vec d;
-        cModel* p;
+        cParts* p;
         f32 len;
         f32 ang;
 
@@ -1420,7 +1420,7 @@ int em3aPatrolUpdate(cEm3a* em)
 void em3aFanMove(cEm3a* em)
 {
     if (em->type != 2 && em->hp > 0) {
-        cModel* p;
+        cParts* p;
 
         p = em->getPartsPtr(5);
         p->ang.y += 0.5235988f;
@@ -1453,7 +1453,7 @@ int em3aFindPLCk(cEm3a* em)
     }
     ang = fabsf(Muku(&em->pos, &pPL->pos, em->ang.y, PI));
     if (ang < 0.5235988f && em->l_pl < range * range) {
-        cModel* p;
+        cParts* p;
         Vec a;
         Vec b;
 
@@ -1517,7 +1517,7 @@ int em3aGunHitCk(cEm3a* em)
     Vec rot;
     Vec d;
     u32 attr;
-    cModel* p;
+    cParts* p;
     cEm* hitEm;
     s16 hp;
     f32 len;

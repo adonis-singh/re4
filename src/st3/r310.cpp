@@ -191,10 +191,10 @@ void r310_execHide_main(int on, int no)
         SndCall(6, 0x14, &pSUB->pos, 0, 0, 0);
         // The exit store on the break path: peeled exit test (docs/matching.md COMPILER-DIFF #7/#9).
         for (;;) {
-            o->pParts->ang.z -= spd;
+            o->pList->ang.z -= spd;
             spd += add;
-            if (o->pParts->ang.z < lim) {
-                o->pParts->ang.z = lim;
+            if (o->pList->ang.z < lim) {
+                o->pList->ang.z = lim;
                 break;
             }
             SceSleep(1);
@@ -202,9 +202,9 @@ void r310_execHide_main(int on, int no)
     } else {
         SndCall(6, 0x13, &pSUB->pos, 0, 0, 0);
         for (;;) {
-            o->pParts->ang.z += 0.2f;
-            if (o->pParts->ang.z > 0.0f) {
-                o->pParts->ang.z = 0.0f;
+            o->pList->ang.z += 0.2f;
+            if (o->pList->ang.z > 0.0f) {
+                o->pList->ang.z = 0.0f;
                 break;
             }
             SceSleep(1);

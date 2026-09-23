@@ -542,7 +542,7 @@ static void r311_throwIronBall_HitCk()
 
     if (r311_work->ball) {
         for (i = 0; i < 80; i++) {
-            cModel* part = r311_work->ball->getPartsPtr(10);
+            cParts* part = r311_work->ball->getPartsPtr(10);
             Vec p = {0.0f, -1100.0f, 0.0f};
 
             PSMTXMultVec(part->mat, &p, &p);

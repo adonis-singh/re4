@@ -44,7 +44,7 @@ void cObjKnife::init()
         return;
     }
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = pPL->getPartsPtr(0xA);
+    pList->pParent = pPL->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };

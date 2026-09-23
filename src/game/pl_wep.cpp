@@ -705,7 +705,7 @@ int lockEmCk(cEm* pEm, Vec* pPos)
     if (pEm->checkStatus(EM_STATUS_ACTIVE) == 0) {
         return 0;
     }
-    if (pEm->pParts == 0) {
+    if (pEm->pList == 0) {
         return 0;
     }
     if (pEm->id == 0x43 || pEm->id == 0x41) {
@@ -1193,7 +1193,7 @@ void PlSetLockPitch(cModel* pEm)
         if (pl->m_pEm) {
             Vec d;
 
-            PSVECSubtract(&pl->m_pEm->getPartsPtr(pl->m_pEm->lockParts)->world, &pl->pParts->world,
+            PSVECSubtract(&pl->m_pEm->getPartsPtr(pl->m_pEm->lockParts)->world, &pl->pList->world,
                           &d);
             p = VecElevation(&d);
         } else {

@@ -168,8 +168,8 @@ void R222Init()
         SmdGetObjPtr(0x25)->pos.y = -3677.0f;
         SmdGetObjPtr(8)->pos.y = -3660.0f;
         SmdGetObjPtr(9)->pos.y = -3338.0f;
-        SmdGetObjPtr(0x26)->pParts->ang.z = -1.5707964f;
-        SmdGetObjPtr(0x27)->pParts->ang.z = 1.5707964f;
+        SmdGetObjPtr(0x26)->pList->ang.z = -1.5707964f;
+        SmdGetObjPtr(0x27)->pList->ang.z = 1.5707964f;
         SceAtSetEnable(9, 0);
     }
     if (RsfCheck(G_ROOM_ID, 2)) {
@@ -193,15 +193,15 @@ void R222Init()
         SmdGetObjPtr(0x29)->pos.y = -3589.0f;
         SmdGetObjPtr(6)->pos.y = -3573.0f;
         SmdGetObjPtr(7)->pos.y = -3250.0f;
-        SmdGetObjPtr(0x2A)->pParts->ang.z = -1.5707964f;
-        SmdGetObjPtr(0x2B)->pParts->ang.z = 1.5707964f;
+        SmdGetObjPtr(0x2A)->pList->ang.z = -1.5707964f;
+        SmdGetObjPtr(0x2B)->pList->ang.z = 1.5707964f;
         SceAtSetEnable(0xA, 0);
     }
     r222_work->sat = EatMgr.create(ROOM_ARC_PTR(pG->pRoom, 5), 0, &r222_zero, &r222_zero, 6);
     r222_work->satPos.x = -26987.0f;
     r222_work->satPos.y = -1460.0f;
     r222_work->satPos.z = -8329.0f;
-    r222_work->satRot.y = SmdGetObjPtr(1)->pParts->ang.y;
+    r222_work->satRot.y = SmdGetObjPtr(1)->pList->ang.y;
     r222_work->sat->setCoord(&r222_work->satPos, &r222_work->satRot);
     if (RsfCheck(G_ROOM_ID, 4) == 0) {
         RsfSet(G_ROOM_ID, 4);
@@ -266,25 +266,25 @@ void r222_BoxMove(cObj* obj, int opened)
         const f32* pk = &r222_k212;
     }
     if (opened == 1) {
-        obj->pParts->ang.x = r222_k212;
+        obj->pList->ang.x = r222_k212;
     } else {
         f32 lim;
         f32 r;
         // a goto loop: the constants are reloaded per iteration; the limit is computed in both
         // predecessors of `test` (the target loads 2.12 there and compares/stores that register)
-        r = obj->pParts->ang.x;
+        r = obj->pList->ang.x;
         lim = r222_k212;
-        obj->pParts->ang.x = r + 0.05f;
+        obj->pList->ang.x = r + 0.05f;
         goto test;
     wait:
         SceSleep(1);
-        obj->pParts->ang.x += 0.05f;
+        obj->pList->ang.x += 0.05f;
         lim = r222_k212_v;
     test:
-        if (!(obj->pParts->ang.x > lim)) {
+        if (!(obj->pList->ang.x > lim)) {
             goto wait;
         }
-        obj->pParts->ang.x = lim;
+        obj->pList->ang.x = lim;
     }
 }
 
@@ -335,8 +335,8 @@ void R222Main()
     if (DebugTrg(0)) {
         SceExec(0x12, (TaskFunc) dragon_down, 0, 0, SCE_PRIO_DEF_2, 0);
     }
-    SmdGetObjPtr(1)->pParts->ang.y = LIMIT_ANGLE(SmdGetObjPtr(1)->pParts->ang.y);
-    ry = SmdGetObjPtr(1)->pParts->ang.y;
+    SmdGetObjPtr(1)->pList->ang.y = LIMIT_ANGLE(SmdGetObjPtr(1)->pList->ang.y);
+    ry = SmdGetObjPtr(1)->pList->ang.y;
     if ((ry > r222_angA0 && ry < r222_angA1) || (ry > r222_angA2 && ry < r222_angA3)) {
         if (pG->Room_flg[2] & 0x80000000) {
             StaFlagOff(pG, STA_PL_JUMP_OFF);
@@ -350,8 +350,8 @@ void R222Main()
         SceAtSetEnable(8, 1);
         eprintf(0xD8, 0x38, 2, 0, "%f", ry);
     }
-    SmdGetObjPtr(1)->pParts->ang.y = LIMIT_ANGLE(SmdGetObjPtr(1)->pParts->ang.y);
-    ry = SmdGetObjPtr(1)->pParts->ang.y;
+    SmdGetObjPtr(1)->pList->ang.y = LIMIT_ANGLE(SmdGetObjPtr(1)->pList->ang.y);
+    ry = SmdGetObjPtr(1)->pList->ang.y;
     if ((ry > r222_angB0 && ry < r222_angB1) || (ry > r222_angB2 && ry < r222_angB3)) {
         if (pG->Room_flg[2] & 0x40000000) {
             StaFlagOff(pG, STA_PL_JUMP_OFF);
@@ -365,7 +365,7 @@ void R222Main()
         eprintf(0xD8, 0x46, 2, 0, "%f", ry);
         SceAtSetEnable(7, 1);
     }
-    r222_work->satRot.y = SmdGetObjPtr(1)->pParts->ang.y;
+    r222_work->satRot.y = SmdGetObjPtr(1)->pList->ang.y;
     r222_work->sat->setCoord(&r222_work->satPos, &r222_work->satRot);
     if (r222_work->seTimer <= 0) {
         r222_work->seTimer = seReset;
@@ -540,8 +540,8 @@ static void box_appear1()
     SceEventStart(1);
     pG->Room_flg[0] |= 0x20000000;
     CamCtrl.CutCall(0xC);
-    SmdGetObjPtr(0x26)->pParts->ang.z = 0.0f;
-    SmdGetObjPtr(0x27)->pParts->ang.z = 0.0f;
+    SmdGetObjPtr(0x26)->pList->ang.z = 0.0f;
+    SmdGetObjPtr(0x27)->pList->ang.z = 0.0f;
     y[0] = SmdGetObjPtr(0x25)->pos.y;
     y[1] = SmdGetObjPtr(8)->pos.y;
     y[2] = SmdGetObjPtr(9)->pos.y;
@@ -634,8 +634,8 @@ static void box_appear2()
     SceEventStart(1);
     pG->Room_flg[0] |= 0x10000000;
     CamCtrl.CutCall(0xE);
-    SmdGetObjPtr(0x2A)->pParts->ang.z = 0.0f;
-    SmdGetObjPtr(0x2B)->pParts->ang.z = 0.0f;
+    SmdGetObjPtr(0x2A)->pList->ang.z = 0.0f;
+    SmdGetObjPtr(0x2B)->pList->ang.z = 0.0f;
     y[0] = SmdGetObjPtr(0x29)->pos.y;
     y[1] = SmdGetObjPtr(6)->pos.y;
     y[2] = SmdGetObjPtr(7)->pos.y;

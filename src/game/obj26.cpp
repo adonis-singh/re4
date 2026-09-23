@@ -106,7 +106,7 @@ void obj26_R1_Die(cObj26* pObj)
 void obj26MatCalc(cObj26* pObj)
 {
     if (OBJ26_WK(pObj)->pEm) {
-        cModel* parts = OBJ26_WK(pObj)->pEm->getPartsPtr(2);
+        cParts* parts = OBJ26_WK(pObj)->pEm->getPartsPtr(2);
         RotMatrix(pObj->mat, &pObj->ang);
         TransMatrix(pObj->mat, &pObj->pos);
         ScaleMatrix(pObj->mat, &pObj->scale);

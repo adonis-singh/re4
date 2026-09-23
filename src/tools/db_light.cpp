@@ -1927,7 +1927,7 @@ static void edit_light_parent()
     cModel* etc;
     cObj* obj;
     u32 n;
-    cModel* m;
+    cCoord* m;
     int first;
     u32 no;
 
@@ -2073,7 +2073,7 @@ static void edit_light_parent()
 void posTranslate(cLight* l, u8 type, u32 id)
 {
     Vec pos = l->World;
-    cModel* m;
+    cCoord* m;
     Mtx inv;
 
     l->setParent(type, id);

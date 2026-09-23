@@ -65,7 +65,7 @@ void cObjMauser::init(cModel* parent)
     }
     atari.init(0.0f, 100.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1, 0, 0);
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -138,7 +138,7 @@ void cObjMauser::moveDown()
 // offset (-109, -22, 90) with a random +-15 spread, gravity 10, 30 frames, landing effect 0x13.
 void cObjMauser::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;
@@ -258,7 +258,7 @@ void cObjMauser::setPin()
     pos.x = -270.0f;
     pos.y = 0.0f;
     pos.z = 100.0f;
-    PSMTXMultVec(pParts->mat, &pos, &pos);
+    PSMTXMultVec(pList->mat, &pos, &pos);
     rot.x = 0.0f;
     rot.y = 0.0f;
     rot.z = 0.0f;
@@ -268,7 +268,7 @@ void cObjMauser::setPin()
     spd.x += fRand1_1() * 5.0f;
     spd.y += fRand1_1() * 5.0f;
     spd.z += fRand1_1() * 5.0f;
-    PSMTXMultVecSR(pParts->mat, &spd, &spd);
+    PSMTXMultVecSR(pList->mat, &spd, &spd);
     obj = SetObj10(WEP_ARC_PTR(0x43), WEP_ARC_PTR(0x44), &pos, &rot, &spd, grav, rad, 0x1E, 3);
     if (obj) {
         Obj10SetEst(obj, 0, 0, 0, 0, 0, 0, 0x13, 0, 0);

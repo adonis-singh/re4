@@ -773,7 +773,7 @@ static void Evt_R300S00_Func(Event* e)
                     ((cModel*) mod)->ot_type = 1;
                 }
                 if (e->GetMod(&mod, "obm3600", 0, 0) == 1) {
-                    cModel* p;
+                    cParts* p;
 
                     ((cModel*) mod)->be_flag |= 0x80;
                     p = ((cModel*) mod)->getPartsPtr(3);

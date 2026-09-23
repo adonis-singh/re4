@@ -96,9 +96,9 @@ cObjWep* equipWeapon(cPlayer* pl)
     rot.z = 2.6179938f;
     obj->parentSet(pl, 0x11, &pos, &rot);
     if (pG->weapon_no == 0x19 || pG->weapon_no == 0x1F || pG->weapon_no == 0x20) {
-        obj->pParts->scale.x = 0.5f;
-        obj->pParts->scale.y = 0.5f;
-        obj->pParts->scale.z = 0.5f;
+        obj->pList->scale.x = 0.5f;
+        obj->pList->scale.y = 0.5f;
+        obj->pList->scale.z = 0.5f;
     }
     if (ItemMgr.bulletNum() <= 1) {
         obj->setDisp(0, 0);
@@ -118,9 +118,9 @@ cObjWep* equipWeapon(cPlayer* pl)
     rot.z = 0.0f;
     obj->parentSet(pl, 0xA, &pos, &rot);
     if (pG->weapon_no == 0x19 || pG->weapon_no == 0x1F || pG->weapon_no == 0x20) {
-        obj->pParts->scale.x = 0.5f;
-        obj->pParts->scale.y = 0.5f;
-        obj->pParts->scale.z = 0.5f;
+        obj->pList->scale.x = 0.5f;
+        obj->pList->scale.y = 0.5f;
+        obj->pList->scale.z = 0.5f;
     }
     pl->Wep->m_pWepHand = obj;
     if (ItemMgr.bulletNum() == 0) {

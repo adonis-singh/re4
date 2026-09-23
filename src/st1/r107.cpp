@@ -108,16 +108,16 @@ void r104_openKiln_main(int type, int opened)
         a->be_flag |= 0x20;
         b->be_flag |= 0x20;
         if (opened == 1) {
-            a->pParts->ang.y -= step;
-            b->pParts->ang.y += step;
+            a->pList->ang.y -= step;
+            b->pList->ang.y += step;
         } else {
             int i;
 
             step /= 30.0f;
             SndCall(6, 0x1C, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
-                a->pParts->ang.y -= step;
-                b->pParts->ang.y += step;
+                a->pList->ang.y -= step;
+                b->pList->ang.y += step;
                 SceSleep(1);
             }
         }

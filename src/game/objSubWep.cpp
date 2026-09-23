@@ -45,7 +45,7 @@ void cSubWep::moveNormal()
     }
     addSpeed();
     {
-        cModel* parts = getPartsPtr(0);
+        cParts* parts = getPartsPtr(0);
         if (parts) {
             PSVECAdd(&parts->ang, &rot_spd, &parts->ang);
             parts->ang.x = LIMIT_ANGLE(parts->ang.x);
@@ -406,8 +406,8 @@ int cSubWep::init(Vec* angS, f32 rx)
 {
     Vec p;
     Vec d;
-    cModel* parts;
-    cModel* parts2;
+    cParts* parts;
+    cParts* parts2;
     void* bin;
     void* tpl;
 
@@ -490,7 +490,7 @@ void setThrowSpeed(Vec* spd, f32 rx)
     Vec v;
     Vec ang;
     Vec d;
-    cModel* parts;
+    cParts* parts;
 
     switch (pG->weapon_no) {
     default:

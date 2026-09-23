@@ -538,7 +538,7 @@ void R320Init()
         SceAtDataSet_exec(0x1B, 0x12, 0, (TaskFunc) switch1_move, 0, 1);
         EstSet(0, -1, 0, 0, EFF_ROOM, 7, 1, ESP_CORE_KIND_ROOM01, (void*) zero, (void*) zero);
     } else {
-        SmdGetObjPtr(0x2E)->pParts->ang.z = -1.24f;
+        SmdGetObjPtr(0x2E)->pList->ang.z = -1.24f;
         EstSet(0, -1, 0, 0, EFF_ROOM, 8, 1, ESP_CORE_KIND_ROOM01, (void*) zero, (void*) zero);
         gate1_open(1);
     }
@@ -1134,7 +1134,7 @@ static void appear_a()
     r320_work->em[0].setNoSuspend(0);
     r320_work->em[1].setNoSuspend(0);
     r320_work->gatling[0]->ang.y = -0.91607f;
-    r320_work->gatling[0]->pParts->pParts->pParts->ang.x = 0.35561f;
+    r320_work->gatling[0]->pList->pList->pList->ang.x = 0.35561f;
 }
 
 // End of the area-9 cut: camera back, SceEventEnd, Ganados em[2..5] may suspend.
@@ -1268,7 +1268,7 @@ static void appear_d()
         SceEventStart(1);
         pPL->setNoSuspend(1);
         r320_work->gatling[1]->ang.y = -1.68495f;
-        r320_work->gatling[1]->pParts->pParts->pParts->ang.x = 1.08596f;
+        r320_work->gatling[1]->pList->pList->pList->ang.x = 1.08596f;
         CamCtrl.CutCall(0xF);
         while (CamCtrl.IsMotionEnd() == 0) {
             SceSleep(1);
@@ -1282,7 +1282,7 @@ static void appear_d()
         r320_work->em[0x15].setNoSuspend(0);
         r320_work->em[0x16].setNoSuspend(0);
         r320_work->gatling[1]->ang.y = -1.68495f;
-        r320_work->gatling[1]->pParts->pParts->pParts->ang.x = 1.08596f;
+        r320_work->gatling[1]->pList->pList->pList->ang.x = 1.08596f;
     }
 }
 
@@ -1487,7 +1487,7 @@ void reva_common_move(cObj* obj, f32 from, f32 to)
 
     obj->be_flag |= 0x20;
     SndCall(6, 0xF, &obj->pos, 0, 0, 0);
-    rz = &obj->pParts->ang.z;
+    rz = &obj->pList->ang.z;
     accel = r320_revaAccel;
     while (1) {
         if (to > from) {
@@ -2502,7 +2502,7 @@ static void door_open()
     SndCall(6, 0x1B, &SmdGetObjPtr(0x36)->pos, 0, 0, 0);
     SmdGetObjPtr(0x36)->be_flag |= 0x20;
     for (i = 0; i <= 0x1D; i++) {
-        SmdGetObjPtr(0x36)->pParts->pos.x -= 38.0f;
+        SmdGetObjPtr(0x36)->pList->pos.x -= 38.0f;
         SceSleep(1);
     }
     SceSleep(0xF);
@@ -2518,7 +2518,7 @@ static void door_opened()
     SceSleep(1);
     SceAtSetEnable(0x2C, 0);
     SmdGetObjPtr(0x36)->be_flag |= 0x20;
-    SmdGetObjPtr(0x36)->pParts->pos.x -= 1140.0f;
+    SmdGetObjPtr(0x36)->pList->pos.x -= 1140.0f;
     EstSet(0, -1, 0, 0, EFF_ROOM, 0x14, 1, ESP_CORE_KIND_ROOM04, 0, 0);
 }
 

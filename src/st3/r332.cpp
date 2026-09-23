@@ -1197,8 +1197,8 @@ void R332RevaCommonMove(int no, int up)
 // Crane `no`: the player takes the lever, aims the crane camera with the stick and drops the beam.
 static void R332ExecCrane(int no)
 {
-    cModel* parts4;
-    cModel* parts0;
+    cParts* parts4;
+    cParts* parts0;
     int flgNo;
     int hitDone;
     int endDone;
@@ -1378,12 +1378,12 @@ static void R332ExecCrane(int no)
             cEmHit* hit = r332_work->hit[no];
 
             if (hit && em) {
-                f32 d = SQRTF(GetDistance(&hit->pParts->world, &em->pos));
+                f32 d = SQRTF(GetDistance(&hit->pList->world, &em->pos));
 
                 if (d < r332_craneRange) {
                     int k;
 
-                    em->setHitCrane(&hit->pParts->world);
+                    em->setHitCrane(&hit->pList->world);
                     FlagOnVar(R332_FLAGS, (u32) flgNo);
                     RsfSet(G_ROOM_ID, rsfNo);
                     for (k = 0; k < 5; k++) {

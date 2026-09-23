@@ -712,9 +712,9 @@ void girlLapelMove(cModel* pl)
     Vec v;
     Vec axis;
     Vec rot;
-    cModel* p;
-    cModel* a;
-    cModel* b;
+    cParts* p;
+    cParts* a;
+    cParts* b;
     f32 (*pm1)[4] = m1;
     f32 (*pinv)[4] = inv;
     Vec* pv = &v;

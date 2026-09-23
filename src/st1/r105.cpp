@@ -356,7 +356,7 @@ static void r105_markMain()
                 PSMTXConcat(m, mat, tmp);
                 r105_markMtxCopy(obj->l_mat, tmp);
                 memcpy(obj->mat, obj->l_mat, sizeof(Mtx));
-                if (obj->pParts) {
+                if (obj->pList) {
                     obj->partsMatCalc();
                     obj->partsWorldCalc();
                 }
@@ -510,7 +510,7 @@ extern "C" void r105_markMtxInit()
             PSMTXConcat(tmp, mk->obj[i].mat, mk->obj[i].mat);
             r105_markMtxCopy(obj->l_mat, mk->obj[i].mat);
             memcpy(obj->mat, obj->l_mat, sizeof(Mtx));
-            if (obj->pParts) {
+            if (obj->pList) {
                 obj->partsMatCalc();
                 obj->partsWorldCalc();
             }
@@ -831,9 +831,9 @@ static void r105_execOpenCover()
     f32 step = 0.06981317f;
 
     for (;;) {
-        obj->pParts->ang.z -= step;
-        if (obj->pParts->ang.z < -(73.0f * 0.01f)) {
-            obj->pParts->ang.z = -(73.0f * 0.01f);
+        obj->pList->ang.z -= step;
+        if (obj->pList->ang.z < -(73.0f * 0.01f)) {
+            obj->pList->ang.z = -(73.0f * 0.01f);
             break;
         }
         SceSleep(1);
@@ -878,9 +878,9 @@ static void r105_checkCloseCover()
         f32 lim = 0.69f;
 
         do {
-            lid->pParts->ang.z += spd;
-            if (lid->pParts->ang.z > lim) {
-                lid->pParts->ang.z = 0.69f;
+            lid->pList->ang.z += spd;
+            if (lid->pList->ang.z > lim) {
+                lid->pList->ang.z = 0.69f;
                 break;
             }
             spd += 0.017453292f;
@@ -890,13 +890,13 @@ static void r105_checkCloseCover()
     SndCall(6, 0x5E, &lid->pos, 0, 0, 0);
     EstSet(0, -1, 0, 0, EFF_ROOM, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
     RsfSet(G_ROOM_ID, 4);
-    lid->pParts->ang.z -= 0.06981317f;
+    lid->pList->ang.z -= 0.06981317f;
     SceSleep(1);
-    lid->pParts->ang.z -= 0.02617994f;
+    lid->pList->ang.z -= 0.02617994f;
     SceSleep(1);
-    lid->pParts->ang.z += 0.02617994f;
+    lid->pList->ang.z += 0.02617994f;
     SceSleep(1);
-    lid->pParts->ang.z += 0.06981317f;
+    lid->pList->ang.z += 0.06981317f;
     SceSleep(1);
 }
 
@@ -1015,7 +1015,7 @@ static void r105_initCesspit()
     } else {
         SmdGetObjPtr(0x31)->be_flag &= ~2;
         if (RsfCheck(G_ROOM_ID, 3) == 0) {
-            SmdGetObjPtr(0x30)->pParts->ang.z = 0.69f;
+            SmdGetObjPtr(0x30)->pList->ang.z = 0.69f;
             SceAtDataSet_exec(0xC, SCE_LEVEL10, 0, r105_execOpenCover, 0, 1);
             SceAtSetEnable(9, 0);
             if (RsfCheck(G_ROOM_ID, 5)) {
@@ -1030,7 +1030,7 @@ static void r105_initCesspit()
             }
             SceExec(0x12, r105_checkCesspit1, 0, 0, SCE_PRIO_DEF_2, 0);
         } else {
-            SmdGetObjPtr(0x30)->pParts->ang.z = -(73.0f * 0.01f);
+            SmdGetObjPtr(0x30)->pList->ang.z = -(73.0f * 0.01f);
             SceAtSetEnable(0x11, 0);
             if (SceAtItemFlgCk(0x8D) == 0) {
                 SceExec(0x12, r105_checkCesspit2, 0, 0, SCE_PRIO_DEF_2, 0);

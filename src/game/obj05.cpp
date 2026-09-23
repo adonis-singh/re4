@@ -36,7 +36,7 @@ void cObj05::move()
     f32 len;
     int hit;
     u32 i;
-    cModel* p;
+    cParts* p;
 
     if (w->Size_start_cnt <= w->Life_time) {
         w->Size_mul += w->Size_plus;
@@ -99,7 +99,7 @@ void cObj05::move()
     rnd = (f32) (int) w->Kaboom_rnd / 32.0f;
     rotAmp = (f32) (int) w->Kaboom_rot * 0.005f;
 
-    for (i = 0, p = pParts; i < nParts; i++, p = p->pParts) {
+    for (i = 0, p = pList; i < nParts; i++, p = p->pList) {
         if (OBJ05_KABOOM(p)->Kaboom_flg == 0) {
             PSVECAdd(&pos, &w->Kaboom_pos, &d);
             PSVECSubtract(&p->world, &d, &d);

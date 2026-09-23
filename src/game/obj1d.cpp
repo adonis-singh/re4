@@ -162,13 +162,13 @@ void obj1d_R1_Parent(cObjChain* pObj)
     Vec pb;
     Vec p;
     cModel* parent = w->pEm_oya;
-    cModel* partsA;
-    cModel* partsB;
+    cParts* partsA;
+    cParts* partsB;
 
     RotMatrix(pObj->mat, &pObj->ang);
     TransMatrix(pObj->mat, &pObj->pos);
     ScaleMatrix(pObj->mat, &pObj->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         partsA = parent->getPartsPtr(w->Parts1);
         PSMTXConcat(partsA->mat, pObj->mat, ma);
         partsB = parent->getPartsPtr(w->Parts2);

@@ -217,7 +217,7 @@ void cObjRobo::R0WaitGondola(cObjRobo* pObj)
     Vec p;
     Vec d;
     int i;
-    cModel* parts;
+    cParts* parts;
     cEmHit* hit;
 
     switch (w->r_no_1) {
@@ -479,7 +479,7 @@ void cObjRobo::R0Event(cObjRobo* pObj)
 void cObjRobo::WalkSequence(cObjRobo* pObj, int hitCheckFlag)
 {
     Vec v;
-    cModel* parts;
+    cParts* parts;
 
     v.x = pObj->pos.x;
     v.y = pObj->pos.y;
@@ -533,7 +533,7 @@ void cObjRobo::WalkSequence(cObjRobo* pObj, int hitCheckFlag)
 // copy (the offsets are `from`/`to` directly), so max (2 sets, x4 length) outranks the two ranges.
 void cObjRobo::TaskSwitchFront(cObjRobo* pObj)
 {
-    cModel* parts;
+    cParts* parts;
     int i;
     int j;
     register f32 to asm("fr28");  // COMPILER-DIFF: #17 (FPR value pin): a hard-register `to` keeps the for-init copy `range = to` out of gcse's copy propagation
@@ -585,7 +585,7 @@ void cObjRobo::TaskSwitchFront(cObjRobo* pObj)
 // Scenario task: the back arm.
 void cObjRobo::TaskSwitchBack(cObjRobo* pObj)
 {
-    cModel* parts;
+    cParts* parts;
     int i;
     int j;
     register f32 to asm("fr28");  // COMPILER-DIFF: #17 (FPR value pin): a hard-register `to` keeps the for-init copy `range = to` out of gcse's copy propagation
@@ -705,7 +705,7 @@ void cObjRobo::SatMove(cObjRobo* pObj, Vec* pPosOld, int armNo)
     Vec b = { 0.0f, 0.0f, 0.0f };
     Vec c;
     Vec d;
-    cModel* parts;
+    cParts* parts;
     int partsNo;
     u32 i;
     cEm* em;

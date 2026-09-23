@@ -121,7 +121,7 @@ void damageNormal(cPlayer* pEm)
             }
         }
         if (pEm->m_Work1 != 0) {
-            cModel* p = pEm->getPartsPtr(0);
+            cParts* p = pEm->getPartsPtr(0);
             p->ang.y += Muku2(pEm->getPartsPtr(0)->ang.y, 0.0f, PI / 10.0f);
         }
         break;
@@ -146,7 +146,7 @@ void damageNormal(cPlayer* pEm)
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x23, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }
         }
-        if (GetWaterHeight(pos, &wh) && pEm->pParts->world.y < wh) {
+        if (GetWaterHeight(pos, &wh) && pEm->pList->world.y < wh) {
             if (MotionCheckCrossFrame(&pEm->Motion, 18.0f)) {
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x24, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }
@@ -227,7 +227,7 @@ void damageBlow(cPlayer* pEm)
         }
         if (pEm->Motion.Seq_frame >= 5.0f) {
             splash = pEm->m_Work2;
-            if (splash == 0 && GetWaterHeight(&pEm->pParts->world, &wh) && pEm->pParts->world.y < wh + 400.0f) {
+            if (splash == 0 && GetWaterHeight(&pEm->pList->world, &wh) && pEm->pList->world.y < wh + 400.0f) {
                 pEm->m_Work2 = 1;
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x24, 0, ESP_CORE_KIND_NONE, pEm, (void*) splash);
             }
@@ -264,7 +264,7 @@ void damageBlow(cPlayer* pEm)
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x23, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }
         }
-        if (GetWaterHeight(pos, &wh) && pEm->pParts->world.y < wh) {
+        if (GetWaterHeight(pos, &wh) && pEm->pList->world.y < wh) {
             if (MotionCheckCrossFrame(&pEm->Motion, 18.0f)) {
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x24, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }

@@ -478,7 +478,7 @@ extern "C" void Evt_R120S01_Func(Event* e)
 extern "C" void EventCarInit(Event* e)
 {
     void* mod;
-    cModel* p;
+    cParts* p;
 
     if (e->GetMod(&mod, "pl0000", 0, 0) == 1) {
         ((cModel*) mod)->be_flag |= 0x100000;

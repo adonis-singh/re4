@@ -71,13 +71,13 @@ cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, 
     if (target == 0) {
         return 0;
     }
-    if (target->pParts == 0) {
+    if (target->pList == 0) {
         return 0;
     }
     if (body == 0) {
         return 0;
     }
-    if (body->pParts == 0) {
+    if (body->pList == 0) {
         return 0;
     }
     obj = ObjMgr.createBack(cObjMgr::ID_EM10_PARASITE);
@@ -448,7 +448,7 @@ void obj16_R1_CoreMove(cObj16* obj)
                 break;
             }
             if (obj->type == 2 || obj->type == 0xB || obj->type == 0xE) {
-                cModel* p = obj->getPartsPtr(0);
+                cParts* p = obj->getPartsPtr(0);
                 dist = (p->world.x - pPL->pos.x) * (p->world.x - pPL->pos.x) +
                        (p->world.y - pPL->pos.y) * (p->world.y - pPL->pos.y) +
                        (p->world.z - pPL->pos.z) * (p->world.z - pPL->pos.z);
@@ -674,7 +674,7 @@ void obj16_R1_Critical(cObj16* obj)
     Vec head;
     Vec tgt;
     f32 d;
-    cModel* p;
+    cParts* p;
 
     w->Atk_ck = 0;
     atk = 0;
@@ -870,7 +870,7 @@ void MotSetObj16(cObj* obj, void* mot, int a, int b)
 void obj16MatCalc(cObj16* obj)
 {
     Obj16Work* w = OBJ16_WK(obj);
-    cModel* p;
+    cParts* p;
 
     if (w->pOya) {
         p = w->pOya->getPartsPtr(w->parts_no);
@@ -1017,7 +1017,7 @@ int obj16AtkCk(cObj16* obj, u32 atk_type, int parts_no)
 {
     Obj16Work* w = OBJ16_WK(obj);
     cModel* body = w->pOya;
-    cModel* p;
+    cParts* p;
     Vec* pp;
     Vec plPos;
     EmAtkInfo info;
@@ -1246,7 +1246,7 @@ static void obj16NeckMove(cObj16* obj)
         p->flags |= 0x40000000;
         p->rot.z = 0.0f;
         if (w->pOya) {
-            cModel* bp = w->pOya->getPartsPtr(w->parts_no);
+            cParts* bp = w->pOya->getPartsPtr(w->parts_no);
             dir.x = 0.0f;
             dir.y = 0.0f;
             dir.z = 1.0f;

@@ -493,7 +493,7 @@ void Em33ClothSet2(cModel* pEm, PlCloth* pCloth, int mode)
 // Per-frame simulation of enemy 33 cloth 2.
 void Em33ClothMove2(cModel* pEm, PlCloth* pCloth)
 {
-    cModel* p;
+    cParts* p;
 
     p = pEm->getPartsPtr(0xA9);
     p->ang.z = pEm->getPartsPtr(7)->ang.z;

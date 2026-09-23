@@ -417,7 +417,7 @@ void emMove(cEm* pEm)
     ShapeMove(pEm->pModelInfo);
     if (pEm->Motion.Seq_old.Se) {
         int no = pEm->Motion.Seq_old.Se - 1;
-        cModel* parts = pEm->getPartsPtr(0);
+        cParts* parts = pEm->getPartsPtr(0);
 
         SndCall(8, no, &parts->world, pEm->id, 0, pEm);
         pEm->Motion.Seq_old.Se = 0;

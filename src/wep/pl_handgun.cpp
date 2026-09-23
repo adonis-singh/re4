@@ -351,7 +351,7 @@ static void wep02_r2_fire(cPlayer* pl)
 static void wep02_r3_fire00(cPlayer* pl)
 {
     PlArc* arc;
-    cModel* parts;
+    cParts* parts;
     cObjWep* obj;
     Vec p0;
     Vec p1;

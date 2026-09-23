@@ -113,11 +113,11 @@ void cObj01::move00()
         if (w->release_timer) {
             w->release_timer--;
             if (w->release_timer == 0) {
-                cModel* parts;
+                cParts* parts;
                 Vec hit;
                 Vec dir;
 
-                parts = GetPartsAddr(w->pEm->pParts, 0);
+                parts = GetPartsAddr(w->pEm->pList, 0);
                 if (SatMgr.hitCheck(&parts->world, &pos, &hit, 0, 0, 0)) {
                     PSVECSubtract(&parts->world, &hit, &dir);
 #line 172 "D:/Bio4/Prog/obj01.cpp"
@@ -143,7 +143,7 @@ void cObj01::move00()
     }
     if (w->be_flag & 8) {
         if (w->pEm == 0) {
-            cModel* parts = GetPartsAddr(pParts, 0);
+            cParts* parts = GetPartsAddr(pList, 0);
             if (parts) {
                 PSVECAdd(&parts->ang, &w->rot_spd, &parts->ang);
                 parts->ang.x = LIMIT_ANGLE(parts->ang.x);
@@ -161,7 +161,7 @@ void cObj01::move00()
         }
     }
     if (w->pEm) {
-        cModel* parts = w->pEm->getPartsPtr(w->parts_no);
+        cParts* parts = w->pEm->getPartsPtr(w->parts_no);
         RotMatrix(mat, &w->ang);
         TransMatrix(mat, &w->offset);
         ScaleMatrix(mat, &scale);

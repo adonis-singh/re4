@@ -816,7 +816,7 @@ static void em27_R1_Die_Normal(cEm27* em)
         if (w->Timer2) {
             w->Timer2--;
         } else {
-            cModel* p = em->getPartsPtr(4);
+            cParts* p = em->getPartsPtr(4);
             Vec v;
 
             flag = 1;
@@ -865,7 +865,7 @@ void em27SetSPeed(cEm27* em, f32 rate)
 void em27ScaleReset(cEm27* em)
 {
     Em27Work* w = EM27_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (w->Be_flg & 0x10) {
         return;
@@ -915,7 +915,7 @@ void em27ObaHitCk(cEm27* em)
         if (e->hp <= 0) {
             continue;
         }
-        if (e->pParts == 0) {
+        if (e->pList == 0) {
             continue;
         }
         PSVECSubtract(&em->pos, &e->pos, &d);
@@ -958,7 +958,7 @@ int em27MotionMoveScale(cEm27* em)
     Vec rot;
     Vec inv;
     int ret;
-    cModel* p;
+    cParts* p;
 
     inv.x = 1.0f / em->scale.x;
     inv.y = 1.0f / em->scale.y;
@@ -983,7 +983,7 @@ void em27WaterEffSet(cEm27* em)
     Em27Work* w = EM27_WK(em);
     Vec v;
     f32 h;
-    cModel* p;
+    cParts* p;
 
     if (w->Be_flg & 0x80) {
         return;

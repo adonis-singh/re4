@@ -146,7 +146,7 @@ void em26DmCk(cEm26* em)
     case 0x21:
         if (near) {
             Camera* cam = &pG->Camera;
-            cModel* p = em->getPartsPtr(0);
+            cParts* p = em->getPartsPtr(0);
 
             if ((cam->param.pos.x - p->world.x) * (cam->param.pos.x - p->world.x)
                     + (cam->param.pos.y - p->world.y) * (cam->param.pos.y - p->world.y)
@@ -374,7 +374,7 @@ static void em26_R1_Wait(cEm26* em)
         EstSet(em, -1, 0, 0, EFF_EM26, 3, 0, ESP_CORE_KIND_NONE, em, 0);
     }
     if (w->dmgTotal > 500) {
-        cModel* p = em->getPartsPtr(4);
+        cParts* p = em->getPartsPtr(4);
 
         if ((p->world.x - pPL->pos.x) * (p->world.x - pPL->pos.x)
                 + (p->world.z - pPL->pos.z) * (p->world.z - pPL->pos.z) < 1000000.0f
@@ -544,7 +544,7 @@ static void em26_R1_Die_Normal(cEm26* em)
             }
         }
         if (MotionMove(em, 0)) {
-            cModel* p = em->getPartsPtr(2);
+            cParts* p = em->getPartsPtr(2);
 
             EstSet(0, -1, &p->world, &em->ang, EFF_EM26, 4, 0, ESP_CORE_KIND_NONE, 0, 0);
             em->r_no_2++;
@@ -580,7 +580,7 @@ int em26AtkCk(cEm26* em)
     }
     {
         EmAtkInfo* atk = &em26_atk_info;
-        cModel* p = em->getPartsPtr(4);
+        cParts* p = em->getPartsPtr(4);
         int hit = EmAtkHitCk(atk, &p->world, &p->world_old, 0);
 
         if (hit) {

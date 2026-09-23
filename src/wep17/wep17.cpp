@@ -199,7 +199,7 @@ int ckEmWep(cPlayer* pl)
         if (Front_check(pl, em, PI / 2.0f) == 0) {
             continue;
         }
-        if (SatMgr.hitCheck(&pl->pParts->world, &em->pParts->world, 0, 0, 0, 0)) {
+        if (SatMgr.hitCheck(&pl->pList->world, &em->pList->world, 0, 0, 0, 0)) {
             continue;
         }
         pCkEm = em;
@@ -554,7 +554,7 @@ static void wep17_r2_fire(cPlayer* pl)
 // m_Work4 counts the burst rounds, weapon object mode 2, PlWepLockRand recoils the aim. Step 1.
 static void wep17_r3_fire00(cPlayer* pl)
 {
-    cModel* parts;
+    cParts* parts;
     cObjWep* obj;
     void* m0;
     void* m1;
@@ -871,7 +871,7 @@ static void wep17_r2_out(cPlayer* pl)
                 pl->r_no_3 = 5;
             }
         } else if (joyFireOn()) {
-            cModel* parts;
+            cParts* parts;
             Vec p0;
             Vec p1;
             int zero;

@@ -3084,7 +3084,7 @@ int EventMgr::GetZeroPartsWorldPos(cModel* pMod, Vec* pPos, Vec* pAng)
 {
     Vec v;
     EvtMtx mtx;
-    cModel* parts = pMod->pParts;
+    cParts* parts = pMod->pList;
 
     if (parts == 0) {
         return 0;
@@ -3093,13 +3093,13 @@ int EventMgr::GetZeroPartsWorldPos(cModel* pMod, Vec* pPos, Vec* pAng)
     pPos->y = parts->world.y;
     pPos->z = parts->world.z;
     pPos->y = SatMgr.getFloor(pPos, 0, 600.0f, 100000.0f, 0);
-    if (parts->pParts == 0) {
+    if (parts->pList == 0) {
         return 0;
     }
     v.x = 0.0f;
     v.z = 1.0f;
     v.y = 0.0f;
-    mtx = *(EvtMtx*) parts->pParts->mat;
+    mtx = *(EvtMtx*) parts->pList->mat;
     mtx.m[0][3] = 0.0f;
     mtx.m[1][3] = 0.0f;
     mtx.m[2][3] = 0.0f;

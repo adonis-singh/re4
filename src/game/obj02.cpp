@@ -67,7 +67,7 @@ void cObjScr::moveRotate()
     ObjScrRotWork* w = (ObjScrRotWork*)free;
 
     if (w->flag & 1) {
-        PSVECAdd(&pParts->ang, &w->rotSpd, &pParts->ang);
+        PSVECAdd(&pList->ang, &w->rotSpd, &pList->ang);
     } else {
         PSVECAdd(&ang, &w->rotSpd, &ang);
     }

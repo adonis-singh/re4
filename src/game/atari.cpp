@@ -1704,7 +1704,7 @@ static cSatFile* createFloorSat(Vec* v, u32 attr, f32 h)
 // Move the model (and its parts' world matrices) by d after a collision push.
 void at_pos_calc(cModel* pMod, Vec* vec)
 {
-    cModel* c = pMod->pParts;
+    cParts* c = pMod->pList;
 
     if (PSVECMag(vec) != 0.0f) {
         PSVECAdd(&pMod->pos, vec, &pMod->pos);
@@ -1713,7 +1713,7 @@ void at_pos_calc(cModel* pMod, Vec* vec)
             c->mat[0][3] += vec->x;
             c->mat[1][3] += vec->y;
             c->mat[2][3] += vec->z;
-            c = c->pParts;
+            c = c->pList;
         }
         pMod->mat[0][3] = pMod->pos.x;
         pMod->mat[1][3] = pMod->pos.y;

@@ -948,7 +948,7 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
             }
             for (int i = 0; i < 2; i++) {
                 if (o1) {
-                    o1->pParts->ang.z += -0.034906585f;
+                    o1->pList->ang.z += -0.034906585f;
                 }
                 SceSleep(1);
             }
@@ -1027,22 +1027,22 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
                 break;
             case 7:
                 if (o1) {
-                    o1->pParts->ang.x += (1.7f / 30.0f);
+                    o1->pList->ang.x += (1.7f / 30.0f);
                 }
                 break;
             case 8:
                 if (o1) {
-                    o1->pParts->ang.x += (-1.7f / 30.0f);
+                    o1->pList->ang.x += (-1.7f / 30.0f);
                 }
                 break;
             case 9:
                 if (o1) {
-                    o1->pParts->ang.z += (1.7f / 30.0f);
+                    o1->pList->ang.z += (1.7f / 30.0f);
                 }
                 break;
             case 0xA:
                 if (o1) {
-                    o1->pParts->ang.z += (-1.7f / 30.0f);
+                    o1->pList->ang.z += (-1.7f / 30.0f);
                 }
                 break;
             case 0xB:
@@ -1101,7 +1101,7 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
                 dy -= 10.0f;
                 if (o1) {
                     o1->pos.y += dy;
-                    o1->pParts->ang.z += -0.017453292f;
+                    o1->pList->ang.z += -0.017453292f;
                 }
                 break;
             case 0x16:
@@ -1175,22 +1175,22 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
             break;
         case 7:
             if (o1) {
-                o1->pParts->ang.x += 1.7f;
+                o1->pList->ang.x += 1.7f;
             }
             break;
         case 8:
             if (o1) {
-                o1->pParts->ang.x += -1.7f;
+                o1->pList->ang.x += -1.7f;
             }
             break;
         case 9:
             if (o1) {
-                o1->pParts->ang.z += 1.7f;
+                o1->pList->ang.z += 1.7f;
             }
             break;
         case 0xA:
             if (o1) {
-                o1->pParts->ang.z += -1.7f;
+                o1->pList->ang.z += -1.7f;
             }
             break;
         case 0xB:

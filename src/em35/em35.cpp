@@ -150,7 +150,7 @@ void em35DmCk(cEm35* em)
     Camera* cam = &pG->Camera;
     int near;
     int dmg;
-    cModel* p;
+    cParts* p;
     f32 d;
 
     if (em->hp > 0 && EmDeadCk(em) == 0) {
@@ -393,7 +393,7 @@ void em35DmCkUpper(cEm35* em)
     Camera* cam = &pG->Camera;
     int near;
     int dmg;
-    cModel* p;
+    cParts* p;
     f32 d;
 
     if (em->dmg.m_Flag == 0) {
@@ -830,7 +830,7 @@ void cEm35::move()
             if (w->effTimer) {
                 w->effTimer--;
             } else {
-                cModel* p = getPartsPtr(0x15);
+                cParts* p = getPartsPtr(0x15);
 
                 w->effTimer = 14;
                 EstSet(0, -1, &p->world, 0, EFF_EM35, 5, 0, ESP_CORE_KIND_NONE, 0, 0);
@@ -2348,7 +2348,7 @@ void em35StampCamMove(cEm35* em)
     GlobalWork* g = pG;
     Camera* cam = &w->cam;
     Vec a;
-    cModel* p;
+    cParts* p;
 
     w->cam.param.fovy = g->Camera.param.fovy;
     a.x = 0.0f;
@@ -3275,7 +3275,7 @@ static void em35_R1_U_Crawl(cEm35* em)
         if (w->atkTimer) {
             w->atkTimer--;
         } else {
-            cModel* p = em->getPartsPtr(0);
+            cParts* p = em->getPartsPtr(0);
 
             w->atkTimer = (u8) (Rnd() % 30) + 60;
             SndCall(8, 0x40, &p->world, em->id, 0, em);
@@ -3427,8 +3427,8 @@ static void em35_R1_Dm_Small(cEm35* em)
         Mtx inv;
         Vec a;
         Vec b;
-        cModel* p0 = em->getPartsPtr(0x1E);
-        cModel* p1 = em->getPartsPtr(0x22);
+        cParts* p0 = em->getPartsPtr(0x1E);
+        cParts* p1 = em->getPartsPtr(0x22);
 
         PSMTXInverse(em->mat, inv);
         PSMTXMultVec(inv, &p0->world, &a);
@@ -3506,8 +3506,8 @@ static void em35_R1_Dm_Big(cEm35* em)
         Mtx inv;
         Vec a;
         Vec b;
-        cModel* p0 = em->getPartsPtr(0x1E);
-        cModel* p1 = em->getPartsPtr(0x22);
+        cParts* p0 = em->getPartsPtr(0x1E);
+        cParts* p1 = em->getPartsPtr(0x22);
 
         PSMTXInverse(em->mat, inv);
         PSMTXMultVec(inv, &p0->world, &a);
@@ -3551,8 +3551,8 @@ static void em35_R1_Dm_Frame(cEm35* em)
         Mtx inv;
         Vec a;
         Vec b;
-        cModel* p0 = em->getPartsPtr(0x1E);
-        cModel* p1 = em->getPartsPtr(0x22);
+        cParts* p0 = em->getPartsPtr(0x1E);
+        cParts* p1 = em->getPartsPtr(0x22);
 
         PSMTXInverse(em->mat, inv);
         PSMTXMultVec(inv, &p0->world, &a);
@@ -3952,7 +3952,7 @@ int em35AtkCk(cEm35* em, u32 no, int parts)
 {
     Em35Work* w = EM35_WK(em);
     EmAtkInfo* info;
-    cModel* p;
+    cParts* p;
     int hit;
 
     if (w->atkHit) {
@@ -4121,7 +4121,7 @@ int em35WeakDmCk(cEm35* em)
 int em35CatchCk(cEm35* em)
 {
     Vec pos;
-    cModel* p;
+    cParts* p;
     int hit;
 
     if (EmDeadCk(pPL)) {
@@ -5039,7 +5039,7 @@ void em35BlendMotSet(cEm35* em, void* m0, void* m1, void* m2, void* m3, int a, i
 void em35ScaleMove(cEm35* em)
 {
     Em35Work* w = EM35_WK(em);
-    cModel* p = em->getPartsPtr(0x34);
+    cParts* p = em->getPartsPtr(0x34);
     f32 s = SINF(w->scaleAng) * 0.3f + 1.0f;
 
     p->scale.x = s;

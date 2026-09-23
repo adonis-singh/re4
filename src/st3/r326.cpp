@@ -168,10 +168,10 @@ void r326_openBox_main(u32 id, int opened)
         obj->be_flag |= 0x20;
         if (opened == 1) {
             PSVECAdd(&obj->pos, &mv, &obj->pos);
-            PSVECAdd(&obj->pParts->ang, &rmv, &obj->pParts->ang);
+            PSVECAdd(&obj->pList->ang, &rmv, &obj->pList->ang);
             if (item != 0) {
                 PSVECAdd(&item->pos, &mv, &item->pos);
-                PSVECAdd(&item->pParts->ang, &rmv, &item->pParts->ang);
+                PSVECAdd(&item->pList->ang, &rmv, &item->pList->ang);
             }
         } else {
             Vec dmv;
@@ -183,10 +183,10 @@ void r326_openBox_main(u32 id, int opened)
             RoomSeCall(se, 0, 0, 0, 0);
             for (i = 0; i < 30; i++) {
                 PSVECAdd(&obj->pos, &dmv, &obj->pos);
-                PSVECAdd(&obj->pParts->ang, &drmv, &obj->pParts->ang);
+                PSVECAdd(&obj->pList->ang, &drmv, &obj->pList->ang);
                 if (item != 0) {
                     PSVECAdd(&item->pos, &dmv, &item->pos);
-                    PSVECAdd(&item->pParts->ang, &drmv, &item->pParts->ang);
+                    PSVECAdd(&item->pList->ang, &drmv, &item->pList->ang);
                 }
                 SceSleep(1);
             }

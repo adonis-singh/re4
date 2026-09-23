@@ -139,7 +139,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
         }
         if (pJoy->on & JOY_A) {
             if (EmMgr.at(numEm)->be_flag & 1) {
-                cModel* parts = EmMgr.at(numEm)->getPartsPtr(0);
+                cParts* parts = EmMgr.at(numEm)->getPartsPtr(0);
                 if (parts == NULL) {
                     pCam->param.at = EmMgr.at(numEm)->pos;
                 } else {
@@ -204,7 +204,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
         }
         if (pJoy->on & JOY_A) {
             if (ObjMgrWork(numObj)->be_flag & 1) {
-                cModel* parts = ObjMgrWork(numObj)->getPartsPtr(0);
+                cParts* parts = ObjMgrWork(numObj)->getPartsPtr(0);
                 if (parts == NULL) {
                     pCam->param.at = ObjMgrWork(numObj)->pos;
                 } else {
@@ -222,7 +222,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
     case 2:
         if (pJoy->on & JOY_A) {
             if (pPL->be_flag & 1) {
-                cModel* parts = pPL->getPartsPtr(0);
+                cParts* parts = pPL->getPartsPtr(0);
                 if (parts == NULL) {
                     pCam->param.at = pPL->pos;
                 } else {

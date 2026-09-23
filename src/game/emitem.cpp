@@ -300,7 +300,7 @@ void emItem_R1_Parent(cEmItem* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (w->noNormalize == 0) {
             v0.x = m[0][0];
@@ -468,7 +468,7 @@ void emItemRotMove(cEmItem* pEm)
 {
     EmItemWork* w = EMITEM_WK(pEm);
     Mtx tmp;
-    cModel* p;
+    cParts* p;
 
     switch (w->Rot_type) {
     case 1:

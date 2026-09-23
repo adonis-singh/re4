@@ -26,7 +26,7 @@ f32 GlobalWindAdd = 1.0471976f;
 // takes an index already in a register (neighbour lookups).
 #define PEN_PARTS(m, c, no) ((c)->pPtbl ? (c)->pPtbl[no] : (m)->getPartsPtr(no))
 // Parts `no` of the chain owner (through pPtbl when the owner supplied a parts table).
-static inline cModel* penPartsNo(cModel* m, PenCloth* c, int no)
+static inline cParts* penPartsNo(cModel* m, PenCloth* c, int no)
 {
     if (c->pPtbl) {
         return c->pPtbl[no];
@@ -43,7 +43,7 @@ static inline void penWindScale(Vec* wind, f32 rate)
 
 // Pendulum work of a parts (cModel + 0x128). A macro: an inline function would materialise the
 // base into a register (PenClothSet addresses x1C0 off the parts pointer).
-#define PEN_WORK(p) ((PenParts*) &(p)->pFloor_norm)
+#define PEN_WORK(p) ((PenParts*) &(p)->inv_offset)
 
 // Collision of the link p0-p1 against the volumes: the border variant keeps the link end on
 // the sphere surface, the plain one pushes it out.
@@ -139,8 +139,8 @@ static inline void penWindScale(Vec* wind, f32 rate)
 void PenClothSet(cModel* m, PenCloth* c, f32 min_len)
 {
     Vec v;
-    cModel* parts;
-    cModel* n;   // one variable for the neighbour of both arms (it takes r12 in the original)
+    cParts* parts;
+    cParts* n;   // one variable for the neighbour of both arms (it takes r12 in the original)
     PenParts* w;
     u32 i;
 
@@ -194,19 +194,19 @@ void PenClothSet(cModel* m, PenCloth* c, f32 min_len)
         parts = m->getPartsPtr(c->pCloth[i]);
         w = PEN_WORK(parts);
         if (c->pLeft && c->pLeft[i] < 0xFF) {
-            cModel* p = m->getPartsPtr(c->pLeft[i]);
+            cParts* p = m->getPartsPtr(c->pLeft[i]);
             w->distL = GetDistance3(&w->pos, &PEN_WORK(p)->pos) * 0.5f;
         }
         if (c->pRight && c->pRight[i] < 0xFF) {
-            cModel* p = m->getPartsPtr(c->pRight[i]);
+            cParts* p = m->getPartsPtr(c->pRight[i]);
             w->distR = GetDistance3(&w->pos, &PEN_WORK(p)->pos) * 0.5f;
         }
         if (c->pUpLeft && c->pUpLeft[i] < 0xFF) {
-            cModel* p = m->getPartsPtr(c->pUpLeft[i]);
+            cParts* p = m->getPartsPtr(c->pUpLeft[i]);
             w->distUL = GetDistance3(&w->pos, &PEN_WORK(p)->pos) * 0.5f;
         }
         if (c->pUpRight && c->pUpRight[i] < 0xFF) {
-            cModel* p = m->getPartsPtr(c->pUpRight[i]);
+            cParts* p = m->getPartsPtr(c->pUpRight[i]);
             w->distUR = GetDistance3(&w->pos, &PEN_WORK(p)->pos) * 0.5f;
         }
     }
@@ -250,10 +250,10 @@ void PenClothMove(cModel* m, PenCloth* c)
     f32 spdRate;   // also the angle limit of the pMax loop: one variable (10 + 10 refs) outranks d for f31
     f32 d;
     PenAtWork* at;
-    cModel* parts;
+    cParts* parts;
     PenParts* w;
     PenParts* uw;
-    cModel* np;   // neighbour parts (one variable for every lookup: r7 in the original)
+    cParts* np;   // neighbour parts (one variable for every lookup: r7 in the original)
     const u8* pp;
     u32 i;
     u32 k;
@@ -292,7 +292,7 @@ void PenClothMove(cModel* m, PenCloth* c)
 
     // gravity, parent speed and wind
     if (!(c->Flag & 0x20)) {
-        cModel* root = m->getPartsPtr(0);
+        cParts* root = m->getPartsPtr(0);
         mpos = root->world;
         PSVECSubtract(&root->world, &root->world_old, &a);
         spdLen = SQRTF(a.x * a.x + a.z * a.z);
@@ -559,10 +559,10 @@ void PenClothMove2(cModel* m, PenCloth* c)
     f32 spdRate;   // also the angle limit of the pMax loop: one variable (10 + 10 refs) outranks d for f31
     f32 d;
     PenAtWork* at;
-    cModel* parts;
+    cParts* parts;
     PenParts* w;
     PenParts* uw;
-    cModel* np;   // neighbour parts (one variable for every lookup: r7 in the original)
+    cParts* np;   // neighbour parts (one variable for every lookup: r7 in the original)
     register const u8* pp asm("r21");   // COMPILER-DIFF: #17 (register pin): pp above i in global-alloc
     u32 i;
     u32 k;
@@ -601,10 +601,10 @@ void PenClothMove2(cModel* m, PenCloth* c)
 
     if (!(c->Flag & 0x20)) {
         if (m->be_flag & 0x00100000) {
-            cModel* root = m->getPartsPtr(0);
+            cParts* root = m->getPartsPtr(0);
             PSVECSubtract(&root->world, &root->world_old, &a);
         } else {
-            cModel* root = m->getPartsPtr(0);
+            cParts* root = m->getPartsPtr(0);
             PSVECSubtract(&root->world, &root->world_old, &a);
             PSVECScale(&a, &a, c->Move_rate);
         }
@@ -846,10 +846,10 @@ void PenClothMove3(cModel* m, PenCloth* c)
     f32 spdRate;   // also the angle limit of the pMax loop: one variable (10 + 10 refs) outranks d for f31
     f32 d;
     PenAtWork* at;
-    cModel* parts;
+    cParts* parts;
     PenParts* w;
     PenParts* uw;
-    cModel* np;   // neighbour parts (one variable for every lookup: r7 in the original)
+    cParts* np;   // neighbour parts (one variable for every lookup: r7 in the original)
     const u8* pp;
     u32 i;
     u32 k;
@@ -888,10 +888,10 @@ void PenClothMove3(cModel* m, PenCloth* c)
 
     if (!(c->Flag & 0x20)) {
         if (m->be_flag & 0x00100000) {
-            cModel* root = m->getPartsPtr(0);
+            cParts* root = m->getPartsPtr(0);
             PSVECSubtract(&root->world, &root->world_old, &a);
         } else {
-            cModel* root = m->getPartsPtr(0);
+            cParts* root = m->getPartsPtr(0);
             PSVECSubtract(&root->world, &root->world_old, &a);
             PSVECScale(&a, &a, c->Move_rate);
         }
@@ -1150,7 +1150,7 @@ static void penClothLinkMove(cModel* parts, PenParts* w, Vec* a, Vec* b, f32 max
 // them is a scheduling barrier, so the following call no longer anti-depends on the previous
 // call's `addi r5, r1, 8` through r1 (ours ranked it first by dependant count; the target issues
 // r4, r3, r5) and the &v0/&up/&ax pseudos get the target's callee-saved order.
-static inline void penPartsWorldPos(cModel* p, const Vec* ofs, Vec* out)
+static inline void penPartsWorldPos(cParts* p, const Vec* ofs, Vec* out)
 {
     do {
         PSMTXMultVec(p->mat, ofs, out);
@@ -1181,8 +1181,8 @@ PenAtWork* penClothAtMake(cModel* m, CLOTH_AT_SET* at, int n)
     for (i = 0; i < n; i++, at++, a++) {
         u8 no1 = at->P2;
         f32 rate = at->Weight;
-        cModel* p0 = m->getPartsPtr(at->P1);
-        cModel* p1 = m->getPartsPtr(no1);
+        cParts* p0 = m->getPartsPtr(at->P1);
+        cParts* p1 = m->getPartsPtr(no1);
 
         PSMTXMultVec(p0->mat, &at->Ofs1, &v0);
         penPartsWorldPos(p1, &at->Ofs2, &v1);
@@ -1598,7 +1598,7 @@ void penClothAtCkParallel(Vec* pos, Vec* up, PenAtWork* wk)
 // Put every link back to its rest pose (the model was warped: be_flag 0x00200000).
 static void PenClothReset(cModel* m, PenCloth* c)
 {
-    cModel* parts;
+    cParts* parts;
     PenParts* w;
     const u8* pp;
     u32 i;
@@ -1621,7 +1621,7 @@ static void PenClothReset(cModel* m, PenCloth* c)
         w->speed.z = 0.0f;
     }
     {
-        cModel* root = m->getPartsPtr(0);
+        cParts* root = m->getPartsPtr(0);
         root->world_old = root->world;
         root->world_old2 = root->world;
     }

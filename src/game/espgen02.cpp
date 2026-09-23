@@ -79,7 +79,7 @@ void espgen02_UpdateMatrix(EspgenWork* pEspgen)
     }
     if (!(p->Flg & 1)) {
         if (p->Null_parts_no < model->nParts) {
-            cModel* part;
+            cParts* part;
             Vec ofs;
             Vec r;
 

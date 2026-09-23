@@ -666,7 +666,7 @@ int lightHitCheckCylinder(cModel* pMod, cLight* pLight)
     Vec tmp;
     Vec lpos;
     cLightInfo* li = &pMod->LightInfo;
-    cModel* c;
+    cCoord* c;
     f32 r;
 
     c = li->getPos(pMod, &pos);
@@ -1286,7 +1286,7 @@ cModel* cLight::calcParent()
 }
 
 // The parent's parts the light follows (0 when unattached or dead).
-cModel* cLight::getCoord()
+cCoord* cLight::getCoord()
 {
     cModel* p = pParent;
     int partsNo = parent.partsNo;
@@ -1314,7 +1314,7 @@ int cLight::getPos2(Vec* pLiPos, Vec* pPos)
 int cLight::calcPos(Vec* pLiPos, Vec* pPos)
 {
     cModel* p;
-    cModel* c;
+    cCoord* c;
     int partsNo;
     int no;
 

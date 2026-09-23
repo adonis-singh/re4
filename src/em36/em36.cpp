@@ -1430,7 +1430,7 @@ static void em36_R1_Atk(cEm36* em)
             break;
         }
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
             Vec a;
 
             if (!(em->Motion.Mot_attr & 0x40)) {
@@ -3406,7 +3406,7 @@ void em36NeckMove(cEm36* em)
 // Tests attack `no` swept from part `parts`' previous to its current world position (em36AtkCk2).
 int em36AtkCk(cEm36* em, u32 no, int parts)
 {
-    cModel* p = em->getPartsPtr(parts);
+    cParts* p = em->getPartsPtr(parts);
 
     return em36AtkCk2(em, no, &p->world, &p->world_old);
 }
@@ -3525,7 +3525,7 @@ int em36LostParts(cEm36* em)
     switch ((u32) em36GetDmPosType(em)) {
     case 0:
     default: {
-        cModel* p;
+        cParts* p;
 
         if (w->flags2 & 0x20) {
             return 0;
@@ -3657,7 +3657,7 @@ void em36RegeneCk2(cEm36* em)
     }
     if (w->flags2 & 0x20) {
         if (w->atkTimer[0] <= 45) {
-            cModel* p = em->getPartsPtr(0x2D);
+            cParts* p = em->getPartsPtr(0x2D);
 
             p->scale.x = p->scale.x * 0.92f + 0.004f;
             p->scale.y = p->scale.y * 0.92f + 0.004f;
@@ -3841,7 +3841,7 @@ int em36LongCatchCk(cEm36* em)
     Vec a;
     Vec b;
     Mtx m;
-    cModel* p;
+    cParts* p;
     f32 len;
 
     if (EmDeadCk(pPL)) {
@@ -5132,7 +5132,7 @@ void em36VoiceSet(cEm* em, int no, int timer)
 {
     Em36Work* w = EM36_WK(em);
 
-    cModel* p;
+    cParts* p;
 
     SndStop(w->sndId, 0);
     p = em->getPartsPtr(3);

@@ -10,11 +10,11 @@
 #include "db_log.h"
 
 extern "C" {
-void ikCalc(cModel* root, cModel* joint, cModel* eff);
-static void heel2toe(Mtx m, cModel* p, Vec* pos);
+void ikCalc(cParts* root, cParts* joint, cParts* eff);
+static void heel2toe(Mtx m, cParts* p, Vec* pos);
 }
 
-#define IK_FLAGS(p) (MOTION_PARTS(p)->flags)
+#define IK_FLAGS(p) ((p)->motParts.flags)
 #define BIND_X(p) (IK_PARTS(p)->bindMat[0][3])
 #define BIND_Y(p) (IK_PARTS(p)->bindMat[1][3])
 #define BIND_Z(p) (IK_PARTS(p)->bindMat[2][3])
@@ -29,13 +29,13 @@ void IKInit(cModel* pEm, MotionWorkSub* pInfo)
     Vec axis;
     Mtx mtx;
     Vec v;
-    cModel* p;
-    cModel* root;
-    cModel* joint;
-    cModel* eff;
+    cParts* p;
+    cParts* root;
+    cParts* joint;
+    cParts* eff;
     int i;
 
-    for (p = pEm->pParts; p != 0; p = p->pParts) {
+    for (p = pEm->pList; p != 0; p = p->pList) {
         IK_FLAGS(p) &= ~4;
         IK_FLAGS(p) &= ~0x10;
         IK_FLAGS(p) &= ~0x300;
@@ -50,12 +50,12 @@ void IKInit(cModel* pEm, MotionWorkSub* pInfo)
             pLog->err(2, 0, "IKInit(): missing Root.");
             return;
         }
-        joint = root->pParts;
+        joint = root->pList;
         if (joint == 0) {
             pLog->err(2, 0, "IKInit(): missing Joint.");
             return;
         }
-        eff = joint->pParts;
+        eff = joint->pList;
         if (eff == 0) {
             pLog->err(2, 0, "IKInit(): missing Effector.");
             return;
@@ -95,13 +95,13 @@ void IKInit(cModel* pEm, MotionWorkSub* pInfo)
         }
         if (kind & 0x20) {
             IK_FLAGS(root) |= 0x100;
-            MOTION_PARTS(root->pParts->pParts->pParts)->ikAng = 0.0f;
+            root->pList->pList->pList->motParts.ikAng = 0.0f;
         }
         if (kind & 0x80) {
             u32 f = IK_FLAGS(root) | 0x210;
             IK_FLAGS(root) = f;
             if (f & 0x100) {
-                eff = joint->pParts->pParts;
+                eff = joint->pList->pList;
                 if (eff == 0) {
                     pLog->err(2, 0, "IKInit(): missing joint.");
                     return;
@@ -164,7 +164,7 @@ void IKInit(cModel* pEm, MotionWorkSub* pInfo)
 // la/lb, computes the knee angles by the law of cosines (clamped when the target is out of reach),
 // re-orients the root and joint matrices in the bend plane and re-derives their world positions.
 // Bend the root/joint pair so that the effector reaches its current world position.
-void ikCalc(cModel* root, cModel* joint, cModel* eff)
+void ikCalc(cParts* root, cParts* joint, cParts* eff)
 {
     Vec dir;
     Vec axis;
@@ -216,10 +216,10 @@ void ikCalc(cModel* root, cModel* joint, cModel* eff)
 // After the solve, recomputes the heel matrix at pos and its toe child's world position (marks both
 // with flag 0x10000000 so the motion code does not overwrite them).
 // Put the heel (p) so that its toe (the child) lands on `pos`.
-static void heel2toe(Mtx m, cModel* p, Vec* pos)
+static void heel2toe(Mtx m, cParts* p, Vec* pos)
 {
     Mtx inv;
-    cModel* toe = p->pParts;
+    cParts* toe = p->pList;
 
     if (toe == 0) {
         pLog->err(2, 0, "heel2toe(): missing joint.");
@@ -277,16 +277,16 @@ static void heel2toe(Mtx m, cModel* p, Vec* pos)
     PSVECCrossProduct(&c, &b, &d);                                   \
     if (PSVECDotProduct(&d, &a) < 0.0f) {                            \
         ang = -ang;                                                  \
-        if (MOTION_PARTS(e)->ikAng > 1.5707964f) {                   \
+        if (e->motParts.ikAng > 1.5707964f) {                   \
             ang += 6.2831855f;                                       \
         } else {                                                     \
-            MOTION_PARTS(e)->ikAng = ang;                            \
+            e->motParts.ikAng = ang;                            \
         }                                                            \
     } else {                                                         \
-        if (MOTION_PARTS(e)->ikAng < -1.5707964f) {                  \
+        if (e->motParts.ikAng < -1.5707964f) {                  \
             ang -= 6.2831855f;                                       \
         } else {                                                     \
-            MOTION_PARTS(e)->ikAng = ang;                            \
+            e->motParts.ikAng = ang;                            \
         }                                                            \
     }
 
@@ -309,23 +309,23 @@ void InverseKinematics(cModel* pEm, int arm_flag)
     Mtx inv;
     Vec target;
     Vec a;
-    cModel* p;
-    cModel* joint;
-    cModel* eff;
-    cModel* q;
+    cParts* p;
+    cParts* joint;
+    cParts* eff;
+    cParts* q;
     f32 floorY;
     f32 ang;
     int n;
 
-    for (p = pEm->pParts; p != 0; p = p->pParts) {
+    for (p = pEm->pList; p != 0; p = p->pList) {
         if (!(IK_FLAGS(p) & 4)) {
             continue;
         }
         if (IK_FLAGS(p) & 0x80) {
             continue;
         }
-        joint = p->pParts;
-        eff = joint->pParts;
+        joint = p->pList;
+        eff = joint->pList;
         PSMTXMultVec(pEm->mat, &eff->pos, &target);
         if (!em->checkStatus(EM_STATUS_IK_OFF) && !(IK_FLAGS(p) & 0x200)) {
             if (!(em->atari.m_flag & 0x100)) {
@@ -345,7 +345,7 @@ void InverseKinematics(cModel* pEm, int arm_flag)
                 a.y = floorY + eff->pos.y;
                 a.z = target.z;
                 dist = GetDistance3(&p->world, &a);
-                reach = IK_PARTS(p)->len + IK_PARTS(p->pParts)->len;
+                reach = IK_PARTS(p)->len + IK_PARTS(p->pList)->len;
                 if (target.y < floorY + eff->pos.y || ((IK_FLAGS(p) & 0x400) && dist < reach) || (IK_FLAGS(p) & 0x800)) {
                     if ((IK_FLAGS(p) & 0x800) && floorY < target.y) {
                         a.y = target.y;
@@ -365,7 +365,7 @@ void InverseKinematics(cModel* pEm, int arm_flag)
                 IK_LOCAL(eff);
             }
         } else {
-            eff = p->pParts->pParts->pParts;
+            eff = p->pList->pList->pList;
             PSMTXConcat(pEm->mat, eff->l_mat, eff->mat);
             MAT_COL(eff->world, eff->mat, 3);
             IK_LOCAL(eff);
@@ -388,7 +388,7 @@ void InverseKinematics(cModel* pEm, int arm_flag)
                 PSMTXConcat(inv, eff->mat, eff->l_mat);
             }
             if (IK_FLAGS(p) & 0x100) {
-                cModel* toe = eff->pParts;
+                cParts* toe = eff->pList;
                 RotMatrix(toe->l_mat, &toe->ang);
                 TransMatrix(toe->l_mat, &toe->pos);
                 PSMTXConcat(toe->pParent->mat, toe->l_mat, toe->mat);
@@ -406,8 +406,8 @@ void InverseKinematics(cModel* pEm, int arm_flag)
                 } else {
                     sel = 1;
                 }
-                cModel* j = p->pParts;
-                cModel* e = j->pParts;
+                cParts* j = p->pList;
+                cParts* e = j->pList;
                 switch (sel) {
                 case 0: {
                     Vec b;
@@ -456,13 +456,13 @@ void InverseKinematics(cModel* pEm, int arm_flag)
                         MAT_COL(q->pos, q->l_mat, 3);
                     }
                     IK_FLAG_ONLY(q);
-                    q = q->pParts;
+                    q = q->pList;
                 }
             }
         } else if (IK_FLAGS(p) & 0x100) {
-            cModel* j = p->pParts;
-            cModel* e = j->pParts;
-            cModel* toe = e->pParts;
+            cParts* j = p->pList;
+            cParts* e = j->pList;
+            cParts* toe = e->pList;
             ikCalc(p, j, toe);
             PSMTXConcat(j->mat, e->l_mat, e->mat);
             {
@@ -489,7 +489,7 @@ void InverseKinematics(cModel* pEm, int arm_flag)
                     MAT_COL(q->pos, q->l_mat, 3);
                 }
                 IK_FLAG_ONLY(q);
-                q = q->pParts;
+                q = q->pList;
             }
         }
     }

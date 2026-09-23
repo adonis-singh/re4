@@ -56,7 +56,7 @@ void cObjGovernment::init(cModel* parent)
         return;
     }
     atari.m_flag &= 0xFCFF;
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -145,7 +145,7 @@ void cObjGovernment::moveReload()
             se = 0x21;
             break;
         }
-        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
@@ -157,7 +157,7 @@ void cObjGovernment::moveReload()
 // port offset (-163, -163, 100) with a random +-15 spread, gravity 10, 30 frames, effect 0x13.
 void cObjGovernment::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

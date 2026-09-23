@@ -63,7 +63,7 @@ void cObjMagnum::init(cModel* parent)
         return;
     }
     atari.m_flag &= 0xFCFF;
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -125,7 +125,7 @@ void cObjMagnum::moveReload()
             se = 0x18;
             break;
         }
-        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, 34.0f)) {
         ItemMgr.reload();

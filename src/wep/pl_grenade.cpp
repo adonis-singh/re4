@@ -154,7 +154,7 @@ static void wep19_r3_ready00(cPlayer* pl)
     mot3.move(m3r);
     m3r.reset(0.0f);
     m3r.setDelay(0.0f);
-    SndCall(1, 0x28, &pl->pParts->world, 0, 0, 0);
+    SndCall(1, 0x28, &pl->pList->world, 0, 0, 0);
     lockCtr = 0;
     pl->r_no_3 = 1;
 }
@@ -393,7 +393,7 @@ static void wep19_r3_fire00(cPlayer* pl)
     }
     mot3.move(m3r);
     MotionMove(pl, 0);
-    SndCall(1, 1, &pl->pParts->world, 0, 0, 0);
+    SndCall(1, 1, &pl->pList->world, 0, 0, 0);
     m3r.move();
     mot3.move(m3r);
     pl->Waist->set(pl->m_Fwork0, 0.4f);
@@ -420,7 +420,7 @@ static void wep19_r3_fire10(cPlayer* pl)
     if (pl->m_Work4 == 0) {
         if (pl->Motion.Seq_frame > 24.7f && pl->Motion.Seq_frame < 25.3f) {
             readyWeapon(pl);
-            SndCall(1, 0, &pl->pParts->world, 0, 0, 0);
+            SndCall(1, 0, &pl->pList->world, 0, 0, 0);
         }
         if (pl->Motion.Seq_frame >= 30.0f) {
             pl->r_no_0 = 0;

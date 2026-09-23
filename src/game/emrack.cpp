@@ -263,7 +263,7 @@ void emRackDmCk(cEmRack* pEm)
                 return;
             }
             if (part->parts_no != 0) {
-                cModel* p;
+                cParts* p;
 
                 if (w->Eff_id != 0xFF) {
                     EstSet(pEm, -1, 0, 0, w->Eff_id, 6, 0, ESP_CORE_KIND_NONE, pEm, 0);
@@ -358,7 +358,7 @@ void emRack_R1_Set(cEmRack* pEm)
 void emRack_R1_Down(cEmRack* pEm)
 {
     FREE_EMRACK* w = EMRACK_WK(pEm);
-    cModel* p;
+    cParts* p;
     int done;
 
     switch (pEm->r_no_2) {
@@ -499,7 +499,7 @@ void emRack_R1_Break(cEmRack* pEm)
 void emRack_R1_Shock(cEmRack* pEm)
 {
     FREE_EMRACK* w = EMRACK_WK(pEm);
-    cModel* p;
+    cParts* p;
 
     switch (pEm->r_no_2) {
     case 0:

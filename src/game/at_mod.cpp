@@ -392,7 +392,7 @@ u32 At_em_sphere_rect_ck(cModel* pMod, cModel* pMod2)
     }
     ir = &pMod2->atari;
     if (ir->m_parts_no != 0) {
-        cModel* pm = pMod2->getPartsPtr(ir->m_parts_no - 1);
+        cParts* pm = pMod2->getPartsPtr(ir->m_parts_no - 1);
         PSMTXRotRad(m, 'y', pm->ang.y);
         PSMTXMultVecSR(m, &ir->m_offset, &c);
         PSVECAdd(&c, &pr, &c);
@@ -737,7 +737,7 @@ BOOL ObaLineHitChk(cModel* m, cAtariInfo* info, const Vec& a, const Vec& b, Vec&
     Vec q;
     Vec r;
     Vec n;
-    cModel* pm;
+    cCoord* pm;
     f32 rad;
     f32 dd;
     f32 ee;

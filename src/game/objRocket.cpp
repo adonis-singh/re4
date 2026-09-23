@@ -322,7 +322,7 @@ void cObjLauncher::launch()
     pRocket->ang.y = atan2(d.x, d.z);
     pRocket->ang.z = 0.0f;
     pRocket->pos = lpos;
-    pRocket->pParts->pParent = pRocket;
+    pRocket->pList->pParent = pRocket;
     pRocket->be_flag |= 2;
     pRocket->fire();
     flg.on(FLAG_REQ_DROP);
@@ -358,9 +358,9 @@ void cObjLauncher::drop(int se)
         w->init(pPL);
         w->parentRelease();
         w->Motion.pMot = 0;
-        w->pParts->ang.x = 0.0f;
-        w->pParts->ang.y = 0.0f;
-        w->pParts->ang.z = 0.0f;
+        w->pList->ang.x = 0.0f;
+        w->pList->ang.y = 0.0f;
+        w->pList->ang.z = 0.0f;
         w->r_no_0 = 5;
         w->r_no_1 = 1;
         a = w->pos;
@@ -377,7 +377,7 @@ void cObjLauncher::drop(int se)
             w->pos.y = w->pos.y + 100.0f;
             w->ang.y = LIMIT_ANGLE(pPL->ang.y + 1.5707964f);
             if (se) {
-                SndCall(2, 3, &w->pParts->world, 0, 0, 0);
+                SndCall(2, 3, &w->pList->world, 0, 0, 0);
             }
         }
     }
@@ -389,7 +389,7 @@ void cObjLauncher::drop(int se)
 void cObjLauncher::grip(int onoff)
 {
     if (pG->weapon_type == 2 || onoff == 1) {
-        pParts->pParent = pPL->getPartsPtr(10);
+        pList->pParent = pPL->getPartsPtr(10);
         motionSet(WEP_ARC_PTR(0x1D), 0, 0, 1, 0);
     } else {
         gripBack();
@@ -399,7 +399,7 @@ void cObjLauncher::grip(int onoff)
 // Hangs the launcher on the player's back (parts 2) with the back motion.
 void cObjLauncher::gripBack()
 {
-    pParts->pParent = pPL->getPartsPtr(2);
+    pList->pParent = pPL->getPartsPtr(2);
     motionSet(WEP_ARC_PTR(0x1F), 0, 0, 1, 0);
 }
 

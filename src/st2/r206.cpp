@@ -1102,9 +1102,9 @@ void r206_openShelf_main(int no, int opened)
         obj->ang.x = 1.5592f;
         obj->ang.y = 1.42932f;
         obj->ang.z = 0.0f;
-        obj->pParts->ang.x = 0.0f;
-        obj->pParts->ang.y = 0.0f;
-        obj->pParts->ang.z = 0.0f;
+        obj->pList->ang.x = 0.0f;
+        obj->pList->ang.y = 0.0f;
+        obj->pList->ang.z = 0.0f;
         obj->setPos(&obj->pos);
         obj->setAng(rot);
     }

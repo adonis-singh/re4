@@ -54,7 +54,7 @@ static inline int PlLifeOver(int lim)
 
 
 // The parts a hit box belongs to (partsNo is 1-based, 0 = the model itself).
-static inline cModel* HitParts(cEm* em, YARARE_INFO* p)
+static inline cCoord* HitParts(cEm* em, YARARE_INFO* p)
 {
     if (p->parts_no != 0) {
         return em->getPartsPtr(p->parts_no - 1);
@@ -76,7 +76,7 @@ int EmGetDmPos(cEm* pEm, Vec* pPos, Vec* pAng)
 {
     YARARE_INFO* p = pEm->dmg.m_pDamageYarare;
     u32 type;
-    cModel* parts;
+    cCoord* parts;
     Mtx m;
     Mtx inv;
     Vec d;
@@ -307,7 +307,7 @@ void EmPlBloodSet(cEm* pEm, Vec* pPos, u32 type, u8 eff_id, u8 est_id)
     Vec q;
     Vec rot;
     Vec s;
-    cModel* parts;
+    cParts* parts;
     f32 h;
     f32 mag;
 
@@ -378,7 +378,7 @@ void EmSubBloodSet(cEm* pEm, Vec* pPos, u32 type, u8 eff_id, u8 est_id)
     Vec p;
     Vec q;
     Vec rot;
-    cModel* parts;
+    cParts* parts;
     f32 h;
 
     if (sub == 0) {
@@ -429,7 +429,7 @@ YARARE_INFO* emBoxAtCk(cEm* pEm, Vec* pBox, Vec* pPos, int wep_no)
     Vec up;
     YARARE_INFO* p;
     YARARE_INFO* ret;
-    cModel* parts;
+    cCoord* parts;
     f32 best;
     f32 ang;
     f32 d2;
@@ -528,7 +528,7 @@ YARARE_INFO* emLineAtCk(cEm* pEm, Vec* pPos, Vec* pPos2, f32 hit_len, int wep_no
     Vec s;
     YARARE_INFO* p;
     YARARE_INFO* ret = 0;
-    cModel* parts;
+    cCoord* parts;
     f32 best = hit_len;
     f32 d2;
     f32 r;
@@ -595,7 +595,7 @@ YARARE_INFO* emLineAtCk2(cEm* pEm, Vec* pPos, Vec* pPos2, f32 hit_len, Vec* pCro
     Vec s;
     YARARE_INFO* p;
     YARARE_INFO* ret = 0;
-    cModel* parts;
+    cCoord* parts;
     f32 best = hit_len;
     f32 d2;
     f32 r;
@@ -939,7 +939,7 @@ YARARE_INFO* emSphereAtCk(cEm* em, Vec* pos, Vec* pos2, f32 r, int flag, f32 r2)
     Vec s;
     YARARE_INFO* p;
     YARARE_INFO* ret;
-    cModel* parts;
+    cCoord* parts;
     f32 dist;
     f32 bestRad;
     f32 bestDot;
@@ -1181,7 +1181,7 @@ u32 GetWepTargetList2(Vec* p0, Vec* p1, WepTarget* list, u32 max, Vec* hit, Vec*
     cEm* bestEm;
     YARARE_INFO* bestPart;
     YARARE_INFO* part;
-    cModel* parts;
+    cParts* parts;
     cEm* em;  // one variable for both scans and the sort swap (r31 throughout); `i` is the sort's outer counter too
     YARARE_INFO* part2;
 
@@ -1411,7 +1411,7 @@ int GetWepTargetListBomb(Vec* pPos, f32 radius, WepTarget* list, int num, int we
     f32 rr;
     f32 r2;
     YARARE_INFO* part;
-    cModel* parts;
+    cCoord* parts;
     cEm* em;  // one variable for the scan and the sort swap (r24 in both loops)
     YARARE_INFO* part2;
 
@@ -1570,7 +1570,7 @@ int GetWepTargetListBomb(Vec* pPos, f32 radius, WepTarget* list, int num, int we
 // loss inside it. 1 when the player was hit.
 int PlBombHitCk(Vec* pPos, f32 radius)
 {
-    cModel* parts;
+    cParts* parts;
     f32 d2;
     f32 lim;
 
@@ -1620,7 +1620,7 @@ int GetWepTargetPos(Vec* pPos, Vec* pPos2, int mode, int wep_no, cEm** ppEm, u32
     int attr;
     u32 i;
     cEm* em;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     f32 dist;
     f32 len;
@@ -1731,7 +1731,7 @@ YARARE_INFO* EmYarareContactCk(cEm* em, Vec* pos, f32 r, Vec* out)
     Vec s;
     Vec q;
     YARARE_INFO* p;
-    cModel* parts;
+    cCoord* parts;
     f32 rr;
     f32 len;  // the axis length, then the step (one variable: it lives across the VECNormalize call)
     u32 n;
@@ -1812,7 +1812,7 @@ void EmYarareDisp(cEm* pEm)
     Vec bottom;
     Vec s;
     YARARE_INFO* p;
-    cModel* parts;
+    cCoord* parts;
     u32 color;
 
     if (!DbgFlagChk(pG, DBG_YARARE_DISP)) {
@@ -2106,7 +2106,7 @@ int EmAtkHitCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
 {
     Vec d;
     Vec fwd;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     int ret;
     f32 dy;
@@ -2156,7 +2156,7 @@ cEm* EmAtkLineHitCk(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm, u32* pAttr)
     Mtx m;
     Vec d;
     cPlayer* pl;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     int at;
     f32 len;
@@ -2222,7 +2222,7 @@ YARARE_INFO* EmAtkLineHitCkSub(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm)
     Mtx m;
     Vec d;
     cSubChar* sub;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     f32 len;
 
@@ -2328,7 +2328,7 @@ void EmAtkSetDamageSub(YARARE_INFO* pAt, EmAtkInfo* pAtk, Vec* pPos, Vec* pPos2)
 // Attack sphere against the partner: the hit box or NULL.
 YARARE_INFO* EmAtkHitSubCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
 {
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
 
     if (DbgFlagChk(pG, DBG_YARARE_DISP)) {
@@ -3353,7 +3353,7 @@ int HandgunCk(int wep_no)
 void GetPlPos(Vec* pPos, f32 frame, cEm* pEm)
 {
     Vec d;
-    cModel* parts;
+    cParts* parts;
 
     if (pEm == 0) {
         pEm = pPL;

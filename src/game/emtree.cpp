@@ -288,7 +288,7 @@ void emTree_R1_Parent(cEmTree* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];
@@ -725,7 +725,7 @@ void cEmTree::clearParent()
 void cEmTree::setFall()
 {
     EmTreeWork* w = EMTREE_WK(this);
-    cModel* parts;
+    cParts* parts;
     u32 i;
 
     Motion.pMot = 0;

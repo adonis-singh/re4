@@ -5293,7 +5293,7 @@ static void em39_R1_T_Kick(cEm39* em)
             em->ang.y = LIMIT_ANGLE(em->ang.y);
         }
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
 
             b = em->pos;
             p = em->getPartsPtr(0x13);
@@ -5541,7 +5541,7 @@ static void em39_R1_T_LowKickHit(cEm39* em)
 // hold), 2/3 the roll clear; ends with the motion.
 static void plem39_LowKickHit(cPlayer* pl)
 {
-    cModel* p = pl->getPartsPtr(4);
+    cParts* p = pl->getPartsPtr(4);
     int end;
 
     StaFlagOn(pG, STA_PL_CATCHED);
@@ -5742,7 +5742,7 @@ static void em39_R1_T_CliffAtk(cEm39* em)
 // hand (em39CliffObj) and he stabs the arm, then the weapon returns and the damage ends.
 static void plem39_CliffAtk(cPlayer* pl)
 {
-    cModel* p = pl->getPartsPtr(4);
+    cParts* p = pl->getPartsPtr(4);
 
     StaFlagOn(pG, STA_PL_CATCHED);
     pl->dmg.set(0, 0xA);
@@ -5785,7 +5785,7 @@ static void plem39_CliffAtk(cPlayer* pl)
         if (em39CliffObj.p) {
             em39CliffObj.p->modelInit(PL_ARC_PTR(pl->subArc, 0x129), PL_ARC_PTR(pl->subArc, 0x128));
             em39CliffObj.p->atari.m_flag &= 0xFCFF;
-            em39CliffObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
+            em39CliffObj.p->pList->pParent = pPL->getPartsPtr(0xA);
             em39CliffObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
             ((cObjWep*) em39CliffObj.p)->m_pParent = pPL;
             em39CliffObj.p->setNoSuspend(1);
@@ -6495,8 +6495,8 @@ void em39RouteCk(cEm39* em)
 void em39NeckMove(cEm39* em)
 {
     Em39Work* w = EM39_WK(em);
-    cModel* p = em->getPartsPtr(4);
-    cModel* plp = pPL->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
+    cParts* plp = pPL->getPartsPtr(4);
     Vec a;
     Vec d;
 
@@ -6547,7 +6547,7 @@ asm(".section .rodata\n\t.long 0x3f666666, 0x3ca3d70b, 0x3f800000\n\t.text");
 void em39MarkerMove(cEm39* em)
 {
     Em39Work* w = EM39_WK(em);
-    cModel* p;
+    cParts* p;
     Vec from;
     Vec to;
 
@@ -6607,7 +6607,7 @@ int em39GunHitCk(cEm39* em)
     Vec rot;
     Vec b;
     cEm* target;
-    cModel* p;
+    cParts* p;
     s16 hp;
     f32 len;
 
@@ -6698,7 +6698,7 @@ static void plemDmSide(cPlayer* pl)
 // Ejected cartridge (obj10) from the machine gun.
 void em39SetCartridge(cEm39* em)
 {
-    cModel* p = em->getPartsPtr(0xA);
+    cParts* p = em->getPartsPtr(0xA);
     cObj* obj;
     Vec pos;
     Vec rot;
@@ -6781,7 +6781,7 @@ int em39HeadLockCk(cEm39* em)
 {
     Mtx inv;
     Vec p;
-    cModel* head;
+    cParts* head;
 
     if (pG->Game_level <= 1) {
         return 0;
@@ -6820,7 +6820,7 @@ int em39HeadLockCk(cEm39* em)
 // Tests attack `no` swept from part `parts`' previous to its current world position (em39AtkCk2).
 int em39AtkCk(cEm39* em, int no, int parts)
 {
-    cModel* p = em->getPartsPtr(parts);
+    cParts* p = em->getPartsPtr(parts);
 
     return em39AtkCk2(em, no, &p->world, &p->world_old);
 }
@@ -7840,7 +7840,7 @@ void em39ArrowFire(cEm39* em, Vec* target, int mode)
     em39BowSet(em, 0);
     w->pArrow->setTransMode(1);
     {
-        cModel* p = w->pBow->getPartsPtr(4);
+        cParts* p = w->pBow->getPartsPtr(4);
 
         pos.x = 500.0f;
         pos.y = 0.0f;
@@ -7896,7 +7896,7 @@ void em39ArrowFire(cEm39* em, Vec* target, int mode)
 void em39BowSet(cEm39* em, int on)
 {
     Em39Work* w = EM39_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (w->pBow == 0) {
         return;
@@ -8473,7 +8473,7 @@ void em39VoiceMove(cEm39* em)
 void em39SetVoice(cEm39* em, u16 no)
 {
     Em39Work* w = EM39_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
 
     SndStop(w->Se_id, 0);
     w->Se_id = SndCall(8, no, &p->world, em->id, 0, em);
@@ -8721,7 +8721,7 @@ void em39LeftArmAtkCk(cEm39* em, int no)
 {
     Vec a;
     Vec b = em->pos;
-    cModel* p;
+    cParts* p;
 
     p = em->getPartsPtr(0x10);
     a.x = 0.0f;

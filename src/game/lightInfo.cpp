@@ -82,7 +82,7 @@ void cLightInfo::updateMatrix(cModel* pMod)
     if (PartsNo == 0) {
         PSVECAdd(&v, &pMod->pos, &v);
     } else {
-        if (pMod->pParts == 0) {
+        if (pMod->pList == 0) {
             return;
         }
         PSVECAdd(&v, &pMod->getPartsPtr(PartsNo - 1)->world, &v);
@@ -93,9 +93,9 @@ void cLightInfo::updateMatrix(cModel* pMod)
 }
 
 // World-space offset of the volume centre (rotated by the parts' matrix); returns the parts used.
-cModel* cLightInfo::getPos(cModel* m, Vec* out)
+cCoord* cLightInfo::getPos(cModel* m, Vec* out)
 {
-    cModel* c;
+    cCoord* c;
 
     if (PartsNo > 0) {
         c = m->getPartsPtr(PartsNo - 1);

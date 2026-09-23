@@ -155,7 +155,7 @@ void objPillar_R0_Break(cObjPillar* pObj)
             objPillarAtkCk(pObj, &pObj->getPartsPtr(1)->world);
             objPillarAtkCk(pObj, &pObj->getPartsPtr(2)->world);
             if (w->Seid == 0) {
-                cModel* parts = pObj->getPartsPtr(1);
+                cParts* parts = pObj->getPartsPtr(1);
 
                 if ((parts->world.x - pPL->pos.x) * (parts->world.x - pPL->pos.x) +
                     (parts->world.y - pPL->pos.y) * (parts->world.y - pPL->pos.y) +
@@ -203,7 +203,7 @@ void objPillar_R0_Throw(cObjPillar* pObj)
     Vec d;
     Vec v;
     Mtx m;
-    cModel* parts;
+    cParts* parts;
     f32 len;
     u8 step = pObj->r_no_2;
     u8 esc;

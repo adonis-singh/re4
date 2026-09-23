@@ -85,7 +85,7 @@ void LightSetModel(cModel* pMod)
         LightDisable();
         return;
     }
-    obj_pos = pMod->pParts->world;
+    obj_pos = pMod->pList->world;
     obj_size = pMod->LightInfo.Size.x > pMod->LightInfo.Size.y ? pMod->LightInfo.Size.x : pMod->LightInfo.Size.y;
     if ((pMod->LightInfo.Flag & 3) == 2) {
         obj_flag = 0;

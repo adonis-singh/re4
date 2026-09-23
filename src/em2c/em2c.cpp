@@ -282,7 +282,7 @@ void em2cDmCk(cEm2c* em)
     Em2cWork* w = EM2C_WK(em);
     Camera* cam = &pG->Camera;
     YARARE_INFO* part;
-    cModel* p;
+    cParts* p;
     int near;
     int guard;
     int dmg;
@@ -771,7 +771,7 @@ void em2cTailDmCk(cEm2c* em)
 {
     Em2cWork* w = EM2C_WK(em);
     Camera* cam = &pG->Camera;
-    cModel* p;
+    cParts* p;
     int near;
     int dmg;
     f32 dist;
@@ -4954,7 +4954,7 @@ int em2cAtkCk(cEm2c* em, int no, int parts)
 {
     Em2cWork* w = EM2C_WK(em);
     EmAtkInfo* atk;
-    cModel* p;
+    cParts* p;
     int hit;
 
     if (w->atkHit) {  // the early return's label keeps `mr r3, em` before getPartsPtr (em26 idiom)
@@ -5069,7 +5069,7 @@ void em2cScaleCompress(cEm2c* em)
     Em2cWork* w = EM2C_WK(em);
     Mtx m;
     Vec scale;
-    cModel* p;
+    cParts* p;
 
     if (em->r_no_0 != 3) {
         return;
@@ -5082,7 +5082,7 @@ void em2cScaleCompress(cEm2c* em)
     scale.y = w->Compress_y;
     scale.z = 1.0f;
     ScaleMatrix(m, &scale);
-    for (p = em->pParts; p; p = p->pParts) {
+    for (p = em->pList; p; p = p->pList) {
         PSMTXConcat(m, p->mat, p->mat);
         p->mat[0][3] = p->world.x;
         p->mat[1][3] = p->world.y;
@@ -5309,7 +5309,7 @@ void em2cPlHeadLost()
     Vec ofs;
     Vec spd;
     Vec rot;
-    cModel* p3;
+    cParts* p3;
     cObj* obj;
     int zero;
 
@@ -5583,7 +5583,7 @@ void em2cClothSet(cEm2c* em)
 void em2cClothMove(cEm2c* em)
 {
     Em2cWork* w = EM2C_WK(em);
-    cModel* p;
+    cParts* p;
     u32 i;
 
     if (em->type != 0) {
@@ -5608,8 +5608,8 @@ void em2cClothMove(cEm2c* em)
 void em2cFootSeMove(cEm2c* em)
 {
     Em2cWork* w = EM2C_WK(em);
-    cModel* p;
-    cModel* p0;
+    cParts* p;
+    cParts* p0;
     int parts;
     u32 no;
 
@@ -5660,7 +5660,7 @@ void em2cSetdLandingEff(cEm2c* em)
 // Dust / splash when the boss hits the floor on its back.
 void em2cSetDownEff(cEm2c* em)
 {
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
 
     SndCall(8, 5, &p0->world, em->id, 0, em);
 }
@@ -5668,7 +5668,7 @@ void em2cSetDownEff(cEm2c* em)
 // Dust / splash at the take-off of a jump.
 void em2cSetJumpEff(cEm2c* em)
 {
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
 
     SndCall(8, 0xE, &p0->world, em->id, 0, em);
 }
@@ -5759,7 +5759,7 @@ void em2cNeckMove(cEm2c* em)
 {
     Em2cWork* w = EM2C_WK(em);
     cParts* p;
-    cModel* pp;
+    cParts* pp;
     Vec v;
 
     em->getPartsPtr(4);

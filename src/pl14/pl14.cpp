@@ -375,7 +375,7 @@ void cRoutine::moveDamage()
         case 8: mot = OARC(0xDC / 4); owner->r_no_1 = 0x14; break;
         }
         MotionSetCore(owner, &owner->Motion, mot, 0, 3, 1, 0);
-        SndCall(8, 9, &owner->pParts->world, owner->id, 0, 0);
+        SndCall(8, 9, &owner->pList->world, owner->id, 0, 0);
         owner->thankCtr = 0;
     case 1:
         if (MotionCheckCrossFrame(&owner->Motion, 20.0f) && work[1] && sameFloorCheck(owner, pPL)) {
@@ -503,8 +503,8 @@ void cRoutine::moveWepSet()
     switch (owner->r_no_1) {
     case 0:
         mot3.set(owner, OARC(0x7C / 4), OARC(0x94 / 4), OARC(0x98 / 4), 0, 3, 0, 4, 0);
-        if (VALID_PTR(pTarget) && VALID_PTR(pTarget->pParts)) {
-            PSVECSubtract(&pTarget->pParts->world, &owner->pParts->world, &d);
+        if (VALID_PTR(pTarget) && VALID_PTR(pTarget->pList)) {
+            PSVECSubtract(&pTarget->pList->world, &owner->pList->world, &d);
             rate = VecElevation(&d);
         } else {
             owner->motionMove();
@@ -538,7 +538,7 @@ void cRoutine::moveWepFire()
             end();
             break;
         }
-        PSVECSubtract(&pTarget->pParts->world, &owner->pParts->world, &d);
+        PSVECSubtract(&pTarget->pList->world, &owner->pList->world, &d);
         rate = VecElevation(&d);
         mot3.set(owner, OARC(0x7C / 4), OARC(0x94 / 4), OARC(0x98 / 4), 0, 3, 0, 4, 0);
         owner->r_no_1 = 1;
@@ -579,7 +579,7 @@ void cRoutine::moveWepFire()
     case 3:
         if (shotCnt) mot3.move(rate);
         if (owner->motionMove()) {
-            if (SatMgr.hitCheck(&owner->pParts->world, &pTarget->pParts->world, 0, 0, 0, 0)) {
+            if (SatMgr.hitCheck(&owner->pList->world, &pTarget->pList->world, 0, 0, 0, 0)) {
                 RoutineSet(owner, 0xB);
             } else if (pTarget->hp > 0) {
                 RoutineSet(owner, 0xB);
@@ -1338,7 +1338,7 @@ void cRoutine::shot()
     PlWepHitCheck2(0, &p, &t, 3, 0, 6000.0f);
     owner->hp = hp;
     EstSet(owner->pWep, -1, 0, 0, EFF_PL04, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-    SndCall(8, 0, &owner->pParts->world, owner->id, 0, 0);
+    SndCall(8, 0, &owner->pList->world, owner->id, 0, 0);
 }
 
 // Plays the motion key sound (seNo) at its parts.
@@ -1418,7 +1418,7 @@ int cSubLuis::damageCheck()
         dmg.m_Timer = 1;
         if (Front_check(this, &dmg.m_PosFrom, PI / 2)) routine.work[0] = 2;
         else routine.work[0] = 3;
-        SndCall(8, 0x13, &pEm->pParts->world, pEm->id, 0, 0);
+        SndCall(8, 0x13, &pEm->pList->world, pEm->id, 0, 0);
         break;
     case 0x13:
         dmg.m_Timer = 1;
@@ -1449,7 +1449,7 @@ void cSubLuis::equipWeapon()
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
         pWep->modelInit(SUB_ARC(this, 0x38 / 4), SUB_ARC(this, 0x3C / 4));
         pWep->atari.m_flag &= 0xFCFF;
-        pWep->pParts->pParent = getPartsPtr(10);
+        pWep->pList->pParent = getPartsPtr(10);
         pWep->LightInfo.init2(1, 1, LuisLightZero(), &p1, 1);
         ((cObjWep*) pWep)->m_pParent = this;
     }
@@ -1472,7 +1472,7 @@ void cSubLuis::endDamage()
 void cSubLuis::moveEye()
 {
     static int luisEyeTimer;   // eyelid animation frame; a function-local static so it precedes the ctor'd luisEye in .bss
-    cModel* p = getPartsPtr(0x1C);
+    cParts* p = getPartsPtr(0x1C);
     // `u8 r` is block-scoped in both Rnd blocks: one function-scope `r` is a two-set global pseudo (r0)
     // where the target ties the masked remainder to the Rnd result (`clrlwi r3, r3, 24`).
 
@@ -1536,7 +1536,7 @@ void cSubLuis::neckSet(f32 ang, f32 limit)
 // neck parts (3) gets the additional rotation.
 void cSubLuis::neckMove()
 {
-    cModel* p;
+    cParts* p;
     const f32 spd = 0.62831855f;   // pool order: the turn speed precedes the 0.0
 
     if (status.check(F_NECK_SET)) {
@@ -1572,7 +1572,7 @@ void cVoice::set(int mesNo, u16 seNo, int time)
         for (i = 0; i < 16; i++) mes->Delete(i);
     }
     if ((s16) pG->pl_life > 0) {
-        seId = SndCall(8, seNo, &pSUB->pParts->world, pSUB->id, 0, 0);
+        seId = SndCall(8, seNo, &pSUB->pList->world, pSUB->id, 0, 0);
         cMes.MesSet(mesNo, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x1000051, 0, 0, 4);   // fold swaps the two subtrahends
     }
     this->time = time;
@@ -1727,11 +1727,11 @@ int isTarget(cSubLuis* luis, cEm* em)
         return 0;
     }
     if (!VALID_PTR(em) || (em->be_flag & 0x201) != 1 || em->hp <= 0 || em->id <= 0xF || em->checkStatus(EM_STATUS_LOCKOFF) ||
-        EatMgr.hitCheck(&luis->pParts->world, &em->pParts->world, 0, 0, 0, 0x400000) ||
-        doorHitCheck(&luis->pParts->world, &em->pParts->world)) {
+        EatMgr.hitCheck(&luis->pList->world, &em->pList->world, 0, 0, 0, 0x400000) ||
+        doorHitCheck(&luis->pList->world, &em->pList->world)) {
         return 0;
     }
-    if (GetWepTargetList2(&luis->pParts->world, &em->pParts->world, list, 2, &hit, &nrm, &attr, 2, 0) > 1 &&
+    if (GetWepTargetList2(&luis->pList->world, &em->pList->world, list, 2, &hit, &nrm, &attr, 2, 0) > 1 &&
         list[1].em != em) {
         return 0;
     }

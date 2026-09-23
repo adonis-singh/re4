@@ -53,14 +53,14 @@ void cObjMachinegun::init(cModel* parent)
         return;
     }
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
-        pParts->pos.x = 35.0f;
-        pParts->pos.y = -25.0f;
-        pParts->pos.z = 4.0f;
+        pList->pos.x = 35.0f;
+        pList->pos.y = -25.0f;
+        pList->pos.z = 4.0f;
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
     m_pParent = parent;
@@ -161,7 +161,7 @@ void cObjMachinegun::moveFire()
 // offset (-109, -22, 90) with a random +-15 spread, gravity 10, 30 frames, landing effect 0x13.
 void cObjMachinegun::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;
@@ -204,11 +204,11 @@ void cObjMachinegun::moveReload()
             mot = WEP_ARC_PTR(0x30);
         }
         motionSet(mot, 0, 0, 1, 0);
-        m_StopSeId = SndCall(2, 2, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, 2, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, (f32) reloadEnd[pG->weapon_lv_reload])) {
-        SndCall(2, 4, &pParts->world, 0, 0, 0);
+        SndCall(2, 4, &pList->world, 0, 0, 0);
         ItemMgr.reload();
     }
 }

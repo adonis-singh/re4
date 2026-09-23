@@ -102,7 +102,7 @@ int cEsp1a::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
     Esp1aWork* w = &m_Free;
 
     if (parent != pEffParentWorld && (m_Release_time == 0xFF || m_Release_time <= m_Life_time)) {
-        cModel* parts;
+        cParts* parts;
 
         if ((s8)pSeq->Work8[0] >= m_pMod->nParts) {
             pLog->err(0, 0, "ESP1a : Wk0 PartsNo > %d ", m_pMod->nParts);

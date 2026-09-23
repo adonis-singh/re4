@@ -266,8 +266,8 @@ void cPlAshley::moveBust()
     f32 max = 6.0f;
     f32 div = 11.0f;
     Vec ofs;
-    cModel* parts;
-    cModel* body = getPartsPtr(0);
+    cParts* parts;
+    cParts* body = getPartsPtr(0);
 
     if (GetDistance3(&body->world, &body->world_old2) > 5.0f) {
         bul = max;

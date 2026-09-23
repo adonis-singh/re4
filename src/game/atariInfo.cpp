@@ -83,7 +83,7 @@ void cAtariInfo::getSpeedVector(cModel* m, Vec* oldPos, Vec* newPos)
     Vec v;
 
     if (m_parts_no != 0) {
-        cModel* p = m->getPartsPtr(m_parts_no - 1);
+        cParts* p = m->getPartsPtr(m_parts_no - 1);
         v.x = m_offset.x;
         v.y = m_offset.y;
         v.z = m_offset.z;
@@ -203,7 +203,7 @@ void cAtariInfo::dispRect(cModel* pMod)
         PSVECAdd(&v[i], &m_offset, &v[i]);
     }
     if (m_parts_no != 0) {
-        cModel* p = pMod->getPartsPtr(m_parts_no - 1);
+        cParts* p = pMod->getPartsPtr(m_parts_no - 1);
         PSMTXRotRad(mat, 'y', p->ang.y);
         TransMatrix(mat, &p->world);
         PSMTXConcat(pG->Camera.v_mat, mat, mat);

@@ -344,7 +344,7 @@ static void wep07_r3_fire00(cPlayer* pl)
         n = 0x13;
     }
     for (i = 0; i < n; i++) {
-        cModel* parts = pl->getPartsPtr(0xA);
+        cParts* parts = pl->getPartsPtr(0xA);
         u32 flag;
 
         if (i == 0) {

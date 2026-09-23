@@ -899,7 +899,7 @@ static void em31_R1_Walk(cEm31* em)
             break;
         }
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p = em->getPartsPtr(7);
+            cParts* p = em->getPartsPtr(7);
 
             ep = em->pos;
             v = p->world;
@@ -908,7 +908,7 @@ static void em31_R1_Walk(cEm31* em)
             EstSet(0, -1, &p->world, 0, EFF_EM31, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         if (em->Motion.Seq_old.Free & 2) {
-            cModel* p = em->getPartsPtr(0xD);
+            cParts* p = em->getPartsPtr(0xD);
 
             ep = em->pos;
             v = p->world;
@@ -993,7 +993,7 @@ static void em31_R1_Dash(cEm31* em)
             w->Timer = 1;
         }
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p = em->getPartsPtr(7);
+            cParts* p = em->getPartsPtr(7);
 
             ep = em->pos;
             v = p->world;
@@ -1002,7 +1002,7 @@ static void em31_R1_Dash(cEm31* em)
             EstSet(0, -1, &p->world, 0, EFF_EM31, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         if (em->Motion.Seq_old.Free & 2) {
-            cModel* p = em->getPartsPtr(0xD);
+            cParts* p = em->getPartsPtr(0xD);
 
             ep = em->pos;
             v = p->world;
@@ -1278,7 +1278,7 @@ static void em31_R1_Jump(cEm31* em)
     Em31Work* w = EM31_WK(em);
     Vec v;
     Vec ep;
-    cModel* p;
+    cParts* p;
 
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
@@ -1410,7 +1410,7 @@ static void em31_R1_Stamp(cEm31* em)
     void* m0;
     void* m1;
     int flag;
-    cModel* p;
+    cParts* p;
 
     PSMTXInverse(em->mat, inv);
     PSMTXMultVec(inv, &pPL->pos, &lp);
@@ -1607,7 +1607,7 @@ static void em31_R1_Kick(cEm31* em)
     void* m0;
     void* m1;
     int flag;
-    cModel* p;
+    cParts* p;
 
     switch (em->r_no_2) {
     case 0:
@@ -1688,7 +1688,7 @@ static void em31_R1_Kick(cEm31* em)
 static void em31_R1_br_Catch(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     EM31_CATCH_BR_CK(0xD, 2250000.0f, 0xC);
 }
@@ -1843,7 +1843,7 @@ static void plem31_CatchHit(cPlayer* pl)
 static void em31_R1_br_StepCatch(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     EM31_CATCH_BR_CK(0xB, 4000000.0f, 0xE);
 }
@@ -2155,7 +2155,7 @@ static void em31_R1_T_Stamp(cEm31* em)
 // The tentacle attack: every parts of the whip against the player, from the root's world position.
 static inline void em31TenAtkCk(cEm31* em, int no)
 {
-    cModel* p0;
+    cParts* p0;
 
     em31TenMatCalc(em);
     p0 = em->getPartsPtr(0);
@@ -2985,7 +2985,7 @@ static void em31_R1_Dm_Climb(cEm31* em)
 // The player on the giant's back: climbs up (case 0/1), stabs the parasite (2/3), jumps off (4/5).
 static void plem31_Climb(cPlayer* pl)
 {
-    cModel* p = pl->getPartsPtr(4);
+    cParts* p = pl->getPartsPtr(4);
 
     pl->dmg.set(0, 10);
     pl->subArc = pl->pEmCatch->subArc;
@@ -3020,7 +3020,7 @@ static void plem31_Climb(cPlayer* pl)
         if (em31CatchObj.p) {
             em31CatchObj.p->modelInit(EM_ARC(pl, 0x86), EM_ARC(pl, 0x85));
             em31CatchObj.p->atari.m_flag &= 0xFCFF;
-            em31CatchObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
+            em31CatchObj.p->pList->pParent = pPL->getPartsPtr(0xA);
             em31CatchObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
             ((cObjWep*) em31CatchObj.p)->m_pParent = pPL;
             em31CatchObj.p->be_flag &= ~2;
@@ -3530,7 +3530,7 @@ void em31StampCamMove(cEm31* em)
     GlobalWork* g = pG;
     Camera* cam = &w->Cam;
     Vec a;
-    cModel* p;
+    cParts* p;
 
     w->Cam.param.fovy = g->Camera.param.fovy;
     a.x = 0.0f;
@@ -3574,7 +3574,7 @@ void em31SearchBody(cEm31* em)
 void em31TenMatCalc(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (em->type != 1) {
         return;
@@ -3915,7 +3915,7 @@ void em31TailAtkCk(cEm31* em)
 void em31EyelidInit(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (em->type != 0) {
         return;
@@ -4133,8 +4133,8 @@ int em31EyelidDmcK(cEm31* em, int dmg)
 void em31TentacleConnect(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
-    cModel* q;
+    cParts* p;
+    cParts* q;
 
     if (em->type != 1) {
         return;
@@ -4604,7 +4604,7 @@ void em31TBloodSet(cEm31* em)
 void em31SetTail(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
     Vec pos;
     Vec rot;
     u16 step;
@@ -4723,7 +4723,7 @@ void cEm31::setAppearCancel()
 void em31FootSe(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
     u8 ev = em->Motion.Seq_old.Free & 0xF0;
 
@@ -5071,7 +5071,7 @@ void em31PlHeadLost()
 {
     Vec ofs;
     Vec spd;
-    cModel* p;
+    cParts* p;
     cObj* obj;
 
     if (pSys->eff_country == 0) {
@@ -5190,7 +5190,7 @@ void em31WeakMove(cEm31* em)
 void cEm31::setVoice(int no, int timer)
 {
     Em31Work* w = EM31_WK(this);
-    cModel* p;
+    cParts* p;
 
     if (type != 1) {
         return;

@@ -742,7 +742,7 @@ void R213ChainAngSet(int no, u32 objId, int hitNo, f32 ang, int flag)
                 cObj* obj = SmdGetObjPtr(objId);
 
                 if (obj) {
-                    cModel* parts = ((cModel*) chain)->getPartsPtr(0x11);
+                    cParts* parts = ((cModel*) chain)->getPartsPtr(0x11);
 
                     if (parts->world.x > obj->pos.x || flag != 0) {
                         Vec t;

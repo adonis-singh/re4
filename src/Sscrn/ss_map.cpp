@@ -595,7 +595,7 @@ void markGoalInit(SUB_SCREEN* wk)
     TransMatrix(mdl->l_mat, &mdl->pos);
     ScaleMatrix(mdl->l_mat, &mdl->scale);
     PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -634,7 +634,7 @@ int markGoalPosition(SUB_SCREEN* wk, Vec* pos)
     int n;
     int no;
     int i;
-    cModel* p;
+    cParts* p;
 
     switch (m->area) {
     case 1:
@@ -739,7 +739,7 @@ void markMerchantInit(SUB_SCREEN* wk)
     TransMatrix(mdl->l_mat, &mdl->pos);
     ScaleMatrix(mdl->l_mat, &mdl->scale);
     PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -765,7 +765,7 @@ int markMerchantPosition(SUB_SCREEN* wk, int no, Vec* pos)
     int st1c[6] = {0x22, 6, 0x1C, 4, 0x0B, 3};
     int st1d[2] = {0x0B, 7};
     SsMapWork* m = wk->map;
-    cModel* p;
+    cParts* p;
     int ret;
 
     if (m->area == 1) {
@@ -898,7 +898,7 @@ void markTreasureInit(SUB_SCREEN* wk)
     TransMatrix(mdl->l_mat, &mdl->pos);
     ScaleMatrix(mdl->l_mat, &mdl->scale);
     PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -919,7 +919,7 @@ void markTreasureQuit(SUB_SCREEN* wk)
 // Position of treasure mark `no` (parts `no` of the treasure model).
 int markTreasurePosition(SUB_SCREEN* wk, int no, Vec* pos)
 {
-    cModel* p = wk->map->pTreasure->getPartsPtr(no);
+    cParts* p = wk->map->pTreasure->getPartsPtr(no);
 
     *pos = p->pos;
     return 1;
@@ -1027,7 +1027,7 @@ void markCoinInit(SUB_SCREEN* wk)
     TransMatrix(mdl->l_mat, &mdl->pos);
     ScaleMatrix(mdl->l_mat, &mdl->scale);
     PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -1048,7 +1048,7 @@ void markCoinQuit(SUB_SCREEN* wk)
 // Position of medallion mark `no`.
 int markCoinPosition(SUB_SCREEN* wk, int no, Vec* pos)
 {
-    cModel* p = wk->map->pCoin->getPartsPtr(no);
+    cParts* p = wk->map->pCoin->getPartsPtr(no);
 
     *pos = p->pos;
     return 1;
@@ -1154,7 +1154,7 @@ void markSaveInit(SUB_SCREEN* wk)
     TransMatrix(mdl->l_mat, &mdl->pos);
     ScaleMatrix(mdl->l_mat, &mdl->scale);
     PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -1175,7 +1175,7 @@ void markSaveQuit(SUB_SCREEN* wk)
 // Position of typewriter mark `no`.
 int markSavePosition(SUB_SCREEN* wk, int no, Vec* pos)
 {
-    cModel* p = wk->map->pSave->getPartsPtr(no);
+    cParts* p = wk->map->pSave->getPartsPtr(no);
 
     *pos = p->pos;
     return 1;
@@ -1954,7 +1954,7 @@ void mapModelInit(SUB_SCREEN* wk)
     cModel* mdl;
     cSatHeader* hitA;
     cSatHeader* hitB;
-    cModel* parts;
+    cParts* parts;
     f32 y;
     SsMapWork* m;
 

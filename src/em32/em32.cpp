@@ -614,7 +614,7 @@ static void em32_R0_Init(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     cModelInfo* info;
-    cModel* p;
+    cParts* p;
     Vec v;
     f32 fzero;
     int zero;
@@ -3059,7 +3059,7 @@ static void em32_R1_P_Atk(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     int step = em->r_no_2;
-    cModel* p;
+    cParts* p;
     Vec v;
 
     w->flags |= 0x10;
@@ -3312,7 +3312,7 @@ static void plem32_P_CatchHit(cPlayer* pl)
         if (obj) {
             obj->modelInit(EM_ARC(pl, 0xAC), EM_ARC(pl, 0xAB));
             w->pCatchObj->atari.m_flag &= 0xFCFF;
-            w->pCatchObj->pParts->pParent = pPL->getPartsPtr(0xA);
+            w->pCatchObj->pList->pParent = pPL->getPartsPtr(0xA);
             w->pCatchObj->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
             ((cObjWep*) w->pCatchObj)->m_pParent = pPL;
             w->pCatchObj->getPartsPtr(1)->ang.y = 3.14159274f;
@@ -3471,7 +3471,7 @@ static void em32_R1_BreakBarred(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     int step = em->r_no_2;
-    cModel* p;
+    cParts* p;
     Vec v;
 
     w->flags |= 0x10;
@@ -3674,7 +3674,7 @@ void em32RouteCk(cEm32* em)
     Vec b;
     Vec c;
     Vec d;
-    cModel* p;
+    cParts* p;
 
     if (em->hp <= 0) {
         return;
@@ -3724,7 +3724,7 @@ void em32NeckMove(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     cParts* p;
-    cModel* pp;
+    cParts* pp;
     Vec v;
 
     if (w->mode == 2) {
@@ -3785,8 +3785,8 @@ void em32ClothSet(cEm32* em)
 void em32ClothMove(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
-    cModel* p;
-    cModel* p2;
+    cParts* p;
+    cParts* p2;
 
     if (w->mode != 2) {
         return;
@@ -3839,7 +3839,7 @@ void em32BlendMotSet(cEm32* em, void* m0, void* m1, void* m2, void* m3, int a, i
 // Tests attack `no` swept from part `parts`' previous to its current world position (em32AtkCk2).
 int em32AtkCk(cEm32* em, int no, int parts)
 {
-    cModel* p = em->getPartsPtr(parts);
+    cParts* p = em->getPartsPtr(parts);
 
     return em32AtkCk2(em, no, &p->world, &p->world_old);
 }
@@ -4505,7 +4505,7 @@ void em32TexrenderInit(cEm32* em)
 void em32GetPlPos(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
-    cModel* p = pPL->getPartsPtr(0);
+    cParts* p = pPL->getPartsPtr(0);
     Vec d;
 
     PSVECSubtract(&p->world, &p->world_old2, &d);
@@ -5033,7 +5033,7 @@ void em32ScaleCompress(cEm32* em)
     Em32Work* w = EM32_WK(em);
     Mtx m;
     Vec scale;
-    cModel* p;
+    cParts* p;
 
     if (!(w->flags & 0x20)) {
         return;
@@ -5043,7 +5043,7 @@ void em32ScaleCompress(cEm32* em)
     scale.y = w->scale;
     scale.z = 1.0f;
     ScaleMatrix(m, &scale);
-    for (p = em->pParts; p; p = p->pParts) {
+    for (p = em->pList; p; p = p->pList) {
         PSMTXConcat(m, p->mat, p->mat);
         p->mat[0][3] = p->world.x;
         p->mat[1][3] = p->world.y;

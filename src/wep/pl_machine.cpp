@@ -303,7 +303,7 @@ static void wep11_r3_fire00(cPlayer* pl)
     static Vec p0;
     static Vec p1;
     PlArc* arc;
-    cModel* parts;
+    cParts* parts;
     f32 pitch;
     cObjWep* obj;
 

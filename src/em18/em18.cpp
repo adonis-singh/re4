@@ -506,12 +506,12 @@ static void em18_R1_Die_Normal(cEm18* em)
 void em18NeckMove(cEm18* em)
 {
     Em18Work* w = EM18_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
 
     p = em->getPartsPtr(4);
     {
-        cModel* h = pPL->getPartsPtr(4);
+        cParts* h = pPL->getPartsPtr(4);
 
         v.x = 0.0f;
         v.y = 250.0f;

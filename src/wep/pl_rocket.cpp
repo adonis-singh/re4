@@ -272,7 +272,7 @@ static void wep13_r3_set00(cPlayer* pl)
     mot3.move(m3r);
     pl->motionMove();
     pl->Wep->m_pWep->setDisp(1, 0);
-    SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
+    SndCall(2, 9, &pl->pList->world, 0, 0, 0);
     if (!(pl->stat.check(cPlayer::F_SCOPE))) {
         CamCtrl.startScope(0, 0);
         pl->stat.on(cPlayer::F_SCOPE);
@@ -470,7 +470,7 @@ static void wep13_r3_down10(cPlayer* pl)
         LAUNCHER(pl)->grip(0);
     }
     if (MotionCheckCrossFrame(&pl->Motion, seFrame)) {
-        SndCall(2, 2, &pl->pParts->world, 0, 0, 0);
+        SndCall(2, 2, &pl->pList->world, 0, 0, 0);
     }
     if (joyLKamae()) {
         LAUNCHER(pl)->grip(0);
@@ -540,7 +540,7 @@ static void wep13_r2_throw(cPlayer* pl)
     switch (pl->r_no_3) {
     case 0:
         pl->motionSet(WEP_ARC_PTR(0x16), 7, 0, 1, 0);
-        SndCall(2, 2, &pl->pParts->world, 0, 0, 0);
+        SndCall(2, 2, &pl->pList->world, 0, 0, 0);
         pl->r_no_3 = 1;
     case 1:
         if (MotionCheckCrossFrame(&pl->Motion, 18.0f)) {

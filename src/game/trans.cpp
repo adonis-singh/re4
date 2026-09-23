@@ -483,7 +483,7 @@ void ModelTrans(cModel* m)
     int ot2;
     cLightInfo* li;
     f32 radius;
-    cModel* p;
+    cParts* p;
 
     if (StaFlagChk(pG, STA_SUSPEND) && !(m->be_flag & 0x800)) {
         return;
@@ -522,7 +522,7 @@ void ModelTrans(cModel* m)
     switch (m->ot_type) {
     case 7:
         m->be_flag &= ~0x08000000;
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret2 = AddOtWorldPosRadius(m, (void (*)(void*)) ModelRender, &m->pos, radius, 1, 1.0f);
             ot2 = 0x11;
         } else {
@@ -541,17 +541,17 @@ void ModelTrans(cModel* m)
         }
         break;
     case 0:
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret = AddOtModelPosRadius(m, (void (*)(void*)) ModelRender, &m->pos, radius, 1, 1.0f);
             ot = 0xD;
         } else {
-            cModel* p = m->getPartsPtr(0);
+            cParts* p = m->getPartsPtr(0);
             ot = 0xD;
             ret = AddOtModelPosRadius(m, (void (*)(void*)) ModelRender, &p->world, radius, 1, 1.0f);
         }
         break;
     case 1:
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret = AddOtWorldPosRadius(m, (void (*)(void*)) ModelRender, &m->pos, radius, 1, 1.0f);
             ot = 0x11;
         } else {
@@ -581,7 +581,7 @@ void ModelTrans(cModel* m)
         ret = AddOtDirect(0x10, m, (void (*)()) ModelRender, 0, 2, &pos, radius);
         break;
     case 6:
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret = AddOtDirect(0x14, m, (void (*)()) ModelRender, 1, 1, NULL, 0.0f);
             ot = 0x14;
         } else {
@@ -802,8 +802,8 @@ void calcWeightMat(cModel* m)
     u32 i = 0;
     cPartsWk* p;
 
-    PSMTXInverse(m->pParts->mat, inv);
-    for (p = (cPartsWk*) m->pParts; p != 0; p = p->next) {
+    PSMTXInverse(m->pList->mat, inv);
+    for (p = (cPartsWk*) m->pList; p != 0; p = p->next) {
         PSMTXConcat(inv, ((cModel*) p)->mat, tmp);
         if (i > 0xF7) {
             pLog->err(0, 0, "commonScreenMatSub() SMAT OVERFLOW %d", i);
@@ -1124,7 +1124,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
         } else if (d->weight_palette_num <= 1 && d->weight_ext_num <= 0xFF && !(info->be_flag & 2) && d->nParts == 1) {
             PSMTXConcat(m->getPartsPtr(d->pHead->partsNo)->mat, info->mat, pm);
         } else {
-            PSMTXConcat(m->pParts->mat, info->mat, pm);
+            PSMTXConcat(m->pList->mat, info->mat, pm);
         }
         mat0 = m->mat;
         PSMTXConcat(viewMat, pm, mv);
@@ -2114,7 +2114,7 @@ void ShadowCastSetup(ModelPart* part, cModel* m)
     // Declared after the table-copying getters: the frame slot for tm is the merged, freed
     // getTexCoord/getTexMtx table slots at 0x8 (tm shares the base register with them).
     Mtx tm;
-    PSMTXConcat(mng->texMat, m->pParts->mat, tm);
+    PSMTXConcat(mng->texMat, m->pList->mat, tm);
     GXLoadTexMtxImm(tm, mtx, 0);
     GXSetTexCoordGen2(coord, 0, 0, mtx, 0, 0x7D);
     w = (ShadowLightWork*) mng->pLight->work;
@@ -2293,7 +2293,7 @@ void SelfShadowSetup(ModelPart* part, cModel* m, ShadowMng* mng)
     PSMTXIdentity(trans);
     trans[2][3] = shd_ofs + PSVECDistance(&mng->lightPos, &mng->target);
     C_MTXLookAt(tm, &mng->lightPos, &up, &mng->target);
-    PSMTXConcat(tm, mng->pModel[0]->pParts->mat, tm);
+    PSMTXConcat(tm, mng->pModel[0]->pList->mat, tm);
     PSMTXConcat(trans, tm, tm);
     PSMTXConcat(sm, tm, tm);
     GXLoadTexMtxImm(tm, mtx, 1);
@@ -2310,7 +2310,7 @@ void SelfShadowSetup(ModelPart* part, cModel* m, ShadowMng* mng)
     coord = getTexCoord();
     mtx = getTexMtx();
     map = getTexMap();
-    PSMTXConcat(mng->texMat, m->pParts->mat, tm);
+    PSMTXConcat(mng->texMat, m->pList->mat, tm);
     GXLoadTexMtxImm(tm, mtx, 0);
     GXSetTexCoordGen2(coord, 0, 0, mtx, 0, 0x7D);
     GXLoadTexObj(&mng->texObj, map);

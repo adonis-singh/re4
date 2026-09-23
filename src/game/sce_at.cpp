@@ -3698,7 +3698,7 @@ void sceAtSetItemModelParent(SceAtWork* w)
         inv.z = 1.0f / w->pParent->scale.z;
     }
     w->item.pModel->be_flag &= ~0x4000;
-    w->item.pModel->pParts->scale = inv;
+    w->item.pModel->pList->scale = inv;
     w->item.pModel->setParent(w->pParent, &w->item.pModel->pos, &w->item.pModel->ang);
 }
 

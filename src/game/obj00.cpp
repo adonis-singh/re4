@@ -292,7 +292,7 @@ void obj00SetOya(cObj00* pObj)
     if (w->pEm_oya == 0) {
         return;
     }
-    if (w->pEm_oya->pParts == 0) {
+    if (w->pEm_oya->pList == 0) {
         return;
     }
     PSMTXCopy(w->pEm_oya->getPartsPtr(w->oya_parts)->mat, m);

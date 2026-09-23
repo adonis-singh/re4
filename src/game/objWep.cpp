@@ -133,25 +133,25 @@ void cObjWep::setDisp(int level, int onoff)
 void cObjWep::parentSet(cModel* pMod, int parts_no, Vec* pOffset, Vec* pAng)
 {
     m_pParent = pMod;
-    pParts->pParent = pMod->getPartsPtr(parts_no);
-    pParts->pos = *pOffset;
-    pParts->ang = *pAng;
+    pList->pParent = pMod->getPartsPtr(parts_no);
+    pList->pos = *pOffset;
+    pList->ang = *pAng;
 }
 
 // Detaches the weapon at its current world position (used before dropping it).
 void cObjWep::parentRelease()
 {
-    pos = pParts->pParent->world;
+    pos = pList->pParent->world;
     ang.x = 0.0f;
     ang.y = 0.0f;
     ang.z = 0.0f;
-    pParts->pParent = this;
-    pParts->pos.x = 0.0f;
-    pParts->pos.y = 0.0f;
-    pParts->pos.z = 0.0f;
-    pParts->ang.x = 0.0f;
-    pParts->ang.y = 0.0f;
-    pParts->ang.z = 0.0f;
+    pList->pParent = this;
+    pList->pos.x = 0.0f;
+    pList->pos.y = 0.0f;
+    pList->pos.z = 0.0f;
+    pList->ang.x = 0.0f;
+    pList->ang.y = 0.0f;
+    pList->ang.z = 0.0f;
     m_pParent = 0;
 }
 
@@ -364,7 +364,7 @@ void cObjWep::getMarkerPos(Vec* lpos, Vec* lcross)
         { 0.0f, 0.0f, 0.0f },
     };
     Vec v;
-    cModel* parts;
+    cParts* parts;
     f32 len;
 
     switch (pG->weapon_no) {

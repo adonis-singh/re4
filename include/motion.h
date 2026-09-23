@@ -20,7 +20,7 @@ public:
 
 // Parts-side IK state (game/ik.cpp), between the bind matrix (0xF8) and MotionParts (0x174).
 struct IkParts {
-    Mtx bindMat;     // 0xF8  bind pose matrix (PARTS_BIND_MAT)
+    Mtx bindMat;     // 0xF8  bind pose matrix (cParts::lt_inv_mat)
     f32 len;         // 0x128 bone length to the child parts
     Mtx mat;         // 0x12C orientation of the IK plane (SetOrientationZY transposed)
     Vec axis;        // 0x15C bend axis in parts space
@@ -28,9 +28,7 @@ struct IkParts {
 };
 
 #define MOTION(m) (&((cMotModel*)(m))->Motion)
-#define MOTION_PARTS(p) ((MotionParts*)((u8*)(p) + 0x174))
 #define IK_PARTS(p) ((IkParts*)((u8*)(p) + 0xF8))
-#define PARTS_BIND_MAT(p) (*(Mtx*)((u8*)(p) + 0xF8))
 
 // HermiteInterpolation parameter block.
 struct HermitePrm {

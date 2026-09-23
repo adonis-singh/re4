@@ -57,7 +57,7 @@ static inline u8 LightInfoShape(cLightInfo* li) { return li->Flag; }
     {                                                                               \
         cLightInfo* li = &(m)->LightInfo;                                           \
         if (li->PartsNo > 0) {                                                          \
-            cModel* p = (m)->getPartsPtr(li->PartsNo - 1);                              \
+            cCoord* p = (m)->getPartsPtr(li->PartsNo - 1);                              \
             if ((u32) p < 0x80000000 || (u32) p > 0x82FFFFFF) {                     \
                 pLog->err(0, 0, msg, LightInfoParts(&(m)->LightInfo));              \
                 p = (m);                                                            \
@@ -1036,7 +1036,7 @@ void make_shadow_texture(ShadowMng* mng)
         PSMTXIdentity(trans);
         trans[2][3] = shd_ofs + PSVECDistance(&mng->lightPos, &mng->target);
         C_MTXLookAt(tm, &mng->lightPos, &up, &mng->target);
-        PSMTXConcat(tm, mng->pModel[0]->pParts->mat, tm);
+        PSMTXConcat(tm, mng->pModel[0]->pList->mat, tm);
         PSMTXConcat(trans, tm, tm);
         PSMTXConcat(sm, tm, tm);
         GXLoadTexMtxImm(tm, 0x1E, 1);
@@ -1187,7 +1187,7 @@ int shadowChkInFrustum(ShadowMng* mng, cModel* m)
         r *= s;
     }
     if (li->PartsNo > 0) {
-        cModel* p = m->getPartsPtr(li->PartsNo - 1);
+        cCoord* p = m->getPartsPtr(li->PartsNo - 1);
         if ((u32) p < 0x80000000 || (u32) p > 0x82FFFFFF) {
             pLog->err(0, 0, "shadowChkInFrustum() cCoord NO ERR %d", li->PartsNo);
             p = m;
@@ -1411,7 +1411,7 @@ void shadowShaderSetup2(cModel* m, ModelPart* part, ShadowMng** tbl, u32 num)
     for (i = 0; i < num; i++) {
         Mtx tm;
         mng = tbl[i];
-        PSMTXConcat(mng->texMat, m->pParts->mat, tm);
+        PSMTXConcat(mng->texMat, m->pList->mat, tm);
         GXLoadTexMtxImm(tm, 0x1E + i * 3, 0);
         GXSetTexCoordGen2(gs->texCoord, 0, 0, 0x1E + i * 3, 0, 0x7D);
         GXLoadTexObj(&mng->texObj, gs->texMap);
@@ -1517,10 +1517,10 @@ void shadowModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, ShadowMng** tbl,
         CameraGetLookVec(&pG->Camera, &look);
         PSVECScale(&look, &look, shadow_cammove_size);
         PSMTXTrans(tr, look.x, look.y, look.z);
-        PSMTXConcat(tr, m->pParts->mat, tr);
+        PSMTXConcat(tr, m->pList->mat, tr);
         PSMTXConcat(viewMat, tr, mv);
     } else {
-        PSMTXConcat(viewMat, m->pParts->mat, mv);
+        PSMTXConcat(viewMat, m->pList->mat, mv);
     }
     PSMTXInverse(mv, inv);
     PSMTXTranspose(inv, nrm);
@@ -1595,7 +1595,7 @@ void shadowModelTrans2(cModel* m, cModelInfo* info, Mtx viewMat)
     Mtx nrm;
     u32 i;
 
-    PSMTXConcat(viewMat, m->pParts->mat, mv);
+    PSMTXConcat(viewMat, m->pList->mat, mv);
     PSMTXInverse(mv, inv);
     PSMTXTranspose(inv, nrm);
     GXLoadPosMtxImm(mv, 0);

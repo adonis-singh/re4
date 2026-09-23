@@ -51,7 +51,7 @@ static void mirrorModelTrans2(cModel* m, cModelInfo* info, Mtx viewMat)
     Mtx nrm;
     Mtx tex;
     Mtx proj;
-    PSMTXConcat(viewMat, m->pParts->mat, mv);
+    PSMTXConcat(viewMat, m->pList->mat, mv);
     PSMTXInverse(mv, inv);
     PSMTXTranspose(inv, nrm);
     GXLoadPosMtxImm(mv, 0);

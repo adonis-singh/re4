@@ -300,7 +300,7 @@ void PathGetVtxMat(Mtx pMat, cModel* pMod, PathVtx* pPunit)
     int i;
     f32 w;
     f32 wsum;
-    cModel* p;
+    cParts* p;
 
     memclr_asm(m, sizeof(Mtx));
     memclr_asm(m2, sizeof(Mtx));

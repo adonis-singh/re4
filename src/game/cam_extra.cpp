@@ -226,7 +226,7 @@ CameraScope::CameraScope(Vec* pos, Vec* at)
         pos_ofs = *pos;
         PSVECSubtract(at, pos, &m_rad);
     } else {
-        cModel* p[2];
+        cParts* p[2];
         Vec* d;
 
         p[0] = pPL->getPartsPtr(0x20);
@@ -552,7 +552,7 @@ CameraBinocular::CameraBinocular(Vec* pos, Vec* at, void* a, void* b)
         this->Up.z = 0.0f;
     } else {
         m_flag = 1;
-        cModel* p[2];
+        cParts* p[2];
         p[0] = pPL->getPartsPtr(0x20); // the load waits for the `mode` store: the two
                                               // param addresses go above the call
         p[1] = pPL->getPartsPtr(0x21);

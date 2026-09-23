@@ -1675,7 +1675,7 @@ static void em10DmSetWep09(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
     YARARE_INFO* part = em->dmg.m_pDamageYarare;
-    cModel* parts;
+    cParts* parts;
     int mag;
     int type;
 
@@ -1965,7 +1965,7 @@ void em10BloodSet(cEm10* em, int near)
     Em10Work* w = EM10_WK(em);
     Camera* cam = &pG->Camera;
     YARARE_INFO* part;
-    cModel* parts;
+    cParts* parts;
     f32 dist;
     Vec pos;
     Vec dir;
@@ -2211,7 +2211,7 @@ void em1cBloodSet(cEm10* em, int near)
     Em10Work* w = EM10_WK(em);
     Camera* cam = &pG->Camera;
     YARARE_INFO* part;
-    cModel* parts;
+    cParts* parts;
     f32 dist;
     int armor;
     Vec pos;
@@ -2436,7 +2436,7 @@ void em1cBloodSet(cEm10* em, int near)
 // Hit mark effect for a melee hit: EstSet 0x25 (0x38 in water) at the hip part 4 facing the damage source.
 void em10KickHitMark(cEm10* em)
 {
-    cModel* parts;
+    cParts* parts;
     Vec rot;
 
     parts = em->getPartsPtr(4);
@@ -2727,7 +2727,7 @@ void cEm10::move()
             SndCall(8, 0x95, &pos, id, 0, this);
         }
         if (w->Fire_timer == 0) {
-            cModel* parts = w->pWeapon->getPartsPtr(0);
+            cParts* parts = w->pWeapon->getPartsPtr(0);
             w->pWeapon->setLost();
             w->pWeapon = 0;
             w->Wep_type = 0;
@@ -2752,8 +2752,8 @@ void cEm10::move()
         w->hit[9].flag |= 1;
     } else {
         w->hit[9].flag &= ~1;
-        if (w->pCore && w->pCore->pParts && w->pCore->isAlive()) {
-            cModel* parts;
+        if (w->pCore && w->pCore->pList && w->pCore->isAlive()) {
+            cParts* parts;
             PSMTXInverse(getPartsPtr(4)->mat, m);
             if (w->Ganado == 1) {
                 parts = w->pCore->getPartsPtr(9);
@@ -2764,8 +2764,8 @@ void cEm10::move()
             w->hit[9].offset = v;
             w->hit[9].flag |= 1;
         }
-        if (w->pParasite && w->pParasite->pParts && w->pParasite->isAlive()) {
-            cModel* parts;
+        if (w->pParasite && w->pParasite->pList && w->pParasite->isAlive()) {
+            cParts* parts;
             PSMTXInverse(getPartsPtr(4)->mat, m);
             parts = w->pParasite->getPartsPtr(2);
             PSMTXMultVec(m, &parts->world, &v);
@@ -4593,7 +4593,7 @@ static void em10_R1_R10FGJump(cEm10* em)
     case 5:
         w->Be_flg |= 0x100000;
         if (w->pGondola) {
-            cModel* parts = w->pGondola->getPartsPtr(1);
+            cParts* parts = w->pGondola->getPartsPtr(1);
             dir.x = 0.0f;
             dir.y = 0.0f;
             dir.z = 1.0f;
@@ -4619,7 +4619,7 @@ static void em10_R1_R10FGJump(cEm10* em)
     case 7:
         w->Be_flg |= 0x100000;
         if (w->pGondola) {
-            cModel* parts = w->pGondola->getPartsPtr(1);
+            cParts* parts = w->pGondola->getPartsPtr(1);
             dir2.x = 0.0f;
             dir2.y = 0.0f;
             dir2.z = 1.0f;
@@ -4699,7 +4699,7 @@ static void em10_R1_R10FGondola(cEm10* em)
     Vec diff;
     Vec plPos;
     Vec wpos2;
-    cModel* parts;
+    cParts* parts;
     f32 len;
     f32 t;
     f32 dist;
@@ -5435,7 +5435,7 @@ static void em10_R1_AttackWait(cEm10* em)
     Vec a;
     Vec b;
     Vec c;
-    cModel* p;
+    cParts* p;
     f32 d2;
     f32 dy;
     int no;
@@ -5689,7 +5689,7 @@ static Vec em10_r101_bucket_pos2[3] = {
 static void em10_R1_R101Bucket(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
     Vec* rp;
     Vec* rp2;
     int no;
@@ -8153,7 +8153,7 @@ static void em10_R1_LadderClimb(cEm10* em)
     Vec rot;
     Mtx mat;
     Vec v;
-    cModel* p;
+    cParts* p;
     int flag;
     int st;
     f32 d2;
@@ -8301,7 +8301,7 @@ static void em10_R1_VLadderClimb(cEm10* em)
     Vec rot;
     Mtx mat;
     Vec v;
-    cModel* p;
+    cParts* p;
     int flag;
     f32 d2;
 
@@ -8850,7 +8850,7 @@ static void em10_R1_Trade(cEm10* em)
 static void em10_R1_Drive(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* truck;
+    cParts* truck;
 
     em->atari.m_flag &= 0xFCFF;
     switch (em->r_no_2) {
@@ -9329,7 +9329,7 @@ static void em10_R1_ShotRocket(cEm10* em)
     Vec ofs;
     Vec spd;
     cEmWep* wep;
-    cModel* p;
+    cParts* p;
     f32 rate;
     f32 len;
 
@@ -9503,7 +9503,7 @@ static void em10_R1_ShotGatling(cEm10* em)
     Em10Work* w = EM10_WK(em);
     Vec d;
     Vec tgt;
-    cModel* p;
+    cParts* p;
     f32 ang;
     f32 lim;
     f32 rate;
@@ -10256,7 +10256,7 @@ static void em10_R1_AxeAtk(cEm10* em)
     Em10Work* w = EM10_WK(em);
     Vec v2;
     Vec v;
-    cModel* p;
+    cParts* p;
     void* m0;
     int m1;
     int flag;
@@ -10361,7 +10361,7 @@ static void em10_R1_AxeAtk(cEm10* em)
             }
             if (w->pWeapon) {
                 if (w->Wep_type == 0xB) {
-                    cModel* q = w->pWeapon->getPartsPtr(10);
+                    cParts* q = w->pWeapon->getPartsPtr(10);
                     em10AtkCk(em, &q->world, &q->world_old2, atk, 0);
                     EM10_AXE_SWEEP_CK(w->pWeapon->mat, 0.0f, 0.0f, 150.0f, &em->pos);
                 } else {
@@ -10411,7 +10411,7 @@ static void em10_R1_ShieldAtk(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
     Vec v;
-    cModel* parts;
+    cParts* parts;
     int flag;
 
     switch (em->r_no_2) {
@@ -10664,7 +10664,7 @@ static void em10_R1_ScytheAtk(cEm10* em)
     Em10Work* w = EM10_WK(em);
     Vec v2;
     Vec v;
-    cModel* p;
+    cParts* p;
     int flag;
     int atk;
 
@@ -12574,7 +12574,7 @@ static void subem10_NeckHang_Ashley(cSubChar* sub)
 static void em10_R1_Backhold(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p = pPL->getPartsPtr(4);
+    cParts* p = pPL->getPartsPtr(4);
     int dmg;
 
     w->Be_flg |= 0x800;
@@ -12752,7 +12752,7 @@ static void plem10_Backhold(cPlayer* pl)
 static void em10_R1_Bombhold(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
     Camera* cam;
     Vec rot;
 
@@ -12868,7 +12868,7 @@ static void em10_R1_Bombhold(cEm10* em)
             EmRoutineSet(em, 1, 0x1E, 0, 0);
         } else {
             if (em->Motion.Seq_old.Free & 1) {
-                cModel* q = pPL->getPartsPtr(4);
+                cParts* q = pPL->getPartsPtr(4);
                 SndCall(1, 0x3A, &q->world, 0, 0, pPL);
                 SndCall(1, 0x3B, &q->world, 0, 0, pPL);
                 w->Se_no = w->Se_tbl[8];
@@ -14913,7 +14913,7 @@ static void em10_R1_Dm_Blow(cEm10* em)
     Vec spd;
     Vec rot;
     f32 y;
-    cModel* p;
+    cParts* p;
     int dmg;
 
     switch (em->r_no_2) {
@@ -15411,7 +15411,7 @@ static void em10_R1_Dm_Roof(cEm10* em)
     f32 y;
     f32 a;
     int mv;
-    cModel* p;
+    cParts* p;
 
     switch (em->r_no_2) {
     case 0:
@@ -16329,7 +16329,7 @@ static void em10_R1_Die_RunDown(cEm10* em)
 static void em10_R1_Die_Bomb(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
     Camera* cam;
     f32 dx, dy;
     Vec rot;
@@ -20119,7 +20119,7 @@ extern "C" int em10BullJumpCk(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
     cObjBull* o;
-    cModel* p;
+    cParts* p;
     Mtx m;
     Vec v;
     Mtx inv;
@@ -21135,7 +21135,7 @@ extern "C" int em10HeadLockCk(cEm10* em)
     Em10Work* w = EM10_WK(em);
     Mtx inv;
     Vec v;
-    cModel* p;
+    cParts* p;
     int r;
 
     if (pPL->r_no_0 != 0) {
@@ -21214,7 +21214,7 @@ extern "C" int em10HeadLockCk(cEm10* em)
 void em10NeckMove(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
     Mtx m;
     Vec v;
     Vec d;
@@ -21229,13 +21229,13 @@ void em10NeckMove(cEm10* em)
     }
     p = em->getPartsPtr(4);
     if (!(w->Be_flg & 0x08000000)) {
-        cModel* h = pPL->getPartsPtr(4);
+        cParts* h = pPL->getPartsPtr(4);
         v.x = 0.0f;
         v.y = 0.0f;
         v.z = 0.0f;
         PSMTXMultVec(h->mat, &v, &v);
     } else {
-        cModel* h = pSUB->getPartsPtr(4);
+        cParts* h = pSUB->getPartsPtr(4);
         v.x = 0.0f;
         v.y = 0.0f;
         v.z = 0.0f;
@@ -21282,7 +21282,7 @@ void em10WaistMove(cEm10* em)
     Em10Work* w = EM10_WK(em);
     Vec v;
     f32 r;
-    cModel* p;
+    cParts* p;
 
     if (w->Be_flg & 0x00400000) {
         return;
@@ -21322,7 +21322,7 @@ void em10ScaleCompress(cEm10* em)
     Em10Work* w = EM10_WK(em);
     Mtx m;
     Vec s;
-    cModel* p;
+    cParts* p;
 
     // Two ifs, not `&&`: fold_truthop would merge the adjacent u8 compares into one u16 compare.
     if (em->r_no_0 == 3) {
@@ -21332,7 +21332,7 @@ void em10ScaleCompress(cEm10* em)
             s.y = w->Compress_y;
             s.z = 1.0f;
             ScaleMatrix(m, &s);
-            for (p = em->pParts; p; p = p->pParts) {
+            for (p = em->pList; p; p = p->pList) {
                 PSMTXConcat(m, p->mat, p->mat);
                 p->mat[0][3] = p->world.x;
                 p->mat[1][3] = p->world.y;
@@ -21977,8 +21977,8 @@ extern "C" void em10CamMove(cEm10* em, int no, f32 rate, int shake)
     Vec hit;
     Vec d;
     Camera* c = &pG->Camera;
-    cModel* p;
-    cModel* q;
+    cParts* p;
+    cParts* q;
 
     switch (no) {
     case 0:
@@ -23124,7 +23124,7 @@ void em10ChainSawMove(cEm10* em)
     Em10Work* w = EM10_WK(em);
 
     if (w->Wep_type == 4 && w->pWeapon) {
-        cModel* p = w->pWeapon->getPartsPtr(1);
+        cParts* p = w->pWeapon->getPartsPtr(1);
         p->pos.z = (pG->Frame_cnt & 1) ? 0.0f : 10.0f;
     }
 }
@@ -23141,7 +23141,7 @@ int em10AtkCk(cEm10* em, Vec* a, Vec* b, int no, int parts)
     Vec pos;
     Vec rot;
     Vec d;
-    cModel* part;
+    cParts* part;
     int hit;
     f32 pw;
     f32 len;
@@ -23479,7 +23479,7 @@ extern "C" int em10GatlingHitCk(cEm10* em)
     Vec s;
     u32 attr;
     cEm* e;
-    cModel* p;
+    cParts* p;
     f32 l;
 
     EstSet(em, -1, 0, 0, EFF_OBM66, 0, 0, ESP_CORE_KIND_NONE, em, 0);
@@ -23527,7 +23527,7 @@ extern "C" void em10BellAtkCk(cEm10* em, Vec* pos, u32 no)
     EmAtkInfo info = Em10AtkTbl[no];
     cObjBell* o;
     Vec v;
-    cModel* p;
+    cParts* p;
 
     switch (no) {
     case 0xD:
@@ -24938,7 +24938,7 @@ int em10CrashCk(cEm10* em)
 void em10MouthPartsReset(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (em->hp > 0 && !(w->Be_flg & 0x80)) {
         p = em->getPartsPtr(0x1B);
@@ -25106,7 +25106,7 @@ void em10FootSe(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
     Vec v;
-    cModel* p;
+    cParts* p;
     u32 se;
     int a;
     int b;
@@ -25339,7 +25339,7 @@ void cEm10::setReset()
 {
     Em10Work* w = EM10_WK(this);
     f32 sc;
-    cModel* p;
+    cParts* p;
     cModelInfo* info;
 
     invisible_factor = 1.0f;
@@ -25418,7 +25418,7 @@ void cEm10::setReset()
     MotionMove(this, 0);
     em10_R0_Move(this);
     partsWorldCalc();
-    for (p = pParts; p; p = p->pParts) {
+    for (p = pList; p; p = p->pList) {
         p->world_old = p->world;
         p->world_old2 = p->world_old;
     }
@@ -25869,7 +25869,7 @@ int em10HideToStepCk(cEm10* em, int a)
 void em10BowgunMove(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (w->pWeapon && w->Wep_type == 8) {
         p = w->pWeapon->getPartsPtr(4);
@@ -26171,7 +26171,7 @@ int em10ChgParasiteCk(cEm10* em)
 void em10SetDmWaterEff(cEm10* em, int a)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
     s8 wait;
 
     if (CheckInWater(em, 4)) {
@@ -26589,7 +26589,7 @@ extern "C" int em10ReturnCk(cEm10* em)
 void em10BombNeckMove(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
-    cModel* p;
+    cParts* p;
     f32 d;
     f32 r;
     f32 amp;
@@ -26827,7 +26827,7 @@ extern "C" void em10PlHeadLost()
     Vec v;
     Vec ofs;
     cObj* o;
-    cModel* p;
+    cParts* p;
     int region = pSys->eff_country;
 
     if (region == 0) {
@@ -27063,8 +27063,8 @@ void em10ClawMove(cEm10* em)
     Vec lScl;
     Vec rScl;
     Vec d;
-    cModel* part;
-    cModel* part2;
+    cParts* part;
+    cParts* part2;
     f32 spd = 0.0f;
     f32 spd2 = spd;
     int snd = 0;

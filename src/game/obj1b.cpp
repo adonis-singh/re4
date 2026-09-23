@@ -241,12 +241,12 @@ void obj1b_R1_Parent(cObjSpear* pObj)
     RotMatrix(pObj->mat, &pObj->ang);
     TransMatrix(pObj->mat, &pObj->pos);
     ScaleMatrix(pObj->mat, &pObj->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         Mtx m;
         Vec v0;
         Vec v1;
         Vec v2;
-        cModel* parts = parent->getPartsPtr(w->oya_parts);
+        cParts* parts = parent->getPartsPtr(w->oya_parts);
 
         PSMTXConcat(parts->mat, pObj->mat, m);
         if (!(w->Be_flg & 1)) {
@@ -576,7 +576,7 @@ int obj1bHitCk(cObjSpear* pObj)
         if (part->flag & YAT_FLAG_DMPOS) {
             Mtx inv;
             Vec v;
-            cModel* parts;
+            cParts* parts;
 
             no = part->parts_no ? part->parts_no - 1 : 0;
             parts = em->getPartsPtr(no);

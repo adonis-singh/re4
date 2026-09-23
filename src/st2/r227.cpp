@@ -195,8 +195,8 @@ static void r227_checkBox0Fall()
     }
     RsfSet(G_ROOM_ID, 1);
     while (1) {
-        r227_work->rack[0]->pParts->ang.x += -0.034906585f;
-        if (r227_work->rack[0]->pParts->ang.x < -0.5235988f) {
+        r227_work->rack[0]->pList->ang.x += -0.034906585f;
+        if (r227_work->rack[0]->pList->ang.x < -0.5235988f) {
             break;
         }
         SceSleep(1);
@@ -207,8 +207,8 @@ static void r227_checkBox0Fall()
     f32 baseY = r227_work->rack[0]->pos.y;
     f32 spd = 0.0f;
     while (1) {   // `for (;;)` here rotates the SceSleep to the loop top
-        if (r227_work->rack[0]->pParts->ang.x > rotLim) {
-            r227_work->rack[0]->pParts->ang.x += -0.034906585f;
+        if (r227_work->rack[0]->pList->ang.x > rotLim) {
+            r227_work->rack[0]->pList->ang.x += -0.034906585f;
         }
         r227_work->rack[0]->pos.y -= spd;
         spd += acc;
@@ -229,8 +229,8 @@ static void r227_checkBox1Fall()
     }
     RsfSet(G_ROOM_ID, 2);
     while (1) {
-        r227_work->rack[1]->pParts->ang.z += 0.034906585f;
-        if (r227_work->rack[1]->pParts->ang.z > 0.5235988f) {
+        r227_work->rack[1]->pList->ang.z += 0.034906585f;
+        if (r227_work->rack[1]->pList->ang.z > 0.5235988f) {
             break;
         }
         SceSleep(1);
@@ -241,8 +241,8 @@ static void r227_checkBox1Fall()
     f32 baseY = r227_work->rack[1]->pos.y;
     f32 spd = 0.0f;
     while (1) {   // `for (;;)` here rotates the SceSleep to the loop top
-        if (r227_work->rack[1]->pParts->ang.z < rotLim) {
-            r227_work->rack[1]->pParts->ang.z += 0.034906585f;
+        if (r227_work->rack[1]->pList->ang.z < rotLim) {
+            r227_work->rack[1]->pList->ang.z += 0.034906585f;
         }
         r227_work->rack[1]->pos.y -= spd;
         spd += acc;

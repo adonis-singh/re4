@@ -242,7 +242,7 @@ void cPlayer::init0()
 // Neck, light set, collision, hit boxes, routine 0, mirror table, first world calc.
 void cPlayer::init1()
 {
-    if (!VALID_PTR(pParts)) {
+    if (!VALID_PTR(pList)) {
         pLog->err(0, 0, "cPlayer::cPlayer() FAILED");
         EmMgr.destroy(this);
         return;
@@ -366,7 +366,7 @@ moveChecked:
         }
     }
     if (r_no_0 == 0 && r_no_1 == 6 && r_no_2 == 0) {
-        pParts->ang.y *= 0.5f;
+        pList->ang.y *= 0.5f;
     }
     ang.y = LIMIT_ANGLE(ang.y);
     m_Flag = (u16) m_Flag;
@@ -639,7 +639,7 @@ void pl_R1_Run(cPlayer* pEm)
             }
             pEm->checkCtrl();
             if (PlDbFlag & 4) {
-                PlWepHitCheck2(pEm, &pEm->pParts->world, &pEm->pParts->world, 0x14, 0, 1000.0f);
+                PlWepHitCheck2(pEm, &pEm->pList->world, &pEm->pList->world, 0x14, 0, 1000.0f);
             }
         }
     }
@@ -951,17 +951,17 @@ void pl_R1_Crouch(cPlayer* pEm)
     case 0xA:
         if (Key.on & 4) {
             pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y += cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y += cPlayer::SPEED_WALK_TURN;
         }
         if (Key.on & 8) {
             pEm->ang.y += cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y -= cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y -= cPlayer::SPEED_WALK_TURN;
         }
-        if (pEm->pParts->ang.y > 1.0471976f) {
+        if (pEm->pList->ang.y > 1.0471976f) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x68), 3, 0, 1, 0);
             pEm->r_no_2 = 0xB;
         }
-        if (pEm->pParts->ang.y < -1.0471976f) {
+        if (pEm->pList->ang.y < -1.0471976f) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x69), 3, 0, 1, 0);
             pEm->r_no_2 = 0xC;
         }
@@ -970,14 +970,14 @@ void pl_R1_Crouch(cPlayer* pEm)
     case 0xB:
         if (Key.on & 4) {
             pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y += cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y += cPlayer::SPEED_WALK_TURN;
         }
         if (Key.on & 8) {
             pEm->ang.y += cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y -= cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y -= cPlayer::SPEED_WALK_TURN;
         }
         MotionGetSpeed(pEm, MOTION(pEm), 0, &spd, &rot);
-        pEm->pParts->ang.y += rot.y;
+        pEm->pList->ang.y += rot.y;
         if (pEm->motionMove()) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x5B), 3, 0, 5, 0);
             pEm->motionMove();
@@ -987,14 +987,14 @@ void pl_R1_Crouch(cPlayer* pEm)
     case 0xC:
         if (Key.on & 4) {
             pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y += cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y += cPlayer::SPEED_WALK_TURN;
         }
         if (Key.on & 8) {
             pEm->ang.y += cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y -= cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y -= cPlayer::SPEED_WALK_TURN;
         }
         MotionGetSpeed(pEm, MOTION(pEm), 0, &spd, &rot);
-        pEm->pParts->ang.y += rot.y;
+        pEm->pList->ang.y += rot.y;
         if (pEm->motionMove()) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x5B), 3, 0, 5, 0);
             pEm->motionMove();
@@ -1003,9 +1003,9 @@ void pl_R1_Crouch(cPlayer* pEm)
         break;
     case 0x14:
         pEm->motionMove();
-        pEm->pParts->ang.y *= 0.5f;
+        pEm->pList->ang.y *= 0.5f;
         if (MotionCheckCrossFrame(MOTION(pEm), endFrame)) {
-            pEm->pParts->ang.y = 0.0f;
+            pEm->pList->ang.y = 0.0f;
             EmRoutineSet(pEm, 0, 0, 2, 0);
         }
         break;
@@ -1073,7 +1073,7 @@ void pl_R1_Whistle(cPlayer* pEm)
         pEm->r_no_2 = 1;
     case 1:
         if (MotionCheckCrossFrame(MOTION(pEm), 20.0f)) {
-            SndCall(1, 0xE, &pEm->pParts->world, 0, 0, 0);
+            SndCall(1, 0xE, &pEm->pList->world, 0, 0, 0);
             StaFlagOn(pG, STA_PL_FIRE);
         }
         if (pEm->motionMove()) {
@@ -1336,7 +1336,7 @@ int fanceWidthCheck(cPlayer* pEm)
     if (SatMgr.hitCheck(&p0, &p1, 0, 0, 0, 0) & ~0x20) {
         return 0;
     }
-    return SatMgr.hitCheck(&pEm->pParts->world, &p0, 0, 0, 0, 0) == 0;
+    return SatMgr.hitCheck(&pEm->pList->world, &p0, 0, 0, 0, 0) == 0;
 }
 
 // Slide the player sideways off a wall next to the fence: 50 to the left when the right side
@@ -1438,7 +1438,7 @@ void pl_R1_Fall(cPlayer* pEm)
             v.z = 0.0f;
             RotVector(&pEm->m_FallVec, &v, &d);
             PSVECScale(&d, &a, 400.0f);
-            PSVECAdd(&a, &pEm->pParts->world, &a);
+            PSVECAdd(&a, &pEm->pList->world, &a);
             PSVECScale(&pEm->m_FallVec, &b, 1000.0f);
             PSVECAdd(&b, &a, &b);
             if (!(SatMgr.hitCheck(&a, &b, 0, 0, 0, 0) & 0x00100000)) {
@@ -1450,7 +1450,7 @@ void pl_R1_Fall(cPlayer* pEm)
             v.z = 0.0f;
             RotVector(&pEm->m_FallVec, &v, &d);
             PSVECScale(&d, &a, 400.0f);
-            PSVECAdd(&a, &pEm->pParts->world, &a);
+            PSVECAdd(&a, &pEm->pList->world, &a);
             PSVECScale(&pEm->m_FallVec, &b, 1000.0f);
             PSVECAdd(&b, &a, &b);
             if (!(SatMgr.hitCheck(&a, &b, 0, 0, 0, 0) & 0x00100000)) {
@@ -1508,7 +1508,7 @@ void pl_R0_Dijection(cPlayer* pEm)
         pEm->r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(MOTION(pEm), 60.0f)) {
-        SndCall(1, 0x45, &pEm->pParts->world, 0, 0, 0);
+        SndCall(1, 0x45, &pEm->pList->world, 0, 0, 0);
     }
     pEm->motionMove();
 }

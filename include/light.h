@@ -11,6 +11,7 @@
 
 class cModel;
 class cEm;
+class cCoord;
 
 // Spot block of a light (0x40 bytes, cLight+0x38 / cLightWork+0x2C). Only the direction is known.
 struct LightSpot {
@@ -126,7 +127,7 @@ public:
     int setParent(u8 type, u32 no);
     int setParent(cModel* pMod);
     cModel* calcParent();
-    cModel* getCoord();
+    cCoord* getCoord();
     int isParent(cModel* pMod);
     int getPos2(Vec* pLiPos, Vec* pPos);
     int calcPos(Vec* pLiPos, Vec* pPos);

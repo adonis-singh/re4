@@ -257,7 +257,7 @@ extern "C" void r104_openBox_main(int no, int opened)
     if (obj != 0) {
         obj->be_flag |= 0x20;
         if (opened == 1) {
-            obj->pParts->ang.z = ang;
+            obj->pList->ang.z = ang;
         } else {
             int i;
 
@@ -265,7 +265,7 @@ extern "C" void r104_openBox_main(int no, int opened)
             SndCall(6, 0x5B, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
                 if (obj != 0) {
-                    obj->pParts->ang.z += ang;
+                    obj->pList->ang.z += ang;
                 }
                 SceSleep(1);
             }
@@ -313,7 +313,7 @@ extern "C" void r104_openShelf_main(int no, int opened)
     if (obj != 0) {
         obj->be_flag |= 0x20;
         if (opened == 1) {
-            obj->pParts->ang.y = ang;
+            obj->pList->ang.y = ang;
         } else {
             int i;
 
@@ -321,7 +321,7 @@ extern "C" void r104_openShelf_main(int no, int opened)
             SndCall(6, 0x1C, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
                 if (obj != 0) {
-                    obj->pParts->ang.y += ang;
+                    obj->pList->ang.y += ang;
                 }
                 SceSleep(1);
             }

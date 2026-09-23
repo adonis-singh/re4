@@ -136,7 +136,7 @@ void R217Init()
         EmReadSearch(0x11, 0, 0);
     } else {
         SmdGetObjPtr(0x88)->be_flag |= 0x20;
-        SmdGetObjPtr(0x88)->pParts->ang.x = 1.6f;
+        SmdGetObjPtr(0x88)->pList->ang.x = 1.6f;
         SceAtSetEnable(5, 0);
         SceAtDataSet_exec(9, SCE_LEVEL10, 0, (TaskFunc) r217_3rd_set, 0, 1);
         for (u32 n = 0; n < 3; n++) {
@@ -480,7 +480,7 @@ static void r217_Puzzle()
             SceSleep(1);
         }
         SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-        SmdGetObjPtr(0x88)->pParts->ang.x = 0.0f;
+        SmdGetObjPtr(0x88)->pList->ang.x = 0.0f;
     } else {
         ScfFlagOn(pG, SCF_R217_PUZZLE_CLEAR);
         SceSetEventCancel(1, (TaskFunc) r217_Puzzle_exit, 0, -1, 1);
@@ -572,18 +572,18 @@ extern "C" int SwitchExec(cObj* obj, f32* spd, int no, f32 lim, f32 cur)
     int dir;
 
     if (lim > cur) {
-        obj->pParts->ang.x += *spd;
+        obj->pList->ang.x += *spd;
         dir = 1;
     } else {
-        obj->pParts->ang.x -= *spd;
+        obj->pList->ang.x -= *spd;
         dir = 0;
     }
     if (*spd >= 0.0f) {
-        if (dir ? (obj->pParts->ang.x < lim) : (obj->pParts->ang.x > lim)) {
+        if (dir ? (obj->pList->ang.x < lim) : (obj->pList->ang.x > lim)) {
             *spd += r217_switchAcc * 1.85f;
         } else {
             *spd = -r217_switchAcc;
-            obj->pParts->ang.x = lim;
+            obj->pList->ang.x = lim;
             return 1;
         }
     }

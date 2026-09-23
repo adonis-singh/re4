@@ -317,7 +317,7 @@ extern "C" void r108_switchSymbol(int n)
         }
     turn:
         rot = -LIMIT_ANGLE(ang);
-        r108_dial->pParts->ang.y = rot;
+        r108_dial->pList->ang.y = rot;
         ang += 0.10471976f;
         if (ang >= next) {
             goto done;
@@ -325,7 +325,7 @@ extern "C" void r108_switchSymbol(int n)
         SceSleep(1);
         goto turn;
     done:
-        r108_dial->pParts->ang.y = -LIMIT_ANGLE(next);
+        r108_dial->pList->ang.y = -LIMIT_ANGLE(next);
         SceSleep(2);
     }
     FlagXorVar(&pG->Room_flg, (int) r108_symbol[r108_symIdx %= 7].flagNo);
@@ -416,7 +416,7 @@ static void r108_execPuzzle()
         }
         SceSleep(1);
     } while (quit == 0);
-    r108_dial->pParts->ang.y = 0.0f;
+    r108_dial->pList->ang.y = 0.0f;
     r108_symIdx = 0;
     for (j = 0; j <= 6; j++) {
         EffectEspDelete(0, r108_symbol[j].eff, 0, 0);

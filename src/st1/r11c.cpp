@@ -800,13 +800,13 @@ static void r11c_moveGear(int dir)
     g2->be_flag |= 0x20;
     W->seGear = SndCall(6, 0x56, 0, 0, 0, 0);
     d = (f32) dir;
-    g0->pParts->ang.z += d * DEG(0.2f);
+    g0->pList->ang.z += d * DEG(0.2f);
     SceSleep(1);
-    g0->pParts->ang.z += d * DEG(0.4f);
+    g0->pList->ang.z += d * DEG(0.4f);
     SceSleep(1);
     d *= DEG(0.6f);
-    g0->pParts->ang.z += d;
-    g1->pParts->ang.y += d;
+    g0->pList->ang.z += d;
+    g1->pList->ang.y += d;
     SceSleep(1);
     EstSet(0, -1, 0, 0, EFF_ROOM, 5, 1, (u8) W->effGear, 0, 0);
     while (!RmfFlagChk(pG, RMF_GATE_OPEN)) {
@@ -817,9 +817,9 @@ static void r11c_moveGear(int dir)
             t = max;
         }
         a = t * DEG(1.0f) * (f32) dir;
-        g0->pParts->ang.z += a;
-        g1->pParts->ang.y += -a * t0 / t1;
-        g2->pParts->ang.z += -a * t0 / t1 * t2 / t0;
+        g0->pList->ang.z += a;
+        g1->pList->ang.y += -a * t0 / t1;
+        g2->pList->ang.z += -a * t0 / t1 * t2 / t0;
         SceSleep(1);
     }
     EffectEspDelete(0, (u8) W->effGear, 0, 0);
@@ -867,15 +867,15 @@ static void r11c_moveLever2(int dir)
     lv = SmdGetObjPtr(0x35);
     spd = (f32) dir * DEG(5.5f);
     for (i = 0; i < 10; i++) {
-        lv->pParts->ang.z -= spd;
+        lv->pList->ang.z -= spd;
         SceSleep(1);
     }
     spd = (f32) dir * DEG(1.0f);
     for (i = 0; i < 3; i++) {
-        lv->pParts->ang.z += spd;
+        lv->pList->ang.z += spd;
         SceSleep(1);
     }
-    lv->pParts->ang.z = 0.0f;
+    lv->pList->ang.z = 0.0f;
 }
 
 // The lever is pulled; unless `noGear`, the gear and chain tasks start.
@@ -889,22 +889,22 @@ extern "C" void r11c_moveLever(int dir, int noGear)
 
     lv = SmdGetObjPtr(0x35);
     lv->be_flag |= 0x20;
-    lv->pParts->ang.z = 0.0f;
+    lv->pList->ang.z = 0.0f;
     d = (f32) dir;
     spd = d * DEG(5.5f);
     SndCall(6, 0xA, 0, 0, 0, 0);
     d2 = d * DEG(1.0f);
     for (i = 0; i < 3; i++) {
-        lv->pParts->ang.z += d2;
+        lv->pList->ang.z += d2;
         SceSleep(1);
     }
     for (i = 0; i < 10; i++) {
-        lv->pParts->ang.z += spd;
+        lv->pList->ang.z += spd;
         SceSleep(1);
     }
     d2 = (f32) dir * DEG(1.0f);
     for (i = 0; i < 3; i++) {
-        lv->pParts->ang.z -= d2;
+        lv->pList->ang.z -= d2;
         SceSleep(1);
     }
     if (noGear == 0) {
@@ -923,7 +923,7 @@ static void r11c_selectRoute_end(int sel)
 
     if (RmfFlagChk(pG, RMF_ROUTE_EVT_CANCEL)) {
         if (lv) {
-            lv->pParts->ang.z = 0.0f;
+            lv->pList->ang.z = 0.0f;
         }
         if (W->closeGate) {
             SceKill(W->closeGate);

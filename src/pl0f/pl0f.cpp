@@ -406,7 +406,7 @@ static void pl0f_R0_Move(cPl0f* em)
     Pl0fWork* w = PL0F_WK(em);
 
     if (w->Boat_spd > 30.0f) {
-        cModel* p = em->getPartsPtr(2);
+        cParts* p = em->getPartsPtr(2);
 
         p->ang.z += 1.0471976f;
         p->ang.z = LIMIT_ANGLE(p->ang.z);
@@ -925,7 +925,7 @@ void pl0fBoatControl(cPl0f* em)
     }
     {
         cPlayer* pl = pPL;
-        cModel* p = em->getPartsPtr(1);
+        cParts* p = em->getPartsPtr(1);
 
         if (pPL->r_no_0 == 0 && pPL->r_no_1 == 0xF && pPL->r_no_2 == 2) {
             p->ang.y = pl->m_Blend * (1.0f / 255.0f) * -0.5235988f;
@@ -3131,7 +3131,7 @@ void pl00DieCamMove(cPlayer* pl)
 {
     Mtx m;
     Vec v;
-    cModel* p;
+    cParts* p;
 
     StaFlagOn(pG, STA_PL_SWIM_CAMERA);   // reference store: the pPL load stays below it
     p = pPL->getPartsPtr(0);
@@ -3412,7 +3412,7 @@ void plboatSpearThrow(cPlayer* pl)
     Vec dir;
     Vec target;
     Vec hand;
-    cModel* p;
+    cParts* p;
 
     if (spear == 0) {
         return;

@@ -619,7 +619,7 @@ static void em3d_R1_WarpMove(cEm3d* em)
 // Spins the main rotor (parts 0xA, yaw) and the tail rotor (parts 0xB, pitch) 35 degrees per frame.
 void em3dRoterMove(cEm3d* em)
 {
-    cModel* p;
+    cParts* p;
 
     p = em->getPartsPtr(0xA);
     p->ang.y += 0.61086524f;
@@ -715,7 +715,7 @@ void em3dChainGunMove(cEm3d* em)
     Vec rot;
     f32 rotX;
     f32 rotY;
-    cModel* p;
+    cParts* p;
     f32 len;
     f32 angX;
     f32 angY;
@@ -766,7 +766,7 @@ void em3dChainGunMove(cEm3d* em)
 void em3dHeliPitchMove(cEm3d* em)
 {
     Em3dWork* w = EM3D_WK(em);
-    cModel* p;
+    cParts* p;
     f32 v;
     f32 ang;
 

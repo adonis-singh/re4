@@ -35,7 +35,7 @@ void cObjHkSniper::init(cModel* parent)
         return;
     }
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -57,8 +57,8 @@ void cObjHkSniper::moveFire()
 {
     if (r_no_1 == 0) {
         Motion.pMot = 0;
-        SndCall(2, 0, &pParts->world, 0, 0, 0);
-        SndCall(2, 4, &pParts->world, 0, 0, 0);
+        SndCall(2, 0, &pList->world, 0, 0, 0);
+        SndCall(2, 4, &pList->world, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
         r_no_1 = 1;
@@ -96,7 +96,7 @@ void cObjHkSniper::moveReload()
             se = 0x21;
             break;
         }
-        m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 34.0f)) {

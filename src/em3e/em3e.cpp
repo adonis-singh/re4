@@ -131,9 +131,9 @@ void cEmMark::init(u8 type, EmMarkInst* inst, f32 x, f32 y, f32 z)
         scale.y = 6.0f;
         scale.z = 6.0f;
         pos.y -= 1000.0f;
-        pParts->ang.x = PI;
-        pParts->ang.y = 0.0f;
-        pParts->ang.z = 0.0f;
+        pList->ang.x = PI;
+        pList->ang.y = 0.0f;
+        pList->ang.z = 0.0f;
     }
     {
         Vec size;

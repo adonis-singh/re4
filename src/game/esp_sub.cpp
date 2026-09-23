@@ -1168,7 +1168,7 @@ int EspSeqSet(EspGenWork* pSeq, EspInfo* pCore, u32* pRand_seed, cModel* pMod, M
     cEsp* e;
     f32 rnd;
     int ret;
-    cModel* parts;
+    cParts* parts;
 
     if ((u8) (pSeq->Id + 4) <= 3) {
         EfmSeqSet(pSeq, (EfmCore*) pCore, pRand_seed, pMod, *pMat, 0, 0.0f, pOffset);

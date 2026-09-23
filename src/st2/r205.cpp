@@ -389,7 +389,7 @@ static void r205_PendulumMove()
             if (fabsf(rot) <= 0.8f) {
                 if (se[i] == 0) {
                     se[i] = 1;
-                    RoomSeCall((u16) (12 + i), &r205_work->hit[i]->pParts->world, 0, 0, 0);
+                    RoomSeCall((u16) (12 + i), &r205_work->hit[i]->pList->world, 0, 0, 0);
                 }
             } else {
                 se[i] = 0;
@@ -416,7 +416,7 @@ static void r205_PendulumMove()
 static void r205_ExecDieDemo(R205Pend* p)
 {
     Camera cam;
-    cModel* parts;
+    cParts* parts;
     Vec* wp;
     f32 d;
     int mot = 1;

@@ -240,16 +240,16 @@ void r20d_openShelf_main(int no, int opened)
         a->be_flag |= 0x20;
         b->be_flag |= 0x20;
         if (opened == 1) {
-            a->pParts->ang.y = ang;
-            b->pParts->ang.y = -ang;
+            a->pList->ang.y = ang;
+            b->pList->ang.y = -ang;
         } else {
             int i;
 
             ang /= 30.0f;
             SndCall(6, 0x1A, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
-                a->pParts->ang.y += ang;
-                b->pParts->ang.y -= ang;
+                a->pList->ang.y += ang;
+                b->pList->ang.y -= ang;
                 SceSleep(1);
             }
         }
@@ -1212,10 +1212,10 @@ void cLanternUnit::setThrowLantern(Vec* target)
     void* zero = NULL;
     const f32 spd0 = 20.0f;   // pool order (20 first) and `lis r25` at the top
 
-    from.x = em->pParts->mat[0][3];
-    from.y = em->pParts->mat[1][3];
-    from.z = em->pParts->mat[2][3];
-    Matrix2AxisAngle(em->pParts->mat, &rot);
+    from.x = em->pList->mat[0][3];
+    from.y = em->pList->mat[1][3];
+    from.z = em->pList->mat[2][3];
+    Matrix2AxisAngle(em->pList->mat, &rot);
     bin = GetEtcAddr(mot[0], "et1000.bin");
     EspGetEfmTplAddr(0xF, &tpl);
     CalcParabolaVector(&spd, &from, target, PSVECDistance(&from, target) / 10.0f + 1.0f);

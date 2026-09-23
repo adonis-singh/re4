@@ -56,7 +56,7 @@ void cObjShotgun::init(cModel* parent)
         return;
     }
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
@@ -130,7 +130,7 @@ void cObjShotgun::moveReload()
             break;
         }
         motionSet(m, 0, 0, 0, 0);
-        m_StopSeId = SndCall(2, 7, &pParts->world, 0, 0, 0);
+        m_StopSeId = SndCall(2, 7, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, reloadEnd[lv])) {
@@ -150,7 +150,7 @@ void cObjShotgun::moveReload()
 // offset (-201, -6.9, 1.8) with a random +-15 spread, gravity 10, 40 frames, landing effect 0x13.
 void cObjShotgun::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

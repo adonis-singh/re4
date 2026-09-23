@@ -59,7 +59,7 @@ void cObjBow::moveReady()
         r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 10.0f)) {
-        SndCall(2, 0, &pParts->world, 0, 0, 0);
+        SndCall(2, 0, &pList->world, 0, 0, 0);
     }
     if (MotionGetState(this)) {
         r_no_0 = 0;
@@ -83,7 +83,7 @@ void cObjBow::moveFire()
         MotionSetCore(this, &this->Motion, m, 0, 0, 0, 0);
         setDispAllow(0);
         setAllow();
-        SndCall(2, 1, &pParts->world, 0, 0, 0);
+        SndCall(2, 1, &pList->world, 0, 0, 0);
         r_no_1 = 1;
     }
     if (MotionGetState(this)) {
@@ -133,7 +133,7 @@ void cObjBow::init(cModel* parent)
     }
     atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
     AtariFlagsAnd(&atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0x10);
+    pList->pParent = parent->getPartsPtr(0x10);
     wepLightInit(this);
     m_pParent = parent;
     motReset[0] = WEP_ARC_PTR(0x2D);
@@ -147,7 +147,7 @@ void cObjBow::init(cModel* parent)
 // Shows (on == 1: scale 1) or hides (scale 0) the arrow nocked on the bow (parts 4).
 void cObjBow::setDispAllow(int on)
 {
-    cModel* parts = getPartsPtr(4);
+    cParts* parts = getPartsPtr(4);
     f32 s;
 
     if (on == 1) {
@@ -196,7 +196,7 @@ void cObjBow::setMotion(cPlayer* pl)
 void cObjBow::setAllow()
 {
     static const Vec dir = { -1500.0f, 0.0f, 0.0f };
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec spd;
     Vec hit;
     Vec nrm;

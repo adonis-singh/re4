@@ -291,7 +291,7 @@ static void em24_R1_BoxWait(cEm24* em)
 
         em->dmg.m_Timer = two;
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p = em->getPartsPtr(5);
+            cParts* p = em->getPartsPtr(5);
 
             em24AtkCk(em, &p->world, &p->world_old, 0);
         }

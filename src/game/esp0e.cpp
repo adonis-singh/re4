@@ -89,7 +89,7 @@ void cEsp0e::move()
         w->wld_pos = m_Pos;
         dir = w->dir_vec;
     } else {
-        cModel* parts;
+        cParts* parts;
 
         if (m_Parts_no >= m_pMod->nParts) {
             pLog->err(0, 0, "ESP0E :PARTS_NO[%d] is invalid(MAX:%d).", m_Parts_no, m_pMod->nParts);

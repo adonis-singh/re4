@@ -584,7 +584,7 @@ void emBarrel_R1_Break(cEmBarrel* pEm)
 void emBarrel_R1_R227Roll(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
-    cModel* p;
+    cParts* p;
     f32 floor;
     f32 ang;
     f32 dist;
@@ -772,7 +772,7 @@ void emBarrelSetBomb(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
     Camera* cam;
-    cModel* p;
+    cParts* p;
     Vec v;
     f32 d2;
     f32 power;
@@ -827,7 +827,7 @@ void emBarrelSetBomb2(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
     Camera* cam;
-    cModel* p;
+    cParts* p;
     Vec v;
     f32 d2;
     f32 power;

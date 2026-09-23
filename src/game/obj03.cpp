@@ -52,7 +52,7 @@ void cObj03::move()
     int i;
 
     for (i = nParts - 1; i >= 0; i--) {
-        cModel* parts = getPartsPtr(i);
+        cParts* parts = getPartsPtr(i);
         h = 0;
         PathGetMatEm(pPath, pPathParent, t, &h, parts->mat);
         if (flag & 1) {

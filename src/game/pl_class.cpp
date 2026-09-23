@@ -853,14 +853,14 @@ void cPlayer::seqSeCtrl()
         switch (no) {
         case 0:
         case 1:
-            SndCall(1, 0x2A, &pParts->world, id, 0, 0);
+            SndCall(1, 0x2A, &pList->world, id, 0, 0);
             break;
         case 2:
         case 3:
         case 0xD:
         case 0xE:
         case 0x14:
-            SndCall(1, 0x2F, &pParts->world, id, 0, 0);
+            SndCall(1, 0x2F, &pList->world, id, 0, 0);
             break;
         }
     }
@@ -1101,8 +1101,8 @@ void cPlayer::interrupt()
     Neck->m_Mode = 1;
     MOTION(this)->Seq_speed = 1.0f;
     stat.off(F_CROUCH);
-    ang.y += pParts->ang.y;
-    pParts->ang.y = 0.0f;
+    ang.y += pList->ang.y;
+    pList->ang.y = 0.0f;
     if (Wep->m_pWep) {
         if (Wep->m_pWepHand) {
             Wep->m_pWepHand->setDisp(1, 1);
@@ -1298,7 +1298,7 @@ void cPlayer::moveEyeNormal()
 {
     static cDelayF eyeDir;
     static int timer;
-    cModel* p;
+    cParts* p;
 
     p = getPartsPtr(0x1C);
     // Every case written out separately in ascending order: jump2 cross-jumps the identical
@@ -1394,8 +1394,8 @@ int lbl_80314CDC = 0;   // unreferenced 4-byte .sdata word between moveEyeNormal
 // Eyes driven by the motion: parts 0x21 follows parts 0x20.
 void cPlayer::moveEyeMotion()
 {
-    cModel* a;
-    cModel* b;
+    cParts* a;
+    cParts* b;
 
     a = getPartsPtr(0x20);
     b = getPartsPtr(0x21);
@@ -1524,7 +1524,7 @@ void cPlNeck::init(void* motR, void* motL, int frame)
 // motion at the centre; the blend rate is the angle over 45 degrees.
 void cPlNeck::move()
 {
-    cModel* head;
+    cParts* head;
     cEm* em;
 
     if (m_Mode == 0) {

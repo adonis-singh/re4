@@ -2127,7 +2127,7 @@ void em22NeckMove(cEm22* em)
     Em22Work* w = EM22_WK(em);
     Mtx m;
     Vec d;
-    cModel* plP;
+    cParts* plP;
     cParts* p;
     f32 f;
     f32 len;
@@ -2523,7 +2523,7 @@ void em22AtkParaClearCk(cEm22* em)
 void em22OpenBack(cEm22* em)
 {
     Em22Work* w = EM22_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (w->flags & 0x10) {
         p = em->getPartsPtr(0x1F);
@@ -2652,7 +2652,7 @@ int em22JumpCk(cEm22* em)
     Mtx m;
     Vec a;
     Vec b;
-    cModel* p;
+    cParts* p;
 
     if (w->stuckCnt <= 1) {
         return 0;
@@ -2717,7 +2717,7 @@ int em22PlRunCk2(cEm22* em)
 // Splash at a foot (parts `no`) when the motion key says it touched the ground.
 static inline void em22FootSplash(cEm22* em, int no)
 {
-    cModel* p = em->getPartsPtr(no);
+    cParts* p = em->getPartsPtr(no);
 
     if (em->be_flag & 0x800) {
         EstSet(0, -1, &p->world, 0, EFF_EM22, 3, 1, ESP_CORE_KIND_NONE, em, 0);

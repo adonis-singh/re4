@@ -52,7 +52,7 @@ void cObj12::move()
             ObjMgr.destroy(this);
             return;
         }
-        if (w->pEm_oya->pParts) {
+        if (w->pEm_oya->pList) {
             PSMTXConcat(w->pEm_oya->getPartsPtr(w->oya_parts)->mat, mat, m);
             if (!(w->be_flag & 0x80)) {
                 v0.x = m[0][0];

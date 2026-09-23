@@ -307,7 +307,7 @@ void hitCheck(cPlayer* pl, int i, u32 flag)
     Vec p0;
     Vec p1;
     f32 len;
-    cModel* parts;
+    cParts* parts;
 
     switch (pG->pl_type) {
     case 0:

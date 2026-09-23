@@ -3059,7 +3059,7 @@ void dbModMotionMove()
             RotMatrix(model->mat, &model->ang);
             TransMatrix(model->mat, &model->pos);
             ScaleMatrix(model->mat, &model->scale);
-            if (parent->pParts) {
+            if (parent->pList) {
                 pp = (cParts*) parent->getPartsPtr(em->partsNo);
                 PSMTXConcat(pp->mat, model->mat, model->mat);
                 ax.x = model->mat[0][0];
@@ -3164,7 +3164,7 @@ void dbModMotionMove()
         ScaleMatrix(model->mat, &model->scale);
         if (em->partsNo == -1) {
             PSMTXConcat(parent->mat, model->mat, model->mat);
-        } else if (parent->pParts) {
+        } else if (parent->pList) {
             pp = (cParts*) parent->getPartsPtr(em->partsNo);
             PSMTXConcat(pp->mat, model->mat, model->mat);
         }

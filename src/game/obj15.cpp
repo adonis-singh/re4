@@ -259,7 +259,7 @@ void obj15BarrelMove(cObjGatling* pObj)
 {
     GatlingWork* w = GATLING_WK(pObj);
     Vec tpos;
-    cModel* parts;
+    cCoord* parts;
 
     if (w->pTarget == 0) {
         w->pTarget = pPL;
@@ -330,7 +330,7 @@ int obj15GunHitck(cObjGatling* pObj)
     Vec hit;
     Vec dir;
     cEm* em;
-    cModel* parts;
+    cParts* parts;
     u32 attr;
 
     EstSet(pObj, -1, 0, 0, EFF_ROOM, 0x1F, 0, ESP_CORE_KIND_NONE, pObj, 0);
@@ -390,7 +390,7 @@ static void obj15GunHitckDbg(cObjGatling* obj)
 {
     Vec ofs;
     Vec mzl;
-    cModel* parts;
+    cParts* parts;
 
     ofs.x = 0.0f;
     ofs.y = 150.0f;

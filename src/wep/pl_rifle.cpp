@@ -165,7 +165,7 @@ static void wep09_r2_set(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     pl->setLaserSight(0, 0);
     if (pl->m_Work1 == 0 && MotionCheckCrossFrame(&pl->Motion, 2.0f)) {
-        SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
+        SndCall(2, 9, &pl->pList->world, 0, 0, 0);
         pl->m_Work1 = 1;
     }
     if (pl->m_Work4 != 0) {
@@ -457,7 +457,7 @@ static void wep09_r2_reload(cPlayer* pl)
             CamCtrl.startScope(0, 0);
             CameraMove();
             scopeOn(pl);
-            SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
+            SndCall(2, 9, &pl->pList->world, 0, 0, 0);
             EmRoutineSet(pl, 0, 6, 1, 2);
             pl->m_Work4 = 10;
         }

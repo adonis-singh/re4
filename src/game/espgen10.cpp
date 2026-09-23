@@ -128,7 +128,7 @@ void espgen10_Update(EspgenWork* pEspgen)
             return;
         }
         if (!(p->Flg & 1)) {
-            cModel* part;
+            cParts* part;
             Vec ofs;
             Vec r;
 

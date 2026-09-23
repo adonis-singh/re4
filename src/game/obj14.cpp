@@ -157,7 +157,7 @@ void obj14DmCk(cObjBell* pObj)
     Vec dir;
     u32 wep;
     f32 rate;
-    cModel* parts;
+    cParts* parts;
 
     if (w->pHit == 0) {
         return;
@@ -242,10 +242,10 @@ void obj14DmCk(cObjBell* pObj)
     VECNormalize(&dir, &dir);
     PSVECScale(&dir, &dir, rate);
     parts = pObj->getPartsPtr(1);
-    PSVECAdd(&((PenParts*) &parts->pFloor_norm)->speed, &dir, &((PenParts*) &parts->pFloor_norm)->speed);
+    PSVECAdd(&((PenParts*) &parts->inv_offset)->speed, &dir, &((PenParts*) &parts->inv_offset)->speed);
     parts = pObj->getPartsPtr(2);
     PSVECScale(&dir, &dir, 0.8f);
-    PSVECAdd(&((PenParts*) &parts->pFloor_norm)->speed, &dir, &((PenParts*) &parts->pFloor_norm)->speed);
+    PSVECAdd(&((PenParts*) &parts->inv_offset)->speed, &dir, &((PenParts*) &parts->inv_offset)->speed);
 }
 
 // Switches to the broken routine.

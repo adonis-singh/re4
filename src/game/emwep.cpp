@@ -372,7 +372,7 @@ void cEmWep::move()
         if (w->alwaysTimer) {
             w->alwaysTimer--;
             if (w->alwaysTimer == 0) {
-                cModel* p = getPartsPtr(0);
+                cParts* p = getPartsPtr(0);
 
                 w->alwaysTimer = w->alwaysWait;
                 SndCall(w->seAlways[0], w->seAlways[1], &p->world, w->seAlways[2], 0, this);
@@ -1167,7 +1167,7 @@ void emWep_R1_Rocket(cEmWep* pEm)
     Vec d;
     Mtx m;
     Vec hit;
-    cModel* p;
+    cParts* p;
 
     switch (pEm->r_no_2) {
     case 0:
@@ -1235,7 +1235,7 @@ void emWepRocketBobm(cEmWep* pEm)
 {
     EmWepWork* w = EMWEP_WK(pEm);
     Camera* cam = &pG->Camera;
-    cModel* p;
+    cParts* p;
     Vec r;
     Vec pos;
     f32 len;
@@ -1326,7 +1326,7 @@ void emWep_R1_BombThrow(cEmWep* pEm)
     if (w->Bomb_wait == 0) {
         GlobalWork* g = pG;
         Camera* cam = &g->Camera;
-        cModel* p;
+        cParts* p;
         Vec r;
         Vec pos;
         f32 dist;
@@ -2466,7 +2466,7 @@ void emWepPlHeadLost()
 {
     Vec p0;
     Vec p1;
-    cModel* p;
+    cParts* p;
     cObj* obj;
 
     if (pSys->eff_country == 0) {
@@ -2677,7 +2677,7 @@ void cEmWep::setCloth(cModel* pEm)
 void cEmWep::moveCloth()
 {
     EmWepWork* w = EMWEP_WK(this);
-    cModel* p;
+    cParts* p;
     Mtx inv;
 
     if (w->Be_flg & 4) {
@@ -2685,7 +2685,7 @@ void cEmWep::moveCloth()
             w->Cloth.pEm_at = 0;
         }
         PenClothMove2(this, &w->Cloth);
-        for (p = getPartsPtr(1); p; p = p->pParts) {
+        for (p = getPartsPtr(1); p; p = p->pList) {
             PSMTXInverse(p->pParent->mat, inv);
             PSMTXConcat(inv, p->mat, p->l_mat);
         }
@@ -2709,7 +2709,7 @@ void cEmWep::setParentMatCalc(int mode)
     RotMatrix(mat, &ang);
     TransMatrix(mat, &pos);
     ScaleMatrix(mat, &scale);
-    if (parent->pParts) {
+    if (parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];

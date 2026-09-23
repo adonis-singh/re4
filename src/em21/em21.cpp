@@ -1092,7 +1092,7 @@ void em21NeckMove(cEm21* em)
     Em21Work* w = EM21_WK(em);
     Mtx m;
     Vec d;
-    cModel* tp;
+    cParts* tp;
     cParts* p;
     f32 f;
     f32 len;

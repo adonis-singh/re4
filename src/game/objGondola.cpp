@@ -134,7 +134,7 @@ void objGondola_R0_Move(cObjGondola* pObj)
     Vec b;
     Vec a;
     Vec d;
-    cModel* parts;
+    cParts* parts;
 
     GONDOLA_WK(pObj)->Ride_pl = 0;
     parts = pObj->getPartsPtr(1);
@@ -161,7 +161,7 @@ void objGondola_R0_Down(cObjGondola* pObj)
     Vec b;
     Vec a;
     Vec d;
-    cModel* parts;
+    cParts* parts;
 
     w->Ride_pl = 1;
     parts = pObj->getPartsPtr(1);
@@ -195,7 +195,7 @@ void objGondola_R0_Up(cObjGondola* pObj)
     Vec b;
     Vec a;
     Vec d;
-    cModel* parts;
+    cParts* parts;
 
     w->Ride_pl = 1;
     parts = pObj->getPartsPtr(1);
@@ -250,7 +250,7 @@ void objGondola_R0_Break(cObjGondola* pObj)
     Vec b;
     Vec a;
     Vec v;
-    cModel* parts;
+    cParts* parts;
     f32 len;
     Vec* cp;
     Vec* ca;
@@ -355,7 +355,7 @@ void objGondolaSatSet(cObjGondola* pObj)
     Vec rot;
     Vec v;
     Vec poly[4];
-    cModel* parts;
+    cParts* parts;
     u32 i;
     f32 hw;
     f32 hd;
@@ -515,7 +515,7 @@ int cObjGondola::ckRide()
 void cObjGondola::setRideEm(cEm* em)
 {
     GondolaWork* w = GONDOLA_WK(this);
-    cModel* parts = getPartsPtr(0);
+    cParts* parts = getPartsPtr(0);
     Vec v;
     u32 i;
 
@@ -572,7 +572,7 @@ void cObjGondola::setBreak()
 void objGondolaRideEmAdjust(cObjGondola* pObj, Vec* pVec)
 {
     GondolaWork* w = GONDOLA_WK(pObj);
-    cModel* parts = pObj->getPartsPtr(1);
+    cParts* parts = pObj->getPartsPtr(1);
     Vec c;
     u32 i;
 

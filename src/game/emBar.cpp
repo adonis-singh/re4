@@ -376,7 +376,7 @@ void cEmBar::setMotion(void* mot)
 int emBarHitCk(cEmBar* pEm)
 {
     Vec v;
-    cModel* p;
+    cParts* p;
 
     if (pEm->hp <= 0) {
         return 0;

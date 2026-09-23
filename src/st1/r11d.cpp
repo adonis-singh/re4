@@ -415,26 +415,26 @@ extern "C" void r11d_execHide_main(int mode, u32 objId)
         // target). The asm keeps jump1 from peeling the exit test (asm_noperands in the exit code).
         SndCall(6, 0x14, &pSUB->pos, 0, 0, 0);
         for (;;) {
-            door->pParts->ang.x -= spd;
+            door->pList->ang.x -= spd;
             asm("" : "+f"(spd)); // COMPILER-DIFF: candidate #9
             spd += add;
-            if (door->pParts->ang.x < lim) {
+            if (door->pList->ang.x < lim) {
                 break;
             }
             SceSleep(1);
         }
-        door->pParts->ang.x = lim;
+        door->pList->ang.x = lim;
     } else {
         SndCall(6, 0x13, &pSUB->pos, 0, 0, 0);
         goto close;
     wait_close:
         SceSleep(1);
     close:
-        door->pParts->ang.x += 0.2f;
-        if (!(door->pParts->ang.x > 0.0f)) {
+        door->pList->ang.x += 0.2f;
+        if (!(door->pList->ang.x > 0.0f)) {
             goto wait_close;
         }
-        door->pParts->ang.x = 0.0f;
+        door->pList->ang.x = 0.0f;
     }
 }
 

@@ -261,9 +261,9 @@ void r201_openShelf_main(int no, int opened)
             obj->ang.x = 1.5707964f;
             obj->ang.y = -0.39f;
             obj->ang.z = 0.0f;
-            obj->pParts->ang.x = 0.0f;
-            obj->pParts->ang.y = 0.0f;
-            obj->pParts->ang.z = 0.0f;
+            obj->pList->ang.x = 0.0f;
+            obj->pList->ang.y = 0.0f;
+            obj->pList->ang.z = 0.0f;
             obj->setPos(&obj->pos);
             obj->setAng(pa);
         }
@@ -280,9 +280,9 @@ void r201_openShelf_main(int no, int opened)
             obj->ang.x = -1.5707964f;
             obj->ang.y = -0.23f;
             obj->ang.z = 0.0f;
-            obj->pParts->ang.x = 0.0f;
-            obj->pParts->ang.y = 0.0f;
-            obj->pParts->ang.z = 0.0f;
+            obj->pList->ang.x = 0.0f;
+            obj->pList->ang.y = 0.0f;
+            obj->pList->ang.z = 0.0f;
             obj->setPos(&obj->pos);
             obj->setAng(pa);
         }

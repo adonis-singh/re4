@@ -205,7 +205,7 @@ public:
     int init2(int type, int partsNo, const Vec* pOffset, const Vec* pSize, int mask);  // type -> Flag, partsNo -> PartsNo, mask -> EnableMask
     void updateMatrix(cModel* pMod);
     u32 getLightNum();
-    cModel* getPos(cModel* m, Vec* out);  // light origin of `m` (the parts x52 - 1 selects); returns the coord it belongs to
+    cCoord* getPos(cModel* m, Vec* out);  // light origin of `m` (the parts x52 - 1 selects); returns the coord it belongs to
 };
 
 // One sequence key (MotionData sequence table entry / MotionWork::key*).
@@ -330,13 +330,11 @@ extern cModInfoMgr ModInfoMgr;
 
 // Model parts (game/model.cpp), 0x1D8 bytes, allocated from PartsMgr (cManager<cParts>(0x1D8)):
 // a cCoord with the parts chain and the bind matrix; the rest holds the motion / IK state
-// (motion.h IkParts at 0xF8 / MotionParts at 0x174, pendulum.h PenParts). cModel::pParts and
-// cModel::getPartsPtr() are typed cModel* throughout the sources; index a parts array through
-// this type (`((cParts*) m->pParts)[2]`, objBull), a cModel* has the wrong stride.
+// (motion.h IkParts at 0xF8 / MotionParts at 0x174, pendulum.h PenParts).
 class cParts : public cCoord {
 public:
-    cParts* pList;   // 0xF4  next parts of the model (the cModel::pParts chain; createSequential links them). Not `next`: cManager<cParts> must keep using cUnit::next
-    Mtx lt_inv_mat;     // 0xF8  bind pose matrix (motion.h PARTS_BIND_MAT); setPartsOffset: identity with -mat translation
+    cParts* pList;   // 0xF4  next parts of the model (createSequential links them). Not `next`: cManager<cParts> must keep using cUnit::next
+    Mtx lt_inv_mat;     // 0xF8  bind pose matrix; setPartsOffset: identity with -mat translation
     Vec inv_offset;      // 0x128  rotation partsWorldCalc applies (x, then z, then y) while motParts.flags bit30 is set (ik.cpp overlays IkParts len / mat here)
     u8 pad_134[0x174 - 0x134];
     MotionParts motParts;  // 0x174 .. 0x1C4
@@ -367,13 +365,10 @@ extern cPartsMgr PartsMgr;
 class cTexChg;          // trans.h
 
 // Model (game/model.cpp), sizeof 0x320: cEm / cObj / cMap fields start at 0x320. The parts hanging
-// off pParts are cParts (0x1D8, above); the sources address them as cModel* (cCoord members only).
+// off pList are cParts (0x1D8, above).
 class cModel : public cCoord {
 public:
-    union {
-        cModel* pParts;      // 0xF4 child parts list (a cParts chain; every source addresses it as cModel*)
-        cParts* pList;  // 0xF4 the same pointer typed as the parts (model.cpp)
-    };
+    cParts* pList;  // 0xF4  first parts (the chain continues through cParts::pList)
     u32 guid;      // 0xF8  identity check for parent links (obj04: parent->guid == work.parentSerial) (PS2 GUID guid)
 
     u8 r_no_0;  // 0xFC  routine / state
@@ -436,7 +431,7 @@ public:
     virtual void move();
     virtual void setNoSuspend(int onoff);
 
-    cModel* getPartsPtr(int idx);  // -1: the model itself; NULL (and a log) when out of range
+    cParts* getPartsPtr(int idx);  // -1: the model itself; NULL (and a log) when out of range
     int modelInit(void* bin, void* tpl);  // returns the cModelInfo* (pl_leon range-checks it)
     int initJoint(void* bin);     // parts list from the bin's parts records (makePartsList / setPartsParent / setPartsOffset / setJointInfo)
     void releaseJoint();          // releasePartsList(0) when there are parts
@@ -470,7 +465,7 @@ public:
     int isTrans();  // be_flag bit1 (visible) and be_flag != 0 (objWep / objRocket)
     // Hang parts 0 on `parent` at pos / rot (objRocket loadRocket); the 4-argument form
     // selects parts `partsNo` of the parent (-1: the parent itself).
-    void setParent(cModel* pCoord, Vec* pos0, Vec* ang0);
+    void setParent(cCoord* pCoord, Vec* pos0, Vec* ang0);
     void setParent(cModel* pMod, int pno, Vec* pos0, Vec* ang0);
     void moveDataAddr(int ofsAddr);   // model data moved by `ofs` bytes (block.cpp memory compaction)
     // Copies the parts positions of a model bin (parts bin of an event costume, event SetPartsSub).
@@ -495,7 +490,7 @@ static inline void SetAngV(cModel* m, Vec* v) { m->setAng(v); }
 // labels). The rooms that need it keep a per-file SetAngY (r315, r31c, r321).
 
 // game/model.cpp (C linkage): parts `no` of a parts list (NULL when out of range).
-extern "C" cModel* GetPartsAddr(cModel* parts, int no);
+extern "C" cParts* GetPartsAddr(cParts* pList, u32 idx);
 // game/model.cpp (C linkage): relocate a TPL's file offsets to pointers (trans SpecularInit).
 extern "C" void calcTplAddr(struct TEXPalette* tpl);
 // game/model.cpp (C linkage): the inverse, pointers back to file offsets (mes.cpp releases the font TPL).

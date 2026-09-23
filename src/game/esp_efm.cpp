@@ -252,7 +252,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             size.x = bound->size.x;
             size.y = bound->size.y;
             size.z = bound->size.z;
-            PSVECSubtract(&bound->center, &obj->pParts->pos, &center);
+            PSVECSubtract(&bound->center, &obj->pList->pos, &center);
             obj->LightInfo.init2(2, 1, &center, &size, light);
             obj->alpha_omit = 0x80;
         } else {
@@ -343,7 +343,7 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     Mtx mtx;
     void* mot;
     f32 rnd;
-    cModel* parts;
+    cParts* parts;
 
     obj->be_flag |= 0x4000;
     w->Eff_core = *info;
@@ -535,8 +535,8 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     Vec v;
     Mtx mtx;
     f32 rnd;
-    cModel* parts;
-    cModel* p;
+    cParts* parts;
+    cParts* p;
     u32 i;
 
     w->Eff_core = *info;
@@ -552,7 +552,7 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     obj->ang.z += gen->R_ang.z * fRandSeed1_1(seed);
     PSVECScale(&obj->ang, &obj->ang, DEG2RAD);
     if ((w->Tool_flg & 0x10) && parent) {
-        Matrix2AxisAngle(parent->pParts->mat, &v);
+        Matrix2AxisAngle(parent->pList->mat, &v);
         PSVECAdd(&obj->ang, &v, &obj->ang);
     }
     if (w->Tool_flg & 0x200000) {
@@ -667,7 +667,7 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
         }
         break;
     }
-    for (p = obj->pParts, i = 0; i < obj->nParts; i++, p = p->pParts) {
+    for (p = obj->pList, i = 0; i < obj->nParts; i++, p = p->pList) {
         OBJ05_KABOOM(p)->Kaboom_flg = 0;
     }
     obj->matUpdate();

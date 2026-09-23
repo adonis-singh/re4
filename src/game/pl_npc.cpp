@@ -423,7 +423,7 @@ void cSubChar::moveFootwork()
                 m_Work0++;
                 if (m_Work0 > 150) {
                     m_Work0 = 0;
-                    m_StopSe = SndCall(8, 2, &pEm->pParts->world, id, 0, 0);
+                    m_StopSe = SndCall(8, 2, &pEm->pList->world, id, 0, 0);
                 }
             }
         }
@@ -772,7 +772,7 @@ int cSubChar::readyOkCheck()
     if (GetDistance(&pPL->pos, &pos) > 302500.0f) {
         return 0;
     }
-    return SatMgr.hitCheck(&pPL->pParts->world, &pParts->world, 0, 0, 0, 0) == 0;
+    return SatMgr.hitCheck(&pPL->pList->world, &pList->world, 0, 0, 0, 0) == 0;
 }
 
 // Routine 0 / 2 (and 5): stand behind the aiming player, cover the ears.
@@ -917,7 +917,7 @@ void cSubChar::movePants()
     switch (pEm->r_no_2) {
     case 0:
         MOT_SET(pEm, MOTION(pEm), SUB_MOT(pEm, 0x21), 0, 7, 5, 0);
-        m_StopSe = SndCall(8, 0x16, &pEm->pParts->world, id, 0, 0);
+        m_StopSe = SndCall(8, 0x16, &pEm->pList->world, id, 0, 0);
         pEm->r_no_2 = 1;
     case 1:
         if (MotionMove(pEm, 0)) {
@@ -1222,7 +1222,7 @@ void cSubChar::moveAction()
             break;
         }
         if (m_Work0 == 4) {
-            m_StopSe = SndCall(8, 0x12, &pEm->pParts->world, id, 0, 0);
+            m_StopSe = SndCall(8, 0x12, &pEm->pList->world, id, 0, 0);
         }
         MOT_SET(pEm, MOTION(pEm), m, seq, 3, 0x101, 0);
         AtariOff(&atari, 0xFCFF);
@@ -1741,7 +1741,7 @@ void cSubChar::moveFallWait()
     if (GetDistance(&v, &pPL->pos) > 25000000.0f) {
         m_Work4++;
         if (m_Work4 == 300) {
-            m_StopSe = SndCall(8, 0x14, &pEm->pParts->world, id, 0, 0);
+            m_StopSe = SndCall(8, 0x14, &pEm->pList->world, id, 0, 0);
             m_Work4 = 0;
         }
     } else if (m_Work4 <= 0x95) {
@@ -1753,13 +1753,13 @@ void cSubChar::moveFallWait()
         }
     }
     if (m_Work1) {
-        if (GetDistance(&v, &pPL->pos) < 9000000.0f && !SatMgr.hitCheck(&v, &pPL->pParts->world, 0, 0, 0, 0) &&
-            !SatMgr.hitCheck(&pPL->pParts->world, &v, 0, 0, 0, 0)) {
+        if (GetDistance(&v, &pPL->pos) < 9000000.0f && !SatMgr.hitCheck(&v, &pPL->pList->world, 0, 0, 0, 0) &&
+            !SatMgr.hitCheck(&pPL->pList->world, &v, 0, 0, 0, 0)) {
             ActBtn.set(ACT_CATCH, 6, (void*) catchOn, 0, ACTCTR_NONE, DISP_A_NORMAL, ACT_FUNC_NORMAL, 0);
             m_Work3 = 1;
         }
     }
-    if (!SatMgr.hitCheck(&pParts->world, &pPL->pParts->world, 0, 0, 0, 0)) {
+    if (!SatMgr.hitCheck(&pList->world, &pPL->pList->world, 0, 0, 0, 0)) {
         status.off(S_FALL_WINDOW);
         EmRoutineSet(this, 0, 0, 0, 0);
     }
@@ -1785,8 +1785,8 @@ void cSubChar::moveLadderWait()
         motionMove();
         break;
     }
-    if (!SatMgr.hitCheck(&pParts->world, &pPL->pParts->world, 0, 0, 0, 0) &&
-        !SatMgr.hitCheck(&pPL->pParts->world, &pParts->world, 0, 0, 0, 0)) {
+    if (!SatMgr.hitCheck(&pList->world, &pPL->pList->world, 0, 0, 0, 0) &&
+        !SatMgr.hitCheck(&pPL->pList->world, &pList->world, 0, 0, 0, 0)) {
         EmRoutineSet(this, 0, 0, 0, 0);
     }
 }
@@ -1811,8 +1811,8 @@ void cSubChar::moveWindowWait()
         motionMove();
         break;
     }
-    if (!SatMgr.hitCheck(&pParts->world, &pPL->pParts->world, 0, 0, 0, 0) &&
-        !SatMgr.hitCheck(&pPL->pParts->world, &pParts->world, 0, 0, 0, 0)) {
+    if (!SatMgr.hitCheck(&pList->world, &pPL->pList->world, 0, 0, 0, 0) &&
+        !SatMgr.hitCheck(&pPL->pList->world, &pList->world, 0, 0, 0, 0)) {
         EmRoutineSet(this, 0, 0, 0, 0);
     }
 }
@@ -1950,7 +1950,7 @@ void cSubChar::moveDamage()
         }
         MOT_SET(pEm, MOTION(pEm), m, 0, 3, 1, 0);
         setFace(1);
-        SndCall(8, 9, &pEm->pParts->world, id, 0, 0);
+        SndCall(8, 9, &pEm->pList->world, id, 0, 0);
         pEm->r_no_1 = 1;
     case 1:
         if (pEm->Motion.Seq_frame >= 10.0f && m_Work0 == 11 && landCheck()) {
@@ -2030,7 +2030,7 @@ void cSubChar::moveDie()
             MOT_SET(pEm, MOTION(pEm), SUB_MOT(pEm, 0x30), 0, 3, 1, 0);
             EstSet(this, -1, 0, 0, EFF_PL01, ChkWaterEffectEnable(&pos) ? 4 : 3, 0, ESP_CORE_KIND_NONE, this, 0);
         }
-        SndCall(8, 0xD, &pParts->world, id, 0, 0);
+        SndCall(8, 0xD, &pList->world, id, 0, 0);
         atari.m_parts_no = 4;
         r_no_1 = 1;
     case 1:
@@ -2167,11 +2167,11 @@ void cSubChar::neckCtrl()
 {
     const f32 spdBack = 0.10471976f;   // pool order: the two speeds first
     const f32 spdHome = 0.15707964f;
-    cModel* p = getPartsPtr(3);
+    cParts* p = getPartsPtr(3);
     int on = 1;
     f32 ang;
 
-    MOTION_PARTS(p)->flags |= 0x40000000;
+    p->motParts.flags |= 0x40000000;
     if (!(pPL->stat.check(cPlayer::F_EVENT))) {
         on = 0;
     }
@@ -2247,7 +2247,7 @@ int cSubChar::cautionCheck()
         ret = 0;
     } else if (fabsf(GetXZAngleLocal(&pPL->pos, &pos, pPL->ang.y)) > 0.78539819f) {
         ret = 0;
-    } else if (GetDistance(pPL->pParts->world, pParts->world) > 100000000.0f) {
+    } else if (GetDistance(pPL->pList->world, pList->world) > 100000000.0f) {
         ret = 0;
     } else {
         ret = 1;
@@ -2539,7 +2539,7 @@ void cSubChar::pantsCheck()
         return;
     }
     hp = &pPL->getPartsPtr(4)->world;
-    sp = &pParts->world;
+    sp = &pList->world;
     if (GetDistance(hp, sp) > 25000000.0f) {
         return;
     }
@@ -2765,7 +2765,7 @@ int cSubChar::checkBackEm()
                 continue;
             }
         }
-        if (SatMgr.hitCheck(&pParts->world, &em->pParts->world, 0, 0, 0, 0)) {
+        if (SatMgr.hitCheck(&pList->world, &em->pList->world, 0, 0, 0, 0)) {
             continue;
         }
         return 1;
@@ -2842,7 +2842,7 @@ void cSubChar::analyze()
     if (pAnotherRoute && moveAnotherRoute()) {
         pAnotherRoute = 0;
     }
-    if (m_PlActTime && !SatMgr.hitCheck(&pParts->world, &pPL->pParts->world, 0, 0, 0, 0)) {
+    if (m_PlActTime && !SatMgr.hitCheck(&pList->world, &pPL->pList->world, 0, 0, 0, 0)) {
         m_PlActTime = 0;
     }
     up = 0;
@@ -2893,8 +2893,8 @@ void cSubChar::analyze()
             if (fl != -100000.0f) {
                 distPos.y = fl + 100.0f;
             }
-            if (SatMgr.hitCheck(&pPL->pParts->world, &distPos, 0, 0, 0, 0)) {
-                PSVECSubtract(&distPos, &pPL->pParts->world, &d);
+            if (SatMgr.hitCheck(&pPL->pList->world, &distPos, 0, 0, 0, 0)) {
+                PSVECSubtract(&distPos, &pPL->pList->world, &d);
 #line 3781 "D:/Bio4/Prog/pl_npc.cpp"
                 VECNormalize(&d, &d);
                 PSVECScale(&d, &d, -400.0f);
@@ -3532,8 +3532,8 @@ void cSubChar::moveBust()
     f32 div;
     u8 step;
     Vec ofs;
-    cModel* parts;
-    cModel* body;
+    cParts* parts;
+    cParts* body;
 
     if (StaFlagChk(pG, STA_PL_BOAT)) {
         max = 2.0f;
@@ -3582,7 +3582,7 @@ void cSubChar::moveBust()
 void cSubChar::moveFace()
 {
     static int timer;
-    cModel* p;
+    cParts* p;
 
     p = getPartsPtr(0x1C);
     switch (timer++) {
@@ -3828,7 +3828,7 @@ void cSubChar::inSat()
     Vec hit;
     Vec nrm;
 
-    if (SatMgr.hitCheck(&pPL->pParts->world, &pSUB->pParts->world, &hit, &nrm, 0, 0)) {
+    if (SatMgr.hitCheck(&pPL->pList->world, &pSUB->pList->world, &hit, &nrm, 0, 0)) {
         PSVECScale(&nrm, &nrm, 400.0f);
         PSVECAdd(&nrm, &hit, &nrm);
         nrm.y = pPL->pos.y;

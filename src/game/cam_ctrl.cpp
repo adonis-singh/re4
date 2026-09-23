@@ -423,7 +423,7 @@ int cameraHitCheck(Vec* pos, Vec* nrm, Vec* from, Vec* to)
         // second set so the `at = this` copy is not propagated into the later field accesses.
         register cAtariInfo* at asm("r29") = &atBuf;
         asm("" : "+r"(at));
-        cModel* parts;
+        cCoord* parts;
         Vec w;
 
         atBuf = pSUB->atari;
@@ -2273,7 +2273,7 @@ void CameraControl::endPushObject()
 void CameraControl::StartLookDownEm(void* pEm)
 {
     Vec c;
-    cModel* p[2];
+    cParts* p[2];
 
     p[0] = pPL->getPartsPtr(0x20);
     p[1] = pPL->getPartsPtr(0x21);

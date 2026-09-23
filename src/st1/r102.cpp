@@ -48,7 +48,7 @@ void R102Init()
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         SceAtDataSet_exec(3, SCE_LEVEL10, 0, (TaskFunc) r102_openCover, 0, 2);
     } else {
-        SmdGetObjPtr(0x25)->pParts->ang.z = -2.46091f;
+        SmdGetObjPtr(0x25)->pList->ang.z = -2.46091f;
         SmdGetObjPtr(0x25)->be_flag |= 0x20;
     }
     if (RsfCheck(G_ROOM_ID, 1) == 0) {
@@ -139,18 +139,18 @@ static void r102_openCover()
     SndCall(6, 3, 0, 0, 0, 0);
     obj = SmdGetObjPtr(0x25);
     obj->be_flag |= 0x20;
-    obj->pParts->ang.z += -0.05235988f;
+    obj->pList->ang.z += -0.05235988f;
     SceSleep(1);
-    obj->pParts->ang.z += -0.05235988f;
+    obj->pList->ang.z += -0.05235988f;
     SceSleep(1);
     SceSleep(1);
     do {
-        obj->pParts->ang.z += step;
+        obj->pList->ang.z += step;
         SceSleep(1);
     } while (--i != 0);
-    obj->pParts->ang.z -= -0.02094395f;
+    obj->pList->ang.z -= -0.02094395f;
     SceSleep(1);
-    obj->pParts->ang.z += -0.02094395f;
+    obj->pList->ang.z += -0.02094395f;
     SceSleep(10);
     CamCtrl.Comeback(0);
     SceEventEnd(0);

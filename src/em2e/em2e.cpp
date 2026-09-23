@@ -439,8 +439,8 @@ static void em2e_R1_Die_Normal(cEm2e* em)
 void em2eFootMove(cEm2e* em)
 {
     Em2eWork* w = EM2E_WK(em);
-    cModel* p2 = em->getPartsPtr(2);
-    cModel* p3 = em->getPartsPtr(3);
+    cParts* p2 = em->getPartsPtr(2);
+    cParts* p3 = em->getPartsPtr(3);
 
     p2->ang.y = w->footAng;
     p3->ang.y = -w->footAng;

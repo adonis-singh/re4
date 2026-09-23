@@ -704,7 +704,7 @@ void em2bDmCk(cEm2b* em)
 void cEm2b::move()
 {
     Em2bWork* w = EM2B_WK(this);
-    cModel* p;
+    cParts* p;
     f32 fl;
     f32 spd;
     f32 moved;
@@ -1428,13 +1428,13 @@ static void em2b_R1_Stamp(cEm2b* em)
         em2bBlendMotSet(em, w->blendM0, w->blendM1, w->blendM2, w->blendA, w->blendB, w->blendC, w->blendD);
         if (em->Motion.Seq_old.Free & 1) {
             if (em->Motion.Mot_attr & 0x40) {
-                cModel* p = em->getPartsPtr(0x14);
+                cParts* p = em->getPartsPtr(0x14);
                 em2bAtkCk(em, &p->world, &p->world_old2, 0);
                 p = em->getPartsPtr(0x15);
                 em2bAtkCk(em, &p->world, &p->world_old2, 0);
                 em2bR11eScrBrkCk2(em, &p->world, 3000.0f);
             } else {
-                cModel* p = em->getPartsPtr(0x18);
+                cParts* p = em->getPartsPtr(0x18);
                 em2bAtkCk(em, &p->world, &p->world_old2, 0);
                 p = em->getPartsPtr(0x19);
                 em2bAtkCk(em, &p->world, &p->world_old2, 0);
@@ -1488,7 +1488,7 @@ static void em2b_R1_Punch(cEm2b* em)
     }
     case 1:
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
             if (em->Motion.Mot_attr & 0x40) {
                 p = em->getPartsPtr(0x10);
             } else {
@@ -1533,7 +1533,7 @@ static void em2b_R1_Hook(cEm2b* em)
     }
     case 1:
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
             if (em->Motion.Mot_attr & 0x40) {
                 p = em->getPartsPtr(0x10);
             } else {
@@ -1577,7 +1577,7 @@ static void em2b_R1_UpperCut(cEm2b* em)
     }
     case 1:
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
             if (em->Motion.Mot_attr & 0x40) {
                 p = em->getPartsPtr(0x10);
             } else {
@@ -1651,7 +1651,7 @@ static void em2b_R1_Kick(cEm2b* em)
         em->r_no_2++;
     case 1:
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
             if (em->Motion.Mot_attr & 0x40) {
                 p = em->getPartsPtr(0x18);
             } else {
@@ -1692,7 +1692,7 @@ static void em2b_R1_Kick(cEm2b* em)
             em->ang.y = LIMIT_ANGLE(em->ang.y);
         }
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
             if (em->Motion.Mot_attr & 0x40) {
                 p = em->getPartsPtr(0xA);
             } else {
@@ -1882,9 +1882,9 @@ static inline void em2bHouseBreakSet(Em2bWork* w)
 }
 
 // Hand landing without dust: quake, SE and the stagger check at the parts' world position.
-static inline cModel* em2bHandLanding(cEm2b* em, int parts)
+static inline cParts* em2bHandLanding(cEm2b* em, int parts)
 {
-    cModel* p = em->getPartsPtr(parts);
+    cParts* p = em->getPartsPtr(parts);
     Vec* pos = &p->world;
 
     em2bQuakeSet(pos);
@@ -1895,7 +1895,7 @@ static inline cModel* em2bHandLanding(cEm2b* em, int parts)
 
 // em2bHandLanding on a parts pointer the caller already holds (em2b_R1_HouseBreak: one function-scope `p` for
 // every hand, allocated before `em` -- r31 -- because its live length is short and it crosses the calls here).
-static inline void em2bHandLandingP(cEm2b* em, cModel* p)
+static inline void em2bHandLandingP(cEm2b* em, cParts* p)
 {
     Vec* pos = &p->world;
 
@@ -1905,7 +1905,7 @@ static inline void em2bHandLandingP(cEm2b* em, cModel* p)
 }
 
 // The player inside 6000 of the landing hand is knocked down.
-static inline void em2bHandLandingPlCk(cModel* p)
+static inline void em2bHandLandingPlCk(cParts* p)
 {
     if ((s16) pG->pl_life > 0 && !EmDeadCk(pPL)) {
         f32 dx = pPL->pos.x - p->world.x;
@@ -1922,7 +1922,7 @@ static inline void em2bHandLandingPlCk(cModel* p)
 static void em2b_R1_HouseBreak(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (em->r_no_2 == 0 && !(w->Be_flg & 0x20)) {
         w->Be_flg |= 0x20;
@@ -2052,7 +2052,7 @@ static void em2b_R1_HouseBreak(cEm2b* em)
 static void em2b_R1_ScrollBreak(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
-    cModel* p;
+    cParts* p;
 
     w->Be_flg |= 0x10;
     switch (em->r_no_2) {
@@ -2105,7 +2105,7 @@ static void em2b_R1_GetTree(cEm2b* em)
 
     switch (em->r_no_2) {
     case 0: {
-        cModel* p;
+        cParts* p;
         f32 d;
 
         w->pTree = (cEmTree*) w->pTreeTarget;
@@ -2199,7 +2199,7 @@ static void em2b_R1_TreeAtk(cEm2b* em)
             int hit = em2bTreeAtkCk(em);
             int scr = em2bTreeAtkScrCk(em);
             if ((hit || scr) && tree->hp > 1) {
-                cModel* p;
+                cParts* p;
                 tree->hp = 1;
                 p = w->pTree->getPartsPtr(2);
                 p->scale.x = 0.0f;
@@ -2289,7 +2289,7 @@ static void em2b_R1_ThrowRock(cEm2b* em)
         } else if (em->Motion.Seq_old.Free & 1) {
             em->flag |= 4;
             if (w->pRock) {
-                cModel* p = em->getPartsPtr(0xA);
+                cParts* p = em->getPartsPtr(0xA);
                 Mtx m;
                 Vec spd;
                 f32 ang;
@@ -2352,7 +2352,7 @@ static void em2b_R1_Catch(cEm2b* em)
         }
         em->partsWorldCalc();
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p;
+            cParts* p;
             Vec v;
 
             em->flag |= 4;
@@ -2517,7 +2517,7 @@ static void plem2b_CatchHand(cPlayer* pl)
         PlSetDamageSe(9);
         pl->r_no_2++;
     case 1: {
-        cModel* p = pl->pEmCatch->getPartsPtr(0xA);
+        cParts* p = pl->pEmCatch->getPartsPtr(0xA);
         Vec pos;
         Vec rot;
 
@@ -2574,7 +2574,7 @@ static void plem2b_Strangle(cPlayer* pl)
         if (em2bCatchObj.p) {
             em2bCatchObj.p->modelInit(EM_ARC(pl, 0x18), EM_ARC(pl, 0x17));
             em2bCatchObj.p->atari.m_flag &= 0xFCFF;
-            em2bCatchObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
+            em2bCatchObj.p->pList->pParent = pPL->getPartsPtr(0xA);
             em2bCatchObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
             ((cObjWep*) em2bCatchObj.p)->m_pParent = pPL;
             em2bCatchObj.p->setNoSuspend(1);
@@ -2734,7 +2734,7 @@ static void subem2b_CatchHand(cSubChar* sub)
         s->be_flag &= ~0x10;
         s->r_no_2++;
     case 1: {
-        cModel* p = s->pEmCatch->getPartsPtr(0xA);
+        cParts* p = s->pEmCatch->getPartsPtr(0xA);
         Vec pos;
         Vec rot;
 
@@ -2891,7 +2891,7 @@ static void em2b_R1_BaseAtk(cEm2b* em)
 static void em2b_R1_HoleAtk(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
-    cModel* p = em->getPartsPtr(0);
+    cParts* p = em->getPartsPtr(0);
     f32 d;
 
     switch (em->r_no_2) {
@@ -2951,7 +2951,7 @@ static void em2b_R1_HoleAtk(cEm2b* em)
             f32 dx;
             f32 dz;
 
-            cModel* hp = em->getPartsPtr(0xA);
+            cParts* hp = em->getPartsPtr(0xA);
             v = pPL->pos;
             dz = hp->world.z - v.z;
             dx = hp->world.x - v.x;
@@ -3462,7 +3462,7 @@ static void plem2b_AtkParasite(cPlayer* pl)
         if (em2bCatchObj.p) {
             em2bCatchObj.p->modelInit(EM_ARC(pl, 0x18), EM_ARC(pl, 0x17));
             em2bCatchObj.p->atari.m_flag &= 0xFCFF;
-            em2bCatchObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
+            em2bCatchObj.p->pList->pParent = pPL->getPartsPtr(0xA);
             em2bCatchObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
             ((cObjWep*) em2bCatchObj.p)->m_pParent = pPL;
             em2bCatchObj.p->setNoSuspend(1);
@@ -3658,7 +3658,7 @@ static void plem2b_AtkParasite(cPlayer* pl)
 void em2bParasiteAtkCamMove(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
-    cModel* p;
+    cParts* p;
     Vec pos;
     Vec at;
 
@@ -3928,7 +3928,7 @@ static void em2b_R1_Die_Event(cEm2b* em)
 static void em2b_R1_Die_R224Drop(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
-    cModel* p = em->getPartsPtr(0);
+    cParts* p = em->getPartsPtr(0);
 
     switch (em->r_no_2) {
     case 0:
@@ -4051,7 +4051,7 @@ void em2bRouteCk(cEm2b* em)
 void em2bNeckMove(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
-    cModel* t;
+    cParts* t;
     cParts* p;
     Vec v;
 
@@ -4137,7 +4137,7 @@ void em2bClothSet(cEm2b* em)
         // block (the two "=m" keep-alives name fields the block does not store), else the dying stores
         // are issued first. The 0.0 is expanded after 0.8 for the pool order.
         zero = 0;
-        w->Cloth.pPtbl = (cModel**) zero;
+        w->Cloth.pPtbl = (cParts**) zero;
         num = 10;
         w->Cloth.Num = num;
         parts = em2b_cloth_parts;
@@ -4428,7 +4428,7 @@ void em2bFootSe(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
     u32 no;
-    cModel* p = 0;
+    cParts* p = 0;
     Vec* pos;
 
     if (em->Motion.Seq_old.Se == 0) {
@@ -4568,7 +4568,7 @@ void em2bShortRopeSet(cEm2b* em)
     w->pChain = (cObj*) chain;
     w->rope[1].Num = five;
     zero = 0;
-    w->rope[1].pPtbl = (cModel**) zero;
+    w->rope[1].pPtbl = (cParts**) zero;
     w->rope[1].pLeft = (const u8*) zero;
     w->rope[1].pRight = (const u8*) zero;
     w->rope[1].pUpLeft = (const u8*) zero;
@@ -4886,7 +4886,7 @@ int em2bTreeAtkCk(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
     cEmTree* tree = w->pTree;
-    cModel* p;
+    cParts* p;
     Vec a;
     Vec b;
     f32 ang;
@@ -5050,7 +5050,7 @@ void em2bDashScrCk(cEm2b* em, Vec* pos, f32 rad)
     }
     for (i = 0; i < (int) EmMgr.getArrayNum(); i++) {
         cEmRock* e = (cEmRock*) EmMgr.fastAt(i);
-        cModel* p;
+        cParts* p;
 
         if ((e->be_flag & 0x201) != 1) {
             continue;
@@ -5330,7 +5330,7 @@ void em2bBlowCamMove(cEm2b* em, f32 rate)
     Em2bWork* w = EM2B_WK(em);
     GlobalWork* g = pG;
 
-    cModel* p;
+    cParts* p;
 
     w->Cam.param.fovy = g->Camera.param.fovy;
     w->Cam.param.pos = g->Camera.param.pos;
@@ -5350,7 +5350,7 @@ void em2bStampCamMove(cEm2b* em)
     Em2bWork* w = EM2B_WK(em);
     GlobalWork* g = pG;
     Vec v;
-    cModel* p;
+    cParts* p;
 
     w->Cam.param.fovy = g->Camera.param.fovy;
     v.x = 0.0f;
@@ -5847,7 +5847,7 @@ int em2bPressPlCk(cEm2b* em)
     pos = pPL->pos;
     pos.y += 1500.0f;
     for (i = 0; i < 5; i++) {
-        cModel* m = em->getPartsPtr(parts[i]);
+        cParts* m = em->getPartsPtr(parts[i]);
 
         if ((pos.x - m->world.x) * (pos.x - m->world.x) + (pos.y - m->world.y) * (pos.y - m->world.y) +
                 (pos.z - m->world.z) * (pos.z - m->world.z) <
@@ -5877,7 +5877,7 @@ int em2bPressSubCk(cEm2b* em)
     pos = pSUB->pos;
     pos.y += 1500.0f;
     for (i = 0; i < 5; i++) {
-        cModel* m = em->getPartsPtr(parts[i]);
+        cParts* m = em->getPartsPtr(parts[i]);
 
         if ((pos.x - m->world.x) * (pos.x - m->world.x) + (pos.y - m->world.y) * (pos.y - m->world.y) +
                 (pos.z - m->world.z) * (pos.z - m->world.z) <

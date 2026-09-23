@@ -696,7 +696,7 @@ static void em29_R1_AtkRush(cEm29* em)
         if ((s16) pG->pl_life > 0) {
             LifeDownSet2(pPL, 20, 0, 0);
             if (!(Rnd() & 1)) {
-                cModel* p = GetPartsAddr(em->pParts, 2);
+                cParts* p = GetPartsAddr(em->pList, 2);
 
                 EmPlBloodSet(em, &p->world, 1, 0xFF, 0xFF);
                 VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0xA, 1);
@@ -967,7 +967,7 @@ static void em29_R1_Die_Normal(cEm29* em)
 static void em29_R1_Die_Reset(cEm29* em)
 {
     Em29Work* w = EM29_WK(em);
-    cModel* p;
+    cParts* p;
 
     switch (em->r_no_2) {
     case 0:
@@ -978,7 +978,7 @@ static void em29_R1_Die_Reset(cEm29* em)
         MotionSetCore(em, MOTION(em), ARC(0xC), 0, 0, 1, 0);
         MotionMove(em, 0);
         PartsWorldPosCalc(em);
-        for (p = em->pParts; p; p = p->pParts) {
+        for (p = em->pList; p; p = p->pList) {
             p->world_old = p->world;
             p->world_old2 = p->world_old;
         }
@@ -1144,7 +1144,7 @@ void em29ObaHitCk(cEm29* em)
         if (e->hp <= 0) {
             continue;
         }
-        if (e->pParts == 0) {
+        if (e->pList == 0) {
             continue;
         }
         PSVECSubtract(&em->pos, &e->pos, &d);
@@ -1210,7 +1210,7 @@ int em29LastCk(cEm29* em)
         if (!(e->be_flag & 2)) {
             continue;
         }
-        if (e->pParts == 0) {
+        if (e->pList == 0) {
             continue;
         }
         if (e == em) {
@@ -1241,7 +1241,7 @@ int em29FriendCk(cEm29* em)
         if (e->id != 0x29) {
             continue;
         }
-        if (e->pParts == 0) {
+        if (e->pList == 0) {
             continue;
         }
         if (e->hp > 0) {
@@ -1276,7 +1276,7 @@ int em29AtkCk(cEm29* em, int no)
 {
     Em29Work* w = EM29_WK(em);
     EmAtkInfo* atk = &em29_atk_tbl[no];
-    cModel* p = GetPartsAddr(em->pParts, 2);
+    cParts* p = GetPartsAddr(em->pList, 2);
     int hit = EmAtkHitCk(atk, &p->world, &p->world_old2, 0);
 
     if (hit) {

@@ -62,7 +62,7 @@ cObj* SetLadder(void* bin, void* tpl, Vec* pos, Vec* rot, int no)
 {
     cObj* obj;
     LadderWork* w;
-    cModel* parts;
+    cParts* parts;
     u16* flg;
 
     flg = GetEtcFlgPtr(no, pG->room_id);
@@ -145,7 +145,7 @@ void cObjLadder::move()
 void objLadder_R1_Set(cObjLadder* pObj)
 {
     LadderWork* w = LADDER_WK(pObj);
-    cModel* parts;
+    cParts* parts;
 
     pObj->pos = w->St_pos;
     pObj->ang.x = 0.0f;
@@ -326,7 +326,7 @@ void cObjLadder::setStand()
 void cObjLadder::setDowned()
 {
     LadderWork* w = LADDER_WK(this);
-    cModel* parts;
+    cParts* parts;
 
     w->Status = 1;
     atari.clrFlag200();
@@ -368,7 +368,7 @@ void cObjLadder::setDown2()
     LadderWork* w = LADDER_WK(this);
     void* mot = w->mot_tbl[10];
     void* a = w->mot_tbl[15];
-    cModel* parts;
+    cParts* parts;
     int frame;
 
     w->Down_wait = 0;
@@ -886,7 +886,7 @@ void objLadderClimbCamMove(cEm* pEm)
     GlobalWork* g = pG;
     Vec camPos;
     Vec camAt;
-    cModel* parts;
+    cParts* parts;
 
     parts = pEm->getPartsPtr(0);
     camPos.x = 0.0f;

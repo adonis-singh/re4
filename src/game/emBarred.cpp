@@ -48,7 +48,7 @@ cEmBarred* SetEmBarred(void* bin, void* tpl, Vec* pos, Vec* rot, int flagNo, int
     cEmBarred* em;
     EmBarredWork* w;
     u16* flg;
-    cModel* parts;
+    cParts* parts;
     u32 i;
 
     flg = GetEtcFlgPtr(flagNo, pG->room_id);
@@ -256,7 +256,7 @@ void emBarredDmCk(cEmBarred* pEm)
 {
     EmBarredWork* w = EMBARRED_WK(pEm);
     YARARE_INFO* part;
-    cModel* parts;
+    cParts* parts;
     u16* flg;
     Vec v;
     f32 ang;

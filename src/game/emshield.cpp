@@ -178,9 +178,9 @@ void emShieldDmCk(cEmShield* pEm)
     Vec r;
     u8 wep;
     YARARE_INFO* part;
-    cModel* parts;
-    cModel* parts0;
-    cModel* parts2;
+    cParts* parts;
+    cParts* parts0;
+    cParts* parts2;
 
     if (pEm->dmg.m_Flag == 0) {
         return;
@@ -509,7 +509,7 @@ void emShield_R1_Parent(cEmShield* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];
@@ -587,7 +587,7 @@ void emShield_R1_Fall(cEmShield* pEm)
     u32 k;
     f32 mag;
     f32 d;
-    cModel* parts0;
+    cParts* parts0;
 
     pEm->hp = 0;
     pEm->setStatus(EM_STATUS_LOCKOFF);

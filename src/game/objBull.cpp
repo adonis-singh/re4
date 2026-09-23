@@ -666,7 +666,7 @@ void objBullSatSet(cObjBull* pObj, int mode)
     Vec pos;
     Vec rot;
     Vec v;
-    cModel* parts;
+    cParts* parts;
 
     parts = pObj->getPartsPtr(Bull_parts);
     v.x = 0.0f;
@@ -760,7 +760,7 @@ void objBullGetAdjust(cObjBull* pObj)
     Vec p1;
     Vec p0;
     Vec d;
-    cModel* parts;
+    cParts* parts;
     f32 a0;
     f32 a1;
 
@@ -795,7 +795,7 @@ void objBullSetAdjust(cObjBull* pObj, cEm* pEm)
     Mtx inv;
     Vec v;
     Vec d;
-    cModel* parts;
+    cParts* parts;
 
     if (objBullGetBullNo(pObj, &pEm->pos) == 0) {
         return;
@@ -857,7 +857,7 @@ void objBullMoveAdjustEM(cObjBull* pObj)
 int cObjBull::ckBullRide(Vec* pPos, u8* pParts_no, Vec* pOffset)
 {
     Mtx inv;
-    cModel* parts;
+    cParts* parts;
 
     if (objBullGetBullNo2(this, pPos) == 0) {
         return 0;
@@ -878,7 +878,7 @@ int cObjBull::ckBullRideAdjust(Vec* pPos, Vec* pPos2)
 {
     Mtx inv;
     Vec v;
-    cModel* parts;
+    cParts* parts;
 
     if (objBullGetBullNo(this, pPos) == 0) {
         return 0;
@@ -895,7 +895,7 @@ int cObjBull::ckBullRideAdjust(Vec* pPos, Vec* pPos2)
 void objBullHitCk(cObjBull* pObj)
 {
     Vec v;
-    cModel* parts;
+    cParts* parts;
 
     parts = pObj->getPartsPtr(4);
     if ((parts->world.x - parts->world_old2.x) * (parts->world.x - parts->world_old2.x) +
@@ -944,7 +944,7 @@ void cObjBull::setRide()
 {
     BullWork* w = BULL_WK(this);
     Vec p;
-    cModel* parts;
+    cParts* parts;
     int zero = 0;
 
     parts = getPartsPtr(Bull_parts);
@@ -1062,7 +1062,7 @@ int cObjBull::ckLiftWait()
 static inline void SubBullSeat(cEm* em)
 {
     Vec v;
-    cModel* parts;
+    cParts* parts;
 
     if (em->pEmCatch) {
         parts = em->pEmCatch->getPartsPtr(2);
@@ -1132,7 +1132,7 @@ void Sub_bull_operation(cEm* pEm)
 // Partner routine: looks back at the pursuers (room motion 66), then back to driving.
 void Sub_bull_lookback(cEm* pEm)
 {
-    cModel* parts;
+    cParts* parts;
 
     StaFlagOn(pG, STA_SUB_BULLDOZER);
     pEm->setStatus(EM_STATUS_IK_OFF);
@@ -1220,12 +1220,12 @@ void Sub_dm_bull(cEm* pEm)
         if ((s16) pG->ashley_life <= 0) {
             MotionSetCore(pEm, &pEm->Motion, ROOM_ARC_PTR(pG->pRoom, 53), 0, 3, 1, 0);
             SndStop(((cSubChar*) pEm)->m_StopSe, 0);
-            ((cSubChar*) pEm)->m_StopSe = SndCall(8, 0xD, &pEm->pParts->world, pEm->id, 0, 0);
+            ((cSubChar*) pEm)->m_StopSe = SndCall(8, 0xD, &pEm->pList->world, pEm->id, 0, 0);
         } else {
             MotionSetCore(pEm, &pEm->Motion, ROOM_ARC_PTR(pG->pRoom, 52), 0, 3, 1, 0);
             pEm->dmg.m_Timer = 1;
             SndStop(((cSubChar*) pEm)->m_StopSe, 0);
-            ((cSubChar*) pEm)->m_StopSe = SndCall(8, 9, &pEm->pParts->world, pEm->id, 0, 0);
+            ((cSubChar*) pEm)->m_StopSe = SndCall(8, 9, &pEm->pList->world, pEm->id, 0, 0);
         }
         pEm->r_no_2++;
     case 1:

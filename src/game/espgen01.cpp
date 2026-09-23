@@ -115,7 +115,7 @@ void SetEsp(EspgenWork* pGen)
         p->pos = p->offset;
         dir = p->dir_vec;
     } else {
-        cModel* part;
+        cParts* part;
 
         if (p->parts_no >= p->pMod->nParts) {
             pLog->err(0, 0, "ESP_FLARE :PARTS_NO[%d] is invalid(MAX:%d).", p->parts_no, p->pMod->nParts);
