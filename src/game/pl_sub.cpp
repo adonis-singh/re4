@@ -1004,7 +1004,7 @@ void PlSetEyeMode(u8 mode)
 // The player's facing yaw including the waist twist (aim direction).
 f32 PlGetDirY()
 {
-    return pPL->ang.y + pPL->Waist->m_Ang.y;
+    return pPL->ang.y + *pPL->Waist;
 }
 
 // Room registers the boss enemy and its room flag (the special rocket launcher's insta-kill).

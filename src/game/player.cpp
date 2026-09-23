@@ -374,7 +374,7 @@ moveChecked:
     MotBase->move();
     Neck->move();
     moveEye();
-    Body->waistSet(Waist->m_Ang.y);
+    Body->waistSet(*Waist);
     Body->move();
     moveMatCalcBefore();
     partsWorldCalc();

@@ -46,6 +46,7 @@ public:
     // cur = cur * (1 - rate) + target * rate; returns the delta applied
     f32 set(f32 dir, f32 rate);
     void reset() { m_Ang.y = 0.0f; }
+    operator f32() { return m_Ang.y; }
 
     static const f32 ROT_LIMIT;   // pl_class.cpp (.sdata2), unused there
 };
