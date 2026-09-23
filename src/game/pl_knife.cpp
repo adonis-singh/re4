@@ -115,10 +115,9 @@ void knife_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r[2] = 0.0f;
+    m3r.m_Delay = 0.0f;
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
+    m3r.reset(pitch);
     pl->m_Fwork0 = 0.0f;
     pl->Neck->init(0, 0, 0);
     if (pG->weapon_no == 0xD && pG->weapon_type == 2) {
@@ -132,7 +131,7 @@ void knife_r3_ready00(cPlayer* pl)
         mot1 = PL_ARC_PTR(pG->pPlayer, 0x24);
     }
     mot3.set(pl, mot0, mot0, mot0, mot1, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     lockCtr = 0;
     pl->r_no_3 = 1;
@@ -158,7 +157,7 @@ void knife_r3_ready10(cPlayer* pl)
             pl->r_no_3 = 4;
         }
     }
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
 }
 
@@ -208,7 +207,7 @@ void knife_r3_set00(cPlayer* pl)
     PlArc* arc = pG->pPlayer;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0x81), PL_ARC_PTR(arc, 0x83), PL_ARC_PTR(arc, 0x85), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
 }
@@ -331,8 +330,8 @@ void knife_r3_fire00(cPlayer* pl)
     PlArc* arc = pG->pPlayer;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0x82), PL_ARC_PTR(arc, 0x84), PL_ARC_PTR(arc, 0x86), 0, 3, 0, 4, 0);
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     MotionMove(pl, 0);
     pl->Waist->set(pl->m_Fwork0, 0.4f);
     EstSet(pl, -1, 0, 0, EFF_CORE, 0x2B, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
@@ -470,8 +469,7 @@ void knife_r3_down10(cPlayer* pl)
             pl->r_no_2 = 1;
             pl->r_no_3 = 0;
             pl->Wep->pitch = 0.0f;
-            m3r[1] = 0.0f;
-            m3r[0] = 0.0f;
+            m3r.reset(0.0f);
         }
     } else if ((Key.on & 0x10F) || (pl->m_Work0 != 0 && joyKamae() == 0) || (pl->m_Work0 == 0 && joyKamae() != 0)) {
         FACE_SET(pl, 0.0f);

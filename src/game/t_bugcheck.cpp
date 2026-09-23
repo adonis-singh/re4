@@ -42,7 +42,7 @@ public:
 
 cToolBugcheck BC;
 
-#define ROUND_TO_INT(x) ((int) ((x) + 0.5f))
+static inline int RoundToInt(f32 x) { return (int) (x + 0.5f); }
 
 // Debug menu entry: runs the bug-check menu until B.
 void ToolBugcheck()
@@ -237,7 +237,7 @@ void cToolBugcheck::menuLife()
                     lv = 0;
                 }
                 pG->pl_life_max = 1200;
-                pG->pl_life_max = pG->pl_life_max + ROUND_TO_INT((f32) (lv * 60));
+                pG->pl_life_max = pG->pl_life_max + RoundToInt((f32) (lv * 60));
                 pG->pl_life = pG->pl_life_max;
             }
             break;
@@ -266,7 +266,7 @@ void cToolBugcheck::menuLife()
                     lv = 0;
                 }
                 pG->ashley_life_max = 600;
-                pG->ashley_life_max = pG->ashley_life_max + ROUND_TO_INT((f32) (lv * 120));
+                pG->ashley_life_max = pG->ashley_life_max + RoundToInt((f32) (lv * 120));
                 pG->ashley_life = pG->ashley_life_max;
             }
             break;

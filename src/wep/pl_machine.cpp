@@ -124,9 +124,8 @@ static void wep11_r3_ready00(cPlayer* pl)
     }
     pl->Wep->pitch = pitch;
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
-    m3r[2] = 0.0f;
+    m3r.reset(pitch);
+    m3r.setDelay(0.0f);
     pl->Neck->init(0, 0, 0);
 
     if (pG->weapon_no == 0xB) {
@@ -135,7 +134,7 @@ static void wep11_r3_ready00(cPlayer* pl)
     pl->Wep->lockInit();
     mot = WEP_ARC_PTR(0x1A);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     lockCtr = 0;
     pl->r_no_3 = 1;
 }
@@ -167,8 +166,8 @@ static void wep11_r3_ready10(cPlayer* pl)
     }
 
     MotionMove(pl, 0);
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -180,8 +179,8 @@ static void wep11_r3_ready20(cPlayer* pl)
         EmRoutineSet(pl, 0, 6, 1, 0);
         pl->m_Work0 = 0;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -240,7 +239,7 @@ static void wep11_r2_set(cPlayer* pl)
     }
 }
 
-// set step 0: start the three-way aim idle (0x1B down / 0x1F level / 0x21 up on m3r[0]), blended
+// set step 0: start the three-way aim idle (0x1B down / 0x1F level / 0x21 up on m3r), blended
 // over 3 frames unless a burst just ended (m_Work0 != 0: cut); step 1.
 static void wep11_r3_set00(cPlayer* pl)
 {
@@ -252,7 +251,7 @@ static void wep11_r3_set00(cPlayer* pl)
     }
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x1B), PL_ARC_PTR(arc, 0x1F), PL_ARC_PTR(arc, 0x21), 0, hokan, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
 }
@@ -311,7 +310,7 @@ static void wep11_r3_fire00(cPlayer* pl)
     pl->Wep->m_pWep->trigger();
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x1C), PL_ARC_PTR(arc, 0x20), PL_ARC_PTR(arc, 0x22), 0, 0, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     MotionMove(pl, 0);
     pl->Body->waistMove();
     pl->partsWorldCalc();
@@ -331,12 +330,9 @@ static void wep11_r3_fire00(cPlayer* pl)
     obj->wep.step = 0;
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
-    pitch = m3r[0];
+    pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r[1] = pitch;
-    if (m3r[2] == 0.0f) {
-        m3r[0] = pitch;
-    }
+    m3r = pitch;
     pl->Wep->m_pWep->drawLaserSight(1, 0);
     pl->r_no_3 = 1;
 }

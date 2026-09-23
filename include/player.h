@@ -67,15 +67,47 @@ public:
 };
 
 extern cMot3 mot3;      // game/player.cpp
-extern f32 m3r[3];      // game/player.cpp  mot3 blend rates ([0] current, [1] target, [2] mix)
-// m3r is an object with a constructor in the original (player.o's static initializer stores 0.0
-// into the three rates); player.cpp defines it under this type, everyone else reads the f32[3].
-class cMot3Rate {
+// A value that follows a target: m_Val0 is the current value, m_Val1 the target and m_Delay the share
+// of the current value kept by each move() (0 = the current value follows the target at once).
+template <class T> class cDelay {
 public:
-    f32 r[3];
-    cMot3Rate() { r[0] = r[1] = r[2] = 0.0f; }
+    T m_Val0;
+    T m_Val1;
+    T m_Delay;
+
+    cDelay() { m_Val0 = m_Val1 = m_Delay = 0.0f; }
+    void setDelay(T delay) { m_Delay = delay; }
+    void reset(T v) { m_Val1 = v; m_Val0 = v; }
+    void limit(T lo, T hi)
+    {
+        if (m_Val1 < lo) m_Val1 = lo;
+        else if (m_Val1 > hi) m_Val1 = hi;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+    }
+    cDelay& operator=(T v)
+    {
+        m_Val1 = v;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+        return *this;
+    }
+    cDelay& operator+=(T v)
+    {
+        m_Val1 += v;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+        return *this;
+    }
+    cDelay& operator-=(T v)
+    {
+        m_Val1 -= v;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+        return *this;
+    }
+    void move() { m_Val0 = m_Val0 * m_Delay + m_Val1 * (1.0f - m_Delay); }
+    operator T() { return m_Val0; }
 };
-extern cMot3Rate m3rObj asm("m3r");
+typedef cDelay<f32> cDelayF;
+
+extern cDelayF m3r;     // game/player.cpp  mot3 blend rate
 
 // Player (game/player.cpp, pl_*.cpp): a cEm with the player virtuals. Its fields are the cEm ones
 // (all below 0xDE0, see em.h). Vtable order (pl_class.cpp): cUnit/cCoord/cModel/cEm virtuals, then

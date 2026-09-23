@@ -128,20 +128,19 @@ static void wep13_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r[2] = 0.0f;
+    m3r.m_Delay = 0.0f;
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
+    m3r.reset(pitch);
     pl->m_Fwork0 = 0.0f;
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     pl->Neck->init(0, 0, 0);
     pl->Wep->lockInit();
     mot = WEP_ARC_PTR(0x18);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
-    m3r[0] = 0.0f;
-    m3r[1] = 0.0f;
-    m3r[2] = 0.0f;
+    mot3.move(m3r);
+    m3r.m_Val0 = 0.0f;
+    m3r.m_Val1 = 0.0f;
+    m3r.m_Delay = 0.0f;
     lockCtr = 0;
     if (pl->stat & 0x400) {
         pl->Wep->m_pWep->setDisp(0, 1);
@@ -165,8 +164,8 @@ static void wep13_r3_ready10(cPlayer* pl)
         pl->ang.y += d;
         pl->Wep->m_CamAdjY -= d;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
     pl->motionMove();
     if (MotionCheckCrossFrame(&pl->Motion, 11.0f)) {
@@ -271,7 +270,7 @@ static void wep13_r3_set00(cPlayer* pl)
     PlArc* arc = pG->pWep;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0xF), PL_ARC_PTR(arc, 0x12), PL_ARC_PTR(arc, 0x14), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->Wep->m_pWep->setDisp(1, 0);
     SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
@@ -349,25 +348,20 @@ static void wep13_r3_fire00(cPlayer* pl)
     f32 pitch;
 
     pl->Wep->m_pWep->trigger();
-    m3r[1] = 0.0f;
-    m3r[0] = 0.0f;
+    m3r.reset(0.0f);
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x11), PL_ARC_PTR(arc, 0x13), PL_ARC_PTR(arc, 0x15), 0, 0, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     MotionMove(pl, 0);
     pl->Wep->m_pWep->setDisp(1, 1);
     obj = pl->Wep->m_pWep;
     obj->wep.mode = 2;
     obj->wep.step = 0;
     VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-    pitch = m3r[0];
+    pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r[1] = pitch;
-    if (m3r[2] == 0.0f) {
-        m3r[0] = pitch;
-    }
-    m3r[1] = 0.0f;
-    m3r[0] = 0.0f;
+    m3r = pitch;
+    m3r.reset(0.0f);
     pl->r_no_3 = 1;
 }
 
@@ -448,7 +442,7 @@ static void wep13_r3_down00(cPlayer* pl)
         void* mot1 = pl->m_MotTbl[0x56];
 
         mot3.set(pl, mot0, mot0, mot0, mot1, hokan, 0, 4, 0);
-        mot3.move(m3r[0]);
+        mot3.move(m3r);
         // The dead loop's NOTE_INSN_LOOP_END ends cse's extended block, so the QImode store
         // below gets its own `li r0,3` instead of a subreg of `hokan` (which would keep the
         // constant in a callee-saved register across the calls).

@@ -102,7 +102,7 @@ void (cRoutine::*cRoutine_move_tbl[18])() = {
 static int luisBlink = 0;        // frames to the next eye shift
 static int luisUnused = 0;       // never read (the second .data word)
 
-static cMot3Rate luisEye;        // [0] current eye yaw, [1] target, [2] mix
+static cDelayF luisEye;          // eye yaw: current, target, delay
 
 // Constructor: the three machines start (routine 0 footwork, action mode 2 chase the player), the
 // players' foot shadow table, registers himself as pSUB, and the eye yaw blend (luisEye) is reset
@@ -118,8 +118,8 @@ cSubLuis::cSubLuis()
     pFsdTbl = pl_fs_tbl;
     pEm = this;
     pSUB = (cSubChar*) this;
-    luisEye.r[0] = luisEye.r[1] = 0.0f;   // chain: r[1] first in RTL, the 0.0 dies at r[0] (issued first)
-    luisEye.r[2] = 0.4f;
+    luisEye.m_Val0 = luisEye.m_Val1 = 0.0f;   // chain: m_Val1 first in RTL, the 0.0 dies at m_Val0 (issued first)
+    luisEye.m_Delay = 0.4f;
 }
 
 // Destructor (killEm / room change): destroys the gun object and clears pSUB.
@@ -1471,21 +1471,21 @@ void cSubLuis::endDamage()
     routine.end();
 }
 
-// The eye rates are handled through inlines taking the object pointer (cMot3Rate methods in the original):
+// The eye rates are handled through inlines taking the object pointer (cDelay methods in the original):
 // each inlined call copies `&luisEye` into its own pseudo, so r[1]/r[2] go through `4(rP)`/`8(rP)` while
 // cse rewrites the offset-0 `r[0]` access to the `luisEye@l(rHigh)` form inside the same extended block
 // and leaves the pointer form after a join label (EyeLimit's snap store `stfs f0, 0(r10)`); the tail's
 // EyeGet/EyeMove then get a fresh high/pointer pair after the getPartsPtr call instead of reusing the
 // clamp's. The clamp bounds are inline arguments: both constants are loaded before the first compare.
-static inline void EyeSet(cMot3Rate* e, f32 v) { e->r[1] = v; if (e->r[2] == 0.0f) e->r[0] = e->r[1]; }
-static inline void EyeLimit(cMot3Rate* e, f32 lo, f32 hi)
+static inline void EyeSet(cDelayF* e, f32 v) { e->m_Val1 = v; if (e->m_Delay == 0.0f) e->m_Val0 = e->m_Val1; }
+static inline void EyeLimit(cDelayF* e, f32 lo, f32 hi)
 {
-    if (e->r[1] < lo) e->r[1] = lo;
-    else if (e->r[1] > hi) e->r[1] = hi;
-    if (e->r[2] == 0.0f) e->r[0] = e->r[1];
+    if (e->m_Val1 < lo) e->m_Val1 = lo;
+    else if (e->m_Val1 > hi) e->m_Val1 = hi;
+    if (e->m_Delay == 0.0f) e->m_Val0 = e->m_Val1;
 }
-static inline f32 EyeGet(cMot3Rate* e) { return e->r[0]; }
-static inline void EyeMove(cMot3Rate* e) { e->r[0] = e->r[0] * e->r[2] + e->r[1] * (1.0f - e->r[2]); }
+static inline f32 EyeGet(cDelayF* e) { return e->m_Val0; }
+static inline void EyeMove(cDelayF* e) { e->m_Val0 = e->m_Val0 * e->m_Delay + e->m_Val1 * (1.0f - e->m_Delay); }
 
 // Eyes: the eyelid (parts 0x1C) blink animation on luisEyeTimer (a blink at 0..6, a double blink
 // from 0x5A, random pause), the eye yaw target (luisEye) picked randomly at each blink and
@@ -1534,7 +1534,7 @@ void cSubLuis::moveEye()
 
     if (--luisBlink < 0) {
         u8 r = Rnd() % 200;
-        EyeSet(&luisEye, (r * 0.01f - 1.0f) * 0.03141593f + luisEye.r[1]);
+        EyeSet(&luisEye, (r * 0.01f - 1.0f) * 0.03141593f + luisEye.m_Val1);
         luisBlink = (u8) (Rnd() % 3) + 2;
     }
     EyeLimit(&luisEye, -0.31415927f, 0.31415927f);

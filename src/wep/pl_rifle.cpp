@@ -128,7 +128,7 @@ static void wep09_r3_ready00(cPlayer* pl)
     pl->Wep->lockInit();
     mot = WEP_ARC_PTR(0x14);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
     pl->m_Work1 = 0;
@@ -326,8 +326,7 @@ static void wep09_r3_fire20(cPlayer* pl)
 {
     cObjWep* obj;
 
-    m3r[1] = 0.0f;
-    m3r[0] = 0.0f;
+    m3r.reset(0.0f);
     CamCtrl.saveScopeParam();
     pl->endCamera();
     pl->Wep->m_pWep->setDisp(1, 1);
@@ -396,9 +395,9 @@ static void wepDown(cPlayer* pl)
 
     pl->endCamera();
     e = VecElevation(&pl->m_VecWork0);
-    m3r[0] = e;
-    m3r[1] = e;
-    m3r[2] = 0.0f;
+    m3r.m_Val0 = e;
+    m3r.m_Val1 = e;
+    m3r.m_Delay = 0.0f;
     pl->Wep->m_pWep->setDisp(1, 1);
     if (dmMotCk()) {
         if (pG->weapon_no == 0xA) {
@@ -419,7 +418,7 @@ static void wepDown(cPlayer* pl)
             obj->wep.mode = 0;
             obj->wep.step = 0;
         }
-        mot3.move(m3r[0]);
+        mot3.move(m3r);
         EmRoutineSet(pl, 0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
@@ -443,8 +442,7 @@ static void wep09_r2_reload(cPlayer* pl)
         void* mot;
         cObjWep* obj;
 
-        m3r[1] = 0.0f;
-        m3r[0] = 0.0f;
+        m3r.reset(0.0f);
         pl->endCamera();
         switch (pG->weapon_lv_reload) {
         default:

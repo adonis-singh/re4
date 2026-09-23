@@ -162,10 +162,9 @@ static void wep14_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r[2] = zero;
+    m3r.m_Delay = zero;
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
+    m3r.reset(pitch);
     pl->m_Fwork0 = zero;
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     wep14changeRightHand(pl, WEP_ARC_PTR(0xA));
@@ -178,12 +177,12 @@ static void wep14_r3_ready00(cPlayer* pl)
     }
     m = WEP_ARC_PTR(0x12);
     mot3.set(pl, m, m, m, 0, 0, 0, hokan, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
-    m3r[0] = zero;
+    m3r.m_Val0 = zero;
     lockCtr = 0;
-    m3r[1] = zero;
-    m3r[2] = zero;
+    m3r.m_Val1 = zero;
+    m3r.m_Delay = zero;
     obj = WEP_OBJ(pl);
     obj->wep.step = 0;
     obj->wep.mode = 1;
@@ -200,8 +199,8 @@ static void wep14_r3_ready10(cPlayer* pl)
         pl->ang.y += d;
         pl->Wep->m_CamAdjY -= d;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
     if (pl->motionMove()) {
         SndCall(2, 9, &pl->getPartsPtr(0xA)->world, 0, 0, 0);
@@ -219,13 +218,13 @@ static void wep14_r3_ready20(cPlayer* pl)
         SndCall(5, 0, &pl->getPartsPtr(0x14)->world, 0, 0, 0);
         EmRoutineSet(pl, 0, 6, 1, 0);
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
 // ready step 3: the lock-on turn (PlWepLockCtrl's request): turn towards `tgt` (PI/8 per frame),
-// slide towards `pos`, aim the pitch target m3r[1] at the target's elevation in 0.05 steps
+// slide towards `pos`, aim the pitch target m3r.m_Val1 at the target's elevation in 0.05 steps
 // (clamped -1..1); motion end -> set state. (The form of wep/pl_handgun.cpp.)
 static void wep14_r3_ready30(cPlayer* pl)
 {
@@ -245,7 +244,7 @@ static void wep14_r3_ready30(cPlayer* pl)
     t = &tgt;
     dist = GetDistance3(&pos, t);
     a = atan2(t->y - pos.y, dist);
-    r = m3r;
+    r = &m3r.m_Val0;
     x = a / (PI / 4.0f) - r[0];
     if (x > 0.05f) {
         x = 0.05f;
@@ -255,7 +254,7 @@ static void wep14_r3_ready30(cPlayer* pl)
     }
     r[1] += x;
     if (r[2] == 0.0f) {
-        m3r[0] = r[1];
+        m3r.m_Val0 = r[1];
     }
     {
         f32 lo = -1.0f;
@@ -270,8 +269,8 @@ static void wep14_r3_ready30(cPlayer* pl)
     if (r[2] == 0.0f) {
         r[0] = r[1];
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -357,7 +356,7 @@ static void wep14_r3_set00(cPlayer* pl)
     }
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x13), PL_ARC_PTR(arc, 0x17), PL_ARC_PTR(arc, 0x19), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
 }
@@ -418,17 +417,14 @@ static void wep14_r3_fire00(cPlayer* pl)
     WEP_OBJ(pl)->trigger();
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x14), PL_ARC_PTR(arc, 0x18), PL_ARC_PTR(arc, 0x1A), 0, 0, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     obj = WEP_OBJ(pl);
     obj->wep.mode = 2;
     obj->wep.step = 0;
-    pitch = m3r[0];
+    pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r[1] = pitch;
-    if (m3r[2] == 0.0f) {
-        m3r[0] = pitch;
-    }
+    m3r = pitch;
     pl->r_no_3 = 1;
     pl->stat &= ~0x20;
 }

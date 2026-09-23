@@ -44,13 +44,6 @@ void (*WeaponInitFunc)(cModel*) = 0;
 u8 lockCtr;
 static f32 lockRandCtr;
 
-// Stores through references: scalar MEMs, so pG is reloaded after each of them.
-// Aim-rate clamp + sync as one inline taking the limits as PARAMETERS: the actuals -1.0f/1.0f are copied
-// into pseudos before the inlined body (integrate.c copies non-readonly formals), so both constants load
-// up front and the two clamp stores keep distinct registers (no cross-jump); `f32* m` = m3r gives the
-// `addi r10,r9,m3r@l` base pointer of the target (PlWepAutoTrack 24 -> 0, PlWepLockCtrl 45 -> 24).
-static inline void m3rClamp(f32* m, f32 lo, f32 hi) { if (m[1] < lo) m[1] = lo; else if (m[1] > hi) m[1] = hi; if (m[2] == 0.0f) m[0] = m[1]; }
-
 // No weapon objects yet.
 cPlWep::cPlWep()
 {
@@ -539,7 +532,7 @@ f32 cPlWep::getAngle()
     return pitch;
 }
 
-// Current aim blend rate (m3r[0], -1..1) while aiming / knife stance, else 0.
+// Current aim blend rate (m3r, -1..1) while aiming / knife stance, else 0.
 f32 cPlWep::getPitch()
 {
     if (pPL->r_no_0 != 0) {
@@ -551,7 +544,7 @@ f32 cPlWep::getPitch()
     if (pPL->r_no_2 == 3) {
         return 0.0f;
     }
-    return m3r[0];
+    return m3r;
 }
 
 // Updates the weapon object's matrices.
@@ -999,17 +992,14 @@ void PlWepLockCtrl(cModel* plm)
             }
             d += spd2 * (f32) Joy[0].stickY * repCtr * 0.15f / 200.0f / 10.0f;
         }
-        if (m3r[0] > 0.0f) {
+        if (m3r > 0.0f) {
             d *= 0.8f;
         }
         if (d != 0.0f) {
             moved = 1;
         }
-        m3r[1] += d;
-        if (m3r[2] == 0.0f) {
-            m3r[0] = m3r[1];
-        }
-        m3rClamp(m3r, -1.0f, 1.0f);
+        m3r += d;
+        m3r.limit(-1.0f, 1.0f);
         d = 0.0f;
         if (Joy[0].on & 2) {
             d -= 0.05f;
@@ -1040,24 +1030,14 @@ void PlWepLockCtrl(cModel* plm)
         }
     }
 rand:
-    tmp = m3r[0];
+    tmp = m3r;
     PlWepLockRand(pl, moved, &tmp, &pl->m_Fwork0);
-    {
-        // COMPILER-DIFF: candidate (sched LUID): the target issues the 0.0 pool load before the m3r[2]
-        // load (both prio 4, weight 0, so RTL order decides); a laundered local puts the constant's
-        // load first and keeps cse from folding it back into the compare.
-        f32 z = 0.0f;
-        asm("" : "+f"(z));
-        m3r[1] = tmp;
-        if (m3r[2] == z) {
-            m3r[0] = tmp;
-        }
-    }
+    m3r = tmp;
     if (DbgFlagChk(pG, DBG_PL_LOCK_FOLLOW) && lockCtr != 0) {
         PlWepAutoTrack(pl, 1, 0.03f);
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(pl->m_Fwork0, 0.4f);
 }
 
@@ -1153,18 +1133,15 @@ void PlWepAutoTrack(cModel* plm, int mode, f32 rate)
             pl->ang.y = LIMIT_ANGLE(pl->ang.y);
         }
     }
-    e = atan2(tgt.y - hand->y, dist) / (PI / 4.0f) - m3r[0];
+    e = atan2(tgt.y - hand->y, dist) / (PI / 4.0f) - m3r;
     if (e > 0.05f) {
         e = 0.05f;
     }
     if (e < -0.05f) {
         e = -0.05f;
     }
-    m3r[1] += e;
-    if (m3r[2] == 0.0f) {
-        m3r[0] = m3r[1];
-    }
-    m3rClamp(m3r, -1.0f, 1.0f);
+    m3r += e;
+    m3r.limit(-1.0f, 1.0f);
 }
 
 // Water hit of a shot line: the splash where p0-p1 crosses the water surface (if not behind a
@@ -1238,13 +1215,13 @@ void PlSetLockPitch(cModel* pEm)
     p *= 2.0f / PI;
     do {
         // COMPILER-DIFF: candidate (sched barrier): the first insn after LOOP_BEG is the sched1
-        // barrier. Ours would be the `lis m3r` of the m3r[2] store's address, the target's order
+        // barrier. Ours would be the `lis m3r` of the m3r.m_Delay store's address, the target's order
         // (`lis 0.0; lis m3r; lfs z; addi`) is what the ready list gives when the barrier insn
         // emits no code.
         asm("" : : "f"(p));
-        m3r[2] = 0.0f;
-        m3r[1] = p;
-        m3r[0] = m3r[1] * m3r[2] + m3r[1];
+        m3r.setDelay(0.0f);
+        m3r = p;
+        m3r.move();
     } while (0);
 }
 

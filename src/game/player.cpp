@@ -743,7 +743,7 @@ void pl_R1_Turn180(cPlayer* pEm)
 // Defined after pl_R1_Turn180: both have constructors and are emitted at their definition, behind
 // Turn180's static `dd0` in .bss.
 cMot3 mot3;
-cMot3Rate m3rObj;
+cDelayF m3r;
 
 // Weapon routine: WeaponMoveFunc (pl_wep.cpp registers it); Ashley has none.
 void pl_R1_Weapon(cPlayer* pEm)
