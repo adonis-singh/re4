@@ -52,5 +52,40 @@ public:
     int init(Vec* rot, f32 power);
 };
 
+// Player sub weapons: the thrown hand grenade (cObjGrenade), incendiary grenade (cObjGreFire),
+// flash grenade (cObjGreLight) and the egg (cObjEgg) share cSubWep's flight, bounce and water
+// handling; each supplies its explosion.
+
+class cObjGrenade : public cSubWep {
+public:
+    cObjGrenade();
+    virtual ~cObjGrenade() {}
+    virtual void explode();
+    virtual void waterExplode();
+};
+
+class cObjGreFire : public cSubWep {
+public:
+    cObjGreFire();
+    virtual ~cObjGreFire() {}
+    virtual void explode();
+    virtual void waterExplode();
+};
+
+class cObjGreLight : public cSubWep {
+public:
+    cObjGreLight();
+    virtual ~cObjGreLight() {}
+    virtual void explode();
+    virtual void waterExplode();
+};
+
+class cObjEgg : public cSubWep {
+public:
+    cObjEgg();
+    virtual ~cObjEgg() {}
+    virtual void explode();
+    virtual void waterExplode();
+};
 
 #endif

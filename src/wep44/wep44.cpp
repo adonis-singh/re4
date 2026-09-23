@@ -17,16 +17,6 @@
 
 void PlHandgunMove(cPlayer* pl);   // wep/pl_handgun.cpp
 
-class cObjGovernment : public cObjWep {
-public:
-    virtual void moveFire();
-    virtual void moveReload();
-    virtual void init(cModel* parent);
-    virtual void setMotion(cPlayer* pl);
-
-    void setCartridge();
-};
-
 void ObjGovernment_init(cObj* obj);
 
 // WeaponInitFunc (cPlayer::weaponInit with the player): creates the cObjGovernment as

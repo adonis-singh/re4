@@ -2,15 +2,7 @@
 // model of an item lying in the room, placed once by setItemObj with a light set and never moved
 // (the scenario item area handles the pick-up).
 #include "obj.h"
-
-// Item pickup model: a static model with a light set, placed once by setItemObj().
-class cItemObj : public cObj {
-public:
-    static const Vec zero;
-
-    cItemObj();
-    virtual void move();
-};
+#include "obj19.h"
 
 // A file-scope `static const` would be deferred to the end of the unit (after the cManager
 // strings); a class static member is emitted here, in front of the two function-local ones.

@@ -11,6 +11,7 @@
 #include "obj03.h"
 #include "obj04.h"
 #include "obj05.h"
+#include "obj06.h"
 #include "obj08.h"
 #include "obj09.h"
 #include "obj10.h"
@@ -20,6 +21,7 @@
 #include "obj15.h"
 #include "obj16.h"
 #include "obj18.h"
+#include "obj19.h"
 #include "obj1b.h"
 #include "obj1c.h"
 #include "obj1d.h"
@@ -30,6 +32,7 @@
 #include "objMissile.h"
 #include "objPillar.h"
 #include "objRobo.h"
+#include "objSubWep.h"
 #include "objTrolley.h"
 #include "objYagura.h"
 #include "global.h"
@@ -49,36 +52,6 @@ extern "C" {
 void objMove(cObj* p);
 }
 
-class cObjBox : public cObj {
-public:
-    cObjBox();
-    virtual void move();
-};
-class cItemObj : public cObj {
-public:
-    cItemObj();
-    virtual void move();
-};
-class cObjGrenade : public cObj {
-public:
-    cObjGrenade();
-    virtual void move();
-};
-class cObjGreFire : public cObj {
-public:
-    cObjGreFire();
-    virtual void move();
-};
-class cObjGreLight : public cObj {
-public:
-    cObjGreLight();
-    virtual void move();
-};
-class cObjEgg : public cObj {
-public:
-    cObjEgg();
-    virtual void move();
-};
 void (*ObjInitFunc[0x40])(cObj*);
 
 // Manager of the 0x3D8-byte cObj works (kind 2 of the unit managers).

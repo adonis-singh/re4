@@ -18,17 +18,6 @@
 
 void PlHandgunMove(cPlayer* pl);   // wep/pl_handgun.cpp
 
-class cObjGovernment : public cObjWep {
-public:
-    virtual ~cObjGovernment() {}
-    virtual void moveFire();
-    virtual void moveReload();
-    virtual void init(cModel* parent);
-    virtual void setMotion(cPlayer* pl);
-
-    void setCartridge();
-};
-
 // WeaponInitFunc (cPlayer::weaponInit with the player): creates the cObjGovernment (ObjMgr id
 // 0x31) as Wep->m_pWep, inits it on the player, installs its motions, loads the muzzle-flash
 // effects (archive 0x4 as group 0x3A) and points the debug preview PlWepMot at 0x26..0x28.

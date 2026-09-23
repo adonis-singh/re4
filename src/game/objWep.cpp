@@ -7,6 +7,7 @@
 #include "snd.h"
 #include "item.h"
 #include "pl_wep.h"
+#include "wep_mod.h"
 #include "player.h"
 #include "cam_ctrl.h"
 #include "dbmodule.h"
@@ -27,13 +28,6 @@ void drawPoint(Vec& lpos, Vec& lcross);
 
 static inline void DispOff(u8& f, u8 b) { f &= ~b; }
 static inline int DispChk(u8 f, u8 b) { return f & b; }
-
-// Weapon held in the hand: the stance key only counts while the hand weapon is allowed. Never
-// constructed in the DOL: the linker dropped its vtable (STRIP_UNUSED).
-class cObjHand : public cObjWep {
-public:
-    virtual int keyKamae();
-};
 
 // Common weapon object setup: no collision, a 500-unit light, no motions yet, all three display
 // types (disp 0x1C) shown.

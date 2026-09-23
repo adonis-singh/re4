@@ -113,4 +113,36 @@ public:
     void setAllow();             // shoot: SetMine arrow along the bow's line
 };
 
+class cObjRuger : public cObjWep {
+public:
+    virtual ~cObjRuger() {}
+    virtual void moveFire();
+    virtual void moveReload();
+    virtual void init(cModel* parent);
+    virtual void setMotion(cPlayer* pl);
+
+    void setCartridge();
+};
+
+class cObjShotgun : public cObjWep {
+public:
+    virtual void moveFire();
+    virtual void moveReload();
+    virtual void init(cModel* parent);
+    virtual void setMotion(cPlayer* pl);
+
+    void setCartridge();
+};
+
+class cObjGovernment : public cObjWep {
+public:
+    virtual ~cObjGovernment() {}
+    virtual void moveFire();
+    virtual void moveReload();
+    virtual void init(cModel* parent);
+    virtual void setMotion(cPlayer* pl);
+
+    void setCartridge();
+};
+
 #endif

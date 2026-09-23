@@ -17,16 +17,6 @@
 
 void PlShotgunMove(cPlayer* pl);   // wep/pl_shotgun.cpp
 
-class cObjShotgun : public cObjWep {
-public:
-    virtual void moveFire();
-    virtual void moveReload();
-    virtual void init(cModel* parent);
-    virtual void setMotion(cPlayer* pl);
-
-    void setCartridge();
-};
-
 void ObjShotgun_init(cObj* obj);
 
 // WeaponInitFunc (cPlayer::weaponInit with the player): creates the cObjShotgun as Wep->m_pWep,

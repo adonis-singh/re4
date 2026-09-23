@@ -18,17 +18,6 @@
 
 void PlHandgunMove(cPlayer* pl);   // wep/pl_handgun.cpp
 
-class cObjRuger : public cObjWep {
-public:
-    virtual ~cObjRuger() {}
-    virtual void moveFire();
-    virtual void moveReload();
-    virtual void init(cModel* parent);
-    virtual void setMotion(cPlayer* pl);
-
-    void setCartridge();
-};
-
 // shotFrame[0..2] of the object (an extern-linkage const: emitted here, before Wep38_init's string)
 extern const u8 ruger_tbl[3];
 const u8 ruger_tbl[3] = { 0x10, 0xE, 0xC };
