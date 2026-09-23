@@ -117,7 +117,7 @@ void cDbWork::dispObj()
     int x;
     int y;
 
-    obj = ObjMgrWork(wkNo);
+    obj = ObjMgr.at(wkNo);
     eprintf(32, 28, 4, 0, "OBJ %d  [0x%08X]", wkNo, obj);
     if (Joy[0].rep & JOY_RIGHT) {
         wkNo++;

@@ -1411,7 +1411,7 @@ int cLight::getNormal(Vec* pInNorm, Vec* pNorm)
         u32 pid = ParentNo;
         no = pid & 0xFFFF;
         partsNo = pid >> 16;
-        p = ObjMgrWork(no);
+        p = ObjMgr.at(no);
         if (!(VALID_PTR(p) && p->isAlive() && partsNo < p->nParts)) {
             if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "cLight::getNormal() FAILED.");

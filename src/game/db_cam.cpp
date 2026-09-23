@@ -188,7 +188,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
                 numObj = 0;
             }
             for (;;) {
-                obj = ObjMgrWork(numObj);
+                obj = ObjMgr.at(numObj);
                 if (!(obj->be_flag & 1)) {
                     if (--i == 0) {
                         break;
@@ -203,10 +203,10 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
             }
         }
         if (pJoy->on & JOY_A) {
-            if (ObjMgrWork(numObj)->be_flag & 1) {
-                cParts* parts = ObjMgrWork(numObj)->getPartsPtr(0);
+            if (ObjMgr.at(numObj)->be_flag & 1) {
+                cParts* parts = ObjMgr.at(numObj)->getPartsPtr(0);
                 if (parts == NULL) {
-                    pCam->param.at = ObjMgrWork(numObj)->pos;
+                    pCam->param.at = ObjMgr.at(numObj)->pos;
                 } else {
                     pCam->param.at = parts->world;
                 }

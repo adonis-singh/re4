@@ -159,16 +159,6 @@ public:
 
 extern cObjMgr ObjMgr;
 
-// Work `no` of ObjMgr, 0 when out of range. A free inline: an in-class one would be emitted out of
-// line in obj.cpp (the unit owns cObjMgr's vtable), which the DOL does not have.
-static inline cObj* ObjMgrWork(u32 no)
-{
-    if (no >= ObjMgr.nArray) {
-        return 0;
-    }
-    return (cObj*)((u8*)ObjMgr.pArray + ObjMgr.size * no);
-}
-
 struct EspGenWork;
 extern "C" {
 // game/esp_efm.cpp: creates the obj04 / obj05 / obj09 effect model of a sequence record

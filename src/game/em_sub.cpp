@@ -2512,11 +2512,6 @@ static void EmSubDead2(f32* p)
 
 // Rack (id 0x45) in the way of `em` moving to `pos` heading `ang`: 0 when one of the rack's
 // corner / edge points falls into the box in front of the position.
-// The seven compare constants are hoisted by loop.c; 400.0 only in the second loop pass (it is the
-// last preheader load and so the highest-priority FPR, f27). Its corner-1 `lis` has savings 2 x life 2,
-// which is desirable only while at most three earlier movables were moved in that pass (threshold 71,
-// -3 per move, 243 insns): the element address is therefore computed as `off = size * i` first, so
-// `lis EmMgr@ha` lives long enough (5 insns) to be hoisted in pass 1 instead of pass 2.
 int EmRackCk(cEm* pEm, Vec* pPos, f32 dir)
 {
     Vec v;
@@ -2526,7 +2521,6 @@ int EmRackCk(cEm* pEm, Vec* pPos, f32 dir)
     FREE_EMRACK* w;
     f32 hx;
     f32 hz;
-    u32 off;
 
     PSMTXRotRad(m, 'y', dir);
     TransMatrix(m, pPos);
@@ -2534,8 +2528,7 @@ int EmRackCk(cEm* pEm, Vec* pPos, f32 dir)
         PSMTXIdentity(m);
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
-        off = EmMgr.size * i;
-        e = (cEm*) ((u8*) EmMgr.pArray + off);
+        e = EmMgr.fastAt(i);
         if (!e->isAlive()) {
             continue;
         }
