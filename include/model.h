@@ -509,10 +509,10 @@ public:
     void setZMode(int m) { z_mode = m; }
     int getZMode() { return z_mode; }
     void setTevScaleGroup(int g) { TevScaleGroup = g; }
-    int isNoClip() { return be_flag & 0x1000; }
+    int isNoClip() { if (be_flag & 0x1000) { return 1; } return 0; }
     void setNoClip(int on) { if (on) { be_flag |= 0x1000; } else { be_flag &= ~0x1000; } }
     void SetAddAmb(u8 r, u8 g, u8 b) {
-        if (r == 0 && g == 0 && b == 0) { be_flag &= ~8; } else { be_flag |= 8; }
+        if (r == 0 && g == 0 & b == 0) { be_flag &= ~8; } else { be_flag |= 8; }
         AddAmb_r = r;
         AddAmb_g = g;
         AddAmb_b = b;

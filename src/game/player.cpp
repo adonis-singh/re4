@@ -516,7 +516,7 @@ void pl_R1_Back(cPlayer* pEm)
     if (pEm->r_no_2 == 0) {
         void** tbl = pEm->m_MotTbl;
         pEm->motionSet(tbl[8], tbl[9], tbl[0x63], tbl[0x64], 8, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
     }
     pEm->motionMove();
@@ -657,7 +657,7 @@ void pl_R1_Turn(cPlayer* pEm)
             pEm->motionSet(pEm->m_MotTbl[0xF], pEm->m_MotTbl[0x10], pEm->m_MotTbl[0x69], pEm->m_MotTbl[0x6A], 7, 0);
             pEm->r_no_2 = 2;
         }
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->motionMove();
         break;
     case 1:
@@ -694,7 +694,7 @@ void pl_R1_Turn180(cPlayer* pEm)
         v.z = 1000.0f;
         PSMTXMultVec(pEm->mat, &v, &dd0);
         CamCtrlShoulderSetSearchFrame(30);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
     }
     case 1: {
@@ -789,7 +789,7 @@ void pl_R1_Ladder(cPlayer* pEm)
     case 0:
         pEm->m_Fwork0 = pEm->pos.y;
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x27), 5, 0, 1, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
         pEm->stat.off(cPlayer::F_SHADOW);
     case 1:
@@ -859,7 +859,7 @@ void pl_R1_Ladder(cPlayer* pEm)
     case 0xA:
         pEm->m_Fwork0 = pEm->pos.y;
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x2A), 5, 0, 1, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 0xB;
         pEm->stat.off(cPlayer::F_SHADOW);
     case 0xB:
@@ -937,7 +937,7 @@ void pl_R1_Crouch(cPlayer* pEm)
         pEm->endCamera();
         CamCtrl.resetCameraAngle();
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x5A), 3, 0, 0, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
         pEm->stat.on(cPlayer::F_CROUCH);
         pEm->m_Fwork0 = pEm->ang.y;
@@ -1031,7 +1031,7 @@ void pl_R1_JumpFall(cPlayer* pEm)
     switch (pEm->r_no_2) {
     case 0:
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x5E), PL_ARC_PTR(pG->pPlayer, 0x60), 3, 0x201, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->atari.off();
         pEm->Shd_color = 0xFF;
         pEm->m_Work0 = 0;
@@ -1069,7 +1069,7 @@ void pl_R1_Whistle(cPlayer* pEm)
     switch (pEm->r_no_2) {
     case 0:
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x7C), 7, 0, 1, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
     case 1:
         if (MotionCheckCrossFrame(MOTION(pEm), 20.0f)) {
@@ -1111,7 +1111,7 @@ void pl_R1_LevelUp(cPlayer* pEm)
             m1 = pEm->m_MotTbl2[9];
         }
         MotionSetCore(pEm, MOTION(pEm), m0, m1, 6, 5, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         PSVECScale(&pEm->m_ActNorm, &pos, 400.0f);
         PSVECAdd(&pos, &pEm->m_ActCross, &pos);
         pos.y = pEm->pos.y;
@@ -1143,7 +1143,7 @@ void pl_R1_LevelDown(cPlayer* pEm)
         pEm->stat.off(cPlayer::F_SHADOW);
         pEm->atari.off();
         MotionSetCore(pEm, MOTION(pEm), pEm->m_MotTbl2[10], pEm->m_MotTbl2[11], 6, 5, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         PSVECScale(&pEm->m_ActNorm, &pos, 400.0f);
         PSVECAdd(&pos, &pEm->m_ActCross, &pos);
         pos.y = pEm->pos.y;
@@ -1173,7 +1173,7 @@ void pl_R1_ObjPush(cPlayer* pEm)
     case 0:
         CamCtrl.startPushObject();
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x20), 0, 6, 5, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->m_Work0 = 0;
         pEm->r_no_2 = 1;
         pEm->stat.on(cPlayer::F_OBJPUSH);
@@ -1250,7 +1250,7 @@ void pl_R1_Fance(cPlayer* pEm)
         } else {
             MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x55), PL_ARC_PTR(pG->pPlayer, 0x56), 3, 5, 0);
         }
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         if (PlFanceFlag & 1) {
             pos.x = PlFancePos.x;
             pos.y = pEm->pos.y;
@@ -1416,7 +1416,7 @@ void pl_R1_Fall(cPlayer* pEm)
     case 0:
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x2D), PL_ARC_PTR(pG->pPlayer, 0x2E), 3, 5, 0);
         pEm->atari.off();
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->atari.setPriority(PRI_LV2);
         if (pSUB) {
             SUB_CHAR()->registPlAction(&pEm->pos, pEm->ang.y, 0);

@@ -93,16 +93,6 @@ static inline int EvtChk(u32 f, u32 mask)
     return (f & mask) ? 1 : 0;
 }
 
-// be_flag bit test helper.
-// Reversed form (`li 0; andi.; beq; li 1`), compared against 1 by EspToolSetMod.
-static inline int BeFlgChk(cUnit* u, u32 mask)
-{
-    if (u->be_flag & mask) {
-        return 1;
-    }
-    return 0;
-}
-
 // Event model number -> model (EspEvModList slot, 0 when out of range).
 // The event model list entry when `no` is a valid index.
 static inline cModel* EspEvModGet(int no)
@@ -456,10 +446,10 @@ void Event::EspToolSetMod(int npMod, char* pNameMod)
         EvtDebug.PMod[npMod].pModel = (cModel*) modNo;
         EvtDebug.PMod[npMod].otType = mod->ot_type;
         EvtDebug.PMod[npMod].lightMask = mod->LightInfo.EnableMask;
-        if (mod->z_mode == 1) {
+        if (mod->getZMode() == 1) {
             BitOn(EvtDebug.PMod[npMod].flags, 0x80000000);
         }
-        if (BeFlgChk(mod, 0x1000) == 1) {
+        if (mod->isNoClip() == 1) {
             BitOn(EvtDebug.PMod[npMod].flags, 0x40000000);
         }
         if (strncmp(mname, "scr", 3) == 0) {
@@ -709,7 +699,7 @@ void Event::ControlTransFlag()
             if (m->kindid == 1 && m->id == cObjMgr::ID_EVENT) {
                 w = OBJ18_WK((cObj18*) m);
                 if (w->obj18_type == OBJ18_TYPE_ADA && w->pObjChain != 0 && !(OBJ18_WK((cObj18*) m)->ObjChainFlagCommon & 0x04000000)) {
-                    if ((m->be_flag & 0x20) == 0) {
+                    if (m->isMove() == 0) {
                         w->pObjChain->setMove(0);
                     } else {
                         w->pObjChain->setMove(1);
@@ -721,7 +711,7 @@ void Event::ControlTransFlag()
                     }
                 }
                 if (obj18GetOya(&oya, (cObj*) m) == 1) {
-                    if ((oya->be_flag & 0x20) == 0) {
+                    if (oya->isMove() == 0) {
                         m->setMove(0);
                     } else {
                         m->setMove(1);
@@ -978,7 +968,8 @@ int Event::ExePacket_SetOm(Event* pEvt)
         obj->pFsdTbl = Em2c_fs_tbl;
         break;
     }
-    obj->be_flag |= 0x02001000;
+    obj->be_flag |= 0x02000000;
+    obj->setNoClip(1);
     obj->setNoSuspend(1);
     obj->setTrans(0);
     Obj18CmfSet(obj, pac->flag);

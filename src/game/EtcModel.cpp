@@ -3195,12 +3195,5 @@ void EtcSetAddAmb(cModel* pMod, int kind)
         pLog->err(6, 0, "EtcSetAddAmb() : invalid type.");
         break;
     }
-    if (r == 0 && g == 0 & b == 0) {   // `&`: the original tests g and b with a bitwise and
-        pMod->be_flag &= ~8;
-    } else {
-        pMod->be_flag |= 8;
-    }
-    pMod->AddAmb_r = r;
-    pMod->AddAmb_g = g;
-    pMod->AddAmb_b = b;
+    pMod->SetAddAmb(r, g, b);
 }

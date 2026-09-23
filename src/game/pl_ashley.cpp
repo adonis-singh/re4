@@ -88,7 +88,7 @@ void cPlAshley::setModel()
         return;
     }
     addModel(info);
-    TevScaleGroup = 1;
+    setTevScaleGroup(1);
     setFace(0);
     setRightHand(0);
     setLeftHand(0);

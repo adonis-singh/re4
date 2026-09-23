@@ -1070,7 +1070,7 @@ int cPlayer::getLifeLevel()
 void cPlayer::beginEvent(u32 flag)
 {
     interrupt();
-    Neck->m_MotR = 0;
+    Neck->clear();
     switch (flag) {
     case 0:
         setRno(5, 0, 0, 0);

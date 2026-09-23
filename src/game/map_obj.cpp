@@ -97,7 +97,8 @@ int cMapMgr::dispInfo()
 cMap::cMap()
 {
     kindid = 2;
-    be_flag |= 0x1023;
+    be_flag |= 0x23;
+    setNoClip(1);
 }
 
 // Stub: only advances r_no_0 once.

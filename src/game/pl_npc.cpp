@@ -90,7 +90,7 @@ cSubChar::~cSubChar()
 void cSubChar::init()
 {
     initCloth();
-    TevScaleGroup = 1;
+    setTevScaleGroup(1);
     {
         static const Vec lightOfs = { 0.0f, 0.0f, 0.0f };
         static const Vec lightSize = { 1000.0f, 1000.0f, 0.0f };

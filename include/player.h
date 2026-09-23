@@ -34,6 +34,7 @@ public:
     void motSet(void* data, int frame);
     cEm* getTarget();
     void setMode(int mode);   // stores byte 0xE (pl_sub PlSetNeck)
+    void clear() { m_MotR = 0; }
 };
 
 // Waist control (game/pl_class.cpp), 0xC bytes at cEm::pWaist.

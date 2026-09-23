@@ -315,14 +315,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
         u8 r = info->pEm->AddAmb_r;
         u8 g = info->pEm->AddAmb_g;
         u8 b = info->pEm->AddAmb_b;
-        if (r == 0 && ((g == 0) & (b == 0))) {
-            obj->be_flag &= ~8;
-        } else {
-            obj->be_flag |= 8;
-        }
-        obj->AddAmb_r = r;
-        obj->AddAmb_g = g;
-        obj->AddAmb_b = b;
+        obj->SetAddAmb(r, g, b);
     }
     return obj;
 }
@@ -421,14 +414,7 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     w->Pt_hit_size = (f32) (int) gen->xD4;
     if (gen->prm.w.xCC != 0) {
         u8 c = gen->prm.b.xCF;
-        if (c == 0) {
-            obj->be_flag &= ~8;
-        } else {
-            obj->be_flag |= 8;
-        }
-        obj->AddAmb_r = c;
-        obj->AddAmb_g = c;
-        obj->AddAmb_b = c;
+        obj->SetAddAmb(c, c, c);
     }
     if (gen->prm.w.xD0 != 0) {
         setModTexRender(obj, gen->prm.w.xD0 - 1);
@@ -440,7 +426,7 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
         obj->be_flag |= 0x20000;
     }
     if (w->Tool_flg & 0x200000) {
-        obj->z_mode = 1;
+        obj->setZMode(1);
     }
     switch (w->Parts_no) {
     case 0xFF:
@@ -556,7 +542,7 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
         PSVECAdd(&obj->ang, &v, &obj->ang);
     }
     if (w->Tool_flg & 0x200000) {
-        obj->z_mode = 1;
+        obj->setZMode(1);
     }
     w->Ang_plus = gen->Ang_plus;
     w->Ang_plus.x += gen->R_ang_plus.x * fRandSeed1_1(seed);

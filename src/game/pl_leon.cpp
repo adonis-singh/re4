@@ -140,7 +140,7 @@ void cPlLeon::setModel()
     if (ScfFlagChk(pG, SCF_R317_LEON_WOUND)) {
         setWound();
     }
-    TevScaleGroup = 1;
+    setTevScaleGroup(1);
     setFace(0);
     setRightHand(0);
     setLeftHand(1);
