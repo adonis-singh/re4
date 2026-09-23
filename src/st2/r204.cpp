@@ -968,8 +968,8 @@ static void r204_EventExec()
         SndRoomStrVolSet(1, 200);
         EvtMgr.EvtReadExec("event/evd/r204s00.evd", 0x14, EvtReadFlagFadeOut);
         SndRoomStrVolReset(500);
-        if (pSubEm != 0) {
-            EmMgr.destroy(pSubEm);
+        if (pSUB != 0) {
+            EmMgr.destroy(pSUB);
             StaFlagOff(pG, STA_SUB_ASHLEY);
         }
         SceSetChapterEnd(CHAPTER_3_1, -1);

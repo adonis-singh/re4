@@ -1750,9 +1750,9 @@ int sceAtFunc_damage(SceAtWork* w, cModel* pModel)
                     b = (u8) w->dmg.time;
                 }
                 if (fl & 2) {
-                    pSUB->setDamage(w->dmg.kind, w->dmg.arg, w->dmg.power, a, b);
+                    SUB_CHAR()->setDamage(w->dmg.kind, w->dmg.arg, w->dmg.power, a, b);
                 } else {
-                    pSUB->setDamage(w->dmg.kind, w->dmg.arg, 123.0f, a, b);
+                    SUB_CHAR()->setDamage(w->dmg.kind, w->dmg.arg, 123.0f, a, b);
                 }
             }
         }

@@ -934,7 +934,7 @@ void em3bRunDownCkCart(cEm3b* em)
 // Partner damage routine (SetSubDamage callback): the run-over motion from the truck's archive.
 static void subem3bRunDown()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     int st = sub->r_no_2;
     PlArc* arc = sub->pEmCatch->subArc;
 

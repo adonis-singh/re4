@@ -3458,7 +3458,7 @@ void SubOpenDoorSet(cEmDoor* pDoor)
 // setOpen when the door can be kicked open; ends when the motion finishes.
 void subDoorKick()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cEmDoor* door = (cEmDoor*) sub->pEmCatch;
 
     if (sub->r_no_2 == 0) {

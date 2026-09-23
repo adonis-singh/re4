@@ -472,7 +472,7 @@ static void R30dCoopSwitch()
         }
         cObj* o0 = r30d_work->obj[0];
         if (o0) {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 x = o0->pos.x - 619.92f;
             f32 z = o0->pos.z + 12.8f;
             v.x = x;
@@ -500,7 +500,7 @@ static void R30dCoopSwitch()
         }
         cObj* o1 = r30d_work->obj[1];
         if (o1) {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 x = o1->pos.x - 619.92f;
             f32 z = o1->pos.z + 12.8f;
             v.x = x;

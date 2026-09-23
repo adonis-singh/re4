@@ -470,7 +470,7 @@ static void r207_EnemySet()
     SceEventStart(1);
     if (pSUB) {
         AtariOffV(&pSUB->atari, 0xFDFF);
-        r207_work->sub = pSUB;
+        r207_work->sub = SUB_CHAR();
         pSUB = zero;
     }
     r207_work->em[2].em.setEm(0xD3, -1, 0, 1, 1);

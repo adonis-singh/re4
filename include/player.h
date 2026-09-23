@@ -113,9 +113,6 @@ extern cDelayF m3r;     // game/player.cpp  mot3 blend rate
 // Player (game/player.cpp, pl_*.cpp): a cEm with the player virtuals. Its fields are the cEm ones
 // (all below 0xDE0, see em.h). Vtable order (pl_class.cpp): cUnit/cCoord/cModel/cEm virtuals, then
 // the player ones below.
-// pl_npc.h's `pSUB` under a second name: pl_leon.cpp declares its own `cModel* pSUB`, so player.h
-// cannot declare the real one (cPlayer::subCharLiveCheck reads it).
-extern cEm* pSubEm asm("pSUB");
 
 // In-class bodies below are the ones the original emits after ~cPlayer at the end of pl_class.o
 // (in-class inline members of the class whose vtable the unit owns); other units drop their
@@ -366,8 +363,6 @@ void Pl_R0_Event(cPlayer* pEm);
 void pl_R1_Event_Normal(cPlayer* pEm);
 void pl_R1_Event_ToWalk(cPlayer* pEm);
 void pl_R1_Event_Smooth(cPlayer* pEm);
-
-extern cPlayer* pPL;
 
 // Face model info of `pl`: the diagonal of its matrix (the face scale) set to `v` (pl_knife, pl_rocket).
 // A plain block: a do/while(0) body's loop notes lengthen the live ranges around it and flip the

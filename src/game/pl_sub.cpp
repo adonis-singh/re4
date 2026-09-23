@@ -281,7 +281,7 @@ void PlSetHand(int mode, int flag)
 void SubCharSetHand(int type)
 {
     if (pSUB) {
-        pSUB->setHand(type);
+        SUB_CHAR()->setHand(type);
     }
 }
 
@@ -317,7 +317,7 @@ void EndPlDamage()
 // Partner: aux routine 0/0xF with two parameters (scenario-specific behaviour).
 void SetSubAux(void (*ft)(cEm*), void (*ftdm)(cEm*))
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         pLog->err(0, 0, "ERROR: SetSubAux() ASHLEY NOT FOUND.");
@@ -334,7 +334,7 @@ void SetSubAux(void (*ft)(cEm*), void (*ftdm)(cEm*))
 // Partner: the bulldozer-ride routine (r_no_0 3) with two parameters.
 void SetSubBulldozer(void (*ft)(cEm*), void (*ftdm)(cEm*))
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         pLog->err(0, 0, "ERROR: SetSubAux() ASHLEY NOT FOUND.");
@@ -352,7 +352,7 @@ void SetSubBulldozer(void (*ft)(cEm*), void (*ftdm)(cEm*))
 // play `mot` (subFlags58C 0x40). pEmCatch = type.
 void SetSubDamage(cEm* em, void (*ft)())
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         return;
@@ -380,7 +380,7 @@ void SetSubDamage(cEm* em, void (*ft)())
 // Ends the partner damage routine: model reset for Luis (id 4), routine 0/0, collision on.
 void EndSubDamage()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cAtariInfo* at;
 
     if (sub == 0) {
@@ -388,7 +388,7 @@ void EndSubDamage()
     }
     sub->dmg.clear();
     if (sub->id == 4) {
-        pSUB->modelSet();
+        SUB_CHAR()->modelSet();
     } else {
         sub->endDamage();
     }
@@ -458,7 +458,7 @@ void SubCharInit(int type, Vec* pos, f32 ang_y)
 // 0x80). Aux parameters are cleared unless she is in the aux routine.
 void SubCharCtrl(int mode, int sccf)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         return;
@@ -525,7 +525,7 @@ void SubCharCtrl(int mode, int sccf)
 // (flg 0x40), not stopped / moving-to, and in one of the plain routine-0 states.
 int SubCharCheckCtrl()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub->flg.check(cSubChar::F_CALL_ENABLE)) {
         return 1;
@@ -571,7 +571,7 @@ int SubCharCheckCtrl()
 // 0/0x10, invulnerable).
 void SubCharCtrlHide(Vec* pos, int type)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     switch (type) {
     case 0:
@@ -593,7 +593,7 @@ void SubCharCtrlHide(Vec* pos, int type)
 // flag bit0 sets flg 0x10.
 void SubCharMoveTo(f32 x, f32 y, f32 z, f32 ry, int mode)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if ((sub->flg.check(cSubChar::F_MOVE_TO)) && x == sub->m_TargetPos.x && y == sub->m_TargetPos.y && z == sub->m_TargetPos.z &&
         ry == sub->m_TargetDir) {
@@ -719,7 +719,7 @@ void PlRegistMotion(void* m0, void* m1, void* m2, void* m3, void* m4, void* m5, 
 // Partner: room-supplied motions m_MotTbl2[0] / m_MotTbl2[1] (non-zero ones only).
 void SubCharRegistMotion(void* m0, void* m1)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         pLog->err(0, 0, "SubCharRegistMotion() NO SUBCHAR");
@@ -950,7 +950,7 @@ int SubCharCheckHealing()
     if (GetDistance(pPL->pos, pSUB->pos) > limit) {
         return 0;
     }
-    sub = pSUB;
+    sub = SUB_CHAR();
     if (sub->r_no_0 != 0) {
         return -1;
     }
@@ -977,7 +977,7 @@ int SubCharCheckHealing()
 // Partner back to idle with a footwork (only from routine 0/0 or 0/1). Returns 1 when done.
 int SubCharMotionReset()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         return 0;
@@ -1098,7 +1098,7 @@ void PlSetFace(int type)
 void SubCharSetFace(int type)
 {
     if (pSUB->id == 3) {
-        pSUB->setFace(type);
+        SUB_CHAR()->setFace(type);
     }
 }
 

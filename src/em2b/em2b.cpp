@@ -2721,7 +2721,7 @@ static void em2b_R1_SubCatch(cEm2b* em)
 // Partner caught by the hand: hangs on the hand parts' matrix.
 static void subem2b_CatchHand(cSubChar* sub)
 {
-    cSubChar* s = pSUB;
+    cSubChar* s = SUB_CHAR();
 
     s->subArc = s->pEmCatch->subArc;
     s->dmg.m_Timer = 2;
@@ -2767,7 +2767,7 @@ static void subem2b_CatchHand(cSubChar* sub)
 // Partner squeezed: follows the giant's step; her life is emptied when the timer ends.
 static void subem2b_Catch(cSubChar* sub)
 {
-    cSubChar* s = pSUB;
+    cSubChar* s = SUB_CHAR();
 
     StaFlagOn(pG, STA_SUB_CATCHED);
     s->subArc = s->pEmCatch->subArc;
@@ -2819,7 +2819,7 @@ static void subem2b_Catch(cSubChar* sub)
 // Partner dropped: falls in front of the giant.
 static void subem2b_CatchEnd(cSubChar* sub)
 {
-    cSubChar* s = pSUB;
+    cSubChar* s = SUB_CHAR();
 
     s->subArc = s->pEmCatch->subArc;
     StaFlagOn(pG, STA_SUB_CATCHED);
@@ -4279,7 +4279,7 @@ static void plem2b_dm_Stamp(cPlayer* pl)
 // archive, held (she is dead).
 static void subem2b_dm_Stamp(cSubChar* sub)
 {
-    cSubChar* s = pSUB;
+    cSubChar* s = SUB_CHAR();
 
     s->subArc = s->pEmCatch->subArc;
     StaFlagOn(pG, STA_SUB_CATCHED);

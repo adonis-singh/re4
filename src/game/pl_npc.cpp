@@ -2379,7 +2379,7 @@ int cSubChar::readyCheck()
 // Action button: the player catches the partner waiting on the ledge.
 void catchOn()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     Vec p;
     Vec r;
 
@@ -3112,7 +3112,7 @@ int getFallPos(cSubChar* pl, Vec* pVec, Vec* pAng)
 // Routine bits of the partner for the camera / scenario.
 u32 SubCharGetStatus()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     u32 ret;
 
     if (sub == 0) {
@@ -3802,7 +3802,7 @@ void cSubChar::interrupt()
 // 1 while the partner (id 3) is in a routine 0 state the scenario may hide her from.
 int SubCharHideCheck()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0 || sub->id != 3) {
         return 0;
@@ -3850,7 +3850,7 @@ void cSubChar::inSat()
 // to a point, 0x10 waiting at a ladder / window.
 u32 SubCharGetCondition()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     u32 ret;
 
     if (sub == 0) {

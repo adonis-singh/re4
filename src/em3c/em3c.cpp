@@ -903,7 +903,7 @@ static void plemEscape(cPlayer* pEm)
 // its effect and voice, and ends when it finishes.
 static void subemSurprised()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     sub->subArc = sub->pEmCatch->subArc;
     sub->dmg.m_Timer = 2;
@@ -953,7 +953,7 @@ static void subemSurprised()
 // 0x43), stays there (0x44) while her r_no_3 is set, then stands up (0x45) and the damage ends.
 static void subemSit()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     sub->dmg.m_Timer = 2;
     switch (sub->r_no_2) {

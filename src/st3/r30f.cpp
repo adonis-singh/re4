@@ -888,7 +888,7 @@ static void R30f_ride()
             pl2 = pPL;
             pl2->setPos(&ofs);
             pl2->setAng(&ang);
-            sub = pSUB;
+            sub = SUB_CHAR();
             if (sub) {
                 sub->setPos(&p);
                 sub->setAng(&ang);

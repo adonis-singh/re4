@@ -104,7 +104,7 @@ void R210Init()
                 v.z = -14875.0f;
                 pSUB->setPos(&v);
                 {
-                    cSubChar* sub = pSUB;
+                    cSubChar* sub = SUB_CHAR();
 
                     v.x = 0.0f;
                     v.y = 3.14f;
@@ -394,7 +394,7 @@ static void toroko_go(int dir)
         p->setPos(pp);
         p->setAng(zero);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 sub->setPos(pp);
@@ -472,7 +472,7 @@ static void toroko_ret(int dir)
         p->setPos(pp);
         SetAngV(p, &ang);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 sub->setPos(pp);
@@ -535,7 +535,7 @@ static void toroko_ret(int dir)
             pp->z = -7950.0f;
             pSUB->setPos(pp);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 p.x = 0.0f;
                 pp->y = 1.75f;
@@ -571,7 +571,7 @@ static void toroko_ret(int dir)
             pp->z = 247150.0f;
             pSUB->setPos(pp);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 p.x = 0.0f;
                 pp->y = 1.83f;

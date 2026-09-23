@@ -1546,7 +1546,7 @@ static void plem36_Stamp(cPlayer* pl)
 // variant when she is out of HP) with voice and blood effect; ends with the motion if she lives.
 static void subem36_Stamp()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     u8 step;
 
     sub->subArc = sub->pEmCatch->subArc;

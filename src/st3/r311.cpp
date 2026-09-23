@@ -654,7 +654,7 @@ static void r311_execAshleyOperateTerminal()
 
         PSMTXMultVec(r311_work->crane->mat, &p, &p);
         pSUB->ang.y = r311_work->crane->ang.y + PI;
-        sub = pSUB;
+        sub = SUB_CHAR();
         rot = &sub->ang;
         sub->setPos(&p);
         sub->setAng(rot);

@@ -1961,7 +1961,7 @@ static void plboat_R2_Getoff(cPlayer* pl)
         boat->setPos(&pl->pos, pl->m_Fwork0);
         pl->m_Blend = 0.0f;   // the pSUB load stays below the store
         if (pSUB) {
-            subOnBoat(pSUB, boat);
+            subOnBoat(SUB_CHAR(), boat);
             pSUB->partsMatCalc();
             pSUB->partsWorldCalc();
         }
@@ -3736,7 +3736,7 @@ void pl0fSetAnchorEm2f(cPlayer* pl)
 // difference over 20 frames, then step 2 the seated lean blend in step with the boat's rider.
 static void subBoatRide()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0f* boat = (cPl0f*)sub->pEmCatch;
     Pl0fWork* w = PL0F_WK(boat);
     Vec v;
@@ -3796,7 +3796,7 @@ static void subBoatRide()
 // ends (she returns to following the player).
 static void subBoatGetoff()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0f* boat = (cPl0f*)sub->pEmCatch;
 
     sub->subArc = boat->subArc;
@@ -3828,7 +3828,7 @@ static void subBoatGetoff()
 
 #define SUB_BOAT_ROOM_IN() \
 { \
-    cSubChar* sub = pSUB; \
+    cSubChar* sub = SUB_CHAR(); \
     cPl0f* boat = (cPl0f*)sub->pEmCatch; \
     Pl0fWork* w = PL0F_WK(boat); \
  \

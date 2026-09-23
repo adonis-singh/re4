@@ -189,7 +189,8 @@ public:
     int farCheck();   // never called; dead-stripped in the DOL, only its pool word (1000) survives
 };
 
-extern cSubChar* pSUB;   // game/em.cpp
+// pSUB is a cEm* (as on PS2); the partner it points at is always a cSubChar.
+#define SUB_CHAR() ((cSubChar*) pSUB)
 
 u32 SubCharGetStatus();  // game/pl_npc.cpp: routine bits for the camera / scenario (C++ linkage)
 

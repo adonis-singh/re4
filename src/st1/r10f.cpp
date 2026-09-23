@@ -174,7 +174,7 @@ static void r10f_GondolaGetOn(int side)
     Vec zero;
     Vec p;
     cObj* obj;
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub != 0 && RouteCkPosToPosDis(&pPL->pos, &sub->pos) > 10000.0f) {
         cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
@@ -202,7 +202,7 @@ static void r10f_GondolaGetOn(int side)
             SubCharCtrl(SCC_AUX_MOT, 0);
             pSUB->setNoSuspend(1);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 r10f_setPos(s, &((R10fGondolaTbl*) mot)->posB[side]);
                 ang.x = 0.0f;
@@ -337,7 +337,7 @@ static void r10f_GondolaGetOff(int side)
             SubCharCtrl(SCC_AUX_MOT, 0);
             pSUB->setNoSuspend(1);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 r10f_setPos(s, &((R10fGondolaTbl*) mot)->posB[side]);
                 ang.x = 0.0f;

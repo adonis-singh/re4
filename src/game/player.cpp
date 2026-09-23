@@ -1419,7 +1419,7 @@ void pl_R1_Fall(cPlayer* pEm)
         pEm->Neck->m_MotR = 0;
         pEm->atari.setPriority(PRI_LV2);
         if (pSUB) {
-            pSUB->registPlAction(&pEm->pos, pEm->ang.y, 0);
+            SUB_CHAR()->registPlAction(&pEm->pos, pEm->ang.y, 0);
         }
         pEm->m_Work0 = 0;
         pEm->stat.off(cPlayer::F_SHADOW);

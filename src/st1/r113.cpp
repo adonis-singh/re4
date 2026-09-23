@@ -231,7 +231,7 @@ static void r113_EventRideShoulder()
         TransMatrix(m, &pos);
         PSMTXMultVec(m, &pos2, &pos3);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             Vec* prot = &pPL->ang;
 
             sub->setPos(&pos3);

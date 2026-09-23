@@ -128,7 +128,7 @@ static void r20a_CarryOnShoulder()
     TransMatrix(m, &pos);
     PSMTXMultVec(m, &dSub, &pos2);
     {
-        cSubChar* sub = pSUB;
+        cSubChar* sub = SUB_CHAR();
         Vec* rot2 = &pPL->ang;
 
         sub->setPos(&pos2);
@@ -157,7 +157,7 @@ static void r20a_CarryOnShoulderEndProc()
     pPL->setNoSuspend(0);
     pSUB->setNoSuspend(0);
     {
-        cSubChar* sub = pSUB;
+        cSubChar* sub = SUB_CHAR();
         Vec* rot = &pPL->ang;
 
         sub->setPos(&pos);

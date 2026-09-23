@@ -95,7 +95,7 @@ void R30cInit()
         if (ItemMgr.num(0x83) != 0 || KyfFlagChk(pG, KYF_R30C_DOOR)) {
             Vec pos = {0.0f, 0.0f, 0.0f};
             Vec ang;
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 rotY = 0.0f;
             Vec* pa = &ang;
 
@@ -110,7 +110,7 @@ void R30cInit()
         } else {
             Vec pos = {5250.0f, 0.0f, -7150.0f};
             Vec ang;
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 rotY = -1.6f;
             Vec* pa = &ang;
 
@@ -127,7 +127,7 @@ void R30cInit()
                 SceAtDataSet_exec(5, 0x12, 0, (TaskFunc) r30c_EventCut, 0, 1);
             }
         }
-        r30c_work->ashley = pSUB;
+        r30c_work->ashley = SUB_CHAR();
         pSUB = 0;
     } else {
         if (RsfCheck(G_ROOM_ID, 3) == 0) {

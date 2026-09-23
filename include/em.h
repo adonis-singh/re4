@@ -192,6 +192,8 @@ public:
 };
 
 extern cEmMgr EmMgr;
+extern cPlayer* pPL;
+extern cEm* pSUB;  // partner character (a cSubChar)
 
 // Pushable rack/crate enemy (game/emrack.cpp); only what pl_push calls.
 class cEmRack : public cEm {

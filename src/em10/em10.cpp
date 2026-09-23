@@ -12326,7 +12326,7 @@ static void em10_R1_NeckHang_Luis(cEm10* em)
 // shake-off 0x299, then EndSubDamage; sets the "partner held" status bits.
 static void subem10_NeckHang_Luis(cSubChar* sub)
 {
-    cSubChar* s = pSUB;
+    cSubChar* s = SUB_CHAR();
     PlArc* arc;
 
     StaFlagOn(pG, STA_TAKEAWAY);
@@ -13300,7 +13300,7 @@ static void em10_R1_TakeAway(cEm10* em)
 // (0x2A2..0x2A4, 0x9E..0xA0), dropped (0x33) and ended (EndSubDamage) when the Ganado dies.
 static void subem10_TakeAway(cSubChar* sub)
 {
-    cSubChar* s = pSUB;
+    cSubChar* s = SUB_CHAR();
     int r;
 
     s->subArc = s->pEmCatch->subArc;
@@ -23776,7 +23776,7 @@ static void plem10DmGondolaShake(cPlayer* pl)
 // Ashley's routine of the room 10F gondola shake: stagger motions 0x43..0x45, then EndSubDamage.
 static void subem10DmGondolaShake(cSubChar* sub)
 {
-    cSubChar* s = pSUB;
+    cSubChar* s = SUB_CHAR();
 
     s->dmg.m_Timer = 2;
     StaFlagOn(pG, STA_TAKEAWAY);

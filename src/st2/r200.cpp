@@ -453,7 +453,7 @@ extern "C" void Evt_R200S00_Func(Event* e)
         SmdGetObjPtr(0x33)->setNoSuspend(1);
         SmdGetObjPtr(0x34)->setNoSuspend(1);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 cPlayer* pl = pPL;

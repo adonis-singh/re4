@@ -307,7 +307,7 @@ near:
         }
         PSVECAdd(&pSUB->pos, &d, &pSUB->pos);
         pSUB->ang.y = pSUB->ang.y + Muku2(pSUB->ang.y, ang, 0.17453292f);
-        sub = pSUB;
+        sub = SUB_CHAR();
         sub->setPos(&sub->pos);
         sub->setAng(&sub->ang);
         asm("" : : "r"(sub)); // COMPILER-DIFF: 12 (regmove operand pick, r20d)
@@ -547,7 +547,7 @@ near:
         }
         PSVECAdd(&pSUB->pos, &d, &pSUB->pos);
         pSUB->ang.y = pSUB->ang.y + Muku2(pSUB->ang.y, ang, 0.17453292f);
-        sub = pSUB;
+        sub = SUB_CHAR();
         sub->setPos(&sub->pos);
         sub->setAng(&sub->ang);
         asm("" : : "r"(sub)); // COMPILER-DIFF: 12 (regmove operand pick, r20d)

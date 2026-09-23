@@ -688,7 +688,7 @@ int SubLadderClimbCk(cEm* pEm)
     if (pSUB == 0) {
         return 0;
     }
-    if (pSUB->Route_h < 1000.0f) {
+    if (SUB_CHAR()->Route_h < 1000.0f) {
         return 0;
     }
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {

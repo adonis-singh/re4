@@ -411,7 +411,7 @@ int cameraHitCheck(Vec* pos, Vec* nrm, Vec* from, Vec* to)
         }
         ret = 1;
     }
-    if (pSubEm && pSubEm->id == 3) {
+    if (pSUB && pSUB->id == 3) {
         cAtariInfo atBuf;
         // The target reads/writes the info through a pointer register (lha 0x18(r29), stfs 0x4(r29)) that is
         // a copy of the constructor's `this` register (`mr r29,r30`), and the 76-byte copy below increments
@@ -426,11 +426,11 @@ int cameraHitCheck(Vec* pos, Vec* nrm, Vec* from, Vec* to)
         cModel* parts;
         Vec w;
 
-        atBuf = pSubEm->atari;
+        atBuf = pSUB->atari;
         if (at->m_parts_no != 0) {
-            parts = pSubEm->getPartsPtr(at->m_parts_no - 1);
+            parts = pSUB->getPartsPtr(at->m_parts_no - 1);
         } else {
-            parts = pSubEm;
+            parts = pSUB;
         }
         if (parts) {
             f32 r;
@@ -463,7 +463,7 @@ int cameraHitCheck(Vec* pos, Vec* nrm, Vec* from, Vec* to)
                 }
             }
             if (hit == 1) {
-                cEm* sub = pSubEm;
+                cEm* sub = pSUB;
                 at->m_radius *= GAIN;
                 if (ObaLineHitChk(sub, at, *from, p, hp, hn)) {
                     ret = 1;

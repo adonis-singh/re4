@@ -1094,7 +1094,7 @@ void plOnJet(cPlayer* pl)
 // Boarding: the motion 0x2C at the origin with two step SEs; at its end -> subBoatRun.
 static void subBoatRide()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0e* boat = (cPl0e*)sub->pEmCatch;
 
     sub->subArc = boat->subArc;
@@ -1136,7 +1136,7 @@ static void subBoatRide()
 // the ski's blendRate / frame.
 static void subBoatRun()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0e* boat = (cPl0e*)sub->pEmCatch;
     Pl0eWork* w = PL0E_WK(boat);
 
@@ -1166,7 +1166,7 @@ static void subBoatRun()
 // trick 0x31), seated on the ski.
 static void subBoatJump()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0e* boat = (cPl0e*)sub->pEmCatch;
 
     sub->subArc = boat->subArc;
@@ -1201,7 +1201,7 @@ static void subBoatJump()
 // at its end -> subBoatRun.
 static void subBoatLanding()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0e* boat = (cPl0e*)sub->pEmCatch;
     Pl0eWork* w = PL0E_WK(boat);
 
@@ -1232,7 +1232,7 @@ static void subBoatLanding()
 // Crash: the crash motion 0x2A, seated on the ski.
 static void subBoatCrash()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0e* boat = (cPl0e*)sub->pEmCatch;
 
     sub->subArc = boat->subArc;
@@ -1255,7 +1255,7 @@ static void subBoatCrash()
 // Sinking: the motion 0x2F at the origin (world placement in the motion).
 static void subBoatSink()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0e* boat = (cPl0e*)sub->pEmCatch;
 
     sub->subArc = boat->subArc;
@@ -1282,7 +1282,7 @@ static void subBoatSink()
 // Missed jump: the fall motion 0x30 at the origin.
 static void subBoatJumpMiss()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cPl0e* boat = (cPl0e*)sub->pEmCatch;
 
     sub->subArc = boat->subArc;

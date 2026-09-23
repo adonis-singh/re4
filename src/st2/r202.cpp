@@ -454,7 +454,7 @@ static void r202_operateCannon()
         int hit = SceAtHitCheck(0x10);
 
         if (hit == 1) {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub != 0) {
                 v = sub->pos;
@@ -499,7 +499,7 @@ static void r202_operateCannon()
     }
     SceEventEnd(0);
     {
-        cSubChar* sub = pSUB;
+        cSubChar* sub = SUB_CHAR();
 
         if (sub != 0) {
             if (pG->Room_flg[0] & 0x01000000) {

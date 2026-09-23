@@ -258,7 +258,7 @@ static void r203_EventMeetAgain()
         ang.z = 0.0f;
         pl->setAng(pa);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 sub->setPos(&pPL->pos);

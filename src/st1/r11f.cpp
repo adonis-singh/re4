@@ -613,12 +613,12 @@ static void r11f_EventS11()
     SceExec(0x12, r11f_AshleyRunUp, 0, 0, SCE_PRIO_DEF_2, 0);
 }
 
-// After the escape event: half a second later Ashley (pSubEm) runs back to Leon (chase) with her SE.
+// After the escape event: half a second later Ashley (pSUB) runs back to Leon (chase) with her SE.
 static void r11f_AshleyRunUp()
 {
     SceSleep(30);
     if (!(SubCharGetStatus() & 0x20000000)) {
         SubCharCtrl(SCC_CHASE, 0);
     }
-    RoomSeCall(0, &pSubEm->pos, 0, 0, pSubEm);
+    RoomSeCall(0, &pSUB->pos, 0, 0, pSUB);
 }

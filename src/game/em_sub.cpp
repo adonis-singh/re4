@@ -372,7 +372,7 @@ void EmPlBloodSet2(cModel* pEm, Vec* pPos, u32 type, u8 eff_id, u8 est_id)
 // EmPlBloodSet for the partner.
 void EmSubBloodSet(cEm* pEm, Vec* pPos, u32 type, u8 eff_id, u8 est_id)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     YARARE_INFO* hit;
     Mtx m;
     Vec p;
@@ -2238,7 +2238,7 @@ YARARE_INFO* EmAtkLineHitCkSub(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm)
         pNorm->y = 0.0f;
         pNorm->z = 0.0f;
     }
-    sub = pSUB;
+    sub = SUB_CHAR();
     if (!(sub->be_flag & 1)) {
         return 0;
     }

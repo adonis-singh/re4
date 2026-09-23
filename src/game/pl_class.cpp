@@ -54,7 +54,7 @@ u32 upDownCk(cPlayer* pl);
 // inline member of the class whose vtable this unit owns: emitted here after the destructor.
 inline void cPlayer::subCharLiveCheck()
 {
-    cEm* sub = pSubEm;
+    cEm* sub = pSUB;
     if (sub && sub->id == 3 && sub->hp <= 0 && r_no_0 == 0) {
         EmRoutineSet(this, 6, 0, 0, 0);
         dmg.set(0, 0x80);
@@ -1645,7 +1645,7 @@ cEm* cPlNeck::getTarget()
         if (em == pPL) {
             continue;
         }
-        if (em == pSubEm) {
+        if (em == pSUB) {
             continue;
         }
         Vec* to = &em->getPartsPtr(em->lockParts)->world;

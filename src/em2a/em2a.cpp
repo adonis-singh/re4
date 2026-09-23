@@ -517,7 +517,7 @@ static void em2a_R1_Trap1BiteSub(cEm2a* em)
 // every 30..45 frames, "partner held" bit Status_flg[2] bit29) until freed, then EndSubDamage.
 static void subem2a_Trap1Bite(cSubChar* sub_)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     sub->subArc = sub->pEmCatch->subArc;
     StaFlagOn(pG, STA_SUB_CATCHED);
