@@ -497,6 +497,7 @@ public:
     void partsWorldCalc();
     void setPos(Vec* newPos);
     void setAng(Vec* ang);
+    void setPosAng(Vec* newPos, Vec* newAng) { setPos(newPos); setAng(newAng); }
     // Component overloads: a Vec temporary, then setPos / setAng.
     void setPos(f32 x, f32 y, f32 z) { Vec tpos; tpos.x = x; tpos.y = y; tpos.z = z; setPos(&tpos); }
     void setAng(f32 ax, f32 ay, f32 az) { Vec tang; tang.x = ax; tang.y = ay; tang.z = az; setAng(&tang); }

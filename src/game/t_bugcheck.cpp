@@ -99,7 +99,6 @@ void cToolBugcheck::menuPosMove()
 {
     f32 speed;
     f32 floor;
-    cModel* pl;
 
     pG->Stop_flg &= ~0x10000000;
     pG->Stop_flg &= ~0x40000000;
@@ -127,21 +126,12 @@ void cToolBugcheck::menuPosMove()
             v.y = v.y + speed * (f32) (int) Joy[0].triggerRight - speed * (f32) (int) Joy[0].triggerLeft;
         }
         PSVECAdd(&pPL->pos, &v, &pPL->pos);
-        pl = pPL;
-        pl->setPos(&pl->pos);
-        {
-            // COMPILER-DIFF: candidate (combine): the `&pl->rot` pseudo must reach sched1 uncombined
-            // (target `addi r4,r30,160; mr r3,r30`). A non-volatile asm that reads it and launders
-            // `pl` is a second use that blocks combine, is issued before the r4 move (so P is tied to
-            // r4) and leaves sched2's dependent counts of the setPos arg moves equal; it is also the
-            // extra loop insn at global-alloc time that orders the 14 hoisted highs r14-r25.
-            Vec* pr = &pl->ang;
-            asm("" : "+r"(pl) : "r"(pr));
-            pl->setAng(pr);
-        }
+        pPL->setPosAng(&pPL->pos, &pPL->ang);
         {
             // COMPILER-DIFF: candidate (gcse hash bucket of the .LC label name): one more constant
-            // pool label before "X:%.0f" gives the target's hoisted-high pseudo order.
+            // pool label before "X:%.0f" gives the target's hoisted-high pseudo order. PS2's
+            // cPlWaist::reset() (a 0.0f store, player.h) would add exactly this label, but a real
+            // body there moves the body-count windows of esp and db_light.
             f32 lc0 = 1.0f;
         }
         eprintf(32, 56, 0, 0, "X:%.0f", pPL->pos.x);

@@ -303,7 +303,6 @@ extern SYSTEM_SAVE_WORK SystemSave;
 static inline void BitOn(u32& f, u32 b) { f |= b; }
 static inline void BitOff(u32& f, u32 b) { f &= ~b; }
 
-static inline void BitOn16(u16& f, u16 b) { f |= b; }
 // `f &= ~b` with b a parameter keeps the 32-bit mask: `rlwinm` instead of the folded `andi.` (pl_sub).
 static inline void BitOff16(u16& f, u16 b) { f &= ~b; }
 // Plain store through the same kind of reference (debug tools restoring saved flag words).
