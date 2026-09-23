@@ -122,8 +122,8 @@ int cEsp14::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
 
     w->Mul = (f32)(s8)pSeq->Work8[0] * 0.05f + 0.25f;
     w->Base_y = m_Size_base_y;
-    w->Rimiter = *(Vec*)&pSeq->Vec0.x;
-    w->Rimiter_ofs = *(Vec*)&pSeq->Vec1.x;
+    w->Rimiter = pSeq->Vec0;
+    w->Rimiter_ofs = pSeq->Vec1;
     if (fabsf(pSeq->Vec0.x) < fabsf(pSeq->Vec1.x) || fabsf(pSeq->Vec0.z) < fabsf(pSeq->Vec1.z) ||
         fabsf(pSeq->Vec0.y) != 0.0f || fabsf(pSeq->Vec1.y) != 0.0f) {
         pLog->err(0, 0, "ESP14 : Vec0 or Vec1 Invalid Paramater.");

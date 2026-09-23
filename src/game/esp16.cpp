@@ -304,11 +304,11 @@ int cEsp16::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
             w->pParts = m_pMod->getPartsPtr(no - 1);
         }
     }
-    w->grav = *(Vec*)&pSeq->Vec1.x;
+    w->grav = pSeq->Vec1;
     w->max_len = pSeq->Vec0.x;
     w->del = pSeq->Vec0.y * 0.01f;
     w->nen = pSeq->Vec0.z * 0.01f;
-    w->rand_plus = *(Vec*)&pSeq->Vec2.x;
+    w->rand_plus = pSeq->Vec2;
     if (!Esp3f_Alloc(sizeof(Vec), w->Num, &w->pPosBuf, &info) || !Esp3f_Alloc(sizeof(Vec), w->Num, &w->pSpdBuf, &info)) {
         pLog->warn(0, 0, "ESP_16 : Buf alloc failed.");
         return 0;

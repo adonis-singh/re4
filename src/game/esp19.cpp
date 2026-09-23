@@ -44,7 +44,7 @@ int cEsp19::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
 {
     Esp19Work* w = &m_Free;
 
-    w->Vec0 = *(Vec*)&pSeq->Vec0.x;
+    w->Vec0 = pSeq->Vec0;
     if (pSeq->Vec1.x == 0.0f) {
         w->max_laser_dist = 12000.0f;
     } else {

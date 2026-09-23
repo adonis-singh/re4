@@ -109,7 +109,7 @@ int cEsp1a::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
             return 0;
         }
         parts = m_pMod->getPartsPtr((s8)pSeq->Work8[0]);
-        m_Pos = *(Vec*)&pSeq->Pos.x;
+        m_Pos = pSeq->Pos;
         {
             Vec dir = { 0.0f, 0.01f, 0.0f };
             Vec sc;
@@ -155,6 +155,6 @@ int cEsp1a::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
         pLog->err(0, 0, "ESP1a : no parent!!");
         return 0;
     }
-    w->Dist = *(Vec*)&pSeq->Vec0.x;
+    w->Dist = pSeq->Vec0;
     return 1;
 }

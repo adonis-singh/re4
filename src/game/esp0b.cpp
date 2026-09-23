@@ -131,7 +131,7 @@ extern "C" void Esp0b_Trans(cEsp0b* esp)
 // Jitter amplitudes from Vec0; Work8[0..1] must be 0 (reported, not fatal).
 int cEsp0b::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
 {
-    m_Free.BasePos = *(Vec*)&pSeq->Vec0.x;
+    m_Free.BasePos = pSeq->Vec0;
     if (pSeq->Work8[0] != 0) {
         pLog->err(0, 0, "ESP : 'ESP15' WK0 not 0!! ");
     }

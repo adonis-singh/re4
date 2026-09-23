@@ -211,7 +211,7 @@ int cEsp07::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
 {
     Esp07Work* w = &m_Free;
 
-    w->RefRate = *(Vec*)&pSeq->Vec0.x;
+    w->RefRate = pSeq->Vec0;
     PSVECScale(&w->RefRate, &w->RefRate, 0.1f);
     w->GndEstOwner = pSeq->Work8[0];
     w->GndEstNo = pSeq->Work8[1];

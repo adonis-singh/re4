@@ -211,7 +211,7 @@ int cEsp06::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
     if (pSeq->Vec1.x != 0.0f || pSeq->Vec1.y != 0.0f || pSeq->Vec1.z != 0.0f) {
         Vec r;
 
-        r = *(Vec*)&pSeq->Vec1.x;
+        r = pSeq->Vec1;
         w->Flg |= 0x80;
         PSVECScale(&r, &r, 0.017453292f);
         RotMatrix(w->PathMat, &r);
@@ -222,7 +222,7 @@ int cEsp06::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
         Vec s;
         Mtx sm;
 
-        s = *(Vec*)&pSeq->Vec0.x;
+        s = pSeq->Vec0;
         w->Flg |= 0x80;
         PSVECScale(&s, &s, 0.1f);
         s.x += 1.0f;
