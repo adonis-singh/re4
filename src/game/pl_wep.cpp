@@ -83,7 +83,7 @@ void cPlayer::weaponRelease()
         Wep->m_pWepHand = 0;
     }
     endCamera();
-    if ((stat & 1) == 0) {
+    if ((stat.check(cPlayer::F_NO_WEP_EFF)) == 0) {
         switch (pG->weapon_no_old) {
         case 0:
             break;
@@ -152,7 +152,7 @@ void cPlayer::weaponRelease()
             break;
         }
     }
-    stat &= ~1;
+    stat.off(cPlayer::F_NO_WEP_EFF);
     EffectEspDelete(0, ESP_CORE_KIND_PL_WEP, this, 0);
     EffectEspgenDelete(0, ESP_CORE_KIND_PL_WEP, this);
     EffectEfmDelete(0, ESP_CORE_KIND_PL_WEP, this);
@@ -178,7 +178,7 @@ void cPlayer::weaponInit()
     if (WeaponInitFunc) {
         WeaponInitFunc(this);
     }
-    if (!StaFlagChk(pG, STA_PL_BOAT) && !(stat & 0x40)) {
+    if (!StaFlagChk(pG, STA_PL_BOAT) && !(stat.check(cPlayer::F_CROUCH))) {
         r_no_0 = 0;
         r_no_1 = 0;
         r_no_2 = 0;

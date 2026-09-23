@@ -85,7 +85,7 @@ static void wep07_r3_ready00(cPlayer* pl)
     pl->Neck->init(0, 0, 0);
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     hokan = 4;
-    if (!(pl->stat & 0x40)) {
+    if (!(pl->stat.check(cPlayer::F_CROUCH))) {
         hokan = 5;
     }
     mot = PL_ARC(0x8B);

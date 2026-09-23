@@ -2025,7 +2025,7 @@ void emDoorSatSet(cEmDoor* pEm)
         }
         w->pSat[1] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
     } else {
-        w->pSat[1]->m_Flag |= 4;
+        w->pSat[1]->setEnable();
         w->pSat[1]->setCoord(&pEm->pos, &pEm->ang);
     }
     if (!(pEm->flag & 0x7500)) {
@@ -2046,7 +2046,7 @@ void emDoorSatSet(cEmDoor* pEm)
             }
             w->pSat[2] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
         } else {
-            w->pSat[2]->m_Flag |= 4;
+            w->pSat[2]->setEnable();
             w->pSat[2]->setCoord(&pEm->pos, &pEm->ang);
         }
     }
@@ -2070,7 +2070,7 @@ void emDoorSatSet(cEmDoor* pEm)
                 break;
             }
         } else {
-            w->pSat[3]->m_Flag |= 4;
+            w->pSat[3]->setEnable();
             w->pSat[3]->setCoord(&pEm->pos, &pEm->ang);
         }
     }
@@ -2088,7 +2088,7 @@ void emDoorSatSet(cEmDoor* pEm)
             break;
         }
     } else {
-        w->pSat[4]->m_Flag |= 4;
+        w->pSat[4]->setEnable();
         w->pSat[4]->setCoord(&pEm->pos, &pEm->ang);
     }
     if (w->pSat[5] == 0) {
@@ -2105,7 +2105,7 @@ void emDoorSatSet(cEmDoor* pEm)
             break;
         }
     } else {
-        w->pSat[5]->m_Flag |= 4;
+        w->pSat[5]->setEnable();
         w->pSat[5]->setCoord(&pEm->pos, &pEm->ang);
     }
 }
@@ -2117,19 +2117,19 @@ void emDoorSatClear(cEmDoor* pEm)
 
     pEm->atari.clrFlag200();
     if (w->pSat[1]) {
-        w->pSat[1]->m_Flag &= ~4;
+        w->pSat[1]->setDisable();
     }
     if (w->pSat[2]) {
-        w->pSat[2]->m_Flag &= ~4;
+        w->pSat[2]->setDisable();
     }
     if (w->pSat[3]) {
-        w->pSat[3]->m_Flag &= ~4;
+        w->pSat[3]->setDisable();
     }
     if (w->pSat[4]) {
-        w->pSat[4]->m_Flag &= ~4;
+        w->pSat[4]->setDisable();
     }
     if (w->pSat[5]) {
-        w->pSat[5]->m_Flag &= ~4;
+        w->pSat[5]->setDisable();
     }
 }
 

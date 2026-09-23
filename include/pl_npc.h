@@ -5,6 +5,7 @@
 #include "vec.h"
 #include "em.h"
 #include "cMotBase.h"
+#include "cFlag.h"
 
 class cEmWindow;
 
@@ -13,12 +14,36 @@ class cEmWindow;
 // The cSubChar-only fields live in cEm's work area (they sit below 0xDE0, see em.h).
 class cSubChar : public cEm {
 public:
+    enum FLAG {
+        F_SLEEP = 0,
+        F_STAY = 1,
+        F_RELAX = 2,
+        F_MOVE_TO = 3,
+        F_DONT_RUN = 4,
+        F_SHADOW_OFF = 5,
+        F_PL_CTRL = 6,
+        F_CALL_ENABLE = 7,
+        F_BEHIND = 8,
+    };
+    enum STATUS {
+        S_EM_NEAR = 0,
+        S_PL_NEAR = 1,
+        S_PANTS = 2,
+        S_HITWALL = 3,
+        S_WEPCAUTION = 4,
+        S_DOWN = 5,
+        S_ARRIVED = 6,
+        S_FALL_WINDOW = 7,
+        S_NEED_STOP = 8,
+        S_EM_NEAR2 = 9,
+    };
+
     cSubChar* pEm;            // 0x3E0  the model the routines animate (itself)
     int m_NeckTimer;          // 0x3E4  neckSet() called this frame
     Vec m_NeckVec;            // 0x3E8  neck angles (y: current neck angle, parts 3)
     Vec m_NeckTgt;            // 0x3F4  position looked at
-    u16 flg;                  // 0x400  bit7 (0x80) manual control, bit6 (0x40) ok to control, bit4 (0x10), bit3 (0x8) move-to, bit0
-    u16 status;               // 0x402  (pl_sub SubCharMoveTo clears 0x60)
+    cFlag<u16, FLAG> flg;     // 0x400
+    cFlag<u16, STATUS> status;   // 0x402
     u8 m_BackRno;             // 0x404
     u8 m_BackRno2;            // 0x405
     u16 m_BackTime;           // 0x406  frame counter

@@ -338,10 +338,10 @@ void objGondolaSatClear(cObjGondola* pObj)
 
     for (i = 0; i < 5; i++) {
         if (w->pSat[i]) {
-            w->pSat[i]->m_Flag &= ~4;
+            w->pSat[i]->setDisable();
         }
         if (w->pEat[i]) {
-            w->pEat[i]->m_Flag &= ~4;
+            w->pEat[i]->setDisable();
         }
     }
 }
@@ -431,7 +431,7 @@ void objGondolaSatSet(cObjGondola* pObj)
         poly[3].y = h;
         poly[3].z = -hd + cz;
         if (w->pSat[i]) {
-            w->pSat[i]->m_Flag |= 4;
+            w->pSat[i]->setEnable();
             w->pSat[i]->setCoord(&pos, &rot);
         } else {
             w->pSat[i] = SatMgr.create(&pos, &rot, poly, r, 0, 0x100);

@@ -130,10 +130,10 @@ void cObjGatling::move()
     Obj15_R1_move_tbl[r_no_1](this);
     if (w->pEat) {
         if (be_flag & 2) {
-            w->pEat->m_Flag |= 4;
+            w->pEat->setEnable();
             w->pEat->setCoord(&pos, &ang);
         } else {
-            w->pEat->m_Flag &= ~4;
+            w->pEat->setDisable();
         }
     }
     if (w->Heli_lock_timer) {
@@ -246,7 +246,7 @@ void obj15_R1_Break(cObjGatling* pObj)
         }
         pObj->be_flag &= ~2;
         if (w->pEat) {
-                w->pEat->m_Flag &= ~4;
+                w->pEat->setDisable();
         }
         pObj->r_no_2++;
     }
@@ -513,7 +513,7 @@ void cObjGatling::setBreak()
     }
     be_flag &= ~2;
     if (w->pEat) {
-        w->pEat->m_Flag &= ~4;
+        w->pEat->setDisable();
     }
     r_no_0 = 1;
     r_no_1 = 1;

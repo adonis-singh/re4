@@ -1319,7 +1319,7 @@ void pl0fBossCamMove(cPl0f* em, int hide)
 
     cEm* boss = w->pBoss;   // read before the flags test (the original loads pBoss above the `andi.`)
 
-    if (pPL->stat & 4) {
+    if (pPL->stat.check(cPlayer::F_BINOCULAR)) {
         return;
     }
     if (boss && w->Boss_chase) {

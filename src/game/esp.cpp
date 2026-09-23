@@ -86,6 +86,12 @@ int ESP_IsActive(cEsp* pEsp)
     return 1;
 }
 
+// Dead-stripped by the original link (nothing calls it).
+int cEsp::IsActive()
+{
+    return m_Be_flg & 1;
+}
+
 // Allocates an effect of id `id`: runs its registered create (operator new picks a free slot),
 // marks it live (m_Be_flg bit0), stores the id and bumps ActiveEspNum. Returns 1 on success;
 // on a bad id or a full pool *out is the dummy esp (pDmyEsp) and 0 is returned.

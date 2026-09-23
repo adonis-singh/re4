@@ -547,10 +547,10 @@ void emBoxSatClear(cEmBox* em)
     EmBoxWork* w = EMBOX_WK(em);
 
     if (w->pSat) {
-        w->pSat->m_Flag &= ~4;
+        w->pSat->setDisable();
     }
     if (w->pEat) {
-        w->pEat->m_Flag &= ~4;
+        w->pEat->setDisable();
     }
 }
 

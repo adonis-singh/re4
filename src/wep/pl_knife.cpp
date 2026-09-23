@@ -100,7 +100,7 @@ static void knife_r2_ready(cPlayer* pl)
     if (joyLKamae() == 0 && pl->r_no_3 != 3) {
         setWepTrans(pl, 1);
         FACE_SET(pl, 0.0f);
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -205,7 +205,7 @@ static void knife_r2_set(cPlayer* pl)
         PlWepLockCtrl(pl);
     }
     if (joyLKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;

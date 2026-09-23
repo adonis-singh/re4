@@ -78,7 +78,7 @@ static void wep11_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -202,7 +202,7 @@ static void wep11_r2_set(cPlayer* pl)
     PlWepLockCtrl(pl);
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -360,7 +360,7 @@ static void wep11_r3_fire10(cPlayer* pl)
                 EmRoutineSet(pl, 0, 6, 1, 0);
             }
 
-        } else if (pl->stat & 0x40) {
+        } else if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -425,7 +425,7 @@ static void wep11_r2_reload(cPlayer* pl)
     }
     case 1:
         if (MotionCheckCrossFrame(&pl->Motion, PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) && joyKamae() == 0) {
-            if (pl->stat & 0x40) {
+            if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;

@@ -882,7 +882,7 @@ void emBarrelEatSet(cEmBarrel* pEm)
         return;
     }
     if (w->sat) {
-        w->sat->m_Flag &= ~4;
+        w->sat->setDisable();
     }
     if (pEm->hp <= 0) {
         return;
@@ -904,7 +904,7 @@ void emBarrelEatSet(cEmBarrel* pEm)
         v[3].z = r;
         w->sat = EatMgr.create(&pEm->pos, &pEm->ang, v, 1250.0f, 0x400000, 0);
     } else {
-        w->sat->m_Flag |= 4;
+        w->sat->setEnable();
         w->sat->setCoord(&pEm->pos, &pEm->ang);
     }
 }

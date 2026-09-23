@@ -31,10 +31,10 @@
 // Scope camera on: the thermal light set for the infrared scope (weapon type 2 / weapon 0x1D).
 static inline void scopeOn(cPlayer* pl)
 {
-    pl->stat |= 0x10;
+    pl->stat.on(cPlayer::F_SCOPE);
     if (pG->weapon_type == 2 || pG->weapon_no == 0x1D) {
         StaFlagOn(pG, STA_THERMO_GRAPH);
-        pl->stat |= 0x200;
+        pl->stat.on(cPlayer::F_THERMO);
         LightMgr.setThermo();
     }
 }
@@ -83,11 +83,8 @@ static void wep09_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            EmRoutineSet(pl, 0, 0x11, 0, 0);
         } else {
             pl->r_no_0 = 0;
             pl->r_no_1 = 0;
@@ -177,11 +174,8 @@ static void wep09_r2_set(cPlayer* pl)
     if (joyKamae() == 0) {
         Vec at;
 
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            EmRoutineSet(pl, 0, 0x11, 0, 0);
         } else {
             int md = 3;
 
@@ -344,20 +338,11 @@ static void wep09_r3_fire20(cPlayer* pl)
 static void wep09_r3_fire30(cPlayer* pl)
 {
     if (joyKamae() == 0 && pl->Motion.Seq_frame >= 25.0f) {
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            EmRoutineSet(pl, 0, 0x11, 0, 0);
         } else {
-            // store order brute-forced (x3E0 first, xFD last, the 3 through an int local)
-            int md = 3;
-
+            EmRoutineSet(pl, 0, 6, 3, 0);
             pl->m_Work0 = 1;
-            pl->r_no_0 = 0;
-            pl->r_no_2 = md;
-            pl->r_no_3 = 0;
-            pl->r_no_1 = 6;
         }
     } else if (pl->motionMove()) {
         if (joyKamae()) {
@@ -366,20 +351,11 @@ static void wep09_r3_fire30(cPlayer* pl)
             CameraMove();
             scopeOn(pl);
             EmRoutineSet(pl, 0, 6, 1, 0);
-        } else if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        } else if (pl->stat.check(cPlayer::F_CROUCH)) {
+            EmRoutineSet(pl, 0, 0x11, 0, 0);
         } else {
-            // store order brute-forced (x3E0 first, xFD last, the 3 through an int local)
-            int md = 3;
-
+            EmRoutineSet(pl, 0, 6, 3, 0);
             pl->m_Work0 = 1;
-            pl->r_no_0 = 0;
-            pl->r_no_2 = md;
-            pl->r_no_3 = 0;
-            pl->r_no_1 = 6;
         }
     }
 }
@@ -465,7 +441,7 @@ static void wep09_r2_reload(cPlayer* pl)
     }
     case 1:
         if (joyKamae() == 0 && pl->Motion.Mot_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
-            if (pl->stat & 0x40) {
+            if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -522,7 +498,7 @@ static void wep09_r2_next(cPlayer* pl)
         }
     } else {
         if (joyKamae() == 0) {
-            if (pl->stat & 0x40) {
+            if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;

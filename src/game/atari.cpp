@@ -701,7 +701,7 @@ cSat* cSatMgr::create(Vec* pPos, Vec* pAng, Vec* pVec, f32 height, u32 attr, u32
     }
     sat = create(f, flag, pPos, pAng, 0);
     if (sat) {
-        sat->m_Flag |= 2;
+        sat->m_Flag.on(cSat::FLAG_MEM);
     } else {
         Mem_free(f);
     }
@@ -1000,7 +1000,7 @@ void cSatMgr::destroy(cSat* p)
         pLog->err(0, 0, "cSatMgr::destroy() PTR ERR 0x%08x", p);
         return;
     }
-    if (p->m_Flag & 2) {
+    if (p->m_Flag.check(cSat::FLAG_MEM)) {
         Mem_free(p->pFile);
     }
     cManager<cSat>::destroy(p);
@@ -1012,7 +1012,7 @@ int cSatMgr::construct(cSat* pSat, u32 id)
     // the alive flag before, the active flag after the constructor: keeps the vptr store last
     pSat->be_flag = 1;
     new (pSat) cSat();
-    pSat->m_Flag = 0;
+    pSat->m_Flag.reset();
     return 1;
 }
 
@@ -1093,7 +1093,7 @@ void cSat::init(cSatFile* pSf, Vec* pos, Vec* ang)
     if (!pSf->dataCheck()) {
         pLog->err(0, 0, "ATARI DATA ERROR 0x%08x", pSf);
     }
-    m_Flag = 4;
+    m_Flag.set(4);
     *this = pSf;
     setCoord(pos, ang);
     blockInit(block_p);

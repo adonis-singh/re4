@@ -105,7 +105,7 @@ static void wep14_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -280,7 +280,7 @@ static void wep14_r2_set(cPlayer* pl)
         pl->setLaserSight(0, 0);
     }
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -334,7 +334,7 @@ static void wep14_r3_set00(cPlayer* pl)
     if (pG->weapon_type & 1) {
         CamCtrl.startScope(0, 0);
         CameraMove();
-        pl->stat |= 0x10;
+        pl->stat.on(cPlayer::F_SCOPE);
     }
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x13), PL_ARC_PTR(arc, 0x17), PL_ARC_PTR(arc, 0x19), 0, 3, 0, 4, 0);
@@ -408,7 +408,7 @@ static void wep14_r3_fire00(cPlayer* pl)
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
     m3r = pitch;
     pl->r_no_3 = 1;
-    pl->stat &= ~0x20;
+    pl->stat.off(cPlayer::F_SP_L_HAND);
 }
 
 // fire step 1: the fire motion plays; the left hand model is swapped to 5 (holding the next dart,
@@ -417,11 +417,11 @@ static void wep14_r3_fire10(cPlayer* pl)
 {
     if (MotionCheckCrossFrame(&pl->Motion, 23.0f)) {
         SndCall(2, 4, &pl->getPartsPtr(4)->world, 0, 0, 0);
-        pl->stat |= 0x20;
+        pl->stat.on(cPlayer::F_SP_L_HAND);
         pl->setLeftHand(5);
     }
     if (MotionCheckCrossFrame(&pl->Motion, 30.0f)) {
-        pl->stat &= ~0x20;
+        pl->stat.off(cPlayer::F_SP_L_HAND);
         pl->setLeftHand(4);
     }
     if (pl->motionMove()) {
@@ -443,7 +443,7 @@ static void wep14_r2_down(cPlayer* pl)
     if (pG->weapon_type & 1) {
         CamCtrl.endScope();
         CameraMove();
-        pl->stat &= ~0x10;
+        pl->stat.off(cPlayer::F_SCOPE);
     }
     if (dmMotCk()) {
         pl->motionSet(WEP_ARC_PTR(0x15), 7, 0, 1, 0);
@@ -502,7 +502,7 @@ static void wep14_r2_reload(cPlayer* pl)
             if (pG->weapon_type & 1) {
                 CamCtrl.startScope(0, 0);
                 CameraMove();
-                pl->stat |= 0x10;
+                pl->stat.on(cPlayer::F_SCOPE);
             }
             pl->r_no_0 = 0;
             pl->r_no_1 = 6;
@@ -555,7 +555,7 @@ static void wep14_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;

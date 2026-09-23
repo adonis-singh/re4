@@ -88,7 +88,7 @@ static void wep13_r2_ready(cPlayer* pl)
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
         LAUNCHER(pl)->grip(0);
         pl->Wep->m_pWep->resetMotion();
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -141,9 +141,9 @@ static void wep13_r3_ready00(cPlayer* pl)
     m3r.reset(0.0f);
     m3r.setDelay(0.0f);
     lockCtr = 0;
-    if (pl->stat & 0x400) {
+    if (pl->stat.check(cPlayer::F_NO_LAUNCHER)) {
         pl->Wep->m_pWep->setDisp(0, 1);
-        pl->stat &= ~0x400;
+        pl->stat.off(cPlayer::F_NO_LAUNCHER);
         pl->Wep->m_pWep->setMotion(pl);
     }
     if (pG->weapon_type != 2) {
@@ -233,7 +233,7 @@ static void wep13_r2_set(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     pl->setLaserSight(0, 0);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -273,9 +273,9 @@ static void wep13_r3_set00(cPlayer* pl)
     pl->motionMove();
     pl->Wep->m_pWep->setDisp(1, 0);
     SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
-    if (!(pl->stat & 0x10)) {
+    if (!(pl->stat.check(cPlayer::F_SCOPE))) {
         CamCtrl.startScope(0, 0);
-        pl->stat |= 0x10;
+        pl->stat.on(cPlayer::F_SCOPE);
     }
     pl->r_no_3 = 1;
 }
@@ -389,7 +389,7 @@ static void wep13_r3_fire10(cPlayer* pl)
         if (joyKamae()) {
             CamCtrl.startScope(0, 0);
             CameraMove();
-            pl->stat |= 0x10;
+            pl->stat.on(cPlayer::F_SCOPE);
             pl->r_no_0 = 0;
             pl->r_no_1 = 6;
             pl->r_no_2 = 1;
@@ -428,24 +428,11 @@ static void wep13_r3_down00(cPlayer* pl)
 {
     CamCtrl.endScope();
     CameraMove();
-    pl->stat &= ~0x10;
+    pl->stat.off(cPlayer::F_SCOPE);
     pl->Wep->m_pWep->setDisp(1, 1);
     if (joyLKamae()) {
-        // `li r9,3` before the stack-argument `stw r0,8(r1)`: the two tie in sched2 (equal
-        // priority and dependents), so sched1's issue order decides. A constant in a local
-        // makes the r9 argument a copy of a dying pseudo (weight 0) that sched1 issues before
-        // the `mr r4,pl` copy (+1) and before the stack store, which waits for its
-        // anti-dependence on the m_MotTbl loads; reload ties the pseudo to r9.
-        u8 hokan = 3;
-        void* mot0 = pl->m_MotTbl[0x55];
-        void* mot1 = pl->m_MotTbl[0x56];
-
-        mot3.set(pl, mot0, mot0, mot0, mot1, hokan, 0, 4, 0);
+        mot3.set(pl, pl->m_MotTbl[0x55], pl->m_MotTbl[0x55], pl->m_MotTbl[0x55], pl->m_MotTbl[0x56], 3, 0, 4, 0);
         mot3.move(m3r);
-        // The dead loop's NOTE_INSN_LOOP_END ends cse's extended block, so the QImode store
-        // below gets its own `li r0,3` instead of a subreg of `hokan` (which would keep the
-        // constant in a callee-saved register across the calls).
-        do { } while (0);
         pl->r_no_3 = 3;
     } else {
 
@@ -559,7 +546,7 @@ static void wep13_r2_throw(cPlayer* pl)
         if (MotionCheckCrossFrame(&pl->Motion, 18.0f)) {
             cObjWep* obj;
 
-            pl->stat |= 0x400;
+            pl->stat.on(cPlayer::F_NO_LAUNCHER);
             obj = pl->Wep->m_pWep;
             obj->r_no_0 = 5;
             obj->r_no_1 = 0;
@@ -614,7 +601,7 @@ static void wep13_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;

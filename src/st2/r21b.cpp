@@ -229,7 +229,7 @@ static void r21b_SwitchMove(int no)
         pG->Room_flg[0] |= 0x40000000;
         obj = SmdGetObjPtr(0xC8);
         if (r21b_work->sat) {
-            r21b_work->sat->m_Flag &= ~4;
+            r21b_work->sat->setDisable();
         }
     } else {
         if (pG->Room_flg[0] & 0x20000000) {

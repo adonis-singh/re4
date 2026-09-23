@@ -236,7 +236,7 @@ void cObjLauncher::init(cModel* pMod)
         loadRocket();
     }
     if (bulletNum() == 0) {
-        pPL->stat |= 0x400;
+        pPL->stat.on(cPlayer::F_NO_LAUNCHER);
     }
 }
 
@@ -460,7 +460,7 @@ void cObjLauncher::setMotion(cPlayer* pEm)
     WEP_MOT(pEm, 0x59, 0x2E);
     WEP_MOT(pEm, 0x5B, 0x1B);
     WEP_MOT(pEm, 0x57, 0x1C);
-    if (!(pEm->stat & 0x400)) {
+    if (!(pEm->stat.check(cPlayer::F_NO_LAUNCHER))) {
         pEm->Body->initWepHand((u32) WEP_ARC_PTR(0x7));
         pEm->setRightHand(1);
         pEm->setLeftHand(4);

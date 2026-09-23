@@ -249,7 +249,7 @@ u32 PlGetStatus()
         st |= 0x80000000;
         break;
     }
-    if (pl->stat & 2) {
+    if (pl->stat.check(cPlayer::F_EVENT)) {
         st |= 0x20000;
     }
     return st;
@@ -511,9 +511,9 @@ void SubCharCtrl(int mode, int sccf)
         break;
     }
     if (sccf & 2) {
-        sub->flg |= 0x80;
+        sub->flg.on(cSubChar::F_CALL_ENABLE);
     } else {
-        BitOff16(sub->flg, 0x80);
+        sub->flg.off(cSubChar::F_CALL_ENABLE);
     }
     if (sub->r_no_0 != 0 || sub->r_no_1 != 0xF) {
         sub->pAux = 0;
@@ -527,16 +527,16 @@ int SubCharCheckCtrl()
 {
     cSubChar* sub = pSUB;
 
-    if (sub->flg & 0x80) {
+    if (sub->flg.check(cSubChar::F_CALL_ENABLE)) {
         return 1;
     }
-    if (!(sub->flg & 0x40)) {
+    if (!(sub->flg.check(cSubChar::F_PL_CTRL))) {
         return 0;
     }
-    if (sub->flg & 1) {
+    if (sub->flg.check(cSubChar::F_SLEEP)) {
         return 0;
     }
-    if (sub->flg & 8) {
+    if (sub->flg.check(cSubChar::F_MOVE_TO)) {
         return 0;
     }
     if (sub->r_no_0 != 0) {
@@ -595,7 +595,7 @@ void SubCharMoveTo(f32 x, f32 y, f32 z, f32 ry, int mode)
 {
     cSubChar* sub = pSUB;
 
-    if ((sub->flg & 8) && x == sub->m_TargetPos.x && y == sub->m_TargetPos.y && z == sub->m_TargetPos.z &&
+    if ((sub->flg.check(cSubChar::F_MOVE_TO)) && x == sub->m_TargetPos.x && y == sub->m_TargetPos.y && z == sub->m_TargetPos.z &&
         ry == sub->m_TargetDir) {
         return;
     }
@@ -606,9 +606,9 @@ void SubCharMoveTo(f32 x, f32 y, f32 z, f32 ry, int mode)
     sub->control(4);
     sub->analyze();
     sub->move();
-    BitOff16(sub->status, 0x40);
+    sub->status.off(cSubChar::S_ARRIVED);
     if (mode & 1) {
-        sub->flg |= 0x10;
+        sub->flg.on(cSubChar::F_DONT_RUN);
     }
 }
 
@@ -835,7 +835,7 @@ int joyKamae()
             pLog->err(0, 0, "joyKamae() PTR ERR");
             return 0;
         }
-        if (pl->stat & 0x1000) {
+        if (pl->stat.check(cPlayer::F_KNIFE)) {
             return 0;
         }
         if (wep->m_pWep->keyKamae()) {
@@ -860,7 +860,7 @@ int joyLKamae()
         }
     } else {
         if (pG->pl_type == 0 || pG->pl_type == 4) {
-            if (pl->stat & 0x1000) {
+            if (pl->stat.check(cPlayer::F_KNIFE)) {
                 if (Key.on & 0x10) {
                     return 1;
                 }

@@ -770,7 +770,7 @@ void subobjLadderClimb(cEm* pl)
         MotionSetCore(em, &em->Motion, w->mot_tbl[16], 0, 5, 1, 0);
         em->atari.m_flag &= ~0x100;
         em->atari.m_flag |= 0x10;
-        ((cSubChar*) em)->flg |= 0x20;
+        ((cSubChar*) em)->flg.on(cSubChar::F_SHADOW_OFF);
         ((cSubChar*) em)->m_Work0 = obj->getLadderNum();
         ((cSubChar*) em)->m_Work1 = 8;
         em->r_no_2++;
@@ -838,7 +838,7 @@ void subobjLadderClimb(cEm* pl)
             }
             if (em->Motion.Seq_frame > 42.7f && em->Motion.Seq_frame < 43.3f) {
                 SndCall(5, 0xE, &em->getPartsPtr(0x18)->world, em->id, 0, 0);
-                BitOff16(((cSubChar*) em)->flg, 0x20);
+                ((cSubChar*) em)->flg.off(cSubChar::F_SHADOW_OFF);
             }
         } else {
             if (em->Motion.Seq_frame > 11.7f && em->Motion.Seq_frame < 12.3f) {
@@ -849,7 +849,7 @@ void subobjLadderClimb(cEm* pl)
             }
             if (em->Motion.Seq_frame > 35.7f && em->Motion.Seq_frame < 36.3f) {
                 SndCall(5, 0xE, &em->getPartsPtr(0x18)->world, em->id, 0, 0);
-                BitOff16(((cSubChar*) em)->flg, 0x20);
+                ((cSubChar*) em)->flg.off(cSubChar::F_SHADOW_OFF);
             }
         }
         ((cSubChar*) em)->m_Work0++;
@@ -865,7 +865,7 @@ void subobjLadderClimb(cEm* pl)
                 em->pos.y = fl;
             }
             EndSubDamage();
-            BitOff16(((cSubChar*) em)->flg, 0x20);
+            ((cSubChar*) em)->flg.off(cSubChar::F_SHADOW_OFF);
             em->atari.m_flag |= 0x100;
             em->atari.m_flag &= ~0x10;
         }

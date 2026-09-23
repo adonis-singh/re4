@@ -9,6 +9,7 @@
 #include "pl_body.h"
 #include "pl_wep.h"
 #include "pl_cloth.h"
+#include "cFlag.h"
 
 // 0x98-byte work at cEm::p2A4 (player.cpp init1 mem_alloc); only the byte cam_ctrl reads is named.
 class cPlayer;
@@ -121,6 +122,22 @@ extern cEm* pSubEm asm("pSUB");
 // linkonce copies (fold_linkonce). Add none that pl_class's target lacks.
 class cPlayer : public cEm {
 public:
+    enum FLAG {
+        F_NO_WEP_EFF = 0,
+        F_EVENT = 1,
+        F_BINOCULAR = 2,
+        F_OBJPUSH = 3,
+        F_SCOPE = 4,
+        F_SP_L_HAND = 5,
+        F_CROUCH = 6,
+        F_LANDING = 7,
+        F_FALLING = 8,
+        F_THERMO = 9,
+        F_NO_LAUNCHER = 10,
+        F_SHADOW = 11,
+        F_KNIFE = 12,
+    };
+
     u32 m_Work0;          // 0x3E0  event walk flag / damage timer  (PS2 cPlayer::m_Work0)
     int m_Work1;          // 0x3E4  damage: 1 = turning towards m_Fwork0  (PS2 cPlayer::m_Work1)
     u32 m_Work2;          // 0x3E8  damage (blow): water splash done  (PS2 cPlayer::m_Work2)
@@ -133,7 +150,7 @@ public:
     Vec m_VecWork0;         // 0x404  event: walk-to position
     Vec m_VecWork1;        // 0x410  position setPos'd while stat bit7 is set (objRobo R0WaitGondola)
     u32 m_Flag;           // 0x41C  bit8 (0x100) event motion done -> reset routine  (PS2 cPlayer::m_Flag)
-    u32 stat;        // 0x420  bit6 (0x40) knife routine ends into routine 0x11
+    cFlag<u32, FLAG> stat;   // 0x420
     void** m_MotTbl;       // 0x424  motion data table ([0] walk, [2] turn, [0x5F..0x6C] set by setMotion)
     void** m_MotTbl2;    // 0x428  registered motion table (pl_sub PlRegistMotion fills [0..11])
     MotionWorkSub m_SubMot;   // 0x42C .. 0x4FC  neck turn motion (pl_class cPlNeck::motSet), blended via blendMot

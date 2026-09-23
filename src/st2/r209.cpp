@@ -2060,7 +2060,7 @@ static void r209_RotateDoor(int no)
     r209_work->em[em].snipe = 1;
     // Pointer-arithmetic element access: the address is formed as (W + d*64) + 0x674 (`add; lwz`);
     // door[d].sat folds the work offset first ((W + 0x674) + d*64: `addi; lwzx`).
-    (*(r209_work->door + d)).sat->m_Flag |= 4;
+    (*(r209_work->door + d)).sat->setEnable();
     SceSleep(0x1E);
     r209_work->door[d].setClose();
     while (r209_work->door[d].getStatus() != 0) {
@@ -2231,19 +2231,19 @@ void cR209Door::open()
             break;
         case 0xB3:
             se = 0x19;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         case 0xB4:
             se = 0x1B;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         case 0xB5:
             se = 0x1D;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         case 0xB6:
             se = 0x1F;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         default:
             se = -1;
@@ -2287,19 +2287,19 @@ void cR209Door::close()
             se = -1;
             break;
         case 0xB3:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x18;
             break;
         case 0xB4:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x1A;
             break;
         case 0xB5:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x1C;
             break;
         case 0xB6:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x1E;
             break;
         default:
@@ -2427,7 +2427,7 @@ void cR209Door::setOpened()
         break;
     default:
         obj->ang.y = -PI;
-        sat->m_Flag &= ~4;
+        sat->setDisable();
         break;
     }
     SndStop(se, 0);
@@ -2457,7 +2457,7 @@ void cR209Door::setClosed()
         break;
     default:
         obj->ang.y = 0.0f;
-        sat->m_Flag |= 4;
+        sat->setEnable();
         break;
     }
     SndStop(se, 0);

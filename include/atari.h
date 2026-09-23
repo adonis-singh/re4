@@ -8,39 +8,12 @@
 #include "at_sub.h"
 #include "at_sub2.h"
 #include "main_mem.h"
+#include "cFlag.h"
 
 class cModel;
 class cAtariInfo;
 
 #line 8 "D:/Bio4/Prog/atari.h"
-
-// 16 one-bit flags with range-checked access (game/atari.cpp).
-class cFlag {
-public:
-    u16 flags;
-
-    void set(u32 stat) {
-        if (stat > 15) {
-            pLog->err(0, 0, "cFlag.set() arg stat OVER FLOW %d", stat);
-            return;
-        }
-        flags |= 1 << stat;
-    }
-    void clr(u32 stat) {
-        if (stat > 15) {
-            dbgAssert(__FILE__, __LINE__);
-            return;
-        }
-        flags &= ~(1 << stat);
-    }
-    int check(u32 stat) {
-        if (stat > 15) {
-            pLog->err(0, 0, "cFlag.set() arg stat OVER FLOW %d", stat);
-            return 0;
-        }
-        return flags & (1 << stat);
-    }
-};
 
 // Scenario collision data file (SAT): counts, then the vertex, face normal, edge, polygon and
 // block tables back to back (cSat::operator= computes the table pointers).
@@ -95,6 +68,11 @@ public:
 // the flag byte (emobj setSatMain / clrSat: bit2 = active).
 class cSat : public cUnit {
 public:
+    enum FLAG {
+        FLAG_MEM = 1,      // pFile was allocated by cSatMgr::create (freed by destroy)
+        FLAG_ENABLE = 2,   // takes part in the collision checks
+    };
+
     Vec* vtx;        // 0x0C  (the three table pointers double as the AtPolyData the at_sub checks take)
     Vec* norm_p;        // 0x10
     Vec* edge_p;       // 0x14
@@ -106,7 +84,7 @@ public:
     u16 wall_num;          // 0x24
     u16 bb_num;         // 0x26
     u16 normal_num;     // 0x28
-    s8 m_Flag;        // 0x2A  bit1: pFile was allocated by cSatMgr::create (freed by destroy), bit2: piece takes part in the collision checks (signed: `&= ~4` is a word rlwinm)
+    cFlag<u8, FLAG> m_Flag;   // 0x2A
     u8 pad_2B;
     u16 edge_num;       // 0x2C
     u8 pad_2E[2];
@@ -117,14 +95,7 @@ public:
     Mtx mat;         // 0x60  piece -> world
     Mtx imat;         // 0x90  world -> piece
 
-    // Tools t_atari's static cSat arrays (stw 1; stw vptr; stb 0 per element in the static init loop) and
-    // ss_map's cSat locals show the real constructor: alive flag through the base, active flags cleared.
-    // The flags store goes through a reference: its address is then a register `f = this + 0x2A` whose
-    // cse class holds the frame-direct `(plus fp N)` for an inlined local (find_best_addr's REG path
-    // prefers the more expensive equivalent), so the `stb` is frame-relative while the vptr stores keep
-    // `this` (ss_map mapPositionCheck); a plain member store stays `(plus this 0x2A)` (PLUS path cost
-    // tie). No new header-level declaration: esp's static `max.<DECL_UID>` name is gcse-hash sensitive.
-    cSat() : cUnit(1) { s8& f = m_Flag; f = 0; }
+    cSat() : cUnit(1) {}
     void init(cSatFile* pSf, Vec* pos, Vec* ang);
     void setCoord(Vec* pos, Vec* ang);
     void setMatrix(Mtx mat0);
@@ -133,11 +104,14 @@ public:
     void disp(int poly_num, u32 col, int mode);
     // alive and taking part in the checks (hides cUnit::isAlive for cManager<cSat>::destroy)
     int isAlive();
+    void setEnable() { m_Flag.on(FLAG_ENABLE); }
+    void setDisable() { m_Flag.off(FLAG_ENABLE); }
+    int isEnable() { return m_Flag.check(FLAG_ENABLE); }
 };
 
 inline int cSat::isAlive()
 {
-    if ((be_flag & 0x201) == 1 && (m_Flag & 4)) {
+    if ((be_flag & 0x201) == 1 && isEnable()) {
         return 1;
     }
     return 0;

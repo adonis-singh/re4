@@ -293,10 +293,10 @@ static void objTrolleySatClear(cObjTrolley* pObj)
 
     for (i = 0; i < 5; i++) {
         if (w->pSat[i]) {
-            w->pSat[i]->m_Flag &= ~4;
+            w->pSat[i]->setDisable();
         }
         if (w->pEat[i]) {
-            w->pEat[i]->m_Flag &= ~4;
+            w->pEat[i]->setDisable();
         }
     }
 }
@@ -325,7 +325,7 @@ void objTrolleySatSet(cObjTrolley* pObj)
         pos = parts->world;
         pos.y += 500.0f;
         if (w->pSat[i]) {
-            w->pSat[i]->m_Flag |= 4;
+            w->pSat[i]->setEnable();
             w->pSat[i]->setCoord(&pos, &rot);
         } else {
             switch (i) {
@@ -343,7 +343,7 @@ void objTrolleySatSet(cObjTrolley* pObj)
         }
         cSat** sat2 = w->pEat;
         if (w->pEat[i]) {
-            w->pEat[i]->m_Flag |= 4;
+            w->pEat[i]->setEnable();
             w->pEat[i]->setCoord(&pos, &rot);
         } else {
             switch (i) {

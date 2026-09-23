@@ -815,19 +815,19 @@ void emBarredEatSet(cEmBarred* pEm)
     if (pEm->hp <= 0) {
         pEm->atari.throughOn();
         if (w->pEat) {
-            w->pEat->m_Flag &= ~4;
+            w->pEat->setDisable();
         }
         if (w->pEatFrame[0]) {
-            w->pEatFrame[0]->m_Flag &= ~4;
+            w->pEatFrame[0]->setDisable();
         }
         if (w->pEatFrame[1]) {
-            w->pEatFrame[1]->m_Flag &= ~4;
+            w->pEatFrame[1]->setDisable();
         }
         if (w->pEatFrame[2]) {
-            w->pEatFrame[2]->m_Flag &= ~4;
+            w->pEatFrame[2]->setDisable();
         }
         if (w->pEatFrame[3]) {
-            w->pEatFrame[3]->m_Flag &= ~4;
+            w->pEatFrame[3]->setDisable();
         }
     }
     attr = 0;
@@ -903,11 +903,11 @@ void emBarredEatSet(cEmBarred* pEm)
         poly[3].z = hy;
         w->pEat = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
     } else {
-        w->pEat->m_Flag |= 4;
+        w->pEat->setEnable();
         w->pEat->setCoord(&pEm->pos, &pEm->ang);
         flg = GetEtcFlgPtr(w->Etc_no, pG->room_id);
         if (flg && (*flg & 2)) {
-            w->pEat->m_Flag &= ~4;
+            w->pEat->setDisable();
         }
     }
     if (pEm->type == 6) {
@@ -927,7 +927,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[0] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
         } else {
-            w->pEatFrame[0]->m_Flag |= 4;
+            w->pEatFrame[0]->setEnable();
             w->pEatFrame[0]->setCoord(&pEm->pos, &pEm->ang);
         }
         if (w->pEatFrame[1] == 0) {
@@ -945,7 +945,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[1] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
         } else {
-            w->pEatFrame[1]->m_Flag |= 4;
+            w->pEatFrame[1]->setEnable();
             w->pEatFrame[1]->setCoord(&pEm->pos, &pEm->ang);
         }
         if (w->pEatFrame[2] == 0) {
@@ -963,7 +963,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[2] = EatMgr.create(&pEm->pos, &pEm->ang, poly, 260.0f, attr, 0);
         } else {
-            w->pEatFrame[2]->m_Flag |= 4;
+            w->pEatFrame[2]->setEnable();
             w->pEatFrame[2]->setCoord(&pEm->pos, &pEm->ang);
         }
         if (w->pEatFrame[3] == 0) {
@@ -981,7 +981,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[3] = EatMgr.create(&pEm->pos, &pEm->ang, poly, 260.0f, attr, 0);
         } else {
-            w->pEatFrame[3]->m_Flag |= 4;
+            w->pEatFrame[3]->setEnable();
             w->pEatFrame[3]->setCoord(&pEm->pos, &pEm->ang);
         }
     }

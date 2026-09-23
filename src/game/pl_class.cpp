@@ -986,7 +986,7 @@ void cPlayer::keyConfigTypeA()
 // 1 when an action button may be taken in the current routine.
 int cPlayer::actCheck()
 {
-    if (stat & 4) {
+    if (stat.check(F_BINOCULAR)) {
         return 0;
     }
     if (r_no_0 != 0) {
@@ -1008,7 +1008,7 @@ int cPlayer::actCheck()
 // Damage start: ends a running event (stat bit1) and interrupts the weapon / neck.
 void cPlayer::beginDamage()
 {
-    if (stat & 2) {
+    if (stat.check(F_EVENT)) {
         this->endEvent(0);
     }
     interrupt();
@@ -1087,7 +1087,7 @@ void cPlayer::beginEvent(u32 flag)
         EmRoutineSet(this, 5, 2, 0, 0);
         break;
     }
-    stat |= 2;
+    stat.on(F_EVENT);
 }
 
 // Stop everything the routines left running: cameras, neck, motion speed, weapon, face, sounds.
@@ -1096,11 +1096,11 @@ void cPlayer::interrupt()
     cModelInfo* face;
 
     endCamera();
-    stat |= 0x800;
+    stat.on(F_SHADOW);
     m_BbtnCnt = 0;
     Neck->m_Mode = 1;
     MOTION(this)->Seq_speed = 1.0f;
-    stat &= ~0x40;
+    stat.off(F_CROUCH);
     ang.y += pParts->ang.y;
     pParts->ang.y = 0.0f;
     if (Wep->m_pWep) {
@@ -1144,37 +1144,37 @@ int cPlayer::endCamera()
 {
     int ret = 0;
 
-    if (stat & 0x200) {
-        stat &= ~0x200;
+    if (stat.check(F_THERMO)) {
+        stat.off(F_THERMO);
         StaFlagOff(pG, STA_THERMO_GRAPH);
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             LightMgr.update(CamCtrl.areaNo, 0);
         }
     }
-    if (stat & 0x10) {
+    if (stat.check(F_SCOPE)) {
         CamCtrl.endScope();
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             CameraMove();
         }
-        stat &= ~0x10;
+        stat.off(F_SCOPE);
         be_flag |= 2;
         ret = 1;
     }
-    if (stat & 4) {
+    if (stat.check(F_BINOCULAR)) {
         CamCtrl.LowerBinocular();
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             CameraMove();
         }
-        stat &= ~4;
+        stat.off(F_BINOCULAR);
         SpfFlagOff(pG, SPF_KEY);
         ret = 1;
     }
-    if (stat & 8) {
+    if (stat.check(F_OBJPUSH)) {
         CamCtrl.endPushObject();
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             CameraMove();
         }
-        stat &= ~8;
+        stat.off(F_OBJPUSH);
         ret = 1;
     }
     return ret;
@@ -1193,7 +1193,7 @@ void cPlayer::endEvent0(u32 mode)
 {
     int one = 1;
 
-    if (!(stat & 2)) {
+    if (!(stat.check(F_EVENT))) {
         return;
     }
     be_flag |= 2;
@@ -1221,7 +1221,7 @@ void cPlayer::endEvent0(u32 mode)
             break;
         }
     }
-    stat &= ~2;
+    stat.off(F_EVENT);
 }
 
 // 1 while the player is in routine 0 (normal control) and an event may take him.
@@ -1240,7 +1240,7 @@ void cPlayer::beginAction()
         Wep->m_pWep->resetMotion();
     }
     setFootwork();
-    stat |= 2;
+    stat.on(F_EVENT);
 }
 
 // Action end: back to routine 0 with sub routine `routine` pending (m_Hokan).
@@ -1250,11 +1250,11 @@ void cPlayer::endAction(int hokan)
 {
     int one = 1;
 
-    if (stat & 2) {
+    if (stat.check(F_EVENT)) {
         be_flag |= 2;
         setNoSuspend(0);
         m_Hokan = hokan;
-        stat &= ~2;
+        stat.off(F_EVENT);
         m_Frame = 0;
         EmRoutineSet(this, 0, 0, 0, one);
     }
@@ -1440,7 +1440,7 @@ void cPlayer::shadowCtrl()
 {
     int on;
 
-    if (!(stat & 0x800) || pG->Camera.param.pos.y < pos.y || !pFloor_norm || pFloor_norm->y < 0.8f) {
+    if (!(stat.check(F_SHADOW)) || pG->Camera.param.pos.y < pos.y || !pFloor_norm || pFloor_norm->y < 0.8f) {
         on = 0;
     } else {
         on = 1;

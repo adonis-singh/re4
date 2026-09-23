@@ -197,10 +197,10 @@ void R20cExecCageUp()
         door1->Motion.Pos_world = door1->pos;
     }
     if (r20c_work->sat[0]) {
-        r20c_work->sat[0]->m_Flag &= ~4;
+        r20c_work->sat[0]->setDisable();
     }
     if (r20c_work->eat[0]) {
-        r20c_work->eat[0]->m_Flag &= ~4;
+        r20c_work->eat[0]->setDisable();
     }
 }
 
@@ -238,10 +238,10 @@ void R20cExecCageDown(int lock)
         }
     }
     if (r20c_work->sat[0]) {
-        r20c_work->sat[0]->m_Flag |= 4;
+        r20c_work->sat[0]->setEnable();
     }
     if (r20c_work->eat[0]) {
-        r20c_work->eat[0]->m_Flag |= 4;
+        r20c_work->eat[0]->setEnable();
     }
 }
 

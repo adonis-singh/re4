@@ -319,20 +319,20 @@ void R31bInit()
             SceAtSetEnable(0xF, 0);
             SceAtSetEnable(0x10, 1);
             if (r31b_work->sat[3]) {
-                r31b_work->sat[3]->m_Flag |= 4;
+                r31b_work->sat[3]->setEnable();
             }
             if (r31b_work->sat[4]) {
-                r31b_work->sat[4]->m_Flag &= ~4;
+                r31b_work->sat[4]->setDisable();
             }
             side = 1;
         } else {
             SceAtSetEnable(0xF, 1);
             SceAtSetEnable(0x10, 0);
             if (r31b_work->sat[3]) {
-                r31b_work->sat[3]->m_Flag &= ~4;
+                r31b_work->sat[3]->setDisable();
             }
             if (r31b_work->sat[4]) {
-                r31b_work->sat[4]->m_Flag |= 4;
+                r31b_work->sat[4]->setEnable();
             }
             side = 0;
         }
@@ -1138,54 +1138,54 @@ void R31bSmdTransOff(int no)
     }
     if (no == 0) {
         if (r31b_work->eat[13]) {
-            r31b_work->eat[13]->m_Flag &= ~4;
+            r31b_work->eat[13]->setDisable();
         }
         if (r31b_work->eat[0]) {
-            r31b_work->eat[0]->m_Flag &= ~4;
+            r31b_work->eat[0]->setDisable();
         }
         if (r31b_work->eat[5]) {
-            r31b_work->eat[5]->m_Flag &= ~4;
+            r31b_work->eat[5]->setDisable();
         }
         if (r31b_work->eat[6]) {
-            r31b_work->eat[6]->m_Flag &= ~4;
+            r31b_work->eat[6]->setDisable();
         }
         SceAtSetEnable(0x8A, 0);
         SceAtSetEnable(0x8D, 0);
     }
     if (no == 1) {
         if (r31b_work->eat[14]) {
-            r31b_work->eat[14]->m_Flag &= ~4;
+            r31b_work->eat[14]->setDisable();
         }
         if (r31b_work->eat[1]) {
-            r31b_work->eat[1]->m_Flag &= ~4;
+            r31b_work->eat[1]->setDisable();
         }
         if (r31b_work->eat[7]) {
-            r31b_work->eat[7]->m_Flag &= ~4;
+            r31b_work->eat[7]->setDisable();
         }
         if (r31b_work->eat[8]) {
-            r31b_work->eat[8]->m_Flag &= ~4;
+            r31b_work->eat[8]->setDisable();
         }
         if (r31b_work->eat[9]) {
-            r31b_work->eat[9]->m_Flag &= ~4;
+            r31b_work->eat[9]->setDisable();
         }
         SceAtSetEnable(0x8C, 0);
         SceAtSetEnable(0x8E, 0);
     }
     if (no == 2) {
         if (r31b_work->eat[15]) {
-            r31b_work->eat[15]->m_Flag &= ~4;
+            r31b_work->eat[15]->setDisable();
         }
         if (r31b_work->eat[2]) {
-            r31b_work->eat[2]->m_Flag &= ~4;
+            r31b_work->eat[2]->setDisable();
         }
         if (r31b_work->eat[10]) {
-            r31b_work->eat[10]->m_Flag &= ~4;
+            r31b_work->eat[10]->setDisable();
         }
         if (r31b_work->eat[11]) {
-            r31b_work->eat[11]->m_Flag &= ~4;
+            r31b_work->eat[11]->setDisable();
         }
         if (r31b_work->eat[12]) {
-            r31b_work->eat[12]->m_Flag &= ~4;
+            r31b_work->eat[12]->setDisable();
         }
     }
 }

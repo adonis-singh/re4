@@ -28,6 +28,14 @@ public:
     // size_t is `unsigned int` for this compiler; with u32 (unsigned long) GCC 2.95 would not
     // treat this as the usual deallocation function.
     void operator delete(void*, unsigned int) {}
+    int setAlive() { return be_flag |= 1; }
+    int isEmpty() { return !(be_flag & 0x601); }
+    // die requests: cManager::dieCheck turns 0x200 into 0x400, and 0x400 destroys the work
+    int setDieRequest() { return be_flag |= 0x200; }
+    int setDieRequest2() { return be_flag |= 0x400; }
+    int isDieRequest() { return be_flag & 0x200; }
+    int isDieRequest2() { return be_flag & 0x400; }
+    cUnit* getNext() { return pNext; }
     // addListBack's `p->next = 0` goes through this: the argument copy gives the zero register a
     // lifetime of 2 luids, which is what makes loop.c hoist `li rN, 0` out of createBack's loop
     void setNext(cUnit* n) { pNext = n; }

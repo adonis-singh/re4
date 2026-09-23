@@ -648,13 +648,13 @@ void objBullSatClear(cObjBull* pObj)
     BullWork* w = BULL_WK(pObj);
 
     if (w->pSat) {
-        w->pSat->m_Flag &= ~4;
+        w->pSat->setDisable();
     }
     if (w->pSat2) {
-        w->pSat2->m_Flag &= ~4;
+        w->pSat2->setDisable();
     }
     if (w->pEat) {
-        w->pEat->m_Flag &= ~4;
+        w->pEat->setDisable();
     }
 }
 
@@ -679,20 +679,20 @@ void objBullSatSet(cObjBull* pObj, int mode)
     pos = parts->world;
     pos.y += 500.0f;
     if (w->pSat) {
-        w->pSat->m_Flag |= 4;
+        w->pSat->setEnable();
         w->pSat->setCoord(&pos, &rot);
     } else {
         w->pSat = SatMgr.create(ROOM_ARC_PTR(pG->pRoom, 5), 0, &pos, &rot, 1);
     }
     if (w->pEat) {
-        w->pEat->m_Flag |= 4;
+        w->pEat->setEnable();
         w->pEat->setCoord(&pos, &rot);
     } else {
         w->pEat = EatMgr.create(ROOM_ARC_PTR(pG->pRoom, 5), 0, &pos, &rot, 7);
     }
     if (mode) {
         if (w->pSat2) {
-            w->pSat2->m_Flag |= 4;
+            w->pSat2->setEnable();
             w->pSat2->setCoord(&pos, &rot);
         } else {
             w->pSat2 = SatMgr.create(ROOM_ARC_PTR(pG->pRoom, 5), 0, &pos, &rot, 8);

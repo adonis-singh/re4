@@ -684,6 +684,7 @@ NON_MATCHING = set()
 # statics kept): tools/strip_unused.py removes the bodies of functions not in sym_map.tsv.
 STRIP_UNUSED = {
     "game/puzzle.cpp",
+    "game/esp.cpp",
     "game/cam_ctrl.cpp",
     "game/cam_extra.cpp",
     "game/main_mem.cpp",

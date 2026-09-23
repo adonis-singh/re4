@@ -147,7 +147,7 @@ static void wep17_r2_ready(cPlayer* pl)
     }
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -430,7 +430,7 @@ static void wep17_r2_set(cPlayer* pl)
     }
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if ((pl->stat & 0x40) == 0) {
+        if ((pl->stat.check(cPlayer::F_CROUCH)) == 0) {
             wepDown(pl);
             return;
         }
@@ -700,7 +700,7 @@ static void wep17_r2_reload(cPlayer* pl)
                 pl->r_no_1 = 6;
                 pl->r_no_2 = 1;
                 pl->r_no_3 = 0;
-            } else if (pl->stat & 0x40) {
+            } else if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -794,7 +794,7 @@ static void wep17_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;

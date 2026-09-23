@@ -111,7 +111,7 @@ cObj* SetPillar(void* bin, void* tpl, Vec* pos, Vec* rot)
 void cObjPillar::move()
 {
     if (PILLAR_WK(this)->pEat) {
-        PILLAR_WK(this)->pEat->m_Flag &= ~4;
+        PILLAR_WK(this)->pEat->setDisable();
     }
     ObjPillar_R0_move_tbl[r_no_0](this);
 }
@@ -694,7 +694,7 @@ void objPillarEatSet(cObjPillar* pObj)
         poly[3].z = r;
         w->pEat = EatMgr.create(&pObj->pos, &pObj->ang, poly, h, 0, 0);
     } else {
-        w->pEat->m_Flag |= 4;
+        w->pEat->setEnable();
         w->pEat->setCoord(&pObj->pos, &pObj->ang);
     }
 }

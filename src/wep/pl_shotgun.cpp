@@ -76,7 +76,7 @@ static void wep07_r2_ready(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
         pl->Motion.Seq_speed = 1.0f;
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -130,7 +130,7 @@ static void wep07_r3_ready00(cPlayer* pl)
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     pl->Wep->lockInit();
     hokan = 4;
-    if (!(pl->stat & 0x40)) {
+    if (!(pl->stat.check(cPlayer::F_CROUCH))) {
         hokan = 5;
     }
     mot = WEP_ARC_PTR(0x18);
@@ -212,7 +212,7 @@ static void wep07_r2_set(cPlayer* pl)
     PlWepLockCtrl(pl);
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -535,7 +535,7 @@ static void wep07_r2_reload(cPlayer* pl)
             if (pl->Motion.Seq_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
                 if (joyKamae()) {
                     pl->r_no_3 = 2;
-                } else if (pl->stat & 0x40) {
+                } else if (pl->stat.check(cPlayer::F_CROUCH)) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;
@@ -551,7 +551,7 @@ static void wep07_r2_reload(cPlayer* pl)
             }
         } else {
             if (joyKamae() == 0 && pl->Motion.Seq_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
-                if (pl->stat & 0x40) {
+                if (pl->stat.check(cPlayer::F_CROUCH)) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;

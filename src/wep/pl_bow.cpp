@@ -67,21 +67,10 @@ static void wep28_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            EmRoutineSet(pl, 0, 0x11, 0, 0);
         } else {
-            // 0xD and 6 share one register (`li r9,0xd; stb ff; li r9,6; stb fd`): one int local
-            // assigned twice, not two constants.
-            int no = 0xD;
-
-            pl->r_no_3 = no;
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 3;
-            no = 6;
-            pl->r_no_1 = no;
+            EmRoutineSet(pl, 0, 6, 3, 0xD);
         }
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
@@ -120,7 +109,7 @@ static void wep28_r3_ready00(cPlayer* pl)
     obj->r_no_0 = 1;
     obj->r_no_1 = 0;
     hokan = 4;
-    if (!(pl->stat & 0x40)) {
+    if (!(pl->stat.check(cPlayer::F_CROUCH))) {
         hokan = 5;
     }
     mot = WEP_ARC_PTR(0x1F);
@@ -182,7 +171,7 @@ static void wep28_r2_set(cPlayer* pl)
     pl->setLaserSight(1, 0);
     PlWepLockCtrl(pl);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;

@@ -2407,7 +2407,7 @@ void emRockSatClear(cEmRock* pEm)
     if (w->pSat == 0) {
         return;
     }
-    w->pSat->m_Flag &= ~4;
+    w->pSat->setDisable();
 }
 
 // Room 11E type 3 rocks: keeps a scenario collision piece at the rock's parts 0 while visible
@@ -2434,7 +2434,7 @@ void emRockSatSet(cEmRock* pEm)
     rot.y = 0.0f;
     rot.z = 0.0f;
     if (w->pSat) {
-        w->pSat->m_Flag |= 4;
+        w->pSat->setEnable();
         w->pSat->setCoord(&pos, &rot);
     } else {
         w->pSat = EatMgr.create((void*) (((u32*) pG->pRoom)[5] + (u32) pG->pRoom), 0, &pos, &rot, 1);

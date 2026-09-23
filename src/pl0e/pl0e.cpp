@@ -682,7 +682,7 @@ void pl0eCamMove(cPl0e* em)
     Vec target;
     Vec dir;
 
-    if (pPL->stat & 4) {
+    if (pPL->stat.check(cPlayer::F_BINOCULAR)) {
         return;
     }
     PSMTXRotRad(m, 'y', em->ang.y);

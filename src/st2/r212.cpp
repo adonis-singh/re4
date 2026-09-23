@@ -712,7 +712,7 @@ static void r212_DrillAppearCheckEndProc()
     pSUB->setNoSuspend(0);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    r212_work->eat2->m_Flag &= ~4;
+    r212_work->eat2->setDisable();
     SceExec(0x12, (TaskFunc) r212_DrillMove, 0, 0, SCE_PRIO_DEF_2, 0);
     SceExec(0x12, (TaskFunc) r212_DrillEndCheck, 0, 0, SCE_PRIO_DEF_2, 0);
 }

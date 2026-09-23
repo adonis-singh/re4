@@ -246,7 +246,7 @@ void cObjRobo::R0WaitGondola(cObjRobo* pObj)
         }
         MotionMove(pObj, 0);
         pObj->partsWorldCalc();
-        if (pl->stat & 0x80) {
+        if (pl->stat.check(cPlayer::F_LANDING)) {
             pl->setPos(&pl->m_VecWork1);
         }
         for (i = 0; i < 2; i++) {
@@ -719,7 +719,7 @@ void cObjRobo::SatMove(cObjRobo* pObj, Vec* pPosOld, int armNo)
     c.z = 0.0f;
     PSMTXMultVec(parts->mat, &c, &c);
     PSVECSubtract(&c, pPosOld, &d);
-    if (!(pl->stat & 0x100)) {
+    if (!(pl->stat.check(cPlayer::F_FALLING))) {
         if (SatMoveSub(pl, &a, &d) == 1) {
             pG->quake_ofs = d;
         }

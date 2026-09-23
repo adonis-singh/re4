@@ -230,24 +230,24 @@ void R226Init()
                 return;
             }
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag |= 4;
+                r226_work->eat[3]->setEnable();
             }
         } else {
             SmdSetTrans(0x35, 0);
             if (r226_work->sat[0]) {
-                r226_work->sat[0]->m_Flag &= ~4;
+                r226_work->sat[0]->setDisable();
             }
             if (r226_work->eat[0]) {
-                r226_work->eat[0]->m_Flag &= ~4;
+                r226_work->eat[0]->setDisable();
             }
             if (r226_work->eat[1]) {
-                r226_work->eat[1]->m_Flag |= 4;
+                r226_work->eat[1]->setEnable();
             }
             if (r226_work->eat[2]) {
-                r226_work->eat[2]->m_Flag |= 4;
+                r226_work->eat[2]->setEnable();
             }
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag &= ~4;
+                r226_work->eat[3]->setDisable();
             }
             SmdSetTrans(0x1B, 0);
             SmdSetTrans(0x1C, 0);
@@ -260,7 +260,7 @@ void R226Init()
             EstSet(0, -1, 0, 0, EFF_ROOM, 0x10, 1, ESP_CORE_KIND_NONE, 0, 0);
             EstSet(0, -1, 0, 0, EFF_ROOM, 0xE, 1, ESP_CORE_KIND_NONE, 0, 0);
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag &= ~4;
+                r226_work->eat[3]->setDisable();
             }
         }
     }
@@ -272,7 +272,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE00, 1);
         if (r226_work->eat[1]) {
-            r226_work->eat[1]->m_Flag &= ~4;
+            r226_work->eat[1]->setDisable();
         }
     } else {
         o = SmdGetObjPtr(0x3B);
@@ -281,7 +281,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE00, 0);
         if (r226_work->eat[1]) {
-            r226_work->eat[1]->m_Flag |= 4;
+            r226_work->eat[1]->setEnable();
         }
     }
     if (RsfCheck(G_ROOM_ID, 8) == 0) {
@@ -292,7 +292,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE01, 1);
         if (r226_work->eat[2]) {
-            r226_work->eat[2]->m_Flag &= ~4;
+            r226_work->eat[2]->setDisable();
         }
     } else {
         o = SmdGetObjPtr(0x3C);
@@ -301,7 +301,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE01, 0);
         if (r226_work->eat[2]) {
-            r226_work->eat[2]->m_Flag |= 4;
+            r226_work->eat[2]->setEnable();
         }
         o = SmdGetObjPtr(0x4C);
         if (o) {
@@ -390,7 +390,7 @@ static void R226EventRoboWatchMain()
 {
     cObjRobo* robo = r226_work->robo;
 
-    if (pPL->stat & 0x100) {
+    if (pPL->stat.check(cPlayer::F_FALLING)) {
         return;
     }
     if (RsfCheck(G_ROOM_ID, 10)) {
@@ -711,7 +711,7 @@ static void R226EventPassageSwitchEnd(int side)
     }
     SceAtSetEnable(atNo, 0);
     if (r226_work->eat[eatNo]) {
-        r226_work->eat[eatNo]->m_Flag |= 4;
+        r226_work->eat[eatNo]->setEnable();
     }
     if (side == 1) {
         o = SmdGetObjPtr(0x4C);
@@ -787,10 +787,10 @@ static void R226EventRoboWalkPassageStart()
     EstSet(0, -1, 0, 0, EFF_ROOM, 2, 1, ESP_CORE_KIND_ROOM00, 0, 0);
     EstSet(robo, -1, 0, 0, EFF_ROOM, 0xA, 1, ESP_CORE_KIND_ROOM00, 0, 0);
     if (r226_work->sat[0]) {
-        r226_work->sat[0]->m_Flag &= ~4;
+        r226_work->sat[0]->setDisable();
     }
     if (r226_work->eat[0]) {
-        r226_work->eat[0]->m_Flag &= ~4;
+        r226_work->eat[0]->setDisable();
     }
     robo->SetBeginEvent(0);
     i = 0;
@@ -1293,7 +1293,7 @@ static void playerRunMoveBridge(cPlayer* pl)
             pl->r_no_2 = 8;
             SceAtSetEnable(SCEAT_SCRAT_BRIDGE_BREAK, 1);
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag &= ~4;
+                r226_work->eat[3]->setDisable();
             }
             pPL->atari.setFlag100();
             SceEventStart(0);

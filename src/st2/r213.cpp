@@ -332,10 +332,10 @@ void R213SuBreakModel()
     SceAtSetEnable(0x8D, 1);
     SceAtSetEnable(0x8E, 1);
     if (r213_work->sat[0]) {
-        r213_work->sat[0]->m_Flag &= ~4;
+        r213_work->sat[0]->setDisable();
     }
     if (r213_work->eat[0]) {
-        r213_work->eat[0]->m_Flag &= ~4;
+        r213_work->eat[0]->setDisable();
     }
     r213_work->em[0].setFlag(0x20000000);
     r213_work->em[1].setFlag(0x20000000);
@@ -488,17 +488,17 @@ void R213StatusSetBridge(int mode)
     if (mode == 2) {
         RsfSet(G_ROOM_ID, 4);
         if (r213_work->sat[1]) {
-            r213_work->sat[1]->m_Flag &= ~4;
+            r213_work->sat[1]->setDisable();
         }
         if (r213_work->sat[2]) {
-            r213_work->sat[2]->m_Flag |= 4;
+            r213_work->sat[2]->setEnable();
         }
     } else {
         if (r213_work->sat[1]) {
-            r213_work->sat[1]->m_Flag |= 4;
+            r213_work->sat[1]->setEnable();
         }
         if (r213_work->sat[2]) {
-            r213_work->sat[2]->m_Flag &= ~4;
+            r213_work->sat[2]->setDisable();
         }
     }
     if (mode == 0) {

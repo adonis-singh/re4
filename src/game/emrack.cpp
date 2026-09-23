@@ -579,7 +579,7 @@ void emRackSatSet(cEmRack* pEm)
     if (w->pEatUnder == 0) {
         w->pEatUnder = EatMgr.create(&pEm->pos, &pEm->ang, v, h, 0x400000, 0);
     } else {
-        w->pEatUnder->m_Flag |= 4;
+        w->pEatUnder->setEnable();
         w->pEatUnder->setCoord(&pEm->pos, &pEm->ang);
     }
     if (pEm->type != 1) {
@@ -593,7 +593,7 @@ void emRackSatSet(cEmRack* pEm)
     if (w->pEatCenter == 0) {
         w->pEatCenter = EatMgr.create(&pEm->pos, &pEm->ang, v, h, 0x400000, 0);
     } else {
-        w->pEatCenter->m_Flag |= 4;
+        w->pEatCenter->setEnable();
         w->pEatCenter->setCoord(&pEm->pos, &pEm->ang);
     }
     v[0].y = 1500.0f;
@@ -604,7 +604,7 @@ void emRackSatSet(cEmRack* pEm)
     if (w->pEatTop == 0) {
         w->pEatTop = EatMgr.create(&pEm->pos, &pEm->ang, v, h, 0x400000, 0);
     } else {
-        w->pEatTop->m_Flag |= 4;
+        w->pEatTop->setEnable();
         w->pEatTop->setCoord(&pEm->pos, &pEm->ang);
     }
 }
@@ -616,13 +616,13 @@ void emRackSatClear(cEmRack* pEm)
 
     pEm->atari.clrFlag200();
     if (w->pEatUnder) {
-        w->pEatUnder->m_Flag &= ~4;
+        w->pEatUnder->setDisable();
     }
     if (w->pEatCenter) {
-        w->pEatCenter->m_Flag &= ~4;
+        w->pEatCenter->setDisable();
     }
     if (w->pEatTop) {
-        w->pEatTop->m_Flag &= ~4;
+        w->pEatTop->setDisable();
     }
 }
 

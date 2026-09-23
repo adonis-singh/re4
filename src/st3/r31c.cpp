@@ -1899,7 +1899,7 @@ void cR31CPost::die()
 {
     if (step == 0) {
         obj->be_flag &= ~2;
-        eat->m_Flag &= ~4;
+        eat->setDisable();
         switch (type) {
         case 1:
             if (dmgType == 4) {
@@ -2048,7 +2048,7 @@ void cR31CDoor::open()
             if (obj->pos.y > pos.y + dist) {
                 obj->pos.y = pos.y + dist;
                 se = 6;
-                sat->m_Flag &= ~4;
+                sat->setDisable();
                 step++;
             }
             break;
@@ -2072,8 +2072,8 @@ void cR31CDoor::open()
             if (obj->pos.z > pos.z + dist) {
                 obj->pos.z = pos.z + dist;
                 se = 0xE;
-                sat->m_Flag &= ~4;
-                eat->m_Flag &= ~4;
+                sat->setDisable();
+                eat->setDisable();
                 step++;
             }
             break;
@@ -2082,7 +2082,7 @@ void cR31CDoor::open()
             if (obj->pos.y < pos.y + dist) {
                 obj->pos.y = pos.y + dist;
                 if (sat) {
-                    sat->m_Flag &= ~4;
+                    sat->setDisable();
                 }
                 se = 6;
                 step++;
@@ -2095,7 +2095,7 @@ void cR31CDoor::open()
             if (obj->pos.y < pos.y + dist) {
                 obj->pos.y = pos.y + dist;
                 if (sat) {
-                    sat->m_Flag &= ~4;
+                    sat->setDisable();
                 }
                 step++;
             }
@@ -2129,15 +2129,15 @@ void cR31CDoor::close()
         case 0x80:
             spd = -40.0f;
             se = 7;
-            sat->m_Flag |= 4;
+            sat->setEnable();
             break;
         case 0x78:
             spd = 30.0f;
             break;
         case 0x7B:
             se = 0xD;
-            sat->m_Flag |= 4;
-            eat->m_Flag |= 4;
+            sat->setEnable();
+            eat->setEnable();
             spd = -60.0f;
             break;
         case 0x7C:
@@ -2145,13 +2145,13 @@ void cR31CDoor::close()
         case 0x7D:
         case 0x7E:
             if (sat) {
-                sat->m_Flag |= 4;
+                sat->setEnable();
             }
             spd = 30.0f;
             break;
         case 0x7F:
             se = 5;
-            sat->m_Flag |= 4;
+            sat->setEnable();
             spd = 40.0f;
             break;
         }
@@ -2288,10 +2288,10 @@ void cR31CDoor::setOpened()
     if (init_) {
         status = 1;
         if (sat) {
-            sat->m_Flag &= ~4;
+            sat->setDisable();
         }
         if (eat) {
-            eat->m_Flag &= ~4;
+            eat->setDisable();
         }
         mode = 0;
         step = 0;
@@ -2333,10 +2333,10 @@ void cR31CDoor::setClosed()
     if (init_) {
         status = 0;
         if (sat) {
-            sat->m_Flag |= 4;
+            sat->setEnable();
         }
         if (eat) {
-            eat->m_Flag |= 4;
+            eat->setEnable();
         }
         mode = 0;
         step = 0;
