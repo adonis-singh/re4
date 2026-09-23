@@ -26,14 +26,6 @@
 #include "motion.h"
 #include "em_sub.h"
 
-// Model part as obj16NeckMove writes it: the parts rotation and the override flag.
-struct Obj16Parts {
-    u8 pad_0[0x128];
-    Vec rot;        // 0x128
-    u8 pad_134[0x1C0 - 0x134];
-    u32 flags;      // 0x1C0  bit30: rotation override
-};
-
 extern "C" {
 cObj* SetObj16(void* bin, void* tpl, cModel* target, cModel* body, int partsNo, u8 type, Vec* pos, Vec* rot);
 void obj16_R1_Set(cObj16* obj);
@@ -1206,7 +1198,7 @@ static void obj16NeckMove(cObj16* obj)
     Vec tgt;
     Vec dir;
     f32 ang;
-    Obj16Parts* p;
+    cParts* p;
 
     if (body == 0) {
         return;
@@ -1235,16 +1227,16 @@ static void obj16NeckMove(cObj16* obj)
     case 2:
     case 0xE:
         ang = w->Neck_dir * 0.5f;
-        p = (Obj16Parts*) obj->getPartsPtr(1);
-        p->rot.x = 0.0f;
-        p->rot.y = ang;
-        p->flags |= 0x40000000;
-        p->rot.z = 0.0f;
-        p = (Obj16Parts*) obj->getPartsPtr(2);
-        p->rot.x = 0.0f;
-        p->rot.y = ang;
-        p->flags |= 0x40000000;
-        p->rot.z = 0.0f;
+        p = obj->getPartsPtr(1);
+        p->inv_offset.x = 0.0f;
+        p->inv_offset.y = ang;
+        p->motParts.flags |= 0x40000000;
+        p->inv_offset.z = 0.0f;
+        p = obj->getPartsPtr(2);
+        p->inv_offset.x = 0.0f;
+        p->inv_offset.y = ang;
+        p->motParts.flags |= 0x40000000;
+        p->inv_offset.z = 0.0f;
         if (w->pOya) {
             cParts* bp = w->pOya->getPartsPtr(w->parts_no);
             dir.x = 0.0f;
@@ -1257,27 +1249,27 @@ static void obj16NeckMove(cObj16* obj)
 #line 1850 "D:/Bio4/Prog/obj16.cpp"
             VECNormalize(&dir, &dir);
             ang = asinf(dir.y);
-            p = (Obj16Parts*) obj->getPartsPtr(0);
-            p->rot.x = ang;
-            p->rot.y = 0.0f;
-            p->flags |= 0x40000000;
-            p->rot.z = 0.0f;
+            p = obj->getPartsPtr(0);
+            p->inv_offset.x = ang;
+            p->inv_offset.y = 0.0f;
+            p->motParts.flags |= 0x40000000;
+            p->inv_offset.z = 0.0f;
         }
         break;
     case 3:
     case 0xB:
     case 0xD:
         ang = w->Neck_dir * 0.5f;
-        p = (Obj16Parts*) obj->getPartsPtr(1);
-        p->rot.x = 0.0f;
-        p->rot.y = ang;
-        p->flags |= 0x40000000;
-        p->rot.z = 0.0f;
-        p = (Obj16Parts*) obj->getPartsPtr(2);
-        p->rot.x = 0.0f;
-        p->rot.y = ang;
-        p->flags |= 0x40000000;
-        p->rot.z = 0.0f;
+        p = obj->getPartsPtr(1);
+        p->inv_offset.x = 0.0f;
+        p->inv_offset.y = ang;
+        p->motParts.flags |= 0x40000000;
+        p->inv_offset.z = 0.0f;
+        p = obj->getPartsPtr(2);
+        p->inv_offset.x = 0.0f;
+        p->inv_offset.y = ang;
+        p->motParts.flags |= 0x40000000;
+        p->inv_offset.z = 0.0f;
         break;
     }
 }

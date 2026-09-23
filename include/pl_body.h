@@ -29,14 +29,6 @@ struct SpaeData {
     SHAPE_MOT mot[4];       // 0x18
 };
 
-// Model part as seen by pl_body (cModel::getPartsPtr result): the waist twist writes its rotation.
-struct PlBodyParts {
-    u8 pad_0[0x128];
-    Vec rot;        // 0x128
-    u8 pad_134[0x1C0 - 0x134];
-    u32 flags;      // 0x1C0  bit30: rotation override
-};
-
 // Player body helper (game/pl_body.cpp, `new`ed by cPlayer::init0 into cEm::pBody at 0x794, 0xF0
 // bytes): the extra model infos hung off the player (hands, head, face, hair) and the data pointers
 // they were built from (pl_leon setModel/setRightHand/...), the waist twist and the weapon hand.

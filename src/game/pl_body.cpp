@@ -38,26 +38,26 @@ void cPlBody::waistSet(f32 y)
 // counter-rotates parts 3 (the hips) so the legs keep their direction.
 void cPlBody::waistMove()
 {
-    PlBodyParts* p;
+    cParts* p;
     f32 half = m_WaistY * 0.5f;
 
-    p = (PlBodyParts*) m_pMod->getPartsPtr(1);
-    p->flags |= 0x40000000;
-    p->rot.y = half;
-    p->rot.x = 0.0f;
-    p->rot.z = 0.0f;
+    p = m_pMod->getPartsPtr(1);
+    p->motParts.flags |= 0x40000000;
+    p->inv_offset.y = half;
+    p->inv_offset.x = 0.0f;
+    p->inv_offset.z = 0.0f;
 
-    p = (PlBodyParts*) m_pMod->getPartsPtr(2);
-    p->flags |= 0x40000000;
-    p->rot.y = half;
-    p->rot.x = 0.0f;
-    p->rot.z = 0.0f;
+    p = m_pMod->getPartsPtr(2);
+    p->motParts.flags |= 0x40000000;
+    p->inv_offset.y = half;
+    p->inv_offset.x = 0.0f;
+    p->inv_offset.z = 0.0f;
 
-    p = (PlBodyParts*) m_pMod->getPartsPtr(3);
-    p->flags |= 0x40000000;
-    p->rot.x = 0.0f;
-    p->rot.y = -m_WaistY;
-    p->rot.z = 0.0f;
+    p = m_pMod->getPartsPtr(3);
+    p->motParts.flags |= 0x40000000;
+    p->inv_offset.x = 0.0f;
+    p->inv_offset.y = -m_WaistY;
+    p->inv_offset.z = 0.0f;
 }
 
 // Builds the two face-morph (SPAE) records: shape 0 fades 1 -> 0 and shape 1 fades 0 -> 1 over

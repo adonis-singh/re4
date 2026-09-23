@@ -342,9 +342,6 @@ extern "C" int em10SearchParasite(cEm10* em);
         }                                                                                          \
         return 1;                                                                                  \
     }
-// Parts (cModel-shaped) fields model.h does not name: the rotation offset Vec at 0x128 and the flag word at 0x1C0.
-#define PARTS_ROT_OFS(p) (*(Vec*) ((u8*) (p) + 0x128))
-#define PARTS_FLAGS(p) (*(u32*) ((u8*) (p) + 0x1C0))
 #define EMI_DATA (pG->pEmi)
 
 // Helpers of this unit used before their definition.
@@ -21258,10 +21255,10 @@ void em10NeckMove(cEm10* em)
         w->Neck_dir_y = w->Neck_dir_y * 0.9f;
     }
     p = em->getPartsPtr(3);
-    PARTS_FLAGS(p) |= 0x40000000;
-    PARTS_ROT_OFS(p).x = w->Neck_dir_x;
-    PARTS_ROT_OFS(p).y = w->Neck_dir_y;
-    PARTS_ROT_OFS(p).z = 0.0f;
+    p->motParts.flags |= 0x40000000;
+    p->inv_offset.x = w->Neck_dir_x;
+    p->inv_offset.y = w->Neck_dir_y;
+    p->inv_offset.z = 0.0f;
     if (w->Be_flg & 0x02000000) {
         w->Finger_dir = w->Finger_dir * 0.9f + -w->Neck_dir_x * 0.1f;
     } else {
@@ -21304,15 +21301,15 @@ void em10WaistMove(cEm10* em)
     }
     r = w->Waist_dir_y * 0.5f;
     p = em->getPartsPtr(1);
-    PARTS_FLAGS(p) |= 0x40000000;
-    PARTS_ROT_OFS(p).x = 0.0f;
-    PARTS_ROT_OFS(p).y = r;
-    PARTS_ROT_OFS(p).z = 0.0f;
+    p->motParts.flags |= 0x40000000;
+    p->inv_offset.x = 0.0f;
+    p->inv_offset.y = r;
+    p->inv_offset.z = 0.0f;
     p = em->getPartsPtr(2);
-    PARTS_FLAGS(p) |= 0x40000000;
-    PARTS_ROT_OFS(p).x = 0.0f;
-    PARTS_ROT_OFS(p).y = r;
-    PARTS_ROT_OFS(p).z = 0.0f;
+    p->motParts.flags |= 0x40000000;
+    p->inv_offset.x = 0.0f;
+    p->inv_offset.y = r;
+    p->inv_offset.z = 0.0f;
 }
 
 // Squashes the model vertically (Compress_y) during Die_Lost (R0 3 / R1 3) so the dissolving corpse
