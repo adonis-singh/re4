@@ -1093,7 +1093,8 @@ void cSat::init(cSatFile* pSf, Vec* pos, Vec* ang)
     if (!pSf->dataCheck()) {
         pLog->err(0, 0, "ATARI DATA ERROR 0x%08x", pSf);
     }
-    m_Flag.set(4);
+    m_Flag.reset();
+    m_Flag.set(FLAG_ENABLE);
     *this = pSf;
     setCoord(pos, ang);
     blockInit(block_p);

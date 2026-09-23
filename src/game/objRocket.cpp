@@ -189,7 +189,7 @@ void cObjRocket::beginEvent(u32 flag)
 // No rocket in flight, none loaded.
 cObjLauncher::cObjLauncher()
 {
-    flg = 0;
+    flg.reset();
     pRocket = 0;
 }
 
@@ -325,7 +325,7 @@ void cObjLauncher::launch()
     pRocket->pParts->pParent = pRocket;
     pRocket->be_flag |= 2;
     pRocket->fire();
-    flg |= 1;
+    flg.on(FLAG_REQ_DROP);
     pRocket = 0;
     EstSet(this, -1, 0, 0, EFF_WEP13, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
     SndCall(2, 0, &pos, 0, 0, 0);
@@ -381,7 +381,7 @@ void cObjLauncher::drop(int se)
             }
         }
     }
-    flg &= ~1;
+    flg.off(FLAG_REQ_DROP);
     setDisp(0, 0);
 }
 
@@ -409,7 +409,7 @@ void cObjLauncher::interrupt()
 {
     cObjWep::interrupt();
     if (pG->weapon_type != 2) {
-        if (flg & 1) {
+        if (flg.check(FLAG_REQ_DROP)) {
             drop(1);
         } else {
             grip(0);

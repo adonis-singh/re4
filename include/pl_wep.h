@@ -6,6 +6,7 @@
 #include "model.h"
 #include "obj.h"
 #include "main.h"
+#include "cFlag.h"
 
 class cPlayer;
 
@@ -14,6 +15,22 @@ class cPlayer;
 // vtable, so every in-class inline is emitted there: add none that the target lacks).
 class cObjWep : public cObj {
 public:
+    enum FLAG {
+        F_ON_LASER_SIGHT = 0,    // draw the laser this frame
+        F_ON_LASER_SIGHT_D = 1,  // drawn last frame
+        F_DISP_0 = 2,            // setDisp types 0/1/2: the model is drawn only when all three are on
+        F_DISP_1 = 3,
+        F_DISP_2 = 4,
+    };
+    enum ETCFLAG {
+        ETC_ADABOW_NOARROW = 0,
+        ETC_LASER_FIRE00 = 1,
+        ETC_LASER_FIRE01 = 2,
+        ETC_LASER_FIRE02 = 3,
+        ETC_LASER_FIRE03 = 4,
+        ETC_LASER_FIRE04 = 5,
+    };
+
     void* motReset[2];    // 0x328  resetMotion idle motions: [0] normal, [1] empty magazine (pWepArc) (PS2 motReset[2])
     f32 bureX;            // 0x330  aim sway (lock random, pl_wep PlWepLockRand): pitch range, degrees -> radians in setAbility (PS2 bureX)
     f32 bureY;            // 0x334  yaw range (PS2 bureY)
@@ -25,8 +42,8 @@ public:
     u16 itemId;           // 0x34C  weapon item id (cObjLauncher::init: 0x35) (PS2 ITEM_ID itemId)
     u8 r_no_0;            // 0x34E  0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop (move dispatch)
     u8 r_no_1;            // 0x34F  step inside the mode
-    u8 flag;              // 0x350  bit0 draw the laser this frame, bit1 drawn last frame, bits 2-4 setDisp types 0/1/2
-    u8 etcflag;           // 0x351  (PS2 etcflag)
+    cFlag<u8, FLAG> flag;        // 0x350
+    cFlag<u8, ETCFLAG> etcflag;  // 0x351
     s8 m_EtcTimer;        // 0x352  (PS2 m_EtcTimer)
     u8 pad_2B;
     u32 m_StopSeId;       // 0x354  SndCall handle stopped by resetMotion (PS2 m_StopSeId)
@@ -90,7 +107,11 @@ public:
 // Rocket launcher (game/objRocket.cpp): carries a cObjRocket it launches.
 class cObjLauncher : public cObjWep {
 public:
-    u32 flg;              // 0x368  bit0: a rocket is in flight (PS2 cFlag flg)
+    enum FLAG {
+        FLAG_REQ_DROP = 0,  // fired: interrupt() drops the launcher
+    };
+
+    cFlag<u32, FLAG> flg; // 0x368
     Vec lpos;             // 0x36C  launch line (getMarkerPos) (PS2 lpos)
     Vec hpos;             // 0x378  (PS2 hpos)
     cObjRocket* pRocket;  // 0x384  loaded rocket (loadRocket)

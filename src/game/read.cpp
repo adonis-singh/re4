@@ -1,9 +1,9 @@
 // game/read: room / core / option / enemy / player / weapon data loading (D:/Bio4/Prog/read.cpp).
 // All 21 functions byte-identical (OptionDataRead's objdiff rows are reloc-only). readEmData: `m`
 // (14 refs / 198 insns, 2121) lost r29 to `newSize` (6 / 54, 2222) in global.c priority; the
-// `else do { newSize = dataSize; BitOff16(m->flag, 1); } while (0);` loop notes give that `m` ref
-// weight 2 (15 refs -> 2272 > 2222) without adding an instruction, and that block has nothing the
-// sched1 barrier could reorder (the `m->flag |= 1` / `m->flag |= 4` / tail-store placements do).
+// `else do { ... } while (0);` loop notes around the DLL_MALLOC clear give that `m` ref weight 2
+// (15 refs -> 2272 > 2222) without adding an instruction, and that block has nothing the sched1
+// barrier could reorder (the DLL_MALLOC / DATA_MALLOC sets and the tail stores do).
 #include "types.h"
 #include "atari.h"
 #include "light.h"
@@ -239,17 +239,17 @@ void OptionDataRead()
 // when bit3) and the separately copied module (bit0), clears the slot.
 void InitModule(ReadModule* m)
 {
-    if (m->pModule != NULL && (m->flag & 2)) {
+    if (m->pModule != NULL && m->ctrl_flag.check(MODULE_CTRL_DLL_LINK)) {
         DLL_Unlink(m->pModule);
     }
-    if (m->pArc != NULL && (m->flag & 4)) {
-        if (m->flag & 8) {
+    if (m->pArc != NULL && m->ctrl_flag.check(MODULE_CTRL_DATA_MALLOC)) {
+        if (m->ctrl_flag.check(MODULE_CTRL_DATA_DMALLOC)) {
             Debug_free(m->pArc);
         } else {
             Mem_free(m->pArc);
         }
     }
-    if (m->pModule != NULL && (m->flag & 1)) {
+    if (m->pModule != NULL && m->ctrl_flag.check(MODULE_CTRL_DLL_MALLOC)) {
         Mem_free(m->pModule);
     }
     memclr_asm(m, sizeof(ReadModule));
@@ -424,7 +424,7 @@ int readEmData(ReadModule* m, int id, void* addr, u32 size)
     }
     len = info.size[0][0];
     if (addr == NULL) {
-        m->flag |= 4;
+        m->ctrl_flag.on(MODULE_CTRL_DATA_MALLOC);
         pArc = (void*) info.addr[0][0];
         if (len < size) {
             void* old = pArc;
@@ -439,7 +439,7 @@ int readEmData(ReadModule* m, int id, void* addr, u32 size)
             newSize = len;
         }
     } else {
-        BitOff16(m->flag, 4);
+        m->ctrl_flag.off(MODULE_CTRL_DATA_MALLOC);
         pArc = addr;
         newSize = len;
     }
@@ -452,10 +452,10 @@ int readEmData(ReadModule* m, int id, void* addr, u32 size)
 #line 814 "D:/Bio4/Prog/read.cpp"
             pModule = MEM_ALLOC(bssSize, 1, 0xD);
             memcpy(pModule, old, bssSize);
-            m->flag |= 1;
+            m->ctrl_flag.on(MODULE_CTRL_DLL_MALLOC);
         } else do {  // loop notes: `m` weighted ref 15 > newSize in global-alloc (m r29, newSize r28)
             newSize = dataSize;
-            BitOff16(m->flag, 1);
+            m->ctrl_flag.off(MODULE_CTRL_DLL_MALLOC);
         } while (0);
     }
     m->id = id;
@@ -486,7 +486,7 @@ void setEmModule(ReadModule* m, int id)
         break;
     }
     if (m->pModule != NULL) {
-        if (!(m->flag & 2)) {
+        if (!m->ctrl_flag.check(MODULE_CTRL_DLL_LINK)) {
             bss = NULL;
             if (m->pModule->bssSize != 0) {
                 bss = m;
@@ -503,13 +503,13 @@ void setEmModule(ReadModule* m, int id)
                 }
             }
             DLL_Link(m->pModule, bss);
-            m->flag |= 2;
+            m->ctrl_flag.on(MODULE_CTRL_DLL_LINK);
         }
         DLL_PROLOG(m->pModule)();
         m->pInitFunc = EmInitFunc;
     } else {
         m->pModule = NULL;
-        BitOff16(m->flag, 2);
+        m->ctrl_flag.off(MODULE_CTRL_DLL_LINK);
         m->pInitFunc = NULL;
     }
 }
@@ -688,7 +688,7 @@ void ReadPlayerData(int type, int costume)
         dataSize = (u32) pModule - (u32) data;
         bssSize = size - dataSize;
         size = dataSize;
-        if (!BitChk16(PlReadModule.flag, 2)) {
+        if (!PlReadModule.ctrl_flag.check(MODULE_CTRL_DLL_LINK)) {
             bss = NULL;
             if (pModule->bssSize != 0) {
                 bss = &PlReadModule;
@@ -699,7 +699,7 @@ void ReadPlayerData(int type, int costume)
                     TaskSleep(1);
                 }
             }
-            BitOn16(PlReadModule.flag, 2);
+            PlReadModule.ctrl_flag.on(MODULE_CTRL_DLL_LINK);
             DLL_Link(pModule, bss);
             DLL_PROLOG(pModule)();
         } else {
@@ -949,7 +949,7 @@ void ReadWepData(u32 no, u32 type)
     pModule = (OSModuleHeader*) (*(u32*) (data + 4) + (u32) data);
     size = (u32) pModule - (u32) data;
     bssSize = total - size;
-    if (!BitChk16(WepReadModule.flag, 2)) {
+    if (!WepReadModule.ctrl_flag.check(MODULE_CTRL_DLL_LINK)) {
         bss = NULL;
         if (pModule->bssSize != 0) {
             bss = &WepReadModule;
@@ -960,7 +960,7 @@ void ReadWepData(u32 no, u32 type)
                 TaskSleep(1);
             }
         }
-        BitOn16(WepReadModule.flag, 2);
+        WepReadModule.ctrl_flag.on(MODULE_CTRL_DLL_LINK);
         DLL_Link(pModule, bss);
         DLL_PROLOG(pModule)();
     } else {

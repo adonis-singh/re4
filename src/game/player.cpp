@@ -211,6 +211,7 @@ void PlayerLifeReset()
 // stat bit0 = weapon effect data shared (not released by weaponRelease).
 cPlayer::cPlayer()
 {
+    stat.reset();
     pPL = this;
     hp = pG->pl_life;
     subArc = (PlArc*)0x807EC000;

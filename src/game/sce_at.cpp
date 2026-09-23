@@ -2071,7 +2071,7 @@ void SceAtStopSemiautoCheck()
 // Room start after SceAtInit: creates the runtime collision pieces (type 0xB), gives the door /
 // message / stoop / typewriter / ladder / hide areas their action button kind and ordering slot
 // when the data did not, sets up every enabled item area (item 0x1000 also preloads enemy module
-// 0x24), and disables the areas excluded for the current language (langDisable).
+// 0x24), and disables the areas excluded for the current language (country).
 void SceAtRoomSet()
 {
     SceAtWork* w = sceAtSetOtStart();
@@ -2149,11 +2149,11 @@ void SceAtRoomSet()
             sceAtSetItem(w);
         }
         if (pG->game_country == 0) {
-            if (w->langDisable & 2) {
+            if (w->country.check(SCEAT_COUNTRY_JPN)) {
                 SceAtSetEnable(w->no, 0);
             }
         } else {
-            if (w->langDisable & 1) {
+            if (w->country.check(SCEAT_COUNTRY_USA)) {
                 SceAtSetEnable(w->no, 0);
             }
         }
@@ -2607,7 +2607,7 @@ void SceAtExecRoomJump(u16 room, Vec* pos, Vec* rot, int a)
 {
     SceAtWork w;
 
-    w.langDisable = 0;
+    w.country.reset();
     w.dstStage = room >> 8;
     w.dstRoom = room;
     w.dstPos.x = pos->x;

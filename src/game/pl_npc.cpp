@@ -64,7 +64,7 @@ int cSubChar::mot_ck()
 
 // Partner enemy construction: flags clear, its motion-base helper, no light / damage function,
 // neck straight, eye state.
-cSubChar::cSubChar()
+cSubChar::cSubChar() : flg(), status()
 {
     pEm = this;
     m_pFunc = 0;

@@ -95,7 +95,7 @@ public:
     Mtx mat;         // 0x60  piece -> world
     Mtx imat;         // 0x90  world -> piece
 
-    cSat() : cUnit(1) {}
+    cSat() : cUnit(1) { m_Flag.reset(); }
     void init(cSatFile* pSf, Vec* pos, Vec* ang);
     void setCoord(Vec* pos, Vec* ang);
     void setMatrix(Mtx mat0);

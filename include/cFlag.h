@@ -10,7 +10,6 @@ template <class T, class E> class cFlag {
     T m_Flag;
 
 public:
-    cFlag() { m_Flag = 0; }
     void reset() { m_Flag = 0; }
     cFlag& on(E stat) {
         if (stat > sizeof(T) * 8 - 1) {
@@ -27,6 +26,20 @@ public:
         }
         m_Flag &= ~(1 << stat);
         return *this;
+    }
+    void set(E stat) {
+        if (stat > sizeof(T) * 8 - 1) {
+            pLog->err(0, 0, "cFlag.set() arg stat OVER FLOW %d", stat);
+            return;
+        }
+        m_Flag |= 1 << stat;
+    }
+    void clear(E stat) {
+        if (stat > sizeof(T) * 8 - 1) {
+            pLog->err(0, 0, "cFlag.set() arg stat OVER FLOW %d", stat);
+            return;
+        }
+        m_Flag &= ~(1 << stat);
     }
     int check(E stat) {
         if (stat > sizeof(T) * 8 - 1) {

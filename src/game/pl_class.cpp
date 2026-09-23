@@ -1409,7 +1409,7 @@ void cPlayer::setLaserSight(int draw, int noCalc)
     Body->move();
     partsWorldCalc();
     Wep->m_pWep->partsWorldCalc();
-    Wep->m_pWep->flag |= 2;
+    Wep->m_pWep->flag.on(cObjWep::F_ON_LASER_SIGHT_D);
     Wep->m_pWep->drawLaserSight(draw, noCalc);
 }
 

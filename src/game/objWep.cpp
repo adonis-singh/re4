@@ -26,17 +26,14 @@ void Draw_line3d_222(Vec* p0, Vec* p1, u32 color, int blend);
 void drawPoint(Vec& lpos, Vec& lcross);
 }
 
-static inline void DispOff(u8& f, u8 b) { f &= ~b; }
-static inline int DispChk(u8 f, u8 b) { return f & b; }
-
 // Common weapon object setup: no collision, a 500-unit light, no motions yet, all three display
-// types (flag 0x1C) shown.
+// types shown.
 cObjWep::cObjWep()
 {
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
-    flag = 0;
+    flag.reset();
     atari.throughOn();
     LightInfo.init2(1, 1, &p0, &p1, 1);
     Motion.pMot = 0;
@@ -44,7 +41,8 @@ cObjWep::cObjWep()
     motReset[0] = 0;
     m_pParent = 0;
     m_StopSeId = 0;
-    flag = 0x1C;
+    flag.reset();
+    flag.on(F_DISP_0).on(F_DISP_1).on(F_DISP_2);
 }
 
 // Per-frame: dispatches mode (0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop) to the
@@ -74,7 +72,7 @@ void cObjWep::move()
         break;
     }
     moveAll();
-    if (DispChk(flag, 4) == 0 || DispChk(flag, 8) == 0 || DispChk(flag, 0x10) == 0 ||
+    if (!flag.check(F_DISP_0) || !flag.check(F_DISP_1) || !flag.check(F_DISP_2) ||
         (m_pParent && (m_pParent->isTrans() == 0 || (DpfFlagChk(pG, DPF_PL))))) {
         be_flag &= ~2;
     } else {
@@ -90,14 +88,14 @@ void cObjWep::move()
     } else {
         matUpdate();
     }
-    if (flag & 1) {
+    if (flag.check(F_ON_LASER_SIGHT)) {
         drawLaserSight(1, 0);
     }
-    DispOff(flag, 2);
-    if (DispChk(flag, 1)) {
-        flag |= 2;
+    flag.off(F_ON_LASER_SIGHT_D);
+    if (flag.check(F_ON_LASER_SIGHT)) {
+        flag.on(F_ON_LASER_SIGHT_D);
     }
-    DispOff(flag, 1);
+    flag.off(F_ON_LASER_SIGHT);
 }
 
 // Sets / clears one of the three display types (0 -> flag bit2, 1 -> bit3, 2 -> bit4); the model
@@ -107,25 +105,25 @@ void cObjWep::setDisp(int level, int onoff)
     if (onoff == 1) {
         switch (level) {
         case 0:
-            flag |= 4;
+            flag.on(F_DISP_0);
             break;
         case 1:
-            flag |= 8;
+            flag.on(F_DISP_1);
             break;
         case 2:
-            flag |= 0x10;
+            flag.on(F_DISP_2);
             break;
         }
     } else {
         switch (level) {
         case 0:
-            DispOff(flag, 4);
+            flag.off(F_DISP_0);
             break;
         case 1:
-            DispOff(flag, 8);
+            flag.off(F_DISP_1);
             break;
         case 2:
-            DispOff(flag, 0x10);
+            flag.off(F_DISP_2);
             break;
         }
     }

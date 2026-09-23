@@ -1068,10 +1068,10 @@ static void tSceItemDataInput_item_main()
         break;
     case 0x14: {
         int m;
-        n = pCur->langDisable;
+        n = pCur->country.get();
         STEP(rep2, n);
         CLAMP_SET(n, m, 2);
-        pCur->langDisable = m;
+        pCur->country.set(m);
         break;
     }
     }
@@ -1124,7 +1124,7 @@ static void tSceItemDataInput_item_main()
     {
         // defined here: its strings follow the ones above in .rodata
         static const char* countryName[3] = {"JPN USA", "JPN", "    USA"};
-        eprintf(x, y, 0, 0, "%s", NAME(countryName, pCur->langDisable, 2));
+        eprintf(x, y, 0, 0, "%s", NAME(countryName, pCur->country.get(), 2));
     }
     y += 0x10;
     pW->y = y;

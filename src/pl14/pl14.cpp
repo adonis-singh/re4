@@ -109,11 +109,11 @@ static cDelayF luisEye;          // eye yaw: current, target, delay
 cSubLuis::cSubLuis()
 {
     routine.init(this);
-    action.flags = 0;
+    action.status.reset();
     action.init(this);
-    analysis.flags = 0;
+    analysis.status.reset();
     analysis.init(this);
-    flags = 0;
+    status.reset();
     pFsdTbl = pl_fs_tbl;
     pEm = this;
     pSUB = (cSubChar*) this;
@@ -230,11 +230,6 @@ void cSubLuis::move()
     seqSeCtrl();
 }
 
-// Flag tests through a u8-parameter inline: integrate copies the byte into a QImode pseudo
-// (`lbz r0; mr r11, r0` PRE copies, one shared `clrlwi` per extended block); a promoted u8/int local
-// or a direct `flags & bit` read gives SImode pseudos and no copies.
-static inline int Chk8(u8 f, int b) { return f & b; }
-
 // Picks the action mode of the frame (nothing while in damage / die). flags bit0 (hit) -> damage
 // (5) or die (6, when the event routine was running); else in priority order: a grenade aimed at
 // him (analysis bit4) -> avoid (0xA); down and no longer aimed at -> get up (9); flags bit1 (5
@@ -253,32 +248,32 @@ void cSubLuis::think()
         if (a->type == 6) return;
     }
 
-    if (Chk8(flags, 1)) {
+    if (status.check(F_DAMAGED)) {
         if (r_no_0 == 4) action.set(6);
         else action.set(5);
-        flags &= ~1;
-        analysis.flags &= ~4;
+        status.off(F_DAMAGED);
+        analysis.status.off(cAnalysis::S_PL_DOWN);
     } else {
-        if (Chk8(analysis.flags, 0x10)) {
+        if (analysis.status.check(cAnalysis::S_GRENADE)) {
             action.set(0xA);
-        } else if (!Chk8(analysis.flags, 2) && Chk8(analysis.flags, 4)) {
+        } else if (!analysis.status.check(cAnalysis::S_PL_AIM) && analysis.status.check(cAnalysis::S_PL_DOWN)) {
             action.set(9);
-        } else if (Chk8(flags, 2)) {
+        } else if (status.check(F_PL_ATTACKED)) {
             action.set(4);
-        } else if (Chk8(analysis.flags, 2)) {
+        } else if (analysis.status.check(cAnalysis::S_PL_AIM)) {
             action.set(8);
-        } else if (set == 2 && !Chk8(flags, 4)) {
+        } else if (set == 2 && !status.check(F_2F)) {
             action.set(3);
-            if (GetDistance(*(Vec*) &upPos, pos) < 1000000.0f) flags |= 4;
-        } else if (set == 1 && (rackCheck() || Chk8(analysis.flags, 0x80))) {
+            if (GetDistance(*(Vec*) &upPos, pos) < 1000000.0f) status.on(F_2F);
+        } else if (set == 1 && (rackCheck() || analysis.status.check(cAnalysis::S_ESC_RACK))) {
             action.set(0xC);
-        } else if (set == 1 && !(action.flags & 2)) {
+        } else if (set == 1 && !action.status.check(cAction::S_11C_BEGIN)) {
             action.set(0xB);
         } else if (analysis.pEmNear) {
-            if (Chk8(analysis.flags, 8) && !stairCheck(pPL) && !stairCheck(this) && sameFloorCheck(this, pPL) &&
+            if (analysis.status.check(cAnalysis::S_GIVE_ITEM) && !stairCheck(pPL) && !stairCheck(this) && sameFloorCheck(this, pPL) &&
                 (s16) pG->pl_life > 0) {
                 action.set(7);
-                analysis.flags &= ~8;
+                analysis.status.off(cAnalysis::S_GIVE_ITEM);
             } else {
                 action.set(1);
             }
@@ -317,7 +312,7 @@ int cSubLuis::rackCheck()
     if (pRackWk[0]->hp <= 0) return 0;
     if (pRackWk[0]->pos.z < zlim) return 0;
     if (GetDistance(&pos, (Vec*) &rackPos) > dist) return 0;
-    analysis.flags |= (u8) 0x80;
+    analysis.status.on(cAnalysis::S_ESC_RACK);
     return 1;
 }
 
@@ -925,8 +920,8 @@ void cAction::moveGo2F(cAnalysis* an, cRoutine* rt)
         if (rt->set(6)) {
             rt->pos = stairPos;
             rt->dist = 1000.0f;
-            if (!(an->flags & 0x20)) {
-                an->flags |= 0x20;
+            if (!an->status.check(cAnalysis::S_SAY_2F)) {
+                an->status.on(cAnalysis::S_SAY_2F);
                 if (pPL->pos.y < lowY) rt->voice.set(0x58, 2, 60);
             }
             rno1 = 1;
@@ -979,7 +974,7 @@ void cAction::moveDown(cAnalysis* an, cRoutine* rt)
         rno1 = 1;
     case 1:
         if (rt->eor()) {
-            an->flags |= 4;
+            an->status.on(cAnalysis::S_PL_DOWN);
             rno1 = 2;
         }
         break;
@@ -997,7 +992,7 @@ void cAction::moveUp(cAnalysis* an, cRoutine* rt)
         rno1 = 1;
     case 1:
         if (rt->eor()) {
-            an->flags &= ~4;
+            an->status.off(cAnalysis::S_PL_DOWN);
             rno1 = 2;
         }
         break;
@@ -1014,7 +1009,7 @@ void cAction::moveAvoid(cAnalysis* an, cRoutine* rt)
         rt->set(0xF);
         rno1 = 1;
     case 1:
-        if (rt->eor()) an->flags &= ~0x10;
+        if (rt->eor()) an->status.off(cAnalysis::S_GRENADE);
         break;
     }
 }
@@ -1027,11 +1022,11 @@ void cAction::move11cBegin(cAnalysis* an, cRoutine* rt)
 
     switch (rno1) {
     case 0:
-        if (flags & 1) {
-            flags |= 2;
+        if (status.check(S_11C_INIT)) {
+            status.on(S_11C_BEGIN);
             break;
         }
-        flags |= 1;
+        status.on(S_11C_INIT);
         rt->set(0);
         rno2 = 0;
         rno1 = 1;
@@ -1048,7 +1043,7 @@ void cAction::move11cBegin(cAnalysis* an, cRoutine* rt)
         case 0xF7: o->neckSet(-0.017453292f, PI); break;
         case 0xF8:
             rno1 = 2;
-            flags |= 2;
+            status.on(S_11C_BEGIN);
             break;
         }
         rno2++;
@@ -1072,7 +1067,7 @@ void cAction::moveEscRack(cAnalysis* an, cRoutine* rt)
             rno1 = 1;
         }
     case 1:
-        if (rt->eor()) an->flags &= ~0x80;
+        if (rt->eor()) an->status.off(cAnalysis::S_ESC_RACK);
         break;
     }
 }
@@ -1190,7 +1185,7 @@ void cAnalysis::init(cSubLuis* o)
     iem = 0;
     time = 0;
     plDist = 1000000.0f;
-    flags &= ~8;
+    status.off(S_GIVE_ITEM);
 }
 
 // A door enemy between the two points.
@@ -1251,7 +1246,7 @@ scanned:
 
     plDist = RouteCkPosToPosDis(&owner->pos, &pPL->pos);
     aimCheck();
-    if (time % 1800 == 0) flags |= 8;
+    if (time % 1800 == 0) status.on(S_GIVE_ITEM);
 
     switch ((u32) greThrowCheck()) {   // unsigned range tests (cmplwi), the EQ tests stay cmpwi
     case 0x13:
@@ -1259,7 +1254,7 @@ scanned:
             grenadeTimer = 0;
         } else {
             grenadeTimer++;
-            if (grenadeTimer > 30) flags |= 0x10;
+            if (grenadeTimer > 30) status.on(S_GRENADE);
         }
         break;
     case 0x16:
@@ -1268,7 +1263,7 @@ scanned:
             grenadeTimer = 0;
         } else {
             grenadeTimer++;
-            if (grenadeTimer > 5) flags |= 0x10;
+            if (grenadeTimer > 5) status.on(S_GRENADE);
         }
         break;
     case 0xD:
@@ -1276,12 +1271,12 @@ scanned:
             grenadeTimer = 0;
         } else {
             grenadeTimer++;
-            if (grenadeTimer > 1) flags |= 0x10;
+            if (grenadeTimer > 1) status.on(S_GRENADE);
         }
         break;
     default:
         if (grenadeTimer < -5) {
-            if (flags & 0x10) flags &= ~0x10;
+            if (status.check(S_GRENADE)) status.off(S_GRENADE);
         } else {
             grenadeTimer--;
         }
@@ -1296,27 +1291,27 @@ int cAnalysis::aimCheck()
 {
     switch (pG->weapon_no) {
     case 0x10:
-        flags &= ~2;
+        status.off(S_PL_AIM);
         if ((PlGetStatus() & 0x10) && GetDistance(pPL->pos, pSUB->pos) < 4000000.0f &&
             Front_check(pPL, pSUB, pPL->ang.y)) {
-            flags |= 2;
+            status.on(S_PL_AIM);
             return 1;
         }
         break;
     default:
         if (PlGetStatus() & 0x10) {
             if (pPL->Wep->m_pWep->m_SightEm == (cEm*) owner) {
-                flags |= 2;
+                status.on(S_PL_AIM);
             } else {
                 f32 dir = PlGetDirY();
-                if (fabsf(GetXZAngleLocal(&pPL->pos, &owner->pos, dir)) > 0.17453292f) flags &= ~2;
+                if (fabsf(GetXZAngleLocal(&pPL->pos, &owner->pos, dir)) > 0.17453292f) status.off(S_PL_AIM);
             }
             return 1;
         }
     case 0x13:
     case 0x16:
     case 0x17:
-        flags &= ~2;
+        status.off(S_PL_AIM);
         break;
     }
     return 0;
@@ -1402,21 +1397,21 @@ int cSubLuis::damageCheck()
         routine.work[0] = 3;
         dmg.m_Flag = dead;
         dmg.m_Timer = 0x80;
-        flags |= 1;
+        status.on(F_DAMAGED);
         return 1;
     }
     if (dmg.m_Flag == 0) return 0;
 
-    analysis.flags &= ~0x40;
+    analysis.status.off(cAnalysis::S_PL_DMG);
     routine.work[1] = 0;
     switch (dmg.m_Wep) {
     default:
         m_PlAtack--;
         if (m_PlAtack == 0) {
-            flags |= 2;
+            status.on(F_PL_ATTACKED);
         } else {
             if (m_PlAtack == 1) setStatus(EM_STATUS_DONT_FIRE);
-            analysis.flags |= 0x40;
+            analysis.status.on(cAnalysis::S_PL_DMG);
             routine.work[1] = m_PlAtack;
         }
         routine.pTarget = pPL;
@@ -1437,7 +1432,7 @@ int cSubLuis::damageCheck()
         routine.work[0] = 2;
         break;
     }
-    flags |= 1;
+    status.on(F_DAMAGED);
     dmg.m_Flag = 0;
     dmg.m_Timer = 0x80;
     return 1;
@@ -1464,8 +1459,8 @@ void cSubLuis::equipWeapon()
 // frames when the attacker is still marked, back to action mode 0 and the routine ended.
 void cSubLuis::endDamage()
 {
-    if ((flags & 0x40) && pEmCatch && ((cEm*) pEmCatch)->dmg.m_Timer) thankCtr = 30;
-    flags &= ~0x40;
+    if (status.check(F_KARAMI) && pEmCatch && ((cEm*) pEmCatch)->dmg.m_Timer) thankCtr = 30;
+    status.off(F_KARAMI);
     action.set(0);
     routine.end();
 }
@@ -1534,7 +1529,7 @@ void cSubLuis::moveEye()
 void cSubLuis::neckSet(f32 ang, f32 limit)
 {
     neckY += Muku2(neckY, ang, limit);
-    flags |= 8;
+    status.on(F_NECK_SET);
 }
 
 // Applies the head yaw: without a neckSet this frame it returns to 0 (0.628 rad per frame); the
@@ -1544,8 +1539,8 @@ void cSubLuis::neckMove()
     cModel* p;
     const f32 spd = 0.62831855f;   // pool order: the turn speed precedes the 0.0
 
-    if (flags & 8) {
-        flags &= ~8;
+    if (status.check(F_NECK_SET)) {
+        status.off(F_NECK_SET);
     } else {
         neckY += Muku2(neckY, 0.0f, spd);
     }

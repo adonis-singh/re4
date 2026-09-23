@@ -11,6 +11,7 @@
 #include "em.h"
 #include "player.h"
 #include "obj.h"
+#include "cFlag.h"
 
 // Room_flg bits of room 1-1C (the besieged cabin), from the PS2 symbols; RmfFlagChk(pG, n).
 enum R11C_FLAG {
@@ -87,6 +88,17 @@ public:
 // Target analysis.
 class cAnalysis {
 public:
+    enum STAT {
+        S_PL_AIM_S = 0,
+        S_PL_AIM = 1,     // the player aims at him
+        S_PL_DOWN = 2,
+        S_GIVE_ITEM = 3,  // every 1800 frames: offer an item
+        S_GRENADE = 4,    // a grenade is aimed at him: dodge
+        S_SAY_2F = 5,
+        S_PL_DMG = 6,
+        S_ESC_RACK = 7,
+    };
+
     cSubLuis* owner;      // 0x00
     int iem;              // 0x04  EmMgr index the round-robin isTarget scan is at
     f32 plDist;           // 0x08  route distance to the player
@@ -94,7 +106,7 @@ public:
     s8 grenadeTimer;            // 0x10  frames the player has aimed a grenade at him (bit7 = handled)
     cEm* pEmNear;         // 0x14  nearest target
     f32 pEmNearDist;       // 0x18  its squared distance
-    s8 flags;             // 0x1C  bit1 aimed at by the player, bit2 down, bit3 periodic, bit4 grenade, bit5 spoke, bit6 damaged, bit7 rack
+    cFlag<u8, STAT> status;  // 0x1C
     u8 pad1D[3];
 
     void init(cSubLuis* o);
@@ -106,6 +118,11 @@ public:
 // 5 damage, 6 die, 7 give the item, 8 down, 9 up, 0xA avoid, 0xB room 11C opening, 0xC escape the rack.
 class cAction {
 public:
+    enum STAT {
+        S_11C_INIT = 0,   // room 11C opening started
+        S_11C_BEGIN = 1,  // and done
+    };
+
     cSubLuis* owner;      // 0x00
     int type;             // 0x04
     int rno0;              // 0x08  mode move() dispatches on
@@ -115,7 +132,7 @@ public:
     u8 padF;
     int timer;            // 0x10
     u8 pad14[0xC];
-    u8 flags;             // 0x20  bit0 / bit1: 11C opening started / done
+    cFlag<u8, STAT> status;  // 0x20
 
     void init(cSubLuis* o);
     void move(cAnalysis* an, cRoutine* rt);
@@ -137,6 +154,16 @@ class cObjLuisItem;
 
 class cSubLuis : public cEm {
 public:
+    enum STAT {
+        F_DAMAGED = 0,
+        F_PL_ATTACKED = 1,  // the player shot him enough: attack the player
+        F_2F = 2,           // upstairs
+        F_NECK_SET = 3,     // neck turned this frame
+        F_SHOOTDOWN_10 = 4,
+        F_SHOOTDOWN_30 = 5,
+        F_KARAMI = 6,       // damage from an enemy
+    };
+
     cSubLuis* pEm;    // 0x3E0  the model the routines animate (itself)
     float dist;           // 0x3E4
     Vec distPos;          // 0x3E8
@@ -147,7 +174,7 @@ public:
     cAnalysis analysis;   // 0x564 .. 0x584
     void (*m_pFunc)();     // 0x584  routine 4 (event): the scenario's function
     cObj* pWep;           // 0x588  his gun (ObjMgr id 0xB, equipWeapon)
-    s8 flags;             // 0x58C  bit0 damaged, bit1 dead, bit2 upstairs, bit3 neck set this frame, bit6 damage from an enemy
+    cFlag<u8, STAT> status;  // 0x58C
     u8 pad58D[3];
     int thankCtr;              // 0x590  frames of the damage reaction voice
 

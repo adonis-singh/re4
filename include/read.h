@@ -3,21 +3,29 @@
 
 #include "types.h"
 #include "main_sub.h"
+#include "cFlag.h"
+
+// ReadModule::ctrl_flag bits.
+enum MODULE_CTRL {
+    MODULE_CTRL_DLL_MALLOC = 0,    // dll copied to its own block
+    MODULE_CTRL_DLL_LINK = 1,      // linked
+    MODULE_CTRL_DATA_MALLOC = 2,   // data allocated by DvdReadN
+    MODULE_CTRL_DATA_DMALLOC = 3   // on the debug heap
+};
 
 // A linked DLL with its data archive (game/read.cpp). The first 0x80 bytes are the module's bss area.
 class ReadModule {
 public:
     u8 bss[0x80];               // 0x00
     u16 id;                     // 0x80
-    u16 flag;                   // 0x82  bit0 dll copied to its own block, bit1 linked,
-                                //       bit2 data allocated by DvdReadN, bit3 debug heap
+    cFlag<u16, MODULE_CTRL> ctrl_flag;  // 0x82
     void* pArc;                 // 0x84
     OSModuleHeader* pModule;    // 0x88
     u32 size;                   // 0x8C  data size
     u32 bssSize;                // 0x90  size of the part after the data (dll + bss)
     void* pInitFunc;            // 0x94  EmInitFunc set by the dll prolog
 
-    ReadModule() { flag = 0; }
+    ReadModule() { ctrl_flag.reset(); }
 };
 
 extern ReadModule EmReadModule[4];
