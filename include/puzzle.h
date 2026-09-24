@@ -28,9 +28,10 @@ struct PieceInfo {
 };
 
 class pzlPiece {
-public:
+private:
     u8 be_flag;         // 0x00  bit0 in use
     u8 pad_1[3];
+public:
     PieceData* m_p_data;  // 0x04
     u32 x8;           // 0x08
     f32 m_center_x;           // 0x0C  rotated centre offset
@@ -39,8 +40,10 @@ public:
     f32 m_pos_y;            // 0x18
     u32 x1C;
     s8 m_orientation;        // 0x20  0..3 rotations, 4..7 mirrored
+private:
     u8 m_place;         // 0x21  1 = on a board, 2 = in hand
     u8 pad_22[2];
+public:
     ItemWork* item;   // 0x24
     cModel* model;    // 0x28
 
@@ -48,12 +51,22 @@ public:
     void rotate(int dir);
     void mirror(int dir);
     void init(PieceData* p_data);
+    void clear() { be_flag = 0; }
     f32 ver0_x();
     f32 ver0_y();
+    void set_ver0_x(f32 x) { m_pos_x = x + m_center_x; }
+    void set_ver0_y(f32 y) { m_pos_y = y + m_center_y; }
     int size_x();
     int size_y();
     void snap();
     int shape(int x, int y);
+    int isAlive() { return be_flag & 1; }
+    int isEmpty() { return !(be_flag & 1); }
+    int isOnBoard() { return m_place & 1; }
+    int isInHand() { return m_place & 2; }
+    void setNoPlace() { m_place = 0; }
+    void setOnBoard() { m_place = 1; }
+    void setInHand() { m_place = 2; }
 };
 
 class pzlBoard {

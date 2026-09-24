@@ -814,7 +814,7 @@ void pieceModelOrientation(SUB_SCREEN* wk, pzlPiece* p)
         m->ang.z = -1.5707964f;
         break;
     }
-    if (!(p->m_place & 2)) {
+    if (!p->isInHand()) {
         if (wk->puzzlePlayer->m_board->search(p)) {
             b = wk->puzzlePlayer->m_board;
         } else {
@@ -1003,7 +1003,7 @@ void pieceModelDisp(SUB_SCREEN* wk)
         } else {
             m->ot_type = 3;
         }
-        if ((p->m_place & 1) || (hand && hand == p)) {
+        if (p->isOnBoard() || (hand && hand == p)) {
             m->be_flag |= 2;
             id = 0x41 + no;
             if (hand && p == hand) {
@@ -1433,8 +1433,8 @@ void SsPzzlMain::init(SUB_SCREEN* wk)
         w = pl->m_space->m_size_x;
         for (y = 0; y < h; y++) {
             for (x = 0; x < w; x++) {
-                p->m_pos_x = (f32) x + p->m_center_x;
-                p->m_pos_y = (f32) y + p->m_center_y;
+                p->set_ver0_x((f32) x);
+                p->set_ver0_y((f32) y);
                 if (pl->putPiece(pl->m_space)) {
                     goto PUT;
                 }
@@ -1443,8 +1443,8 @@ void SsPzzlMain::init(SUB_SCREEN* wk)
         p->orientation(1);
         for (y = 0; y < h; y++) {
             for (x = 0; x < w; x++) {
-                p->m_pos_x = (f32) x + p->m_center_x;
-                p->m_pos_y = (f32) y + p->m_center_y;
+                p->set_ver0_x((f32) x);
+                p->set_ver0_y((f32) y);
                 if (pl->putPiece(pl->m_space)) {
                     goto PUT;
                 }

@@ -1661,8 +1661,8 @@ void BuyItemNum::move(SUB_SCREEN* wk)
                 w = pl->m_space->m_size_x;
                 for (y = 0; y < h; y++) {
                     for (x = 0; x < w; x++) {
-                        p->m_pos_x = (f32) x + p->m_center_x;
-                        p->m_pos_y = (f32) y + p->m_center_y;
+                        p->set_ver0_x((f32) x);
+                        p->set_ver0_y((f32) y);
                         if (pl->putPiece(pl->m_space)) {
                             goto PUT;
                         }
@@ -1671,8 +1671,8 @@ void BuyItemNum::move(SUB_SCREEN* wk)
                 p->orientation(1);
                 for (y = 0; y < h; y++) {
                     for (x = 0; x < w; x++) {
-                        p->m_pos_x = (f32) x + p->m_center_x;
-                        p->m_pos_y = (f32) y + p->m_center_y;
+                        p->set_ver0_x((f32) x);
+                        p->set_ver0_y((f32) y);
                         if (pl->putPiece(pl->m_space)) {
                             goto PUT;
                         }
