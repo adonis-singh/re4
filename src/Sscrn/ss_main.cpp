@@ -261,7 +261,7 @@ void SubScreenTask()
         if (pG->pl_type != 1) {
             char name[0x40];
             int req;
-            weaponFilename(name, WeaponId2WeaponNo(ItemMgr.m_wep_id));
+            weaponFilename(name, WeaponId2WeaponNo(ItemMgr.weaponId()));
 #line 412 "D:/Bio4/Prog/ss_main.cpp"
             req = DVD_READ_N(name, wk->pWepDat, 0, 0, 0, 0x11);
             Dvd.ReadCheck(req, 0, 0, 0);
@@ -333,7 +333,7 @@ void SubScreenTask()
                 }
             }
             if (ssWepModel2 && ssWepModel) {
-                switch (WeaponId2WeaponNo(ItemMgr.m_wep_id)) {
+                switch (WeaponId2WeaponNo(ItemMgr.weaponId())) {
                 case 0x19:
                 case 0x1F:
                 case 0x20:

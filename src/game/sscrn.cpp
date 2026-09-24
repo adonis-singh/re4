@@ -353,8 +353,8 @@ void SubScreenExec()
             }
             step++;
         case 2:
-            pG->weapon_no = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-            pG->weapon_type = WeaponId2WeaponType(ItemMgr.m_wep_id);
+            pG->weapon_no = WeaponId2WeaponNo(ItemMgr.weaponId());
+            pG->weapon_type = WeaponId2WeaponType(ItemMgr.weaponId());
             if (StaFlagChk(pG, STA_SCOPE_CAMERA)) {
                 CamCtrl.saveScopeParam();
                 CamCtrl.endScope();
@@ -380,9 +380,7 @@ void SubScreenExec()
             }
             wk->swep_flag = 0;
             {
-                ItemInfo info;
-                itemInfo(ItemMgr.m_wep_id, &info);
-                if (info.type == 3) {
+                if (itemType(ItemMgr.weaponId()) == 3) {
                     if (ItemMgr.bulletNumCurrent() == 0) {
                         wk->swep_flag = 1;
                     }
@@ -603,10 +601,10 @@ void SubScreenExit()
                 SndCall(0, 3, 0, 0, 0, 0);
             }
             cMes.Delete(0);
-            wepNo = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-            wepType = WeaponId2WeaponType(ItemMgr.m_wep_id);
-            if (ItemMgr.pArm) {
-                wepLv = ItemMgr.pArm->getBulletType();
+            wepNo = WeaponId2WeaponNo(ItemMgr.weaponId());
+            wepType = WeaponId2WeaponType(ItemMgr.weaponId());
+            if (ItemMgr.weapon()) {
+                wepLv = ItemMgr.weapon()->getBulletType();
             } else {
                 wepLv = 0;
             }
@@ -638,8 +636,8 @@ void SubScreenExit()
                 if (wk->flags & 2) {
                     ItemMgr.arm(0);
                     wepLv = 0;
-                    wepNo = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-                    wepType = WeaponId2WeaponType(ItemMgr.m_wep_id);
+                    wepNo = WeaponId2WeaponNo(ItemMgr.weaponId());
+                    wepType = WeaponId2WeaponType(ItemMgr.weaponId());
                 }
                 pl = pPL;
                 SndBlkStop(2);

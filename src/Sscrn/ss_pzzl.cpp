@@ -223,7 +223,6 @@ void pzzlEquipDisp(SUB_SCREEN* wk, int sw)
     u8 unused0[0x20];  // two unused 0x20-byte locals keep the original frame (0x38 / 0x68)
     Vec pos;
     u8 unused1[0x20];
-    ItemInfo info;
     pzlPiece* arm;
     int i;
 
@@ -236,17 +235,16 @@ void pzzlEquipDisp(SUB_SCREEN* wk, int sw)
     id[2] = IdSub.unitPtr(0x50, IDC_SSCRN_ETC);
     id2[2] = IdSub.unitPtr(0x51, IDC_SSCRN_ETC);
     id2[2]->be_flag &= ~8;
-    itemInfo(ItemMgr.m_wep_id, &info);
-    switch (info.type) {
+    switch (itemType(ItemMgr.weaponId())) {
     case 1:
-        arm = pl->piecePtr(ItemMgr.pArm);
+        arm = pl->piecePtr(ItemMgr.weapon());
         break;
     case 3:
     case 6:
-        if (ItemMgr.num(ItemMgr.pArm) != 0 && ItemMgr.m_wep_id == ItemMgr.pArm->id) {
-            arm = pl->piecePtr(ItemMgr.pArm);
+        if (ItemMgr.num(ItemMgr.weapon()) != 0 && ItemMgr.weaponId() == ItemMgr.weapon()->id) {
+            arm = pl->piecePtr(ItemMgr.weapon());
         } else {
-            arm = pl->piecePtr(ItemMgr.minimumSearch(ItemMgr.m_wep_id));
+            arm = pl->piecePtr(ItemMgr.minimumSearch(ItemMgr.weaponId()));
         }
         break;
     default:
@@ -269,7 +267,7 @@ void pzzlEquipDisp(SUB_SCREEN* wk, int sw)
         id[1]->be_flag &= ~8;
         id[2]->be_flag &= ~8;
         for (i = 0; i < 2; i++) {
-            ItemWork* w = ItemMgr.weaponParts(ItemMgr.pArm, i);
+            ItemWork* w = ItemMgr.weaponParts(ItemMgr.weapon(), i);
             pzlPiece* p;
 
             if (w == 0) {
@@ -1314,7 +1312,7 @@ void tempSpaceDisp(int sw)
 // 1 when the equipped weapon changed (or ran dry: unarmed).
 int checkWeaponChange(int id, int bullets)
 {
-    if (id != ItemMgr.m_wep_id) {
+    if (id != ItemMgr.weaponId()) {
         return 1;
     }
     if (bullets && ItemMgr.bulletNum() == 0) {
@@ -1421,7 +1419,7 @@ void SsPzzlMain::init(SUB_SCREEN* wk)
         int y;
 
         ItemMgr.get(wk->get_item_id, wk->get_item_num);
-        ItemWork* last = ItemMgr.pLast;  // local: `mr r4,r0` for the argument instead of a re-read after the store
+        ItemWork* last = ItemMgr.newbie();  // local: `mr r4,r0` for the argument instead of a re-read after the store
 
         wk->p_get_item = last;
         wk->puzzlePlayer->appendExtraPiece(last);
@@ -1519,7 +1517,7 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
             cMes.Delete(0);
         }
     }
-    armId = ItemMgr.m_wep_id;
+    armId = ItemMgr.weaponId();
     bullets = ItemMgr.bulletNum();
     old = state;
     wk->cursor_mode = 0;
@@ -1599,8 +1597,8 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
     }
     if (checkWeaponChange(armId, bullets)) {
         // COMPILER-DIFF: 4 (the u8 results assigned to u16 locals are masked with `clrlwi 16`)
-        u16 no = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-        u16 type = WeaponId2WeaponType(ItemMgr.m_wep_id);
+        u16 no = WeaponId2WeaponNo(ItemMgr.weaponId());
+        u16 type = WeaponId2WeaponType(ItemMgr.weaponId());
 
         weaponChangeRequest(no, type);
     }
@@ -1646,7 +1644,7 @@ void SsPzzlMain::quit(SUB_SCREEN* wk)
         if (pl->m_extra && pl->m_space->search(pl->m_extra)) {
             wk->puzzlePlayer->removeExtraPiece();
             ItemMgr.dumpAll(wk->p_get_item);
-            if (wk->p_get_item == ItemMgr.pArm) {
+            if (wk->p_get_item == ItemMgr.weapon()) {
                 ItemMgr.arm(0);
             }
             // x300 first: with x40 first the arm's tail is the else arm's `stw x40` insn, which our
@@ -2513,13 +2511,11 @@ void PieceCommand::move(SUB_SCREEN* wk)
                 SndCall(0, 9, 0, 0, 0, 0);
                 return;
             case 3: {
-                ItemInfo info;
 
                 pzzl_sel->item->lv = 0;
                 used = 1;
-                itemInfo(ItemMgr.m_wep_id, &info);
-                if (info.type == 1) {
-                    ItemMgr.arm(ItemMgr.pArm);
+                if (itemType(ItemMgr.weaponId()) == 1) {
+                    ItemMgr.arm(ItemMgr.weapon());
                 }
                 break;
             }
@@ -2530,7 +2526,7 @@ void PieceCommand::move(SUB_SCREEN* wk)
                     SndCall(0, 4, 0, 0, 0, 0);
                     return;
                 }
-                ItemMgr.m_to_whom = 0;
+                ItemMgr.setToWhom(0);
                 used = ItemMgr.use(pzzl_sel->item);
                 if (used) {
                     PlMotionReset();
@@ -2629,11 +2625,11 @@ void PieceCommand::move(SUB_SCREEN* wk)
             switch (command_id) {
             case 4:
                 if (subSel == 0) {
-                    ItemMgr.m_to_whom = 0;
+                    ItemMgr.setToWhom(0);
                 } else {
-                    ItemMgr.m_to_whom = 1;
+                    ItemMgr.setToWhom(1);
                 }
-                if (ItemMgr.m_to_whom == 1) {
+                if (ItemMgr.getToWhom() == 1) {
                     switch (wk->sub_cure_flag) {
                     case -1:
                         mode = 3;
@@ -2655,7 +2651,7 @@ void PieceCommand::move(SUB_SCREEN* wk)
                     used = ItemMgr.use(pzzl_sel->item);
                 }
                 if (used) {
-                    if (ItemMgr.m_to_whom == 0) {
+                    if (ItemMgr.getToWhom() == 0) {
                         PlMotionReset();
                     } else {
                         SubCharMotionReset();
@@ -2763,10 +2759,7 @@ void CaseChange::quit(SUB_SCREEN* wk)
 // part, 7 key, 8 herb, 9 file.
 int itemCommandType(ItemWork* item)
 {
-    ItemInfo info;
-
-    itemInfo(item->id, &info);
-    switch (info.type) {
+    switch (itemType(item->id)) {
     case 1:
     case 3:
         return 0;

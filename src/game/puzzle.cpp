@@ -1276,7 +1276,6 @@ pzlPiece* pzlPlayer::cmbPiece(pzlBoard* b)
     pzlPiece* p;
     pzlPiece* h;
     ItemWork* ex;
-    ItemInfo info;
     int rel = 0;
     int used;
 
@@ -1291,17 +1290,15 @@ pzlPiece* pzlPlayer::cmbPiece(pzlBoard* b)
     h = m_inhand;
     if (m_extra == p || m_extra == h) {
         ex = m_extra->item;
-        itemInfo(ex->id, &info);
-        if (info.type != 2 && info.type != 6) {
+        int type = itemType(ex->id);
+        if (type != 2 && type != 6) {
             return 0;
         }
     }
-    itemInfo(p->item->id, &info);
-    if (info.type == 9) {
+    if (itemType(p->item->id) == 9) {
         rel = 1;
     } else {
-        itemInfo(h->item->id, &info);
-        if (info.type == 9) {
+        if (itemType(h->item->id) == 9) {
             rel = 1;
         }
     }
@@ -1754,7 +1751,7 @@ placed:
         }
         ItemMgr.get(item_id, rest);
         asm("" : "=m"(item.x) : "r"(last)); // COMPILER-DIFF: keeps the copy live across the call (an output-less asm is volatile and flushes cse's ItemMgr high)
-        last = ItemMgr.pLast;
+        last = ItemMgr.newbie();
         if (last) {
             last->x = item.x;
             last->y = item.y;

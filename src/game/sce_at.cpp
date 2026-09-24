@@ -1098,7 +1098,7 @@ void sceAtGetItem(SceAtWork* w)
         break;
     }
     case 3:
-        itemInfo(ItemMgr.m_wep_id, &info);
+        itemInfo(ItemMgr.weaponId(), &info);
         if (info.type == 3) {
             swep_flag = put;
         }
@@ -1218,7 +1218,7 @@ void sceAtGetItem(SceAtWork* w)
                 } else {
                     tmp.num = n;
                 }
-                ItemMgr.m_to_whom = 0;
+                ItemMgr.setToWhom(0);
                 // `put = 1` after the call (as in sceAtGetItem_NoModel): sched2 hoists the
                 // callee-saved li above the call with the highest LUID, so `addi r4,&tmp` issues first.
                 ItemMgr.use(&tmp);
@@ -1353,7 +1353,7 @@ void sceAtGetItem_NoModel(SceAtWork* w)
         break;
     }
     case 3:
-        itemInfo(ItemMgr.m_wep_id, &info);
+        itemInfo(ItemMgr.weaponId(), &info);
         if (info.type == 3) {
             swep_flag = put;
         }
@@ -1454,7 +1454,7 @@ void sceAtGetItem_NoModel(SceAtWork* w)
                 } else {
                     tmp.num = n;
                 }
-                ItemMgr.m_to_whom = 0;
+                ItemMgr.setToWhom(0);
                 ItemMgr.use(&tmp);
                 put = 1;
             }

@@ -638,16 +638,16 @@ void itemFrameSet(SUB_SCREEN* wk, int col)
             m->be_flag &= ~8;
             numDisp(no, 0, 0, 0);
         } else {
-            ItemInfo info;
             m->be_flag |= 8;
             m->tex_flag |= 2;
             // do {} while (0): the loop notes weight `item`'s refs one depth deeper, so global-alloc
             // ranks it above `col` (item r30, col r29).
+            u16 maxNum;
             do {
                 m->texNo = itemTexNo(item->id);
-                itemInfo(item->id, &info);
+                maxNum = itemMaxNum(item->id);
             } while (0);
-            if (info.maxNum != 1) {
+            if (maxNum != 1) {
                 Vec pos;
                 pos.x = (f32) item_num_x;
                 pos.y = (f32) item_num_y;
@@ -1332,7 +1332,7 @@ void itemMakeMove(SUB_SCREEN* wk)
         }
         if (joy->trg & 0x100) {
             ItemMgr.get((u16) mk->id[n], 0);
-            got = ItemMgr.pLast;
+            got = ItemMgr.newbie();
         } else {
             if (joy->rep & 0x00010001) {
                 if (joy->on & 0x100) {

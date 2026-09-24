@@ -949,9 +949,7 @@ void dispSellItemList(SUB_SCREEN* wk, int n, int cursor)
         cMes.MesSetOt(slot, 0x13, 6);
         IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag &= ~8;
         if (i == sw->cursor) {
-            ItemInfo info;
-            itemInfo(pe->id, &info);
-            if (info.type == 1) {
+            if (itemType(pe->id) == 1) {
                 if (item) {
                     weaponLevelDisp(item, item->id, 1, 1);
                 } else {
@@ -1179,9 +1177,7 @@ void SellItemNum::move(SUB_SCREEN* wk)
         }
     }
     {
-        ItemInfo info;
-        itemInfo(sw->item->id, &info);
-        if (info.type == 1) {
+        if (itemType(sw->item->id) == 1) {
             max = 1;
         } else {
             max = ItemMgr.num(sw->item->id);
@@ -1295,11 +1291,9 @@ void SellConfirm::move(SUB_SCREEN* wk)
     }
     switch (result) {
     case 1: {
-        ItemInfo info;
 
         m->buyup(sw->item, sw->count, (int*) &pG->peseta);
-        itemInfo(sw->item->id, &info);
-        if (info.type == 1) {
+        if (itemType(sw->item->id) == 1) {
             ItemMgr.dumpAll(sw->item);
         } else {
             u16 left = (u16) sw->count;
@@ -1318,7 +1312,7 @@ void SellConfirm::move(SUB_SCREEN* wk)
                 left -= p->num;
                 ItemMgr.dumpAll(p);
             }
-            if (id == ItemMgr.m_wep_id && ItemMgr.num(id) == 0) {
+            if (id == ItemMgr.weaponId() && ItemMgr.num(id) == 0) {
                 ItemMgr.arm(0);
             }
         }
@@ -1414,9 +1408,7 @@ void dispBuyItemList(SUB_SCREEN* wk, int n, int cursor)
             IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag |= 8;
         }
         if (i == sw->cursor) {
-            ItemInfo info;
-            itemInfo(pe->id, &info);
-            if (info.type == 1) {
+            if (itemType(pe->id) == 1) {
                 weaponLevelDisp(0, pe->id, 1, 1);
             } else {
                 weaponLevelDisp(0, pe->id, 0, 1);
@@ -1737,7 +1729,7 @@ int buyItem(SUB_SCREEN* wk)
     wk->merchant->sell(sw->buyId, sw->count, (int*) &pG->peseta);
     ItemMgr.get(sw->buyId, (u16) sw->count);
     if (sw->placed) {
-        ItemWork* p = ItemMgr.pLast;
+        ItemWork* p = ItemMgr.newbie();
         if (p) {
             p->x = sw->buy.x;
             p->y = sw->buy.y;
@@ -1746,7 +1738,7 @@ int buyItem(SUB_SCREEN* wk)
             wk->puzzlePlayer->m_extra->item = p;
         }
     } else {
-        ItemWork* p = ItemMgr.pLast;
+        ItemWork* p = ItemMgr.newbie();
         if (p) {
             switch (p->id) {
             case 0x7C:
@@ -1982,9 +1974,7 @@ void dispLvUpItemList(SUB_SCREEN* wk, int n, int cursor)
             IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag |= 8;
         }
         if (i == sw->cursor) {
-            ItemInfo info;
-            itemInfo(le->id, &info);
-            if (info.type == 1) {
+            if (itemType(le->id) == 1) {
                 if (item) {
                     weaponLevelDisp(item, le->id, 1, 1);
                 } else {
@@ -2572,8 +2562,8 @@ void LvUpConfirm::move(SUB_SCREEN* wk)
                 ItemWork* item = sw->item;
                 item->bullet = (item->bullet & 0xE000) | (WeaponId2ChargeNum(item->id, (item->lv8[1] & 0xF) + 1) & 0x1FFF);
             }
-            if (ItemMgr.pArm == sw->item) {
-                ItemMgr.arm(ItemMgr.pArm);
+            if (ItemMgr.weapon() == sw->item) {
+                ItemMgr.arm(ItemMgr.weapon());
             }
             pG->peseta -= sw->price;
             shopStrPlay(wk, shop_msg[25].str);

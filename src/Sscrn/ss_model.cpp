@@ -198,13 +198,13 @@ void hunniganModelInit(cModel* m, void* data, u32 type)
 }
 
 // Builds the sub screen's character (MapMgr work 0) and weapon (work 1) models for the equipped
-// weapon (ItemMgr.m_wep_id -> number / type) by pl_type; called at screen entry and by
+// weapon (ItemMgr.weaponId() -> number / type) by pl_type; called at screen entry and by
 // weaponChangeTask after a re-equip.
 void playerModelInit()
 {
     cItemMgr* im = &ItemMgr;
-    u16 no = WeaponId2WeaponNo(im->m_wep_id);
-    u16 type = WeaponId2WeaponType(im->m_wep_id);
+    u16 no = WeaponId2WeaponNo(im->weaponId());
+    u16 type = WeaponId2WeaponType(im->weaponId());
 
     ssPlModel = MapMgr.getWork(0);
     ssWepModel = MapMgr.getWork(1);

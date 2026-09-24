@@ -541,7 +541,6 @@ void BulletInfo::move()
     u8 digit[3];
     IdUnit* u[3];
     IdUnit* empty;
-    ItemInfo info;
     int noBullet = 0;
     cItemMgr* im = &ItemMgr;
     int wepNo;
@@ -549,16 +548,15 @@ void BulletInfo::move()
     u8 mark;
     int i;
 
-    wepNo = WeaponId2WeaponNo(im->m_wep_id);
+    wepNo = WeaponId2WeaponNo(im->weaponId());
     num = im->bulletNum();
     if (num == 0) {
         u16 id;
 
-        itemInfo(im->m_wep_id, &info);
-        if (info.type == 1) {
-            id = WeaponId2BulletId(im->pArm->id, im->pArm->getBulletType());
+        if (itemType(im->weaponId()) == 1) {
+            id = WeaponId2BulletId(im->weapon()->id, im->weapon()->getBulletType());
         } else {
-            id = WeaponId2BulletId(im->m_wep_id, 0);
+            id = WeaponId2BulletId(im->weaponId(), 0);
         }
         noBullet = ItemMgr.search(id) == 0;
     }
