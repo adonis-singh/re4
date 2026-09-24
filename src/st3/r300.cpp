@@ -57,7 +57,7 @@ struct R300Work {
     f32 sweepAng2;          // 0x138
     f32 miraAng;            // 0x13C  mirror A rotation target
     f32 mirbAng;            // 0x140  mirror B rotation target
-    Camera cam;             // 0x144  mirror event camera
+    CAMERA cam;             // 0x144  mirror event camera
     cEmHit* hit;            // 0x23C
     int x240;               // 0x240
     Vec laserPos[2];        // 0x244  laser reflection points
@@ -1120,7 +1120,7 @@ static void r300_mira_exec()
             Vec pos = {-20664.0f, -10229.0f, -19603.0f};
             Mtx m;
             Vec dir;
-            Camera* cam = &r300_work->cam;
+            CAMERA* cam = &r300_work->cam;
             dir.x = cam->param.at.x - pos.x;
             dir.y = 0.0f;
             dir.z = cam->param.at.z - pos.z;
@@ -1206,7 +1206,7 @@ static void r300_mirb_exec()
             Vec pos = {-33306.0f, -10229.0f, -40392.0f};
             Mtx m;
             Vec dir;
-            Camera* cam = &r300_work->cam;
+            CAMERA* cam = &r300_work->cam;
             dir.x = cam->param.at.x - pos.x;
             dir.y = 0.0f;
             dir.z = cam->param.at.z - pos.z;

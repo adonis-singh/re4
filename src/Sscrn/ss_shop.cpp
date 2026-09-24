@@ -2980,7 +2980,7 @@ void dispItem(int id, int sw)
 // Screen (+-240 half height) -> world x/y at the camera distance, z 0.
 void screenPos2worldPos(Vec* scr, Vec* out)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     f32 z = cam->param.pos.z;
     f32 h = fabsf((f32) (z * tan(cam->param.fovy * 0.5f * 3.1415927f / 180.0f)));
 

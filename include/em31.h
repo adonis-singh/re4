@@ -63,7 +63,7 @@ struct Em31Work {
     PlCloth Cloth3;       // 0x760 (0xB40)  Em31ClothSet3 / Em31ClothMove3
     cModelInfo* pHead;    // 0x7C0 (0xBA0)  extra body model
     int pHair;             // 0x7C4 (0xBA4)
-    Camera Cam;           // 0x7C8 (0xBA8)  event camera (em31EscapeCamMove / em31StampCamMove)
+    CAMERA Cam;           // 0x7C8 (0xBA8)  event camera (em31EscapeCamMove / em31StampCamMove)
     Vec Target_pos;        // 0x8C0 (0xCA0)  jump target (em31JumpCk / em31BridgeJumpCk / em31_R1_BridgeVs)
     u8 EffKindId;           // 0x8CC (0xCAC)  EspPullCoreKind at creation
     u8 pad_8CD[3];

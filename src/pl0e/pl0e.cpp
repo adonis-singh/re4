@@ -658,7 +658,7 @@ void pl0eBoatRoll(cPl0e* em)
     PSMTXConcat(em->mat, m, em->mat);
 }
 
-static Camera pl0e_camera = { 0 };
+static CAMERA pl0e_camera = { 0 };
 static Vec pl0e_cam_ofs = { 0.0f, 0.0f, 5000.0f };
 static f32 pl0e_cam_up = 1500.0f;
 static f32 pl0e_cam_dist = 5000.0f;
@@ -673,7 +673,7 @@ static Vec pl0e_cam_pos1 = { -1500.0f, 0.0f, -5000.0f };
 void pl0eCamMove(cPl0e* em)
 {
     Pl0eWork* w = PL0E_WK(em);
-    Camera* gcam = &pG->Camera;
+    CAMERA* gcam = &pG->Camera;
     Mtx m;
     Vec at;
     Vec target;

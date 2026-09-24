@@ -38,7 +38,7 @@ struct SUB_SCREEN {
     int (*scrn_out_func)(SUB_SCREEN*);  // 0x04C  screen exit routine (Sscrn ss_*: sscrn_*_out), run until it returns 1
     u32 stop_bak;              // 0x050  pG->flags_170 while open
     u32 disp_bak;               // 0x054  pG->flags_58 while open
-    Camera camera_bak;               // 0x058  pG->Camera while open
+    CAMERA camera_bak;               // 0x058  pG->Camera while open
     Mtx pl_mat;                // 0x150  player matrix at open
     Mtx sub_mat;               // 0x180  partner matrix at open
     u8 stage_no;                 // 0x1B0  sscrnStageNo()

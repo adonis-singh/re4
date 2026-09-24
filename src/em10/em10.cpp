@@ -1954,7 +1954,7 @@ static void em10DmSetWep23(cEm10* em)
 void em10BloodSet(cEm10* em, int near)
 {
     Em10Work* w = EM10_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     YARARE_INFO* part;
     cParts* parts;
     f32 dist;
@@ -2200,7 +2200,7 @@ void em10BloodSet(cEm10* em, int near)
 void em1cBloodSet(cEm10* em, int near)
 {
     Em10Work* w = EM10_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     YARARE_INFO* part;
     cParts* parts;
     f32 dist;
@@ -2612,7 +2612,7 @@ void cEm10::move()
         }
     }
     {
-        Camera* cam = &pG->Camera;
+        CAMERA* cam = &pG->Camera;
         int hide = 0;
         Vec* nrm = pFloor_norm;
         if (nrm == 0 || nrm->y < 0.8f) {
@@ -12741,7 +12741,7 @@ static void em10_R1_Bombhold(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
     cParts* p;
-    Camera* cam;
+    CAMERA* cam;
     Vec rot;
 
     w->Be_flg |= 0x800;
@@ -16318,7 +16318,7 @@ static void em10_R1_Die_Bomb(cEm10* em)
 {
     Em10Work* w = EM10_WK(em);
     cParts* p;
-    Camera* cam;
+    CAMERA* cam;
     f32 dx, dy;
     Vec rot;
 
@@ -21964,7 +21964,7 @@ extern "C" void em10CamMove(cEm10* em, int no, f32 rate, int shake)
     Vec v;
     Vec hit;
     Vec d;
-    Camera* c = &pG->Camera;
+    CAMERA* c = &pG->Camera;
     cParts* p;
     cParts* q;
 
@@ -22032,7 +22032,7 @@ extern "C" void em10CamMove(cEm10* em, int no, f32 rate, int shake)
 static Vec em10_campos2_r = { 1300.0f, 500.0f, 0.0f };
 static Vec em10_campos2_l = { -1300.0f, 500.0f, 0.0f };
 // 0xF8 explicitly zero-initialised bytes follow in .data (GCC 2.95 keeps `= {0}` aggregates out of .bss); nothing references them.
-static Camera em10_campos2_cam = { 0 };
+static CAMERA em10_campos2_cam = { 0 };
 
 // Picks the second cut-in camera position Campos (1300 units left or right of the player at head
 // height, pulled in front of walls) for em10CamMove2 (the NeckHang throw-off).
@@ -22087,7 +22087,7 @@ void em10CamMove2(cEm10* em)
     Vec d;
     Vec hit;
     Vec d2;
-    Camera* c = &pG->Camera;
+    CAMERA* c = &pG->Camera;
 
     pl = pPL->getPartsPtr(4)->world;
     PSVECSubtract(&w->Campos, &pl, &d);
@@ -22136,7 +22136,7 @@ void em10CamMove2(cEm10* em)
 extern "C" void em10CamMoveCri(cEm10* em, u32 no, int shake)
 {
     Em10Work* w = EM10_WK(em);
-    Camera* c = &pG->Camera;
+    CAMERA* c = &pG->Camera;
     Vec a;
     Vec b;
     Vec hit;
@@ -22260,7 +22260,7 @@ extern "C" void em10CamMoveAshley(cEm10* em, u32 no)
     Vec b;
     Vec hit;
     Vec d;
-    Camera* c = &pG->Camera;
+    CAMERA* c = &pG->Camera;
 
     switch (no) {
     case 0:

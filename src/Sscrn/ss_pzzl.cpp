@@ -101,7 +101,7 @@ void drawCursorInit(SUB_SCREEN* wk, PzzlCursor* c);
 void cmpVer(PzzlCursor* c, Vec* v);
 void drawCursor(SUB_SCREEN* wk, pzlBoard* b, int x, int y, PzzlCursor* c, int line);
 void drawGridLine(SUB_SCREEN* wk);
-void puzzleCameraInit(SUB_SCREEN* wk, Camera* cam);
+void puzzleCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 int puzzlePos2screenPos(Vec* pos, Vec* out);
 void screenPos2puzzlePos(Vec* pos, Vec* out);
 void pieceTblInit(SUB_SCREEN* wk);
@@ -614,7 +614,7 @@ void drawGridLine(SUB_SCREEN* wk)
 }
 
 // The case screen uses the common sub screen camera.
-void puzzleCameraInit(SUB_SCREEN* wk, Camera* cam)
+void puzzleCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     sscrnCameraInit(wk, cam);
 }
@@ -647,7 +647,7 @@ int puzzlePos2screenPos(Vec* pos, Vec* out)
 // case).
 void screenPos2puzzlePos(Vec* pos, Vec* out)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     f32 pz = cam->param.pos.z;
     f32 h = fabsf((f32) (pz * tan(cam->param.fovy * 0.5f * 3.1415927f / 180.0f)));
 

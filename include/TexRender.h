@@ -43,7 +43,7 @@ struct TexRenderCam {
     CameraMotion cam;    // 0x000
     u8 pad_1D4[0x200 - 0x1D4];
     cCamera* pCam;       // 0x200  &cam
-    Camera save;         // 0x204  pG->Camera while the render camera is active
+    CAMERA save;         // 0x204  pG->Camera while the render camera is active
     TexRenderEvt* pEvt;  // 0x2FC
     void* data;          // 0x300  motion data for CameraMotion
 };

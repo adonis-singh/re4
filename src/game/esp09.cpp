@@ -55,7 +55,7 @@ cEsp* Esp09_Create()
 void Esp09_ClearPrevPos(cEsp09* pEsp)
 {
     Esp09Work* w = &pEsp->m_Free;
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec* p = &w->Pos[0];
     Vec tmp;
     f32 len;
@@ -88,7 +88,7 @@ void Esp09_ClearPrevPos(cEsp09* pEsp)
 void cEsp09::move()
 {
     Esp09Work* w = &m_Free;
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec* p;
     Vec tmp;
     f32 len = 0.0f;

@@ -2312,7 +2312,7 @@ static void plemEscape(cPlayer* pl)
 void em32EscapeCamMove(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec pos;
     Vec at;
     Vec hit;

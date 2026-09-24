@@ -415,7 +415,7 @@ static void r205_PendulumMove()
 // The player is hit by blade `p`: the death demo with a camera that keeps looking at him.
 static void r205_ExecDieDemo(R205Pend* p)
 {
-    Camera cam;
+    CAMERA cam;
     cParts* parts;
     Vec* wp;
     f32 d;

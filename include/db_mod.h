@@ -58,7 +58,7 @@ class cEm* dbModGetEmPtr(u32 no);
 int dbModelIsAlive(int no);
 char* dbModBinName();
 void dbModMotionSet(int frame);
-void dbModelSetCamera(int no, struct Camera* cam);
+void dbModelSetCamera(int no, struct CAMERA* cam);
 int dbModelLoad(int no, DB_MODEL_FILES* bin, DB_MODEL_FILES* tex, DB_MODEL_FILES* mot);
 void dbModelParentChild(s8 no, s8 parentNo, s8 parts, Vec* pos, Vec* rot);
 void dbModelSetPos0(int no, Vec* pos);

@@ -32,10 +32,10 @@ public:
     u8 pad_19[3];
     f32 m_move_gain;          // 0x1C  stick gain (CameraRoomInit resets it)
 
-    void move(Camera* pCam, JOY* pJoy, int attr);
-    void camera_type_00(Camera* pCam, JOY* pJoy);
-    void camera_type_01(Camera* pCam, JOY* pJoy);
-    void menu(Camera* pCam, JOY* pJoy);
+    void move(CAMERA* pCam, JOY* pJoy, int attr);
+    void camera_type_00(CAMERA* pCam, JOY* pJoy);
+    void camera_type_01(CAMERA* pCam, JOY* pJoy);
+    void menu(CAMERA* pCam, JOY* pJoy);
     int menuCamera(JOY* pJoy);
     int menuFlag(JOY* pJoy);
     int menuHitDisp(JOY* pJoy);
@@ -44,7 +44,7 @@ public:
 
 extern debugCamera CamDbg;
 
-void CameraDrawTarget(Camera* pCam, int attr);
+void CameraDrawTarget(CAMERA* pCam, int attr);
 void CameraDebugInformation();
 void moveOnPlaneXZ(Vec* src, Vec* dst);
 void drawGround(int flag);

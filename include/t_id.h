@@ -123,7 +123,7 @@ struct IdTool {
     DbPathWork* pPath;  // 0x64
     DbSctrlWork* pSctrl;  // 0x68
     IdRandomWork* pRandom;  // 0x6C
-    Camera camSave;     // 0x70 .. 0x168
+    CAMERA camSave;     // 0x70 .. 0x168
     s8 colCur;          // 0x168
     s8 rotCur;          // 0x169
     s8 gridLv;          // 0x16A

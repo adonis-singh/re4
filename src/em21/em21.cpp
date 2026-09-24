@@ -166,11 +166,11 @@ static u16 em21_flip_tbl[50] = {
 
 // The camera plemTrapCancel installs (the trap release cut): explicitly zero-initialised so it
 // stays in .data.
-static Camera em21_trap_cam = { 0 };
+static CAMERA em21_trap_cam = { 0 };
 // COMPILER-DIFF: candidate #12 (cse related-value): `cam = &em21_trap_cam` after the `&em21_trap_cam.param.pos/at`
 // pointers are known is a fresh `lis/addi` pair in the original; our cse rewrites it as `at - 0xB0`.
 // An asm-labelled alias declaration gives cse a distinct SYMBOL_REF and keeps the fresh pair.
-extern Camera em21_trap_cam_v asm("em21_trap_cam");
+extern CAMERA em21_trap_cam_v asm("em21_trap_cam");
 // .data is padded to 8 bytes before the linker's BSS tag word.
 asm(".section .data\n\t.balign 8\n\t.text");
 
@@ -961,8 +961,8 @@ static void plemTrapCancel(cPlayer* pl)
 // Installs the trap release cut camera (em21_trap_cam) beside the player looking at the dog.
 void plem21TrapCamMove(cModel* m)
 {
-    Camera* c = &pG->Camera;
-    Camera* cam;
+    CAMERA* c = &pG->Camera;
+    CAMERA* cam;
     Vec v;
     Vec a;
 

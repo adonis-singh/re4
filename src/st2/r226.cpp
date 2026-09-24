@@ -84,7 +84,7 @@ struct SceElevatorData {
 
 
 static R226Work* r226_work;
-static Camera r226_cam;
+static CAMERA r226_cam;
 
 static SceElevatorData r226_elvArrive = {0, 0, {0.0f, 0.0f, 0.0f}, {-3300.0f, 5000.0f, 22200.0f}, {0.0f, 3.14f, 0.0f}, -1, 0, 0xE, 0, 0xF, {80130.0f, 1500.0f, -22530.0f}, {0.0f, -1.6f, 0.0f}, 0x225};
 static SceElevatorData r226_elvLeave = {1, 0, {0.0f, 0.0f, 0.0f}, {-3300.0f, 5000.0f, 22200.0f}, {0.0f, 3.14f, 0.0f}, 0xE, 0, 0xD, 0, 0xF, {80130.0f, 1500.0f, -22530.0f}, {0.0f, -1.6f, 0.0f}, 0x225};
@@ -1376,7 +1376,7 @@ void playerRunCamInitBridge()
 // The chase camera: the player's frame offsets blended towards the current camera.
 void playerRunCamMovePassage(cPlayer* pl, f32 t)
 {
-    Camera* cam = &r226_cam;
+    CAMERA* cam = &r226_cam;
     GlobalWork* g = pG;
     Vec pos;
     Vec at;
@@ -1397,7 +1397,7 @@ void playerRunCamMovePassage(cPlayer* pl, f32 t)
 // The bridge chase camera: offsets chased towards r226_camOfsPos/At at r226_camSpd*, FOV r226_fovyBridge.
 void playerRunCamMoveBridge(cPlayer* pl, f32 t)
 {
-    Camera* cam = &r226_cam;
+    CAMERA* cam = &r226_cam;
     GlobalWork* g = pG;
     Vec pos;
     Vec at;
@@ -1426,7 +1426,7 @@ void playerRunCamMoveBridge(cPlayer* pl, f32 t)
 // The death camera in the passage: a fixed view (FOV r226_fovyDie) looking at the crushed player.
 void playerRunCamDiePassage(cPlayer* pl)
 {
-    Camera* cam = &r226_cam;
+    CAMERA* cam = &r226_cam;
     GlobalWork* g = pG;
     cParts* parts;
 

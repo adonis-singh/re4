@@ -2080,7 +2080,7 @@ void SndSetOutputMode(int mode, int flg)
 // position aligned with the camera, and the distance from the camera.
 void getCam2SndAngle(f32* h_angle, f32* v_angle, f32* dist, Vec* pos)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec out;
     Vec fwd;
 

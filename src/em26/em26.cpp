@@ -145,7 +145,7 @@ void em26DmCk(cEm26* em)
     case 8:
     case 0x21:
         if (near) {
-            Camera* cam = &pG->Camera;
+            CAMERA* cam = &pG->Camera;
             cParts* p = em->getPartsPtr(0);
 
             if ((cam->param.pos.x - p->world.x) * (cam->param.pos.x - p->world.x)

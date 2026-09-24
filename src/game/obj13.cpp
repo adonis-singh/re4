@@ -882,7 +882,7 @@ static inline f32 LadderCamDist(Vec* a, Vec* b)
 // Extra camera during the climb: follows the climber from behind/below.
 void objLadderClimbCamMove(cEm* pEm)
 {
-    static Camera objLadderClimbCam = { 0 };
+    static CAMERA objLadderClimbCam = { 0 };
     GlobalWork* g = pG;
     Vec camPos;
     Vec camAt;
@@ -1036,7 +1036,7 @@ void plobjLadderDown(cPlayer* pEm)
 // Extra camera for the kick-down.
 void objLadderDownCamMove(cEm* pEm)
 {
-    static Camera objLadderDownCam = { 0 };
+    static CAMERA objLadderDownCam = { 0 };
     GlobalWork* g = pG;
     Vec camPos;
     Vec camAt;
@@ -1141,7 +1141,7 @@ void plobjLadderReset(cPlayer* pEm)
 // Extra camera for the reset.
 void objLadderResetCamMove(cEm* pEm)
 {
-    static Camera objLadderResetCam = { 0 };
+    static CAMERA objLadderResetCam = { 0 };
     GlobalWork* g = pG;
     Vec camPos;
     Vec camAt;

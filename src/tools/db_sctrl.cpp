@@ -113,7 +113,7 @@ void SctrlInitCursor(DbSctrlWork* w, f32 x, f32 y)
 }
 
 // Places the graph plane 240 / tan(fovy / 2) in front of the camera, facing it.
-void dbSctrlScreenOrientation(DbSctrlWork* w, Camera* cam, f32 fovy)
+void dbSctrlScreenOrientation(DbSctrlWork* w, CAMERA* cam, f32 fovy)
 {
     Vec dir;
     Vec pos;

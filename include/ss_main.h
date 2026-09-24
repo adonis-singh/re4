@@ -395,7 +395,7 @@ void sscrnLightClear(SUB_SCREEN* wk);
 void sscrnLightCreate(SUB_SCREEN* wk, cLit* lit);
 void sscrnMainMenuInit(SUB_SCREEN* wk, int no);
 void numDisp(int id, int num, Vec* pos, u32 flags);
-void sscrnCameraInit(SUB_SCREEN* wk, Camera* cam);
+void sscrnCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 void sscrnModelFree(SUB_SCREEN* wk);
 void generalModelAlloc(SUB_SCREEN* wk);
 int sscrnMainMenu(SUB_SCREEN* wk);

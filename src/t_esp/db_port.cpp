@@ -1609,7 +1609,7 @@ extern "C" void DB_GetCamFrontPos(f32 dist, f32* x, f32* y, f32* z)
 {
     Vec dir;
     Vec pos;
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
 
     dir.x = cam->param.at.x - cam->param.pos.x;
     dir.y = cam->param.at.y - cam->param.pos.y;

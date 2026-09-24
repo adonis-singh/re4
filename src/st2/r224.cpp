@@ -43,7 +43,7 @@ struct R224Work {
     cObj* obj2;      // 0x004  the grate collision object
     cEmWrap em0;     // 0x008
     cEmWrap em1;     // 0x014
-    Camera cam;      // 0x020  lever camera
+    CAMERA cam;      // 0x020  lever camera
     int x118;        // 0x118
     u32 se0;         // 0x11C
     u32 se1;         // 0x120
@@ -578,7 +578,7 @@ static void reva_move()
                 r224_work->cam = pG->Camera;
             }
         } else if (state == 1) {
-            Camera* cam;
+            CAMERA* cam;
             Vec d;
             Mtx mtx;
             f32 ang;

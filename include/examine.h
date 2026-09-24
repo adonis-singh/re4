@@ -51,7 +51,7 @@ public:
 };
 
 extern ItemExamine itemExam;
-extern Camera itemCamera;
+extern CAMERA itemCamera;
 extern ExamInfo exam_info_ext[2];
 extern f32 cap_dist_min;
 extern f32 cap_dist_max;

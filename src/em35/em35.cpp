@@ -147,7 +147,7 @@ void Em35Init(cEm* em)
 void em35DmCk(cEm35* em)
 {
     Em35Work* w = EM35_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     int near;
     int dmg;
     cParts* p;
@@ -390,7 +390,7 @@ void em35DmCk(cEm35* em)
 void em35DmCkUpper(cEm35* em)
 {
     Em35Work* w = EM35_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     int near;
     int dmg;
     cParts* p;
@@ -2343,7 +2343,7 @@ void em35StampCamMove(cEm35* em)
 {
     Em35Work* w = EM35_WK(em);
     GlobalWork* g = pG;
-    Camera* cam = &w->cam;
+    CAMERA* cam = &w->cam;
     Vec a;
     cParts* p;
 

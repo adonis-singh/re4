@@ -476,7 +476,7 @@ int cameraHitCheck(Vec* pos, Vec* nrm, Vec* from, Vec* to)
 }
 
 // Copies the cut's first key (pos / at / roll / fov) into a Camera and rebuilds its orientation.
-void CameraSetCutData(Camera* pCam, CameraCut* pData)
+void CameraSetCutData(CAMERA* pCam, CameraCut* pData)
 {
     pCam->param.pos = *pData->pos;
     pCam->param.at = *pData->at;
@@ -1334,10 +1334,10 @@ void CameraInterpolation::move(CameraParam* p)
 // Resets the smoothing state to `p`.
 void CameraSmooth::init(CameraParam* p)
 {
-    param = *p;
+    m_effect = *p;
 }
 
-// Exponential smoothing: param = m_ratio * old + (1 - m_ratio) * p (the quake offset is removed
+// Exponential smoothing: m_effect = m_ratio * old + (1 - m_ratio) * p (the quake offset is removed
 // from the old value first); a set reinit flag snaps to `p`.
 void CameraSmooth::move(CameraParam* p)
 {
@@ -1348,18 +1348,18 @@ void CameraSmooth::move(CameraParam* p)
         init(p);
         return;
     }
-    PSVECAdd(&param.pos, &pG->quake_ofs, &param.pos);
-    PSVECAdd(&param.at, &pG->quake_ofs, &param.at);
-    PSVECScale(&param.pos, &param.pos, m_ratio);
+    PSVECAdd(&m_effect.pos, &pG->quake_ofs, &m_effect.pos);
+    PSVECAdd(&m_effect.at, &pG->quake_ofs, &m_effect.at);
+    PSVECScale(&m_effect.pos, &m_effect.pos, m_ratio);
     PSVECScale(&p->pos, &tmp, 1.0f - m_ratio);
-    PSVECAdd(&param.pos, &tmp, &param.pos);
-    PSVECScale(&param.at, &param.at, m_ratio);
+    PSVECAdd(&m_effect.pos, &tmp, &m_effect.pos);
+    PSVECScale(&m_effect.at, &m_effect.at, m_ratio);
     PSVECScale(&p->at, &tmp, 1.0f - m_ratio);
-    PSVECAdd(&param.at, &tmp, &param.at);
-    param.roll *= m_ratio;
-    param.roll = p->roll * (1.0f - m_ratio) + param.roll;
-    param.fovy *= m_ratio;
-    param.fovy = p->fovy * (1.0f - m_ratio) + param.fovy;
+    PSVECAdd(&m_effect.at, &tmp, &m_effect.at);
+    m_effect.roll *= m_ratio;
+    m_effect.roll = p->roll * (1.0f - m_ratio) + m_effect.roll;
+    m_effect.fovy *= m_ratio;
+    m_effect.fovy = p->fovy * (1.0f - m_ratio) + m_effect.fovy;
 }
 
 // r0 == 0: idle (an event / room owns pG->Camera).
@@ -1380,7 +1380,7 @@ void CameraControl::r0_Debug()
     Vec hit;
     const Vec campos_ofs = {0.0f, 1900.0f, -2000.0f};
     const Vec target_ofs = {0.0f, 1000.0f, 0.0f};
-    Camera* cam = &camera;
+    CAMERA* cam = &camera;
     f32 rate;
 
     switch (r1) {
@@ -1442,7 +1442,7 @@ void CameraControl::r0_Debug()
 // when the cut has no key).
 void CameraControl::r0_Fix()
 {
-    Camera cam;
+    CAMERA cam;
 
     CameraSetCutData(&cam, area_rec->cut);
     cur = cam.param;
@@ -1481,7 +1481,7 @@ void CameraControl::r0_Pan()
 // at the aim.
 void CameraControl::r0_Track()
 {
-    Camera cam;
+    CAMERA cam;
     CameraBSpline* bs = &CamBSpline;
     CameraCut* cut = area_rec->cut;
 
@@ -1509,7 +1509,7 @@ void CameraControl::r0_Track()
 // r0 == 4: rail camera whose target is the aim point (rail evaluated every frame).
 void CameraControl::r0_RailPan()
 {
-    Camera cam;
+    CAMERA cam;
     CameraBSpline* bs = &CamBSpline;
     CameraCut* cut = area_rec->cut;
 
@@ -1553,7 +1553,7 @@ static inline void VecLinComb(Vec* a, Vec* b, f32 s, f32 t, Vec* out)
 // by cameraHitCheck.
 void CameraControl::r0_RailBehind()
 {
-    static Camera camera_old;
+    static CAMERA camera_old;
     static f32 move_z;
     static Vec campos_ofs0 = {0.0f, 1800.0f, -1200.0f};
     static Vec target_ofs0 = {0.0f, 1550.0f, 0.0f};
@@ -1566,10 +1566,10 @@ void CameraControl::r0_RailBehind()
     static int nI = 1;
     static int mI = 2;
     static f32 rate = 0.95f;
-    Camera cam;
+    CAMERA cam;
     Mtx m;
     Mtx inv;
-    Camera* c = &camera;
+    CAMERA* c = &camera;
     CameraCut* cut = area_rec->cut;
     Vec xaxis = {1.0f, 0.0f, 0.0f};
     Vec yaxis = {0.0f, 1.0f, 0.0f};
@@ -1606,7 +1606,7 @@ void CameraControl::r0_RailBehind()
             this->target_ofs = target_ofs0;
         }
         pos_old = pPL->pos;
-        memclr_asm(&camera_old, sizeof(Camera));
+        memclr_asm(&camera_old, sizeof(CAMERA));
         r2 = 0;
         r1++;
         edge_camera = 0;
@@ -1864,7 +1864,7 @@ void CameraControl::r0_Free()
     static Vec target_ofs0 = {0.0f, 1550.0f, 0.0f};
     static Vec ang;
     static Mtx cam_mat;
-    Camera cam;
+    CAMERA cam;
     Mtx m;
     Vec hit;
     Vec nrm;
@@ -2099,11 +2099,11 @@ void Parametrize(CameraCut* pCdat, CameraBSpline* pB)
 }
 
 // Evaluates the rail at parameter bs->t into the camera's pos / at / roll / fov.
-void BSpline(CameraBSpline* bs, Camera* cam, int)
+void BSpline(CameraBSpline* bs, CAMERA* cam, int)
 {
     int i;
 
-    memclr_asm(cam, sizeof(Camera));
+    memclr_asm(cam, sizeof(CAMERA));
     de_Boor_Cox(bs->num, NULL, bs->t, bs->k, bs->basis);
     for (i = 0; i < bs->num; i++) {
         cam->param.at.x += bs->basis[i] * bs->ax[i];

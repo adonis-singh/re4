@@ -177,11 +177,11 @@ static Em2aFunc Em2a_R1_move_tbl[16] = {
 
 // The camera plemResuceAshley installs (the partner rescue cut): explicitly zero-initialised so it
 // stays in .data.
-static Camera em2a_rescue_cam = { 0 };
+static CAMERA em2a_rescue_cam = { 0 };
 // COMPILER-DIFF: candidate #12 (cse related-value): `cam = &em2a_rescue_cam` after the `&em2a_rescue_cam.param.pos/at`
 // pointers are known is a fresh `lis/addi` pair in the original; our cse rewrites it as `at - 0xB0`.
 // An asm-labelled alias declaration gives cse a distinct SYMBOL_REF and keeps the fresh pair.
-extern Camera em2a_rescue_cam_v asm("em2a_rescue_cam");
+extern CAMERA em2a_rescue_cam_v asm("em2a_rescue_cam");
 // .data is padded to 8 bytes before the linker's BSS tag word.
 asm(".section .data\n\t.balign 8\n\t.text");
 
@@ -615,8 +615,8 @@ static void plemResuceAshley(cPlayer* pl)
 // Installs the rescue cut camera (em2a_rescue_cam) beside the player looking at the trap.
 void plem2aTrapCamMove(cModel* m)
 {
-    Camera* c = &pG->Camera;
-    Camera* cam;
+    CAMERA* c = &pG->Camera;
+    CAMERA* cam;
     Vec v;
     Vec a;
 
@@ -918,7 +918,7 @@ void em2aTrap2Bomb(cEm2a* em)
     PSVECAdd(&p->world, &d, &e);
     PlWepHitCheck2(0, &e, &e, 0x13, 2, 3000.0f);
     {
-        Camera* c = &pG->Camera;
+        CAMERA* c = &pG->Camera;
         f32 dist;
 
         p = em->getPartsPtr(1);
@@ -947,7 +947,7 @@ void em2aTrap2Bomb(cEm2a* em)
 void em2aTrap1CamMove(cEm2a* em)
 {
     Em2aWork* w = EM2A_WK(em);
-    Camera* c = &pG->Camera;
+    CAMERA* c = &pG->Camera;
     Mtx m;
     Vec v;
 

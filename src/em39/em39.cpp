@@ -628,7 +628,7 @@ void cEm39::move()
     }
     {
         int hide = 0;
-        Camera* cam = &pG->Camera;
+        CAMERA* cam = &pG->Camera;
         Vec* nrm = pFloor_norm;
         if (nrm == 0 || nrm->y < 0.8f) {
             hide = 1;

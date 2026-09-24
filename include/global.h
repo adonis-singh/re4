@@ -155,7 +155,7 @@ struct GlobalWork {
     u32 game_start_time;         // 0x5C  OSTicksToSeconds at the last InitGameTime/SetGameTime
     u32 Debug_flg[4];      // 0x60  debug option bits ([2] 0x04000000 / [3] 0x00200000 shown in the title debug page)
     f32 Speed;         // 0x70  motion frame step per game frame (MotionSequenceCtrl: speed * Speed)
-    Camera Camera;            // 0x74 .. 0x16C  (Cam.param at 0x118)
+    CAMERA Camera;            // 0x74 .. 0x16C  (Cam.param at 0x118)
     u32 room_start_addr[1]; // 0x16C
     u32 Stop_flg;          // 0x170  stop flags (debug tools save/restore it)
     u32 Room_flg[4];       // 0x174  per-room flag words: [0] room scripts (pl_sub joyFireOn 0x20000000 in room 11C), [1] objRobo WalkHitCk bit31 = the statue caught the player, [2]/[3] cleared by SceAtWorkLoopInit every frame

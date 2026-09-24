@@ -4486,7 +4486,7 @@ void em2bFtChgCk(cEm2b* em)
 // Camera quake scaled by the distance of the position from the camera.
 void em2bQuakeSet(Vec* pos)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     f32 d = (pos->x - cam->param.pos.x) * (pos->x - cam->param.pos.x) + (pos->y - cam->param.pos.y) * (pos->y - cam->param.pos.y) +
             (pos->z - cam->param.pos.z) * (pos->z - cam->param.pos.z);
 

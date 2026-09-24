@@ -42,7 +42,7 @@ void cEsp1a::move()
     Vec tmp;
     Vec wpos;
     Mtx inv;
-    Camera* cam;
+    CAMERA* cam;
 
     PSVECSubtract(&m_Pos, &w->Move_vec, &m_Pos);
     if (CommonMove()) {

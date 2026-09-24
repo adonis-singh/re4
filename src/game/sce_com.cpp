@@ -95,7 +95,7 @@ struct SceElevatorData {
 };
 
 static void* ItemEventTbl[16];
-static Camera SceCam;
+static CAMERA SceCam;
 
 // Begins a scenario event (nestable; only the outermost call acts): the calling scenario task is
 // marked as an event task, mode 0 puts every enemy / object / damage area into event mode, kills

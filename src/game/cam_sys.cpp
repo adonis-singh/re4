@@ -11,7 +11,7 @@
 
 // Rebuilds mat from pos / at keeping the current `up`: Look = pos - at, Right = up x Look, up
 // re-orthogonalised.
-void CameraSetOrientationUp(Camera* pCam)
+void CameraSetOrientationUp(CAMERA* pCam)
 {
     PSVECSubtract(&pCam->param.pos, &pCam->param.at, &pCam->Look);
 #line 33 "D:/Bio4/Prog/cam_sys.cpp"
@@ -25,7 +25,7 @@ void CameraSetOrientationUp(Camera* pCam)
 
 // Rebuilds mat from pos / at with world up, then rolls right / up about the look axis by
 // param.roll; stores up / Look / Right. A vertical look direction keeps the old right vector.
-void CameraSetOrientationRoll(Camera* pCam)
+void CameraSetOrientationRoll(CAMERA* pCam)
 {
     Vec right;
     Vec up = {0.0f, 1.0f, 0.0f};
@@ -66,7 +66,7 @@ void CameraSetOrientationRoll(Camera* pCam)
 }
 
 // Rebuilds mat from pos / at with world up and no roll.
-void CameraSetOrientationZeroRoll(Camera* pCam)
+void CameraSetOrientationZeroRoll(CAMERA* pCam)
 {
     Vec right;
     Vec up = {0.0f, 1.0f, 0.0f};
@@ -97,10 +97,10 @@ void CameraSetOrientationZeroRoll(Camera* pCam)
 }
 
 // The camera's roll angle (radians): the camera's right vector expressed in the zero-roll frame.
-f32 CameraGetRoll(Camera* pCam)
+f32 CameraGetRoll(CAMERA* pCam)
 {
     Vec v = {1.0f, 0.0f, 0.0f};
-    Camera tmp;
+    CAMERA tmp;
     Mtx inv;
 
     tmp = *pCam;
@@ -113,7 +113,7 @@ f32 CameraGetRoll(Camera* pCam)
 
 // Rotates the camera (pos, at, up) by `rad` about the axis through `pos`, then rebuilds the
 // matrix and recomputes param.roll.
-void CameraRotAxisPosRad(Camera* cam, Vec* axis, Vec* pos, f32 rad)
+void CameraRotAxisPosRad(CAMERA* cam, Vec* axis, Vec* pos, f32 rad)
 {
     Mtx m;
 
@@ -127,7 +127,7 @@ void CameraRotAxisPosRad(Camera* cam, Vec* axis, Vec* pos, f32 rad)
 
 // Rotates the target around the camera position about the camera's own X / Y / Z axis (look
 // around).
-void CameraTargetRot(Camera* pCam, char axis, f32 rad)
+void CameraTargetRot(CAMERA* pCam, char axis, f32 rad)
 {
     Vec v;
 
@@ -149,7 +149,7 @@ void CameraTargetRot(Camera* pCam, char axis, f32 rad)
 }
 
 // Rotates the camera position around the target about the camera's own X / Y / Z axis (orbit).
-void CameraCamposRot(Camera* pCam, char axis, f32 rad)
+void CameraCamposRot(CAMERA* pCam, char axis, f32 rad)
 {
     Vec v;
 
@@ -171,7 +171,7 @@ void CameraCamposRot(Camera* pCam, char axis, f32 rad)
 }
 
 // Translates pos and at by `speed`.
-void CameraDolly(Camera* pCam, Vec* speed)
+void CameraDolly(CAMERA* pCam, Vec* speed)
 {
     PSVECAdd(&pCam->param.pos, speed, &pCam->param.pos);
     PSVECAdd(&pCam->param.at, speed, &pCam->param.at);
@@ -179,7 +179,7 @@ void CameraDolly(Camera* pCam, Vec* speed)
 }
 
 // Moves the target to `dist` in front of the camera along the look axis.
-void CameraTargetDistance(Camera* pCam, f32 distance)
+void CameraTargetDistance(CAMERA* pCam, f32 distance)
 {
     Vec v;
 
@@ -191,7 +191,7 @@ void CameraTargetDistance(Camera* pCam, f32 distance)
 }
 
 // Moves the camera to `dist` behind the target along the look axis.
-void CameraCamposDistance(Camera* pCam, f32 distance)
+void CameraCamposDistance(CAMERA* pCam, f32 distance)
 {
     Vec v;
 
@@ -203,7 +203,7 @@ void CameraCamposDistance(Camera* pCam, f32 distance)
 }
 
 // Sets all four parameters and rebuilds the orientation with roll.
-void CameraSetWithRoll(Camera* pCam, Vec* campos, Vec* target, f32 roll, f32 fovy)
+void CameraSetWithRoll(CAMERA* pCam, Vec* campos, Vec* target, f32 roll, f32 fovy)
 {
     pCam->param.pos = *campos;
     pCam->param.at = *target;

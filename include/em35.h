@@ -49,7 +49,7 @@ struct Em35Work {
     Vec subRoutePos;      // 0x664 (0xA44)
     Vec targetPos;        // 0x670 (0xA50)  chosen target position
     cEm* pTarget;         // 0x67C (0xA5C)  pPL
-    Camera cam;           // 0x680 (0xA60)  event camera (em35EscapeCamMove / em35StampCamMove)
+    CAMERA cam;           // 0x680 (0xA60)  event camera (em35EscapeCamMove / em35StampCamMove)
     f32 neckAng;          // 0x778 (0xB58)  smoothed neck yaw (em35NeckMove)
     PlCloth cloth1;       // 0x77C (0xB5C)  em35ClothSet / em35ClothMove (type 1 tail)
     PlCloth cloth2;       // 0x7DC (0xBBC)  em35ClothSet2 / ClothSet3 (the hanging skin)

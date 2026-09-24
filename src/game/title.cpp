@@ -199,7 +199,7 @@ void titleWait(TitleWork* w)
             }
         }
         {
-            Camera* cam = &pG->Camera;
+            CAMERA* cam = &pG->Camera;
             C_MTXPerspective(cam->ProjMat, cam->param.fovy, 4.0f / 3.0f, ZNEAR, ZFAR);
             cam->Distance = PSVECDistance(&cam->param.pos, &cam->param.at);
             C_MTXLookAt(cam->v_mat, &cam->param.pos, &cam->Up, &cam->param.at);

@@ -919,7 +919,7 @@ int MakeWeightPalette(Weight* w0, int n)
 // filter 09 post-process and the draw-sync callback. Skipped output while System_flg 0x800.
 void Render()
 {
-    Camera save;
+    CAMERA save;
     GXColor fogCol;
     GXColor c;
 

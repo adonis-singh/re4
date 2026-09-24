@@ -703,7 +703,7 @@ void CameraBinocular::move()
 // IdBinocular
 // ---------------------------------------------------------------------------
 
-void IdBinocular::init(Camera* cam, void* a, void* b)
+void IdBinocular::init(CAMERA* cam, void* a, void* b)
 {
     IdUnit* u;
 
@@ -760,7 +760,7 @@ void IdBinocular::cutin(void* arg)
 // gauge height from the fov, and the distance readout.
 void IdBinocular::move(void* p)
 {
-    Camera* cam = (Camera*) p;
+    CAMERA* cam = (CAMERA*) p;
     static f32 ratio = 0.5f;
     static f32 m = 0.5f;
     static f32 n = 1.0f;
@@ -1025,7 +1025,7 @@ void CameraPushObject::move()
 // CameraLookAt: falling camera, looks at a random hand of the player.
 // ---------------------------------------------------------------------------
 
-CameraLookAt::CameraLookAt(Camera* cam)
+CameraLookAt::CameraLookAt(CAMERA* cam)
 {
     Vec hit;
     Vec nrm;

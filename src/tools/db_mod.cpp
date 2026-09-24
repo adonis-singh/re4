@@ -274,7 +274,7 @@ void dbModelQuit();
 int dbModel(int mode);
 void dbModMotionMove();
 void dbModSetViewFlag(u32 flag);
-void dbModelSetCamera(int no, Camera* cam);
+void dbModelSetCamera(int no, CAMERA* cam);
 void dbmodGetSet();
 void dbmodGetFilenames();
 void dbmodGetLabel(int no, char* dst);
@@ -3969,7 +3969,7 @@ void dbModelSetAng0(int no, Vec* rot)
 }
 
 // Copies `cam` (pos, at, roll, fovy) into slot `no`'s motion attach camera.
-void dbModelSetCamera(int no, Camera* cam)
+void dbModelSetCamera(int no, CAMERA* cam)
 {
     AttachCamera* ac = dbModSlot[no].motInfo[0].cam;
 

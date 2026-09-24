@@ -519,7 +519,7 @@ void EspCommonTransShimmer(cEsp* esp, int u_pow, u32 Blur_type)
         Vec dir;
         Vec d;
         Vec p;
-        Camera* cam;
+        CAMERA* cam;
 
         if (esp->parent != pEffParentWorld) {
             PSMTXMultVec(esp->parent->mat, &esp->m_Pos, &p);
@@ -1026,7 +1026,7 @@ int cEsp::ChannelSet()
         col.a = (u32) col.a * fin.a >> 8;
     }
     if (m_Del_far != 0) {
-        Camera* cam;
+        CAMERA* cam;
         f32 dot;
 
         if (parent != pEffParentWorld) {

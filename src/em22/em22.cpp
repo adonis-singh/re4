@@ -2299,7 +2299,7 @@ int em22GetCamType(cEm22* em)
 void em22CamMove(cEm22* em, int type)
 {
     Em22Work* w = EM22_WK(em);
-    Camera* gcam = &pG->Camera;
+    CAMERA* gcam = &pG->Camera;
     Vec a;
     Vec b;
     Vec hit;

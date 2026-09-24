@@ -160,7 +160,7 @@ void msqToolInit()
 {
     int i;
     MsqWork* w;
-    Camera* cam;
+    CAMERA* cam;
     TprimRect rect;
     MsqWork*& wp = msqWork;
     f32 zero;

@@ -226,7 +226,7 @@ cEsp* SetEstTbl(EspgenWork* w, EspSeqData* head, int no)
 static f32 GetDistAlpha(EspgenWork* w)
 {
     Espgen01Work* p = (Espgen01Work*) w->work;
-    Camera* cam;
+    CAMERA* cam;
     Vec d;
     f32 a;
 
@@ -252,7 +252,7 @@ static f32 GetDistAlpha(EspgenWork* w)
 static f32 GetDirAlpha(EspgenWork* w, Vec* dir)
 {
     Espgen01Work* p = (Espgen01Work*) w->work;
-    Camera* cam;
+    CAMERA* cam;
     Vec d;
     f32 ang;
     f32 a;

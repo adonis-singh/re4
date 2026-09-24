@@ -144,7 +144,7 @@ static f32 GetDistAlpha(cEsp45* esp)
     f32 a;
 
     if (w->del_dist != 0.0f) {
-        Camera* cam = &pG->Camera;
+        CAMERA* cam = &pG->Camera;
 
         d.x = w->wld_pos.x - cam->param.pos.x;
         d.y = w->wld_pos.y - cam->param.pos.y;

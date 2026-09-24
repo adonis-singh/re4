@@ -78,7 +78,7 @@ static EmRockFunc EmRock_R1_move_tbl[9] = {
 static EmAtkInfo emRockAtk = { 1500.0f, PL_DM_AUTO, 9999, 0, 10, 0 };
 
 // Event camera of the escape / drop scenes (CamCtrl.x250 points at it while they run).
-static Camera emRockCam = { 0 };
+static CAMERA emRockCam = { 0 };
 
 // Creates a rolling rock enemy (id 0x4A, at the back of the pool) from a model / TPL at pos / rot.
 // type 0 the boulder El Gigante / room events throw, 1 the big (scale 4.2) rolling boulder of
@@ -1814,7 +1814,7 @@ void plemRockEscapeCamMove(cPlayer* pEm, f32 rate)
     Vec d;
     f32 len;
     GlobalWork* g = pG;
-    Camera* cam = &emRockCam;
+    CAMERA* cam = &emRockCam;
 
     cam->param.fovy = 27.0f;
     PSMTXMultVec(pEm->mat, &emRock_campos, &p0);
@@ -1835,7 +1835,7 @@ void plemRockEscapeCamMove(cPlayer* pEm, f32 rate)
         PSVECAdd(&emRockCam.param.at, &d, &emRockCam.param.pos);
     }
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &cam->param.pos;
         Vec* ca = &cam->param.at;
 
@@ -1858,7 +1858,7 @@ void plemRockEscapeCamMove2(cPlayer* pEm, int mode)
     Vec p1;
     Vec r;
     f32 len;
-    Camera* gcam = &pG->Camera;
+    CAMERA* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
     if (mode) {
@@ -1883,7 +1883,7 @@ void plemRockEscapeCamMove2(cPlayer* pEm, int mode)
     PSVECAdd(&emRockCam.param.pos, &r, &emRockCam.param.pos);
     PSVECAdd(&emRockCam.param.at, &r, &emRockCam.param.at);
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &emRockCam.param.pos;
         Vec* ca = &emRockCam.param.at;
 
@@ -1903,7 +1903,7 @@ void plemRockDropDieCamMove(cEmRock* pEm)
     Vec p;
     f32 len;
     cParts* parts;
-    Camera* gcam = &pG->Camera;
+    CAMERA* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
     if (Muku(&pEm->pos, &pPL->pos, pEm->ang.y, 3.1415927f) < 0.0f) {
@@ -1920,7 +1920,7 @@ void plemRockDropDieCamMove(cEmRock* pEm)
     PosToPos(&gcam->param.at, &parts->world, &emRockCam.param.at, 0.1f);
     PosToPos(&gcam->param.pos, &p, &emRockCam.param.pos, 0.1f);
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &emRockCam.param.pos;
         Vec* ca = &emRockCam.param.at;
 
@@ -1940,7 +1940,7 @@ void emRockPushCamMove(cEmRock* pEm)
     Vec p;
     f32 len;
     cParts* parts;
-    Camera* gcam = &pG->Camera;
+    CAMERA* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
     switch (pG->room_no) {
@@ -1970,7 +1970,7 @@ void emRockPushCamMove(cEmRock* pEm)
     PosToPos(&gcam->param.at, &parts->world, &emRockCam.param.at, 1.0f);
     emRockCam.param.pos = p;
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &emRockCam.param.pos;
         Vec* ca = &emRockCam.param.at;
 
@@ -2022,7 +2022,7 @@ void emRockPushCamMove2(cEmRock* pEm)
     emRockCam.param.pos = p0;
     emRockCam.param.at = p1;
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &cam->param.pos;
         Vec* ca = &cam->param.at;
 
@@ -2042,7 +2042,7 @@ void emRockDropCamMove(cEmRock* em)
     Vec p0;
     Vec p1;
     f32 len;
-    Camera* cam = &emRockCam;
+    CAMERA* cam = &emRockCam;
     Vec* cp = &cam->param.pos;
     Vec* ca = &cam->param.at;
 

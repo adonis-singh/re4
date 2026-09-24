@@ -120,18 +120,17 @@ public:
     void move(CameraParam* arg);
 };
 
-class CameraSmooth {
+class CameraSmooth : public CAMERA {
 public:
-    u8 pad_0[0xF8];
     u32 m_flag;         // 0xF8  bit 0 = reinit on next move
     f32 m_ratio;         // 0xFC
-    CameraParam param; // 0x100
+    CameraParam m_effect; // 0x100
     u8 pad_120[0x12C - 0x120];
 
     void init(CameraParam* p);
     void move(CameraParam* arg);
     void setRatio(f32 ratio) { m_ratio = ratio; }
-    CameraParam* getCamPtr() { return &param; }
+    CameraParam* getCamPtr() { return &m_effect; }
     void setFlag() { m_flag |= 1; }
     void unsetFlag() { m_flag &= ~1; }
 };
@@ -158,10 +157,10 @@ public:
     CameraParam cur;              // 0x38
     u32 counter_58;               // 0x58
     CameraDataHeader* pCamData;       // 0x5C
-    Camera camera;                // 0x60
+    CAMERA camera;                // 0x60
     Mtx prev_mat;                 // 0x158  camera matrix CamStick2World keeps while the cut changes
     u8 pad_188[0x250 - 0x188];
-    Camera* m_pExtraCamera;       // 0x250  boss/event camera (em2a/em2b/em2c/em2d); nonzero blocks the fall-check in Check()
+    CAMERA* m_pExtraCamera;       // 0x250  boss/event camera (em2a/em2b/em2c/em2d); nonzero blocks the fall-check in Check()
     CameraInterpolation m_Inter;   // 0x254
     CameraQuasiFPS m_QuasiFPS;          // 0x278
     u8 m_Free[0x200];          // 0x48C  placement storage for cCamera subclasses
@@ -191,7 +190,7 @@ public:
     int IsChangeCamera();
     void Comeback(int);
     void Disable();
-    void SetExtraCamera(Camera* p_cam) { m_pExtraCamera = p_cam; }
+    void SetExtraCamera(CAMERA* p_cam) { m_pExtraCamera = p_cam; }
     void AreaCheckOnOff(int sw);
     u8 AreaNum();
     int CurrentAreaNo();
@@ -263,7 +262,7 @@ extern void* g_pToolCamData;
 
 int cameraDataVersion(char* verStr);
 int cameraHitCheck(Vec* pos, Vec* nrm, Vec* from, Vec* to);
-void CameraSetCutData(Camera* pCam, CameraCut* pData);
+void CameraSetCutData(CAMERA* pCam, CameraCut* pData);
 int areaAttr(CameraAreaInfo* p_area, u8 cut_attr, u8 char_type);
 int areaHit(Vec* pPos, CameraAreaInfo* pArea, f32 dir_y);
 int area_hit_p3(Vec* pPos, CameraAreaInfo* pArea);
@@ -271,7 +270,7 @@ int area_hit_pN(Vec* pPos, CameraAreaInfo* pArea);
 void CamCtrlShoulderSetSearchFrame(s16 frame);
 void CamCtrlShoulderSetAim(Vec* pos);
 void Parametrize(CameraCut* pCdat, CameraBSpline* pB);
-void BSpline(CameraBSpline* bs, Camera* cam, int mode);
+void BSpline(CameraBSpline* bs, CAMERA* cam, int mode);
 void searchRail(CameraBSpline* bs, CameraCut* cut, Vec* aim, int mode);
 
 

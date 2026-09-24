@@ -30,7 +30,7 @@ struct EmWepWork {
     void* Mot_escape2;    // 0x0A0 (0x480)
     void* Mot_escape3;       // 0x0A4 (0x484)
     void* Seq_escape;     // 0x0A8 (0x488)
-    Camera Cam;           // 0x0AC (0x48C)  escape event camera (emWepEscapeCamMove)
+    CAMERA Cam;           // 0x0AC (0x48C)  escape event camera (emWepEscapeCamMove)
     Vec always2_offset;     // 0x1A4 (0x584)  setEffAlways2 offset in effAlwaysParts' matrix
     u8 always2_parts;    // 0x1B0 (0x590)
     u8 pad_1B1;

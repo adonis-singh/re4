@@ -55,7 +55,7 @@ extern void (*_dtors[])(void);
 extern "C" {
 void SubScreenTask();
 void clearZbuffer();
-void sscrnCameraInit(SUB_SCREEN* wk, Camera* cam);
+void sscrnCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 int sscrnKey2Game(SUB_SCREEN* wk);
 void dispScrollBar(u32 top, u32 n, u32 num, IdUnit* bar, IdUnit* up, IdUnit* down);
 void generalModelAlloc(SUB_SCREEN* wk);
@@ -105,7 +105,7 @@ extern "C" void _unresolved()
 
 // Sets the sub screen's fixed camera: eye at (0, 0, 5000) looking at the origin, y up, 20 degree fov,
 // 4:3 aspect; rebuilds its projection and view matrices. Every screen's Init widget calls it.
-void sscrnCameraInit(SUB_SCREEN* wk, Camera* cam)
+void sscrnCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     const f32 zero = 0.0f;  // pool order: 0.0 first
 

@@ -3525,7 +3525,7 @@ void em31StampCamMove(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
     GlobalWork* g = pG;
-    Camera* cam = &w->Cam;
+    CAMERA* cam = &w->Cam;
     Vec a;
     cParts* p;
 

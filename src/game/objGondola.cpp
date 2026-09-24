@@ -254,7 +254,7 @@ void objGondola_R0_Break(cObjGondola* pObj)
     f32 len;
     Vec* cp;
     Vec* ca;
-    static Camera ObjGondolaCam;
+    static CAMERA ObjGondolaCam;
 
     switch (pObj->r_no_2) {
     case 0:

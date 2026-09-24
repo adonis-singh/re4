@@ -56,7 +56,7 @@ int getMsgNum(int no);
 u32 getMsgAttr(u32 type);
 int getTplName(int no, u32 page);
 void setLogMesAddr(SUB_SCREEN* wk);
-void fileCameraInit(SUB_SCREEN* wk, Camera* cam);
+void fileCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 int fileId2No(u16 id);
 u16 fileNo2Id(int no);
 int fileNo(int cat, int no);
@@ -255,7 +255,7 @@ void setLogMesAddr(SUB_SCREEN* wk)
 }
 
 // The file screen uses the common sub screen camera.
-void fileCameraInit(SUB_SCREEN* wk, Camera* cam)
+void fileCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     sscrnCameraInit(wk, cam);
 }

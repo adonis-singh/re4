@@ -324,7 +324,7 @@ int EspTrans()
     Vec* wp;
     cEsp* esp;
     EspTransFunc trans;
-    Camera* cam;
+    CAMERA* cam;
     u32 i;
     u16 prio;
     int ot;

@@ -431,7 +431,7 @@ void MotionSetCore(cModel* m, void* w_, void* data_, void* seq_, int hokan, int 
 // an additive pose; runs the leg IK on the unscaled model, the hokan interpolation and the
 // quaternion blend table (blendTbl: dst = slerp(c, a, percent)). Returns Mot_state (1/2 looped,
 // 4/8 ended).
-u32 MotionMove(cModel* pEm, Camera* pCamera)
+u32 MotionMove(cModel* pEm, CAMERA* pCamera)
 {
     static int new_add = 1;
     cParts* p;
@@ -645,7 +645,7 @@ u16 MotionMoveSub(cModel* pEm, MotionWorkSub* w)
 // ang/pos/scale (with the left/right flip remap and mirroring when Mot_attr 0x40), skipping parts
 // flagged 0x20000000; attach-camera channels 6/7 go to the AttachCamera outputs. Rebuilds the
 // model matrix unless Mot_flag 0x40000000.
-void MotionMoveCore(cModel* pEm, MotionWorkSub* w, Camera* pCamera)
+void MotionMoveCore(cModel* pEm, MotionWorkSub* w, CAMERA* pCamera)
 {
     HermitePrm prm;
     HermitePrm* pp = &prm;

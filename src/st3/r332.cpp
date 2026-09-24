@@ -97,7 +97,7 @@ struct R332Work {
     R332Bridge bridge[2];   // 0x09C
     cSat* sat[4];           // 0x0AC  collision pieces of the two bridges
     int strBlk;             // 0x0BC  SndStrPlayBlock handle
-    Camera cam;             // 0x0C0  the crane camera
+    CAMERA cam;             // 0x0C0  the crane camera
 };
 
 // The original object's .data is 8-aligned (0x260 in the REL after r330's 12-byte table).
@@ -159,7 +159,7 @@ static inline u32 r332_flgCk(u32* f, int no)
 
 
 // Through the manager pointer (an inline `this`): `&CamCtrl` in a register, the field at 0x250 off it.
-static inline void CamCtrlSetCam(CameraControl* cc, Camera* cam)
+static inline void CamCtrlSetCam(CameraControl* cc, CAMERA* cam)
 {
     cc->SetExtraCamera(cam);
 }
@@ -1306,7 +1306,7 @@ static void R332ExecCrane(int no)
             f32 ang;
 
             ActBtn.set(ACT_OPERATION, 5, 0, 0, ACTCTR_ENFORCE_EXEC, DISP_A_NORMAL, ACT_FUNC_NORMAL, 0);
-            Camera* cam = &r332_work->cam;
+            CAMERA* cam = &r332_work->cam;
             f32 roll = 0.0f;
             dir.x = cam->param.at.x - cam->param.pos.x;
             dir.y = cam->param.at.y - cam->param.pos.y;

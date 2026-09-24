@@ -48,7 +48,7 @@ extern QfpsOfs g_transOfs[TRANS_DATA_NUM][2][3];
 // Over-the-shoulder ("quasi FPS") camera, game/cam_qfps.cpp. 0x214 bytes.
 class CameraQuasiFPS {
 public:
-    Camera cam;                   // 0x000 (cam.param at 0xA4 is what CameraControl::Move copies)
+    CAMERA cam;                   // 0x000 (cam.param at 0xA4 is what CameraControl::Move copies)
     QfpsOfs (*ready_tbl[14])[3];  // 0x0F8  ready table per camera type (checkCameraType 0..0xC), [13] = area copy
     QfpsOfs (*trans_tbl[TRANS_CAM_NUM])[3];   // 0x130  transition table per TRANS_CAM type
     QfpsOfs (*m_p_ready_array)[3]; // 0x148  current ready table

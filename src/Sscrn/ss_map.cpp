@@ -238,7 +238,7 @@ void mapModelInit(SUB_SCREEN* wk);
 void mapModelDisp(SUB_SCREEN* wk);
 void doorModelInit(SUB_SCREEN* wk);
 void doorModelDisp(SUB_SCREEN* wk);
-void mapCameraInit(SUB_SCREEN* wk, Camera* cam);
+void mapCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 void mapCameraMove(SUB_SCREEN* wk);
 f32 zoomOutLimit();
 void mapCameraEntire(SUB_SCREEN* wk, CameraParam* out);
@@ -2169,7 +2169,7 @@ void doorModelDisp(SUB_SCREEN* wk)
 }
 
 // Map camera: top-down (up = -z) at the stage's whole-map position; re-enables Key input.
-void mapCameraInit(SUB_SCREEN* wk, Camera* cam)
+void mapCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     mapCameraEntire(wk, &cam->param);
     cam->Up.x = 0.0f;

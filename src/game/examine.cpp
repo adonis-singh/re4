@@ -280,7 +280,7 @@ ExamInfo exam_info_ext[2] = {
 };
 
 ItemExamine itemExam;
-Camera itemCamera;
+CAMERA itemCamera;
 static void* local_buff;
 
 // Copies the frame buffer (half size, RGBA8) into local_buff for the examine background.

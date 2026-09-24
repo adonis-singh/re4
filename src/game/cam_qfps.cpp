@@ -1205,7 +1205,7 @@ void CameraQuasiFPS::move()
     static f32 lr_rate = 0.6f;
     static ViewFrustum view_box[16];
     static int cnt = 0;
-    Camera c;
+    CAMERA c;
     Mtx m;
     CameraParam p2;
     QfpsOfs ofs;

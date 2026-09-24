@@ -56,7 +56,7 @@ void (*ObjPillar_R0_move_tbl[5])(cObjPillar*) = {
 
 EmAtkInfo ObjPillar_atk_info = { 1000.0f, PL_DM_AUTO, 1000, 0, 10, 0 };
 
-Camera Cam;   // escape sequence camera
+CAMERA Cam;   // escape sequence camera
 
 // Creates a pillar (id 0x1F) at pos/rot: capsule collision 400 x 5000, no suspend, no eat yet.
 cObj* SetPillar(void* bin, void* tpl, Vec* pos, Vec* rot)
@@ -561,7 +561,7 @@ static void plemEscape(cPlayer* pEm)
         }
         SndCall(1, 0x48, &em->pos, 0, 0, em);
         SndCall(1, 0x11, &em->getPartsPtr(4)->world, 0, 0, em);
-        memclr_asm(&Cam, sizeof(Camera));
+        memclr_asm(&Cam, sizeof(CAMERA));
         ((cPlayer*) em)->m_Work0 = 50;
         ((cPlayer*) em)->m_Work1 = 15;
         em->r_no_2++;
@@ -615,7 +615,7 @@ void EscapeCamMove()
         PSVECAdd(&Cam.param.at, &d, &Cam.param.pos);
     }
     {
-        Camera* cam = &Cam;
+        CAMERA* cam = &Cam;
         Vec* cp = &cam->param.pos;
         Vec* ca = &cam->param.at;
 

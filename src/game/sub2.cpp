@@ -262,7 +262,7 @@ int GetScreenPos(Vec* pos, Vec* scr)
 // scroll collision hit, else the player's height when none), or the far point 20000 away.
 void Get3DPosFrom2D(Vec* pPos3d, f32 sx, f32 sy, f32 h)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec far;
     Vec dir;
     Vec hit;

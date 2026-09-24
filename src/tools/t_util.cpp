@@ -17,7 +17,7 @@
 
 // Copies of the pG flag words the tools modify, restored by TutilQuitDefault. The camera copy is a
 // static (its relocations carry the section offset), the flag words are globals (theirs do not).
-static Camera globalCamera;
+static CAMERA globalCamera;
 u32 debug_flg_bak[4];   // pG->flags_60 .. flags_6C
 u32 stop_flg_bak;       // pG->flags_170
 u32 disp_flg_bak;       // pG->flags_58
@@ -64,7 +64,7 @@ void TutilQuitDefault()
     {
         u32* cam = (u32*) &pG->Camera;
 
-        memcpy(cam, &globalCamera, sizeof(Camera));
+        memcpy(cam, &globalCamera, sizeof(CAMERA));
     }
     pG->System_flg = system_flg_bak;
     pG->Stop_flg = stop_flg_bak;

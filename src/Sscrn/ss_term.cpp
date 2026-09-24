@@ -66,7 +66,7 @@ int partnerType(int no);
 void termMotionSet(void* data, int no);
 void termMotionCancel(void* data, int no);
 void termModelAlloc(SUB_SCREEN* wk);
-void terminalCameraInit(SUB_SCREEN* wk, Camera* cam);
+void terminalCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 }
 
 // Packs 0..1 float components into an ARGB8 colour word (debug drawing helper).
@@ -793,7 +793,7 @@ void termModelAlloc(SUB_SCREEN* wk)
 }
 
 // Codec screen camera: eye at (0, 0, 2000) looking at the origin, 50 degree fov.
-void terminalCameraInit(SUB_SCREEN* wk, Camera* cam)
+void terminalCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     const f32 zero = 0.0f;
 
@@ -819,7 +819,7 @@ void terminalCameraInit(SUB_SCREEN* wk, Camera* cam)
 // follow terminalCameraInit's 1.3333334 in .rodata.
 static void screenPos2terminalPos(Vec* pos, Vec* out)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     f32 pz = cam->param.pos.z;
     f32 h = fabsf((f32) (pz * tan(cam->param.fovy * 0.5f * 3.1415927f / 180.0f)));
 

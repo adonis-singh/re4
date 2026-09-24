@@ -597,7 +597,7 @@ void rckPointChange()
 // Keeps the cursor on the caught point while the camera moves.
 void rckPointCameraMove()
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     RckPoint* p = &RCK->pt[RCK->cur];
     Vec d;
 

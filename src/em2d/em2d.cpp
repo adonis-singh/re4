@@ -318,7 +318,7 @@ void Em2dInit(cEm* em)
 void em2dDmCk(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     YARARE_INFO* part;
     cParts* p;
     Vec pos;
@@ -5377,7 +5377,7 @@ int em2dFallCatchCk(cEm2d* em)
 int em2dCamMove(cEm2d* em, int mode, f32 rate)
 {
     Em2dWork* w = EM2D_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec pos;
     Vec at;
     Vec hit;
@@ -6470,7 +6470,7 @@ int em2dReturnPosCk(cEm2d* em)
 void em2dHumSeMove(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    Camera* cam;
+    CAMERA* cam;
     u32 cnt;
     u32 i;
     f32 d;

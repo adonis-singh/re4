@@ -67,7 +67,7 @@ public:
 
 extern "C" {
 void itemNameDisp(SUB_SCREEN* wk);
-void itemCameraInit(SUB_SCREEN* wk, Camera* cam);
+void itemCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 void sscrn_item_out_init(SUB_SCREEN* wk);
 ItemWork* ITEM_PTR(int idx, int col);
 int ITEM_AT(ItemWork* p, int col);
@@ -140,7 +140,7 @@ void itemNameDisp(SUB_SCREEN* wk)
 }
 
 // The item screen uses the common sub screen camera.
-void itemCameraInit(SUB_SCREEN* wk, Camera* cam)
+void itemCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     sscrnCameraInit(wk, cam);
 }

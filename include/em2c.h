@@ -49,7 +49,7 @@ struct Em2cWork {
     PlCloth cloth;        // 0x3AC (0x78C)  tail cloth chain (em2cClothSet)
     f32 plDir;            // 0x40C (0x7EC)  em2cGetPlDir towards the player's head
     f32 plDirAbs;         // 0x410 (0x7F0)
-    Camera cam;           // 0x414 (0x7F4)  escape camera (em2cEscapeCamMove)
+    CAMERA cam;           // 0x414 (0x7F4)  escape camera (em2cEscapeCamMove)
     Vec spd;              // 0x50C (0x8EC)  movement per frame
     u8 pad_518[0x18];
     int humTimer;         // 0x530 (0x910)

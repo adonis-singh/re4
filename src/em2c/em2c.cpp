@@ -280,7 +280,7 @@ void Em2cInit(cEm* em)
 void em2cDmCk(cEm2c* em)
 {
     Em2cWork* w = EM2C_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     YARARE_INFO* part;
     cParts* p;
     int near;
@@ -770,7 +770,7 @@ void em2cDmCk(cEm2c* em)
 void em2cTailDmCk(cEm2c* em)
 {
     Em2cWork* w = EM2C_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     cParts* p;
     int near;
     int dmg;
@@ -4791,7 +4791,7 @@ static void em2c_R1_Die_Freeze(cEm2c* em)
             t = w->timer8 - 1;
             w->timer8 = t;
             if (t == 0) {
-                Camera* cam = &pG->Camera;
+                CAMERA* cam = &pG->Camera;
                 em2cDieEffDelete(em, w);
                 rot.x = 0.0f;
                 rot.y = GetXZAngle(&em->pos, &cam->param.pos);
@@ -5998,7 +5998,7 @@ static void plem2cEscape(cPlayer* pl)
 void em2cEscapeCamMove(cEm2c* em)
 {
     Em2cWork* w = EM2C_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec pos;
     Vec at;
     Vec hit;

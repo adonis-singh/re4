@@ -217,7 +217,7 @@ static Vec em2f_die_pos = { -46800.0f, -734.0f, 22157.0f };
 
 // The camera em2fCriCamMove installs (the drowning cut): explicitly zero-initialised so it stays
 // in .data.
-static Camera em2f_cri_cam = { 0 };
+static CAMERA em2f_cri_cam = { 0 };
 
 // Per-frame update: damage check, waitTimer countdown, clears the per-frame flags, the route check,
 // the R0 table (Init / Move / Damage / Die), then collision, scenario check, the island crash test,
@@ -1161,8 +1161,8 @@ static void em2f_R1_Critical(cEm2f* em)
 void em2fCriCamMove(cEm2f* em)
 {
     Em2fWork* w = EM2F_WK(em);
-    Camera* c = &pG->Camera;
-    Camera* cam;
+    CAMERA* c = &pG->Camera;
+    CAMERA* cam;
     Vec v;
 
     PosToPos(&c->param.pos, &w->camPos, &em2f_cri_cam.param.pos, 0.1f);

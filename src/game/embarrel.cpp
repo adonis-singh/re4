@@ -765,7 +765,7 @@ void cEmBarrel::setEff(u8 eff_id)
 void emBarrelSetBomb(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
-    Camera* cam;
+    CAMERA* cam;
     cParts* p;
     Vec v;
     f32 d2;
@@ -820,7 +820,7 @@ void emBarrelSetBomb(cEmBarrel* pEm)
 void emBarrelSetBomb2(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
-    Camera* cam;
+    CAMERA* cam;
     cParts* p;
     Vec v;
     f32 d2;

@@ -15,7 +15,7 @@ struct CameraParam {
 
 // Camera state block used by camera.cpp / cam_sys.cpp (0xF8 bytes). Only the fields the
 // cam_ctrl unit touches are named; extend this, do not rewrite it.
-struct Camera {
+struct CAMERA {
     Mtx mat;            // 0x00 camera orientation matrix (QuakeMain rotates the quake offset by it)
     Mtx v_mat;        // 0x30 look-at matrix (C_MTXLookAt)
     u8 pad_60[4];
@@ -30,35 +30,35 @@ struct Camera {
 
 extern "C" {
 // game/cam_sys.cpp
-void CameraSetOrientationUp(Camera* pCam);
-void CameraSetOrientationRoll(Camera* pCam);
-void CameraSetOrientationZeroRoll(Camera* pCam);
-f32 CameraGetRoll(Camera* pCam);
-void CameraRotAxisPosRad(Camera* cam, Vec* axis, Vec* pos, f32 rad);
-void CameraTargetRot(Camera* pCam, char axis, f32 rad);
-void CameraCamposRot(Camera* pCam, char axis, f32 rad);
-void CameraDolly(Camera* pCam, Vec* speed);
-void CameraCamposDistance(Camera* pCam, f32 distance);
-void CameraSetWithRoll(Camera* pCam, Vec* campos, Vec* target, f32 roll, f32 fovy);
+void CameraSetOrientationUp(CAMERA* pCam);
+void CameraSetOrientationRoll(CAMERA* pCam);
+void CameraSetOrientationZeroRoll(CAMERA* pCam);
+f32 CameraGetRoll(CAMERA* pCam);
+void CameraRotAxisPosRad(CAMERA* cam, Vec* axis, Vec* pos, f32 rad);
+void CameraTargetRot(CAMERA* pCam, char axis, f32 rad);
+void CameraCamposRot(CAMERA* pCam, char axis, f32 rad);
+void CameraDolly(CAMERA* pCam, Vec* speed);
+void CameraCamposDistance(CAMERA* pCam, f32 distance);
+void CameraSetWithRoll(CAMERA* pCam, Vec* campos, Vec* target, f32 roll, f32 fovy);
 // game/camera.cpp
 void CameraSetProjection(int projType);
 int CameraGetProjection();
 void CameraGameInit();
 void CameraRoomInit();
 void CameraMove();
-struct ViewFrustum* CameraViewFrustumPtr(Camera* cam);
-void CameraGetUpVec(Camera* pCam, Vec* up);
-void CameraGetLookVec(Camera* pCam, Vec* look);
-void CameraGetLookVecInverse(Camera* pCam, Vec* look_inv);
+struct ViewFrustum* CameraViewFrustumPtr(CAMERA* cam);
+void CameraGetUpVec(CAMERA* pCam, Vec* up);
+void CameraGetLookVec(CAMERA* pCam, Vec* look);
+void CameraGetLookVecInverse(CAMERA* pCam, Vec* look_inv);
 void CamPos2ScrnVec(f32 sX, f32 sY, Vec* vec);
 }
 // game/camera.cpp (C++ linkage): loads the current projection matrix into GX
 void CameraCurrentProjection();
 extern int ProjType;   // current projection type (db_cam.cpp toggles it)
-// game/cam_sys.cpp, C++ linkage (`CameraTargetDistance__FP6Cameraf` in Bio4.sym, marked local there;
+// game/cam_sys.cpp, C++ linkage (`CameraTargetDistance__FP6CAMERAf` in Bio4.sym, marked local there;
 // the t_camera REL imports it, so cam_sys.cpp defines it non-static)
-void CameraTargetDistance(Camera* pCam, f32 distance);
+void CameraTargetDistance(CAMERA* pCam, f32 distance);
 struct JOY;
-void CamStick2World(Camera* pCam, JOY* pJoy, Vec* pVec);
+void CamStick2World(CAMERA* pCam, JOY* pJoy, Vec* pVec);
 
 #endif

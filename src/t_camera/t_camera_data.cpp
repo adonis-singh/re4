@@ -403,7 +403,7 @@ void tcToolCamera2GameCamera()
     pG->Camera = pTc->cam;
 }
 
-Camera tcGameCamera;
+CAMERA tcGameCamera;
 
 // Saves the game camera (tool entry).
 void tcGameCameraStore()

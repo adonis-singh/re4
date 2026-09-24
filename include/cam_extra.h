@@ -18,7 +18,7 @@ inline void* operator new(unsigned int, void* p) { return p; }
 // GNU v2 layout: Camera data first, then the vtable pointer at 0xF8 (size 0xFC).
 //   vtable slot 0 (0x08): virtual destructor
 //   vtable slot 1 (0x10): move()
-class cCamera : public Camera {
+class cCamera : public CAMERA {
 public:
     virtual ~cCamera() {}
     virtual void move() = 0;
@@ -115,7 +115,7 @@ public:
     f32 m_meter_h0;   // 0x38
     f32 m_meter_w0;   // 0x3C
 
-    void init(Camera* cam, void* tex, void* data);
+    void init(CAMERA* cam, void* tex, void* data);
     virtual void move(void* cam);
     virtual void quit(void* cam);
     void cutin(void* arg);
@@ -156,7 +156,7 @@ public:
     u8 pad_FC[4];
     cParts* m_target_parts;  // 0x100  hand parts looked at
 
-    CameraLookAt(Camera* cam);
+    CameraLookAt(CAMERA* cam);
     virtual ~CameraLookAt();
     virtual void move();
 };

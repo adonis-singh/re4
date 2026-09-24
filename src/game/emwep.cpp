@@ -1231,7 +1231,7 @@ void emWep_R1_Rocket(cEmWep* pEm)
 void emWepRocketBobm(cEmWep* pEm)
 {
     EmWepWork* w = EMWEP_WK(pEm);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     cParts* p;
     Vec r;
     Vec pos;
@@ -1322,7 +1322,7 @@ void emWep_R1_BombThrow(cEmWep* pEm)
     }
     if (w->Bomb_wait == 0) {
         GlobalWork* g = pG;
-        Camera* cam = &g->Camera;
+        CAMERA* cam = &g->Camera;
         cParts* p;
         Vec r;
         Vec pos;

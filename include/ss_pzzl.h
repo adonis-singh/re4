@@ -83,7 +83,7 @@ public:
 
 extern "C" {
 // ss_pzzl.cpp helpers the shop screen shares
-void puzzleCameraInit(SUB_SCREEN* wk, Camera* cam);
+void puzzleCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 void pieceModelDisp(SUB_SCREEN* wk);
 void pieceModelSet(pzlPiece* p);
 void pzzlCursorDisp(SUB_SCREEN* wk, int sw);
