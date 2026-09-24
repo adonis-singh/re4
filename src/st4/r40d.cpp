@@ -28,7 +28,7 @@
 struct R40dWork {
     cEmBarred* door[2];   // 0x00
     int eff[3];           // 0x08  EspPullCoreKind ids: the two door effects and the terminal one
-    ScePrim* se;          // 0x14  the terminal sound task
+    SCE_TASK* se;          // 0x14  the terminal sound task
 };
 
 

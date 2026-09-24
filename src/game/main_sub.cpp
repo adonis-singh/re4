@@ -148,7 +148,7 @@ void Render_done()
     if (SceSys.checkCTaskRange() == 0) {
         GXDrawDone();
     } else {
-        SceSys.wait = 1;
+        SceSys.setDrawDone(1);
         SceSleep(1);
     }
     after_render_proc();
@@ -163,7 +163,7 @@ void Render_done()
     if (SceSys.checkCTaskRange() == 0) {
         GXDrawDone();
     } else {
-        SceSys.wait = 1;
+        SceSys.setDrawDone(1);
         SceSleep(1);
     }
 }

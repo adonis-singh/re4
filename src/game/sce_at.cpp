@@ -1508,7 +1508,7 @@ int sceAtFunc_item(SceAtWork* w, cModel* m)
 {
     SceAtItem* it = &w->item;
     int ret;
-    ScePrim* p;
+    SCE_TASK* p;
 
     KeyClear(0xEFCF0000);
     ret = itemZoom(w);
@@ -1516,14 +1516,14 @@ int sceAtFunc_item(SceAtWork* w, cModel* m)
         p = SceExec(5, (TaskFunc) sceAtGetItem, (int) w, 0, SCE_PRIO_15, 0);
         if (p != 0) {
             SceSys.m_item_get = ret;
-            p->task->flag |= 2;
+            p->setNoSuspend(1);
             it->pModel->setNoSuspend(1);
         }
     } else {
         p = SceExec(5, (TaskFunc) sceAtGetItem_NoModel, (int) w, 0, SCE_PRIO_15, 0);
         if (p != 0) {
             SceSys.m_item_get = 1;
-            p->task->flag |= 2;
+            p->setNoSuspend(1);
         }
     }
     return 1;
@@ -1961,7 +1961,7 @@ void SceAtCheckHideProc()
     SceAtWork* w = sceAtSetOtStart();
     int off;
     u8 step;
-    ScePrim* p;
+    SCE_TASK* p;
 
     while ((w = sceAtGetOtAddr(w)) != 0) {
         off = !(w->flag & 1);
@@ -2013,7 +2013,7 @@ FOUND:
                 pSUB->setNoSuspend(1);
                 SpfFlagOff(pG, SPF_SUBCHAR);
                 if (p != 0) {
-                    p->task->flag |= 2;
+                    p->setNoSuspend(1);
                 }
                 CamCtrl.CutCall((s8) (w->hide.cut - 1));
                 w->hide.step++;

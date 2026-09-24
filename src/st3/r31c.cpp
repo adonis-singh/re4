@@ -125,7 +125,7 @@ struct R31cWork {
     cEmWrap krauser2;       // 0x2BC  Krauser of the second battle (list 0x13)
     cEmDoor* door8;             // 0x2C8  etc door 8 (the battle arena door)
     cEm* rack;              // 0x2CC  etc rack 0x10
-    ScePrim* talkTask;      // 0x2D0  the running r31c_TalktoKrauser task
+    SCE_TASK* talkTask;      // 0x2D0  the running r31c_TalktoKrauser task
     cR31CDoor door[9];      // 0x2D4  ids 0x78 0x79 0x7C 0x7B 0x7D 0x7E 0x7F 0x80 0x6D
     cR31CCountDown countDown;  // 0x4CC
     cEm* sw[2];             // 0x4D4  etc switches 0x11 / 0x12
@@ -1245,7 +1245,7 @@ static void r31c_CountDownEnd()
 // explodes and Status_flg[2] 0x00020000 clears.
 static void r31c_CountDownThread()
 {
-    SceCTask()->task->flag &= ~2;
+    SceCTask()->setNoSuspend(0);
     r31c_work->countDown.countStart();
     do {
         if (r31c_work->countDown.isTimeOut() == 1) {

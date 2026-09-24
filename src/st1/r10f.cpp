@@ -436,7 +436,7 @@ extern "C" void r10f_DoorOpen()
     cObj* eye;
     cPlayer* pl;
     int eff;
-    ScePrim* cam;
+    SCE_TASK* cam;
 
     SceEventStart(0);
     eye = r10f_setFalseEye();

@@ -47,9 +47,9 @@ struct R311Work {
     cObj* crane;          // 0x004  the crane arm (0x23/0x24)
     u32 throwCnt;         // 0x008  throws so far
     int throwing;         // 0x00C  1 while r311_throwIronBall runs
-    ScePrim* terminal;    // 0x010  r311_execAshleyOperateTerminal task
-    ScePrim* appear;      // 0x014  r311_execEmAppear task
-    ScePrim* doorTask;    // 0x018  r311_moveEmDoor task
+    SCE_TASK* terminal;    // 0x010  r311_execAshleyOperateTerminal task
+    SCE_TASK* appear;      // 0x014  r311_execEmAppear task
+    SCE_TASK* doorTask;    // 0x018  r311_moveEmDoor task
     int eff;              // 0x01C  terminal effect kind (EspPullCoreKind)
     u32 resetCnt;         // 0x020  enemies reset so far
     cSceObj door;         // 0x024  the sliding door going up

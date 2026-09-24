@@ -77,7 +77,7 @@ struct R214Work {
     int bridgeFlag;          // 0x000  1: the bridge rotation started from the entrance
     cCatapult214 cat[3];     // 0x004
     int hitWait;             // 0x0D0  frames before another catapult may fire at the player
-    ScePrim* catTask;        // 0x0D4
+    SCE_TASK* catTask;        // 0x0D4
     cEm* barred[2];          // 0x0D8
     cEmPatrol patrol[4];     // 0x0E0
     IdBinocular* bino;       // 0x550

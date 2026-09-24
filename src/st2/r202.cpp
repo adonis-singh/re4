@@ -65,8 +65,8 @@ public:
     u8 fireAll;        // 0x3D
     u8 pad_3E[2];
     f32 speed;         // 0x40
-    ScePrim* setRockTask;    // 0x44
-    ScePrim* throwRockTask;  // 0x48
+    SCE_TASK* setRockTask;    // 0x44
+    SCE_TASK* throwRockTask;  // 0x48
 
     void move();
     int checkHitArea();
@@ -96,7 +96,7 @@ struct R202Work {
     f32 idoY0;             // 0x148  wall positions when raised
     f32 idoY1;             // 0x14C
     f32 idoY2;             // 0x150
-    ScePrim* checkTask;    // 0x154
+    SCE_TASK* checkTask;    // 0x154
     u8 pad_158[0x180 - 0x158];
     cEmWrap em180;         // 0x180  the Ganado that opens the gate
     cPatrol pat[2];        // 0x18C
@@ -720,7 +720,7 @@ static void r202_CatapultGo_end()
     r202_work->em180.setNoSuspend(0);
     r202_work->cat[2].em.setNoSuspend(0);
     r202_work->cat[2].rock->setNoSuspend(0);
-    r202_work->checkTask->task->flag &= ~2;
+    r202_work->checkTask->setKind(r202_work->checkTask->getKind() & ~2);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     SceSleep(60);
@@ -742,7 +742,7 @@ static void r202_CatapultGo()
     r202_work->em180.setNoSuspend(1);
     r202_work->cat[2].em.setNoSuspend(1);
     r202_work->cat[2].rock->setNoSuspend(1);
-    r202_work->checkTask->task->flag |= 2;
+    r202_work->checkTask->setNoSuspend(1);
     r202_work->cat[2].targetPos.x = 21929.0f;
     r202_work->cat[2].targetPos.y = 5598.0f;
     r202_work->cat[2].targetPos.z = -37644.0f;

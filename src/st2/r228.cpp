@@ -39,7 +39,7 @@ struct R228Work {
     cObj* obj79;            // 0x108
     cObj* obj76;            // 0x10C
     cObj* obj78;            // 0x110
-    ScePrim* se;            // 0x114  the neck-down camera task
+    SCE_TASK* se;            // 0x114  the neck-down camera task
     int eff2;               // 0x118  EspPullCoreKind of the event effect
     cSat* sat;              // 0x11C
     cSat* eat;              // 0x120

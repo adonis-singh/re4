@@ -5730,7 +5730,7 @@ address	size	section	unit	scope	name	demangled
 0x8018F618	0x44	.text	game/sce_sys.cpp	global	SceSleep	SceSleep
 0x8018F65C	0x3C	.text	game/sce_sys.cpp	global	SceExit	SceExit
 0x8018F698	0x44	.text	game/sce_sys.cpp	global	SceKill__FUl	SceKill
-0x8018F6DC	0x38	.text	game/sce_sys.cpp	global	SceKill__FP7ScePrim	SceKill
+0x8018F6DC	0x38	.text	game/sce_sys.cpp	global	SceKill__FP8SCE_TASK	SceKill
 0x8018F714	0x34	.text	game/sce_sys.cpp	global	SceKill__FP4TASK	SceKill
 0x8018F748	0x5C	.text	game/sce_sys.cpp	global	SceKill__FPFi_v	SceKill
 0x8018F7A4	0x40	.text	game/sce_sys.cpp	global	checkCTaskRange__7cSceSys	cSceSys::checkCTaskRange

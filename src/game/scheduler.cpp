@@ -105,10 +105,10 @@ void TaskScheduler()
 // main thread then waits (semaphore for priority > 0xF tasks) until the task sleeps / exits.
 void TaskSchedulerMain(TASK* pT)
 {
-    if (StaFlagChk(pG, STA_SUSPEND) && !(pT->flag & 2)) {
+    if (StaFlagChk(pG, STA_SUSPEND) && !pT->isNoSuspend()) {
         return;
     }
-    if (StaFlagChk(pG, STA_DIEDEMO) && !(pT->flag & 4)) {
+    if (StaFlagChk(pG, STA_DIEDEMO) && !pT->isDiedemoMove()) {
         return;
     }
     switch (pT->Status) {
@@ -214,7 +214,7 @@ TASK* TaskExec(int prio, TaskFunc func, int arg)
     t->pFunc = (void (*)(int)) func;
     t->Status = TASK_EXEC;
     t->arg = arg;
-    t->flag = 6;
+    t->setKind(6);
     t->Priority = 0xF;
     return t;
 }

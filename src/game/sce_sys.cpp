@@ -33,7 +33,7 @@
 
 
 cSceSys SceSys;
-static ScePrim* pCSceTask;
+static SCE_TASK* pCSceTask;
 static u32 SceExecOt;
 
 // Boot: clears the scenario system.
@@ -59,7 +59,7 @@ void ScenarioRoomInit()
     SceSys.up_cut_start_cnt = 0;
     SceSys.task_kind_back = 0;
     SceSys.event_cancel_enable = 0;
-    SceSys.sndFlag = 1;
+    SceSys.m_str_stop_flag = 1;
     SceSys.m_room_flag = -1;
     SceSys.pExitFunc = 0;
     SceSys.pExitParam = 0;
@@ -70,7 +70,7 @@ void ScenarioRoomInit()
     SceSys.pLadderTask = 0;
     SceSys.m_door_fade_eff = 0;
     SceSys.m_item_get = 0;
-    SceSys.pause = 0;
+    SceSys.clearChapterEnd();
     ScfFlagOff(pG, SCF_NO_ASHLEY_DIST_CK);
     ScenarioTaskAllOff();
     SceInitItemEvent();
@@ -126,7 +126,7 @@ void ScenarioMove()
         return;
     }
     scenarioLoopBeforeInit();
-    if (SceSys.m_item_get == 0 && SceSys.pause == 0) {
+    if (SceSys.m_item_get == 0 && SceSys.checkChapterEnd() == 0) {
         if (!StaFlagChk(pG, STA_DIEDEMO)) {
             scenarioCheckEventCancel();
             RoomData.execMainFunc(pG->room_id);
@@ -145,7 +145,7 @@ u32* scenarioSetOtStart()
     return &SceSys.SceTaskOt[15];
 }
 
-// Next ScePrim in the task ordering table after `p`; 0 at the end.
+// Next SCE_TASK in the task ordering table after `p`; 0 at the end.
 u32* scenarioGetOtAddr(u32* pSceOt)
 {
     u32 v;
@@ -159,16 +159,16 @@ u32* scenarioGetOtAddr(u32* pSceOt)
     return 0;
 }
 
-// Unlinks the ScePrim of task `t` from the ordering table (and drops its event-cancel role).
+// Unlinks the SCE_TASK of task `t` from the ordering table (and drops its event-cancel role).
 void SceTaskDelete(TASK* t)
 {
-    ScePrim* p = (ScePrim*) scenarioSetOtStart();
+    SCE_TASK* p = (SCE_TASK*) scenarioSetOtStart();
 
-    while ((p = (ScePrim*) scenarioGetOtAddr((u32*) p)) != 0) {
-        if (p->task == t) {
+    while ((p = (SCE_TASK*) scenarioGetOtAddr((u32*) p)) != 0) {
+        if (p->getTaskPtr() == t) {
             DelPrim(&SceSys.SceTaskOt[15], (u32*) p);
-            if (p->cancel == 1) {
-                p->cancel = 0;
+            if (p->cancel_flag == 1) {
+                p->cancel_flag = 0;
                 SceSys.event_cancel_enable = 0;
             }
             break;
@@ -184,41 +184,41 @@ void cSceSys::scheduler()
 {
     OSThread* parent = pParentThread;
     TASK* ctask;
-    ScePrim* p;
+    SCE_TASK* p;
     u8 running;
     u32 i;
     int waitRead;
 
     pParentThread = 0;
     ctask = pCTask;
-    if (SceSys.m_item_get == 0 && SceSys.pause == 0) {
+    if (SceSys.m_item_get == 0 && SceSys.checkChapterEnd() == 0) {
         for (i = 0; i < 13; i++) {
-            prim[i].running = 0;
+            prim[i].exec_flag = 0;
         }
     } else {
-        prim[0].running = 0;
+        prim[0].exec_flag = 0;
         for (i = 1; i < 13; i++) {
-            prim[i].running = 1;
+            prim[i].exec_flag = 1;
         }
     }
-    p = (ScePrim*) scenarioSetOtStart();
-    while ((p = (ScePrim*) scenarioGetOtAddr((u32*) p)) != 0) {
+    p = (SCE_TASK*) scenarioSetOtStart();
+    while ((p = (SCE_TASK*) scenarioGetOtAddr((u32*) p)) != 0) {
         if (SpfFlagChk(pG, SPF_SCE)) {
             break;
         }
-        running = p->running;
+        running = p->exec_flag;
         if (running != 0) {
             continue;
         }
-        p->running = 1;
+        p->exec_flag = 1;
         pCSceTask = p;
-        TaskSchedulerMain(pCTask = p->task);
+        TaskSchedulerMain(pCTask = p->getTaskPtr());
         if (pCTask->Status == 3) {
             SceTaskDelete(pCTask);
             pCTask->Status = running;
         }
         if (pG->Rno0 == 2) {
-            waitRead = (m_init_loop_flag != 0) ? 1 : 0;
+            waitRead = checkInitLoop();
             if (waitRead) {
                 pParentThread = parent;
                 pCTask = ctask;
@@ -226,20 +226,20 @@ void cSceSys::scheduler()
                 parent = pParentThread;
                 ctask = pCTask;
                 pParentThread = 0;
-                p->running = 0;
+                p->exec_flag = 0;
             }
         }
-        if (wait == 1) {
+        if (checkDrawDone() == 1) {
             pParentThread = parent;
             pCTask = ctask;
             GXDrawDone();
             parent = pParentThread;
             ctask = pCTask;
             pParentThread = 0;
-            p->running = 0;
-            wait = 0;
+            p->exec_flag = 0;
+            setDrawDone(0);
         }
-        p = (ScePrim*) scenarioSetOtStart();
+        p = (SCE_TASK*) scenarioSetOtStart();
     }
     pParentThread = parent;
     pCTask = ctask;
@@ -248,11 +248,11 @@ void cSceSys::scheduler()
 // Starts a scenario task: prio 0 = call `func(arg)` directly; prio 5..17 = that scheduler slot,
 // > 17 = the highest free slot. Linked into ordering slot otPrio (SCE_PRIO_*), OS priority 0xE,
 // `model` as the task's model; `flag` (0 = inherit the caller's event kind). Warns when fewer
-// than 3 slots remain. Returns the ScePrim, 0 when none is free.
-ScePrim* SceExec(int prio, TaskFunc func, int arg, u8 flag, int otPrio, void* model)
+// than 3 slots remain. Returns the SCE_TASK, 0 when none is free.
+SCE_TASK* SceExec(int prio, TaskFunc func, int arg, u8 flag, int otPrio, void* model)
 {
     TASK* t;
-    ScePrim* p;
+    SCE_TASK* p;
     u32 no;
     int busy;
     int i;
@@ -288,17 +288,17 @@ ScePrim* SceExec(int prio, TaskFunc func, int arg, u8 flag, int otPrio, void* mo
         return 0;
     }
     p = &SceSys.prim[prio - 5];
-    p->cancel = 0;
-    p->task = t;
+    p->cancel_flag = 0;
+    p->setTaskPtr(t);
     AddPrim(&SceSys.SceTaskOt[otPrio], (u32*) p);
     t->Priority = 0xE;
     SetTaskModelPtr(model, t);
     if (flag != 0) {
-        t->flag = flag;
+        t->setKind(flag);
     } else if (SceSys.checkCTaskRange() == 0) {
-        t->flag = 1;
+        t->setKind(1);
     } else {
-        t->flag = pCTask->flag;
+        t->setKind(pCTask->getKind());
     }
     if (!DbgFlagChk(pG, DBG_WARN_LEVEL_LOW)) {
         busy = 0;
@@ -338,11 +338,11 @@ void SceKill(u32 level)
     TaskKill(level);
 }
 
-// Kills the task of a ScePrim.
-void SceKill(ScePrim* p)
+// Kills the task of a SCE_TASK.
+void SceKill(SCE_TASK* p)
 {
-    SceTaskDelete(p->task);
-    TaskKill(p->task);
+    SceTaskDelete(p->getTaskPtr());
+    TaskKill(p->getTaskPtr());
 }
 
 // Kills scenario task `t`.
@@ -355,11 +355,11 @@ void SceKill(TASK* t)
 // Kills every scenario task running `func`.
 void SceKill(void (*func)(int))
 {
-    ScePrim* p = (ScePrim*) scenarioSetOtStart();
+    SCE_TASK* p = (SCE_TASK*) scenarioSetOtStart();
 
-    while ((p = (ScePrim*) scenarioGetOtAddr((u32*) p)) != 0) {
-        if (p->task->pFunc == func) {
-            SceKill(p->task);
+    while ((p = (SCE_TASK*) scenarioGetOtAddr((u32*) p)) != 0) {
+        if (p->getTaskPtr()->pFunc == func) {
+            SceKill(p->getTaskPtr());
         }
     }
 }
@@ -376,8 +376,8 @@ int cSceSys::checkCTaskRange()
     return (u32) (pCTask->Task_no - 5) <= 12;
 }
 
-// The ScePrim of the scenario task being run.
-ScePrim* SceCTask()
+// The SCE_TASK of the scenario task being run.
+SCE_TASK* SceCTask()
 {
     return pCSceTask;
 }
@@ -524,7 +524,7 @@ void SceExecEventCancel()
         mes->Delete(i);
     }
     s = &SceSys;
-    if (s->sndFlag == 1) {
+    if (s->m_str_stop_flag == 1) {
         SndEventStrStop(0);
     }
     if (s->m_room_flag >= 0) {
@@ -532,9 +532,9 @@ void SceExecEventCancel()
         FlagOn(eventFlags(), no);
     }
     for (slot = 5; slot <= 17; slot++) {
-        if (s->prim[slot - 5].cancel == 1) {
+        if (s->prim[slot - 5].cancel_flag == 1) {
             SceKill((int) slot);
-            s->prim[slot - 5].cancel = 0;
+            s->prim[slot - 5].cancel_flag = 0;
             break;
         }
     }
@@ -555,7 +555,7 @@ void SceSetEventCancel(int on, TaskFunc func, int arg, int flagNo, int sndFlag)
         on = 0;
     }
     U8SetI(SceSys.event_cancel_enable, on);
-    SceCTask()->cancel = on;
+    SceCTask()->cancel_flag = on;
     if (flagNo >= 0) {
         no = flagNo;
         FlagOff(eventFlags(), no);
@@ -566,7 +566,7 @@ void SceSetEventCancel(int on, TaskFunc func, int arg, int flagNo, int sndFlag)
     SceSys.pCancelFunc = func;
     SceSys.pCancelParam = arg;
     SceSys.m_room_flag = flagNo;
-    SceSys.sndFlag = sndFlag;
+    SceSys.m_str_stop_flag = sndFlag;
     {
         // COMPILER-DIFF: candidate #17 (global.c pass 0 regs_used_so_far): r30 used-so-far makes `on`
         // take r30 in pass 0 and flagNo r31 (stock priorities give on r31, flagNo r30).

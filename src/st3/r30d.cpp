@@ -49,7 +49,7 @@ struct R30dWork {
     R30dCoop coop;    // 0x08
     cObj* obj[2];     // 0x1C  the two lever models
     cEmWrap em[2];    // 0x24
-    ScePrim* timer;   // 0x3C  R30dTimerDisp task
+    SCE_TASK* timer;   // 0x3C  R30dTimerDisp task
 };
 
 

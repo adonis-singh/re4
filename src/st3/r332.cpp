@@ -93,7 +93,7 @@ struct R332Work {
     int timer;              // 0x088
     int x8C;                // 0x08C
     int nearBridge;         // 0x090  R332ChkNearBridge result when the run started
-    ScePrim* task[2];       // 0x094  the bridge tasks
+    SCE_TASK* task[2];       // 0x094  the bridge tasks
     R332Bridge bridge[2];   // 0x09C
     cSat* sat[4];           // 0x0AC  collision pieces of the two bridges
     int strBlk;             // 0x0BC  SndStrPlayBlock handle
@@ -188,11 +188,11 @@ static inline void CamCtrlSetCam(CameraControl* cc, CAMERA* cam)
 // The bridge task handles the same way (the task is started first).
 #define R332_TASK_SET(no, v)                                 \
     {                                                        \
-        ScePrim* t_ = (v);                                   \
+        SCE_TASK* t_ = (v);                                   \
         int ofs_ = (no) * 4;                                 \
-        ScePrim** p_ = &r332_work->task[0];                  \
+        SCE_TASK** p_ = &r332_work->task[0];                  \
                                                              \
-        *(ScePrim**) ((u8*) p_ + ofs_) = t_;                 \
+        *(SCE_TASK**) ((u8*) p_ + ofs_) = t_;                 \
     }
 
 

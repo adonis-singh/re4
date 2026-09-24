@@ -38,8 +38,8 @@
 struct R310Work {
     cObj* box1;         // 0x00  scroll object 3, pushed towards -x, then falls
     cObj* box2;         // 0x04  scroll object 4, pushed towards +x
-    ScePrim* pushTask;  // 0x08  the Leon push task (r310_pushBoxN_leon)
-    ScePrim* subTask;   // 0x0C  the Ashley push task (r310_pushBoxN_ashley)
+    SCE_TASK* pushTask;  // 0x08  the Leon push task (r310_pushBoxN_leon)
+    SCE_TASK* subTask;   // 0x0C  the Ashley push task (r310_pushBoxN_ashley)
     int pad_10;
     u32 se;             // 0x14  crate sliding sound (SndCall handle)
 };
@@ -267,7 +267,7 @@ static void r310_pushBox2_ashley()
         SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
         // COMPILER-DIFF: #12 fallthrough-arm form. A literal 0 here is cse's known-zero `language` register (kept in
         // r30 across SceMesSet); the original's arm stored a fresh `li 0`. `(work & 4) >> 3` is 0 only to combine.
-        r310_work->subTask = (ScePrim*) (((u32) r310_work & 4) >> 3);
+        r310_work->subTask = (SCE_TASK*) (((u32) r310_work & 4) >> 3);
     }
     SceExit();
 near:
@@ -396,7 +396,7 @@ static void r310_pushBox2_leon()
     }
 done:
     if (r310_work->subTask) {
-        ScePrim* none = 0;
+        SCE_TASK* none = 0;
 
         pG->Room_flg[0] &= ~0x40000000;
         SceKill(r310_work->subTask);
@@ -507,7 +507,7 @@ static void r310_pushBox1_ashley()
         SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
         // COMPILER-DIFF: #12 fallthrough-arm form. A literal 0 here is cse's known-zero `language` register (kept in
         // r30 across SceMesSet); the original's arm stored a fresh `li 0`. `(work & 4) >> 3` is 0 only to combine.
-        r310_work->subTask = (ScePrim*) (((u32) r310_work & 4) >> 3);
+        r310_work->subTask = (SCE_TASK*) (((u32) r310_work & 4) >> 3);
     }
     SceExit();
 near:
@@ -637,7 +637,7 @@ static void r310_pushBox1_leon()
     }
 done:
     if (r310_work->subTask) {
-        ScePrim* none = 0;
+        SCE_TASK* none = 0;
 
         pG->Room_flg[0] &= ~0x40000000;
         SceKill(r310_work->subTask);

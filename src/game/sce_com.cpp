@@ -109,8 +109,8 @@ void SceEventStart(int mode)
     if (SceSys.checkCTaskRange() == 1) {
         s = &SceSys;
         if (s->task_kind_back == 0) {
-            s->task_kind_back = SceCTask()->task->flag;
-            SceCTask()->task->flag |= 2;
+            s->task_kind_back = SceCTask()->getKind();
+            SceCTask()->setNoSuspend(1);
         }
     }
     if (SceSys.event_start_cnt != 0) {
@@ -149,9 +149,6 @@ void SceEventStart(int mode)
     SpfFlagOn(pG, SPF_SCE_AT);
     SndBlkStop(2);
 }
-
-// The value is evaluated before the `->task` load (`lbz x70` between the call and `lwz 8(r3)`).
-static inline void SceTaskFlagSet(ScePrim* p, u8 v) { p->task->flag = v; }
 
 // Ends the event when the nesting count drops to 0: enemies / objects back from event mode (mode
 // passed to cEm::endEvent) with the camera returned, the player's damage state restored, lights,
@@ -194,7 +191,7 @@ void SceEventEnd(int mode)
     if (SceSys.checkCTaskRange() == 1) {
         s = &SceSys;
         if (s->task_kind_back != 0) {
-            SceTaskFlagSet(SceCTask(), s->task_kind_back);
+            SceCTask()->setKind(s->task_kind_back);
         }
     }
     SceSys.task_kind_back = 0;
@@ -211,8 +208,8 @@ void SceUpCutStart()
     if (SceSys.checkCTaskRange() == 1) {
         s = &SceSys;
         if (s->task_kind_back == 0) {
-            s->task_kind_back = SceCTask()->task->flag;
-            SceCTask()->task->flag |= 2;
+            s->task_kind_back = SceCTask()->getKind();
+            SceCTask()->setNoSuspend(1);
         }
     }
     if (SceSys.stop_bak_flg == 0) {
@@ -255,9 +252,9 @@ void SceUpCutEnd()
     }
     if (s->checkCTaskRange() == 1) {
         if (s->task_kind_back != 0) {
-            ScePrim* p = SceCTask();
+            SCE_TASK* p = SceCTask();
             u8 v = s->task_kind_back;  // read before the task pointer (both loads after the call)
-            p->task->flag = v;
+            p->setKind(v);
         }
     }
     SceSys.task_kind_back = 0;
@@ -858,7 +855,7 @@ void SceChapterEnd()
         SndRoomBgmStartCheck(1);
         SndRoomStrStartCheck();
         FadeSetW(0x80000000, 10, 0, 0);
-        SceSys.pause = 0;
+        SceSys.clearChapterEnd();
     }
 }
 
@@ -878,9 +875,7 @@ void SceSetChapterEnd(int ChapterNo, int door_at_no)
     SndSeAbsFadeOutAll_sec(1);
     SceEventStart(0);
     SpfFlagOff(pG, SPF_SCE);
-    SceSys.pause = 1;
-    SceSys.m_chapter_no = ChapterNo;
-    SceSys.m_chapter_door = door_at_no;
+    SceSys.setChapterEnd(ChapterNo, door_at_no);
     SetGameTime();
     SceExec(5, (TaskFunc) SceChapterEnd, 0, 0, SCE_PRIO_DEF_2, 0);
     SceSleep(1);

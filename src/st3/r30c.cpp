@@ -37,7 +37,7 @@ struct R30cWork {
     cEmWrap em[2];      // 0x04
     cSubChar* ashley;   // 0x1C  pSUB while she is locked away
     u32 strId;          // 0x20  SndStrReq handle of the plane stream
-    ScePrim* shout;     // 0x24  the AshleyShout task
+    SCE_TASK* shout;     // 0x24  the AshleyShout task
 };
 
 // The event model's status word at cModel+0x328 (pl_npc).
@@ -257,7 +257,7 @@ static void r30c_EventCut()
     r30c_work->ashley->setNoSuspend(1);
     r30c_work->em[0].setNoSuspend(1);
     r30c_work->em[1].setNoSuspend(1);
-    r30c_work->shout->task->flag |= 2;
+    r30c_work->shout->setNoSuspend(1);
     SceSetEventCancel(1, (TaskFunc) r30c_EventCutEndProc, 0, -1, 1);
     CamCtrl.CutCall(1);
     while (CamCtrl.IsMotionEnd() == 0) {
@@ -280,7 +280,7 @@ static void r30c_EventCutEndProc()
     r30c_work->em[0].setNoSuspend(0);
     r30c_work->em[1].setNoSuspend(0);
     SceEventEnd(0);
-    r30c_work->shout->task->flag &= ~2;
+    r30c_work->shout->setNoSuspend(0);
     ScfFlagOn(pG, SCF_R30C_ASHLEY_SCREAM);
 }
 

@@ -415,9 +415,9 @@ int readEmData(ReadModule* m, int id, void* addr, u32 size)
             return 0;
         }
         if (SceSys.checkCTaskRange() == 1) {
-            SceSys.m_init_loop_flag = 1;
+            SceSys.setInitLoop(1);
             SceSleep(1);
-            SceSys.m_init_loop_flag = 0;
+            SceSys.setInitLoop(0);
         } else {
             TaskSleep(1);
         }

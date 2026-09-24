@@ -64,9 +64,9 @@ struct R11cWork {
     u8 texTbl[0x80];         // 0x50  TexRenderModSet parts table
     cObjLadder* ladder[4];   // 0xD0  etc ladders 6..9
     f32 gateY[2];            // 0xE0  rest pos.y of the two gates (smd 0x33 / 0x34)
-    ScePrim* closeGate;      // 0xE8  r11c_closeGate task
-    ScePrim* gear;           // 0xEC  r11c_moveGear task
-    ScePrim* chain;          // 0xF0  r11c_moveChain task
+    SCE_TASK* closeGate;      // 0xE8  r11c_closeGate task
+    SCE_TASK* gear;           // 0xEC  r11c_moveGear task
+    SCE_TASK* chain;          // 0xF0  r11c_moveChain task
     int eff;                 // 0xF4  EspPullCoreKind of the room ambience
     int effGear;             // 0xF8  EspPullCoreKind of the gear effect
     int effGate;             // 0xFC  EspPullCoreKind of the gate effect

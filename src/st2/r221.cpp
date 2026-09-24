@@ -55,8 +55,8 @@ struct R221Work {
     u32 elvSe0;           // 0x4FC
     u32 elvSe1;           // 0x500
     u32 doorSe;           // 0x504
-    ScePrim* wireTask;    // 0x508
-    ScePrim* wireTask2;   // 0x50C
+    SCE_TASK* wireTask;    // 0x508
+    SCE_TASK* wireTask2;   // 0x50C
     f32 elvY;             // 0x510  elevator rest height
 };
 
@@ -955,7 +955,7 @@ static void r221_checkSwitchboard()
             r221_work->elvSe0 = SndCall(6, 0, &o->pos, 0, 0, 0);
         }
     }
-    ScePrim* wire = SceExec(0x12, (TaskFunc) r221_moveWire, 0, 2, SCE_PRIO_DEF_2, 0);
+    SCE_TASK* wire = SceExec(0x12, (TaskFunc) r221_moveWire, 0, 2, SCE_PRIO_DEF_2, 0);
     r221_work->wireTask2 = wire;
     pG->Room_flg[0] |= 0x10000000;
     while (CamCtrl.IsMotionEnd() == 0) {

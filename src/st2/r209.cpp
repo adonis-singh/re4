@@ -128,7 +128,7 @@ struct R209Work {
     u32 seId;            // 0x620
     cEmWrap picEm[2];    // 0x624
     cR209Door door[7];   // 0x63C
-    ScePrim* task[4];    // 0x7FC
+    SCE_TASK* task[4];    // 0x7FC
 };
 
 
