@@ -37,6 +37,9 @@ public:
     CameraMotion(void* data, int hokan, int flags, f32 frame);
     virtual ~CameraMotion();
     virtual void move();
+    s32 getState() { return m_state; }
+    CameraMotionWork* getInfoPtr() { return &m_info; }
+    void setBaseMatPtr(Mtx* p_mat) { m_p_base_mat = p_mat; }
 };
 
 extern "C" u32 CameraSequenceCtrl(CameraMotionWork* w);

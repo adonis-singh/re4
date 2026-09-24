@@ -458,7 +458,7 @@ static void r205_ExecDieDemo(R205Pend* p)
             cam.param.at = parts->world;
             i++;
             CameraSetOrientationUp(&cam);
-            CamCtrl.m_pExtraCamera = (s32) &cam;
+            CamCtrl.SetExtraCamera(&cam);
             SceSleep(1);
         } else {
             break;
@@ -471,7 +471,7 @@ static void r205_ExecDieDemo(R205Pend* p)
     CamCtrl.Disable();
     CamCtrl.camera = cam;
     CamCtrl.cur = cam.param;
-    CamSmth.m_ratio = 0.0f;
+    CamSmth.setRatio(0.0f);
     CamCtrl.m_Inter.frame = 0;
     CamCtrl.be_flag |= 4;
 }

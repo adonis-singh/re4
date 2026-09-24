@@ -412,7 +412,7 @@ void SubScreenExec()
             if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
                 IdTexRelease(TEX_OWNER_ID_EVENT);
             }
-            Cckpt.getCountDown()->saveDisp();
+            Cckpt.saveCountDownTimer();
             systemVISetBlack(1);
             ScreenReSize(640, 448);
             systemVISetBlack(0);
@@ -506,7 +506,7 @@ void SubScreenExec()
                 IdSub.dispSw(IDC_SSCRN_MAIN_MENU, 1);
                 break;
             }
-            Cckpt.m_LifeMeter.fix(0);
+            Cckpt.lifeMeterFix(0);
 #line 808 "D:/Bio4/Prog/sscrn.cpp"
             wk->pExamDat = MEM_ALLOC(0x3E800, 1, 13);
             if (wk->open_flag == 2) {
@@ -610,7 +610,7 @@ void SubScreenExit()
             wepNo = WeaponId2WeaponNo(ItemMgr.m_wep_id);
             wepType = WeaponId2WeaponType(ItemMgr.m_wep_id);
             if (ItemMgr.pArm) {
-                wepLv = ItemMgr.pArm->bullet >> 13;
+                wepLv = ItemMgr.pArm->getBulletType();
             } else {
                 wepLv = 0;
             }
@@ -690,7 +690,7 @@ void SubScreenExit()
                 }
             }
             IdSys.dispSw(IDC_LIFE_METER, 1);
-            Cckpt.m_LifeMeter.fix(0);
+            Cckpt.lifeMeterFix(0);
             if (wk->scope_flag) {
                 CamCtrl.startScope(0, 0);
                 CamCtrl.loadScopeParam();
@@ -709,10 +709,7 @@ void SubScreenExit()
                 if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
                     mercId.set();
                 }
-                {
-                    Cockpit* ck = &Cckpt;
-                    ck->m_CountDown.loadDisp();
-                }
+                Cckpt.loadCountDownTimer();
                 FadeSetBlackOut(clear, 3, 0, 0);
             }
             TaskSignal(0);

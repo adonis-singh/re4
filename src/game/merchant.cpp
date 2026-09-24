@@ -13,9 +13,6 @@
 #define LIST_MAX 0xFF
 
 // ItemWork::x6 tune levels (the exclusive nibble is read as a byte)
-#define LV_FIRE(it) ((it)->lv >> 12)
-#define LV_MAG(it) (((it)->lv >> 8) & 0xF)
-#define LV_SPEED(it) (((it)->lv >> 4) & 0xF)
 
 MerchantInfo merchant_info_A = {0, -10, -10, -10, -10, 10000, 5, 10, 10, 10, 20, 30, 70, 30, 10};
 
@@ -1356,9 +1353,9 @@ int Merchant::stockSpecial(ITEM_ID id)
 // 1 when the weapon is at every normal max level and the exclusive upgrade is offered.
 int Merchant::specialTunable(ItemWork* p_item)
 {
-    if (stockSpecial(p_item->id) != 0 && LV_FIRE(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 0) &&
-        LV_MAG(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 1) && LV_SPEED(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 2) &&
-        LV_EX(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 3)) {
+    if (stockSpecial(p_item->id) != 0 && p_item->getPowerLevel() + 1 == WeaponId2MaxLevel(p_item->id, 0) &&
+        p_item->getSpeedLevel() + 1 == WeaponId2MaxLevel(p_item->id, 1) && p_item->getReloadLevel() + 1 == WeaponId2MaxLevel(p_item->id, 2) &&
+        p_item->getBulletLevel() + 1 == WeaponId2MaxLevel(p_item->id, 3)) {
         return 1;
     }
     return 0;
@@ -1367,8 +1364,8 @@ int Merchant::specialTunable(ItemWork* p_item)
 // 1 when the weapon already has its exclusive upgrade.
 int Merchant::specialTuned(ItemWork* p_item)
 {
-    if (LV_FIRE(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 0) || LV_MAG(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 1) ||
-        LV_SPEED(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 2) || LV_EX(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 3)) {
+    if (p_item->getPowerLevel() + 1 > WeaponId2MaxLevel(p_item->id, 0) || p_item->getSpeedLevel() + 1 > WeaponId2MaxLevel(p_item->id, 1) ||
+        p_item->getReloadLevel() + 1 > WeaponId2MaxLevel(p_item->id, 2) || p_item->getBulletLevel() + 1 > WeaponId2MaxLevel(p_item->id, 3)) {
         return 1;
     }
     return 0;
@@ -1381,8 +1378,8 @@ int Merchant::tunable(ItemWork* p_item)
         return 0;
     }
     if (stockSpecial(p_item->id) == 0) {
-        if (LV_FIRE(p_item) + 1 >= levelMax(p_item->id, 0) && LV_MAG(p_item) + 1 >= levelMax(p_item->id, 1) &&
-            LV_SPEED(p_item) + 1 >= levelMax(p_item->id, 2) && LV_EX(p_item) + 1 >= levelMax(p_item->id, 3)) {
+        if (p_item->getPowerLevel() + 1 >= levelMax(p_item->id, 0) && p_item->getSpeedLevel() + 1 >= levelMax(p_item->id, 1) &&
+            p_item->getReloadLevel() + 1 >= levelMax(p_item->id, 2) && p_item->getBulletLevel() + 1 >= levelMax(p_item->id, 3)) {
             return 0;
         }
     } else {
@@ -1615,22 +1612,22 @@ int Merchant::buyupPrice(ItemWork* item, int num)
 
     itemInfo(item->id, &info);
     if (info.type == 1 && num == 1) {
-        price += buyupPrice(WeaponId2BulletId(item->id, item->bullet >> 13), item->bullet & 0x1FFF);
+        price += buyupPrice(WeaponId2BulletId(item->id, item->getBulletType()), item->bullet & 0x1FFF);
         for (type = 0; type <= 3; type++) {
             int lvMax = 0;
 
             switch (type) {
             case 0:
-                lvMax = LV_FIRE(item) + 1;
+                lvMax = item->getPowerLevel() + 1;
                 break;
             case 1:
-                lvMax = LV_MAG(item) + 1;
+                lvMax = item->getSpeedLevel() + 1;
                 break;
             case 2:
-                lvMax = LV_SPEED(item) + 1;
+                lvMax = item->getReloadLevel() + 1;
                 break;
             case 3:
-                lvMax = LV_EX(item) + 1;
+                lvMax = item->getBulletLevel() + 1;
                 break;
             }
             for (lv = 2; lv <= lvMax; lv++) {
@@ -1662,7 +1659,7 @@ int Merchant::buyup(ItemWork* p_item, int num, int* pocket)
     stockAdd(p_item->id, num);
     itemInfo(p_item->id, &ii);
     if (ii.type == 1 && num == 1) {
-        stockAdd(WeaponId2BulletId(p_item->id, p_item->bullet >> 13), p_item->bullet & 0x1FFF);
+        stockAdd(WeaponId2BulletId(p_item->id, p_item->getBulletType()), p_item->bullet & 0x1FFF);
     }
     m_friendship += m_p_info->shift_Buyup;
     m_friendship = m_friendship < 0 ? 0 : (m_friendship > 100 ? 100 : m_friendship);

@@ -223,7 +223,7 @@ void cObjLauncher::init(cModel* pMod)
     atari.off();
     LightInfo.init2(1, 1, &cObjRocket::lightPos, &cObjRocket::lightSize, 1);
     grip(0);
-    m_pParent = pMod;
+    setParent(pMod);
     if (pG->weapon_type != 2) {
         motReset[0] = WEP_ARC_PTR(0x1E);
         motReset[1] = WEP_ARC_PTR(0x1E);
@@ -282,8 +282,7 @@ void cObjLauncher::moveFire()
         }
     } else {
         if (MotionGetState(this)) {
-            r_no_0 = 0;
-            r_no_1 = 0;
+            setStat(S_STAY);
         }
     }
 }

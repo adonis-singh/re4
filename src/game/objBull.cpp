@@ -815,8 +815,8 @@ void objBullSetAdjust(cObjBull* pObj, cEm* pEm)
     pEm->setPos(&v);
     if (pEm->id == 0) {
         if (CamCtrl.m_pExtraCamera) {
-            PSVECAdd(&((Camera*) CamCtrl.m_pExtraCamera)->param.at, &d, &((Camera*) CamCtrl.m_pExtraCamera)->param.at);
-            PSVECAdd(&((Camera*) CamCtrl.m_pExtraCamera)->param.pos, &d, &((Camera*) CamCtrl.m_pExtraCamera)->param.pos);
+            PSVECAdd(&CamCtrl.m_pExtraCamera->param.at, &d, &CamCtrl.m_pExtraCamera->param.at);
+            PSVECAdd(&CamCtrl.m_pExtraCamera->param.pos, &d, &CamCtrl.m_pExtraCamera->param.pos);
         }
         pG->quake_ofs = d;
     }

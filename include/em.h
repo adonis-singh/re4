@@ -54,6 +54,8 @@ public:
     void set(int flag, int timer);   // stores the two bytes at 0/1 (pl_sub: set(0, 10), set(0, 0x80))
     void clear();
     void move();              // counts x1 down; clears stat when it reaches 0
+    // set at all when either byte is; an inline returning 0/1 gives the `li 1; andis.; bne; li 0` chain
+    int isDamage() { return m_Flag || m_Timer; }
 };
 
 // Room water effect table registered at cEm::pRoomEff (pl_sub PlRegistRoomEff): 3 entries of
@@ -147,6 +149,13 @@ public:
     void setStatus(int id);     // status |= 1 << bit
     void clearStatus(int id);
     int checkStatus(int stat);
+    void setTarget(u8 pno, f32 x, f32 y, f32 z)
+    {
+        lockParts = pno;
+        lockOfs.x = x;
+        lockOfs.y = y;
+        lockOfs.z = z;
+    }
     int initWork();              // be_flag = 0x21, x12E = 0 (the constructor)
 };
 
@@ -158,9 +167,6 @@ public:
 // create entities in every unit that includes em.h, which renumbers their static locals.
 #define EmRoutineSetW(em, r0, r1, r2, r3) \
     (*(u32*) &(em)->r_no_0 = ((u32) (r0) << 24) | ((u32) (r1) << 16) | ((u32) (r2) << 8) | (u32) (r3))
-
-// Dead flag test (cDmgInfo upper 16 bits): an inline returning 0/1 gives the `li 1; andis.; bne; li 0` chain.
-static inline int EmDeadCk(cEm* em) { return em->dmg.m_Flag || em->dmg.m_Timer; }
 
 // Enemy manager (game/em.cpp). The construct id selects the class: 0 player, 1..0xE / others a
 // read-table enemy (EmInitFunc), 0x40.. the object enemies (cEmObj, cEmDoor, ...), 0xFF a plain cEm.

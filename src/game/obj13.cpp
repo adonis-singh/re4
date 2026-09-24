@@ -905,7 +905,7 @@ void objLadderClimbCamMove(cEm* pEm)
     objLadderClimbCam.Distance = LadderCamDist(&objLadderClimbCam.param.pos, &objLadderClimbCam.param.at);
     objLadderClimbCam.param.fovy = 55.0f;
     CameraSetOrientationUp(&objLadderClimbCam);
-    CamCtrl.m_pExtraCamera = (s32) &objLadderClimbCam;
+    CamCtrl.SetExtraCamera(&objLadderClimbCam);
 }
 
 // Offers the kick-down action button (0xA) when the player is at the top of the standing ladder
@@ -1057,7 +1057,7 @@ void objLadderDownCamMove(cEm* pEm)
     objLadderDownCam.Distance = LadderCamDist(&objLadderDownCam.param.pos, &objLadderDownCam.param.at);
     objLadderDownCam.param.fovy = 55.0f;
     CameraSetOrientationUp(&objLadderDownCam);
-    CamCtrl.m_pExtraCamera = (s32) &objLadderDownCam;
+    CamCtrl.SetExtraCamera(&objLadderDownCam);
 }
 
 // Offers the reset action button (0xB) when the player stands at the foot of the fallen ladder.
@@ -1162,7 +1162,7 @@ void objLadderResetCamMove(cEm* pEm)
     objLadderResetCam.Distance = LadderCamDist(&objLadderResetCam.param.pos, &objLadderResetCam.param.at);
     objLadderResetCam.param.fovy = 55.0f;
     CameraSetOrientationUp(&objLadderResetCam);
-    CamCtrl.m_pExtraCamera = (s32) &objLadderResetCam;
+    CamCtrl.SetExtraCamera(&objLadderResetCam);
 }
 
 // Installs the 20 motion pointers (player/partner/ladder motions) from the room's table.

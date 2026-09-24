@@ -319,7 +319,7 @@ void em31DmCk(cEm31* em)
             }
         }
     }
-    if (em->hp > 0 && EmDeadCk(em) == 0) {
+    if (em->hp > 0 && em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -518,7 +518,7 @@ void cEm31::move()
     if (!(w->Be_flg & 0x40) && w->Berserk_wait) {
         w->Berserk_wait--;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         w->Atk_wait = 60;
     }
     if (w->Flash_timer) {
@@ -674,10 +674,7 @@ static void em31_R0_Init(cEm31* em)
         break;
     }
     one = 1;
-    em->lockParts = one;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(one, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(9), EFF_EM31, 0);
     zero = 0;
     w->EffKindId = EspPullCoreKind();
@@ -1582,7 +1579,7 @@ void em31EscapeCamMove(cEm31* em)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Kick hit: the foot's matrix origin shifted by `x`, raised by 250.
@@ -1666,7 +1663,7 @@ static void em31_R1_Kick(cEm31* em)
     if (!(w->pTen->Motion.Seq_old.Free & 2)) {                                                                 \
         return;                                                                                     \
     }                                                                                               \
-    if (EmDeadCk(pPL)) {                                                                          \
+    if (pPL->dmg.isDamage()) {                                                                          \
         return;                                                                                     \
     }                                                                                               \
     if ((s16) pG->pl_life <= 0) {                                                                   \
@@ -3545,7 +3542,7 @@ void em31StampCamMove(cEm31* em)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Tentacle only: finds the live body (id 0x31, type 0) among the enemies once and links the two

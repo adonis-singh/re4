@@ -311,10 +311,7 @@ static void em27_R0_Init(cEm27* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     scale = fRand0_1() * 0.5f + 1.0f;
     if (em->type == 1) {
         scale = 3.0f;

@@ -792,30 +792,23 @@ static void R31bExecDeathTimerMain(int no)
 // The count down while the cage room is open: runs out into the fall.
 void R31bExecDeathTimerMainSub(int no, int light, int frames)
 {
-    CountDown* cd = Cckpt.getCountDown();
     int frame;
 
     pG->Room_flg[0] |= 0x40000000;
-    cd->frameIn();
-    Cckpt.m_CountDown.m_state |= TIMER_STA_ALIVE;
-    cd->initTime(0, 30, 0);
-    cd->warnTime(0, 10, 0);
+    Cckpt.transCountDownTimer(1);
+    Cckpt.startCountDownTimer(0, 30, 0);
+    Cckpt.setWarningTime(0, 10, 0);
     frame = 0;
     // Both exits are returns: a `break` would let expand_end_loop roll the flag test to the loop end.
     for (;;) {
         int over;
 
         if ((pG->Room_flg[0] & 0x40000000) == 0) {
-            Cckpt.m_CountDown.m_state &= ~1;
-            Cckpt.getCountDown()->frameOut();
-            Cckpt.getCountDown()->frameOut();
+            Cckpt.endCountDownTimer();
+            Cckpt.transCountDownTimer(0);
             return;
         }
-        cd = Cckpt.getCountDown();
-        over = 0;
-        if (cd->checkState(TIMER_STA_ALIVE)) {
-            over = cd->m_frame == 0;
-        }
+        over = Cckpt.isZeroCountDownTimer();
         if (over == 1) {
             pG->Room_flg[0] |= 0x80000000;
             SceExec(0x12, (TaskFunc) R31bExecFallMain, no, 0, 2, 0);

@@ -683,6 +683,8 @@ NON_MATCHING = set()
 # C++ units with functions the original linker dead-stripped (bodies gone, constant pools and
 # statics kept): tools/strip_unused.py removes the bodies of functions not in sym_map.tsv.
 STRIP_UNUSED = {
+    "game/em.cpp",
+    "game/event.cpp",
     "game/puzzle.cpp",
     "game/esp.cpp",
     "game/cam_ctrl.cpp",

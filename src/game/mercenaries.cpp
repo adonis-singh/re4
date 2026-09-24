@@ -243,14 +243,8 @@ int MercSysMoveStart(MercSysWork* wk)
     SceEventStart(1);
     pPL->beginEvent(0);
     pPL->setNoSuspend(1);
-    Cckpt.getCountDown()->m_state |= TIMER_STA_ALIVE;
-    Cckpt.getCountDown()->initTime(MercMin, MercSec, MercCes);
-    // Codeless fake store surviving to global alloc: one more real insn in the range of the
-    // hoisted `mercId.idsys` high (r24) but not in `&cMes`'s (r25), so their equal-priority
-    // buckets (int(10000 * floor(log2 refs) * refs / len): 290/289) tie and the lower pseudo
-    // (&cMes) is allocated first, as in the original.
-    asm("" : "=m"(*(u16*) st)); // COMPILER-DIFF: tie (global-alloc live length)
-    Cckpt.getCountDown()->frameOut();
+    Cckpt.startCountDownTimer(MercMin, MercSec, MercCes);
+    Cckpt.transCountDownTimer(0);
     st[0] = 1;
     do {
         switch (st[1]) {
@@ -423,7 +417,7 @@ int MercSysMoveScore(MercSysWork* pWk)
         IdSetNum(MID, 0x11, IDC_GAUGE, cs, 99, 2, 1);
     }
     // remaining time
-    Cckpt.getCountDown()->getTime(&min, &sec, &cs);
+    Cckpt.getRemainTime(&min, &sec, &cs);
     IdSetTrans(MID, 0, IDC_GAUGE, 1);
     IdSetNum(MID, 5, IDC_GAUGE, min, 99, 2, 1);
     IdSetNum(MID, 3, IDC_GAUGE, sec, 99, 2, 1);
@@ -474,18 +468,14 @@ int MercSysMoveMain(MercSysWork* pWk)
     do {
         MercSysMoveScore(pWk);
         if (!StaFlagChk(pG, STA_DIEDEMO)) {
-            CountDown* cd = Cckpt.getCountDown();
-            int end = 0;
+            int end = Cckpt.isZeroCountDownTimer();
 
-            if (cd->checkState(TIMER_STA_ALIVE)) {
-                end = cd->m_frame == 0;
-            }
             if (end == 1) {
                 st[0] = 0;
                 break;
             }
         }
-        if (Cckpt.getCountDown()->getFrame() <= 899) {
+        if (Cckpt.getRemainFrame() <= 899) {
             if (pWk->sndId == 0) {
                 pWk->sndId = SndCall(6, 0x78, 0, 0, 0, 0);
             }
@@ -527,7 +517,7 @@ int MercSysResultInit(MercSysWork* pWk)
         pLog->err(0, 0, "St4ResultInitStage : pWk is NULL");
         return 0;
     }
-    Cckpt.getCountDown()->getTime(&min, &sec, &cs);
+    Cckpt.getRemainTime(&min, &sec, &cs);
     pWk->rslt.time = min * 6000 + sec * 100 + cs;
     pWk->rslt.maxCombo = pWk->maxCombo;
     pWk->rslt.kill = pWk->kill;
@@ -1276,5 +1266,5 @@ void AdaResult::quit()
 // Countdown state bit test (bit 0 = running).
 int CountDown::checkState(u32 state)
 {
-    return (m_state & state) ? 1 : 0;
+    return getState(state) ? 1 : 0;
 }

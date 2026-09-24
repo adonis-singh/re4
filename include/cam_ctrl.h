@@ -130,7 +130,10 @@ public:
 
     void init(CameraParam* p);
     void move(CameraParam* arg);
-    CameraParam* getParam() { return &param; }
+    void setRatio(f32 ratio) { m_ratio = ratio; }
+    CameraParam* getCamPtr() { return &param; }
+    void setFlag() { m_flag |= 1; }
+    void unsetFlag() { m_flag &= ~1; }
 };
 
 class CameraControl {
@@ -158,7 +161,7 @@ public:
     Camera camera;                // 0x60
     Mtx prev_mat;                 // 0x158  camera matrix CamStick2World keeps while the cut changes
     u8 pad_188[0x250 - 0x188];
-    s32 m_pExtraCamera;           // 0x250  Camera* of a boss/event camera (em2a/em2b/em2c/em2d); nonzero blocks the fall-check in Check()
+    Camera* m_pExtraCamera;       // 0x250  boss/event camera (em2a/em2b/em2c/em2d); nonzero blocks the fall-check in Check()
     CameraInterpolation m_Inter;   // 0x254
     CameraQuasiFPS m_QuasiFPS;          // 0x278
     u8 m_Free[0x200];          // 0x48C  placement storage for cCamera subclasses
@@ -188,6 +191,7 @@ public:
     int IsChangeCamera();
     void Comeback(int);
     void Disable();
+    void SetExtraCamera(Camera* p_cam) { m_pExtraCamera = p_cam; }
     void AreaCheckOnOff(int sw);
     u8 AreaNum();
     int CurrentAreaNo();
@@ -242,6 +246,7 @@ public:
     void clearAttachCamera();
     void registAttachCamera(AttachCamera* p_attach, cModel* p_model);
     void deleteAttachCamera(AttachCamera* p_attach, cModel* p_model);
+    int getAttachCameraNum() { return m_attach_num; }
     cModel* getAttachModel(cModel* p_model);
     AttachCamera* getAttachCamera(cModel* p_model);
     void checkAttachCamera();

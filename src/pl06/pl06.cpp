@@ -64,7 +64,7 @@ void cPlHunk::move()
     cPlayer::move();
 }
 
-// Builds the model set: the body (4/5) as the base model, the mask / hair (6/7, Body->pHair), a
+// Builds the model set: the body (4/5) as the base model, the mask / hair (6/7, Body->m_pHead), a
 // first right (0x12) and left (0x14) hand; TEV scale group 1, then the hands are re-set through
 // setRightHand(0) / setLeftHand(1). (The error string still says cSubLuis.)
 void cPlHunk::setModel()
@@ -76,7 +76,7 @@ void cPlHunk::setModel()
     }
     if ((info = ModInfoMgr.create(PL_ARC(6), PL_ARC(7))) != 0) {
         addModel(info);
-        Body->pHair = info;
+        Body->m_pHead = info;
     }
     if ((info = ModInfoMgr.create(PL_ARC(0x12), PL_ARC(0x11))) != 0) {
         addModel(info);
@@ -179,11 +179,11 @@ void cPlHunk::setHead(int no)
     if (no != 0) {
         return;
     }
-    if (Body->pHair == 0) {
+    if (Body->m_pHead == 0) {
         return;
     }
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
     info = ModInfoMgr.create(PL_ARC_PTR(pG->pPlayer, 0xB), PL_ARC_PTR(pG->pPlayer, 7));
     if (info) {
         addModel(info);
@@ -198,8 +198,8 @@ void cPlHunk::setHead(void* bin, void* tpl)
     if (Body->m_pFace == 0) {
         return;
     }
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
     info = ModInfoMgr.create(bin, tpl);
     if (info) {
         addModel(info);

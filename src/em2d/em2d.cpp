@@ -775,7 +775,7 @@ void cEm2d::move()
     if (w->poisonWait) {
         w->poisonWait--;
     }
-    if (w->atkWait == 0 && EmDeadCk(pPL) && pG->Game_level <= 9) {
+    if (w->atkWait == 0 && pPL->dmg.isDamage() && pG->Game_level <= 9) {
         w->atkWait = 10;
     }
     if (w->atkCnt > 450) {
@@ -1050,10 +1050,7 @@ static void em2d_R0_Init(cEm2d* em)
     YarareAdd(em, &w->hit[10], 0.0f, -600.0f, 0.0f, 140.0f, 600.0f, 0x15, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[11], 0.0f, 0.0f, 0.0f, 210.0f, 50.0f, 0x1E, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[12], 0.0f, 0.0f, 0.0f, 210.0f, 50.0f, 0x1F, YAT_FLAG_ON);
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
-    em->lockParts = 0;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(4), EFF_EM2D, 0);
     EffEm2d_setTexRender(em);
     w->blendRatio = 0;
@@ -2314,7 +2311,7 @@ static void em2dKickAction(cEm2d* em)
     if (pSUB && pSUB->l_pl < 9000000.0f) {
         cDmgInfo* d = &pSUB->dmg;  // &pSUB->dmg is computed before the dead test
 
-        if (!EmDeadCk(pSUB)) {
+        if (!pSUB->dmg.isDamage()) {
             d->set(0, 30);
         }
     }
@@ -5272,7 +5269,7 @@ int em2dCatchCk(cEm2d* em)
     Mtx inv;
     Vec pos;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -5311,7 +5308,7 @@ int em2dAirCatchCk(cEm2d* em)
     Mtx inv;
     Vec pos;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -5349,7 +5346,7 @@ int em2dFallCatchCk(cEm2d* em)
     cDmgInfo* dm = &pl->dmg;
     f32 dy;
 
-    if (EmDeadCk(pl)) {
+    if (pl->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -5474,7 +5471,7 @@ int em2dCamMove(cEm2d* em, int mode, f32 rate)
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     w->cam.param.fovy = 50.0f;
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
     return blocked ^ 1;
 }
 
@@ -5499,7 +5496,7 @@ void em2dDieCamMove(cEm2d* em)
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     w->cam.param.fovy = 50.0f;
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // 1 when this insect may approach: fewer than three visible ones are already nearer to the player, or
@@ -5533,7 +5530,7 @@ int em2dCrashCk(cEm2d* em)
     Vec out;
     int zero;
 
-    if (EmDeadCk(em)) {
+    if (em->dmg.isDamage()) {
         return 0;
     }
     if (em->hp <= 0) {
@@ -6309,7 +6306,7 @@ int em2dFindCk(cEm2d* em)
             }
         }
         if (!StaFlagChk(pG, STA_PL_FIRE) || !(w->plDist < 25000.0f)) {
-            if (EmDeadCk(em) == 0 && em2dSomebodyFindCk(em) == 0) {
+            if (em->dmg.isDamage() == 0 && em2dSomebodyFindCk(em) == 0) {
                 return 0;
             }
         }

@@ -228,7 +228,7 @@ void em39DmCk(cEm39* em)
     YARARE_INFO* hit;
     int dmg;
 
-    if (em->hp > 0 && !EmDeadCk(em)) {
+    if (em->hp > 0 && !em->dmg.isDamage()) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -830,10 +830,7 @@ static void em39_R0_Init(cEm39* em)
         YarareAddCube(em, &w->hit[17], -120.0f, -30.0f, 0.0f, 400.0f, 60.0f, 50.0f, 0x7E, YAT_FLAG_ON | YAT_FLAG_X_AXIS);
         YarareAddCube(em, &w->hit[18], -120.0f, -30.0f, 0.0f, 250.0f, 60.0f, 50.0f, 0x7F, YAT_FLAG_ON | YAT_FLAG_X_AXIS);
     }
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(4), EFF_EM39, 0);
     r0c = 0x1D;
     r8c = 300;
@@ -1244,7 +1241,7 @@ static void em39_R1_Wait(cEm39* em)
     case 3:
         MotionMove(em, 0);
         if ((s16) pG->pl_life > 0 && em->hp > 0 && em->set != 1) {
-            if (EmDeadCk(em)) {
+            if (em->dmg.isDamage()) {
                 if (em39JumpUpCk3(em)) {
                     return;
                 }
@@ -1358,7 +1355,7 @@ static void em39_R1_Sit(cEm39* em)
                     em->setRno(1, 0x26, 0, 0);
                 }
             } else {
-                if (EmDeadCk(pPL)) {
+                if (pPL->dmg.isDamage()) {
                     w->Atk_wait = 30;
                 }
                 if (w->Atk_wait == 0) {
@@ -3731,7 +3728,7 @@ static void em39_R1_Atk_MG(cEm39* em)
                     }
                 }
             }
-            if (EmDeadCk(pPL) && (u32) w->TmpU32 > 5) {
+            if (pPL->dmg.isDamage() && (u32) w->TmpU32 > 5) {
                 w->TmpU32 = 5;
             }
             if (fabsf(Muku(&em->pos, &pPL->pos, em->ang.y, PI)) > 1.5707964f) {
@@ -3908,7 +3905,7 @@ static void em39_R1_AppearMG(cEm39* em)
                     }
                 }
             }
-            if (EmDeadCk(pPL) && (u32) w->TmpU32 > 5) {
+            if (pPL->dmg.isDamage() && (u32) w->TmpU32 > 5) {
                 w->TmpU32 = 5;
             }
             if (em39ExitCk(em) && (u32) w->TmpU32 > 5) {
@@ -4067,7 +4064,7 @@ static void em39_R1_AppearMG2(cEm39* em)
                     }
                 }
             }
-            if (EmDeadCk(pPL) && (u32) w->TmpU32 > 5) {
+            if (pPL->dmg.isDamage() && (u32) w->TmpU32 > 5) {
                 w->TmpU32 = 5;
             }
         }

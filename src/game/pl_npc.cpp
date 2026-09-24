@@ -104,10 +104,7 @@ void cSubChar::init()
     {
         cSubChar* s = pEm;
 
-        s->lockParts = 4;
-        s->lockOfs.x = 0.0f;
-        s->lockOfs.y = 0.0f;
-        s->lockOfs.z = 0.0f;
+        s->setTarget(4, 0.0f, 0.0f, 0.0f);
     }
     pEm->setStatus(EM_STATUS_LOCKOFF);
     // statement order brute-forced (store schedule + shared zero registers)

@@ -22,9 +22,26 @@ struct ItemWork {
     s8 y;          // 0x0B
     s8 orient;     // 0x0C
     u8 board;      // 0x0D  1 = in the case, 0 = on the spare board
+
+    int isAlive(int chr)
+    {
+        if (flags & 1) {
+            return type == (u8) chr;
+        }
+        return 0;
+    }
+    int isEmpty() { return (flags & 1) ? 0 : 1; }
+    int getPowerLevel() { return lv >> 12; }
+    int getSpeedLevel() { return (lv >> 8) & 0xF; }
+    int getReloadLevel() { return (lv >> 4) & 0xF; }
+    int getBulletLevel() { return (u8) lv & 0xF; }
+    void setPowerLevel(int level) { lv = (lv & 0x0FFF) | (level << 12); }
+    void setSpeedLevel(int level) { lv = (lv & 0xF0FF) | (level << 8); }
+    void setReloadLevel(int level) { lv = (lv & 0xFF0F) | (level << 4); }
+    void setBulletLevel(int level) { lv = (lv & 0xFFF0) | level; }
+    int getBulletType() { return bullet >> 13; }
+    void setBulletType(int type) { bullet = (bullet & 0x1FFF) | (type << 13); }
 };
-// The exclusive-tune nibble of ItemWork::lv (the other nibbles are read in merchant.cpp / item.cpp).
-#define LV_EX(p) ((u8) (p)->lv & 0xF)
 
 // cItemMgr::ordering() output (cItemMgr::pOrder[], 8 bytes): the in-use slots holding one item id.
 struct ItemOrder {

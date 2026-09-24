@@ -199,10 +199,7 @@ static void pl0e_R0_Init(cPl0e* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 4);
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_IK_OFF);
     em->atari.m_flag &= 0xFCFF;
     em->atari.setPriority(PRI_LV1);
@@ -720,7 +717,7 @@ void pl0eCamMove(cPl0e* em)
         pl0e_camera.Distance = VEC_DIST(cp, ca);
     }
     CameraSetOrientationUp(&pl0e_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0e_camera;
+    CamCtrl.SetExtraCamera(&pl0e_camera);
 }
 
 // Boarding check while waiting: with the hands free (Status_flg[1] bit21 clear) and the player

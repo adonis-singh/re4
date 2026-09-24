@@ -266,7 +266,7 @@ void cEm3a::move()
     if (w->atkWait) {
         w->atkWait--;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         w->atkWait = 90;
     }
     Em3a_R0_move_tbl[r_no_0](this);
@@ -375,10 +375,7 @@ static void em3a_R0_Init(cEm3a* em)
         p->scale.y = 0.0f;
         p->scale.z = 0.0f;
     }
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(4), EFF_EM3A, 0);
     w->espKind = EspPullCoreKind();
     w->flags = 0;
@@ -1472,7 +1469,7 @@ int em3aFindPLCk(cEm3a* em)
     if (em->type == 2) {
         return 0;
     }
-    if (EmDeadCk(em)) {
+    if (em->dmg.isDamage()) {
         return 1;
     }
     if (StaFlagChk(pG, STA_PL_FIRE) && em->l_pl < 225000000.0f) {

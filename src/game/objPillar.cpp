@@ -625,7 +625,7 @@ void EscapeCamMove()
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 

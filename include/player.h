@@ -373,7 +373,7 @@ void pl_R1_Event_Smooth(cPlayer* pEm);
 // pl_body.h at the use site.
 #define FACE_SET(pl, v)                                 \
     {                                                   \
-        cModelInfo* face = (pl)->Body->pFace;          \
+        cModelInfo* face = (pl)->Body->m_pKnife;          \
         if (VALID_PTR(face)) {                          \
             face->mat[2][2] = v;                              \
             face->mat[1][1] = v;                              \

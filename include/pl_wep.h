@@ -31,6 +31,17 @@ public:
         ETC_LASER_FIRE04 = 5,
     };
 
+    // r_no_0 states. PS2's enum has S_SET between S_READY and S_FIRE, which this version does not
+    // have, so the values from S_FIRE on are one lower.
+    enum STAT {
+        S_STAY = 0,
+        S_READY = 1,
+        S_FIRE = 2,
+        S_DOWN = 3,
+        S_RELOAD = 4,
+        S_DROP = 5,
+    };
+
     void* motReset[2];    // 0x328  resetMotion idle motions: [0] normal, [1] empty magazine (pWepArc) (PS2 motReset[2])
     f32 bureX;            // 0x330  aim sway (lock random, pl_wep PlWepLockRand): pitch range, degrees -> radians in setAbility (PS2 bureX)
     f32 bureY;            // 0x334  yaw range (PS2 bureY)
@@ -72,6 +83,12 @@ public:
         bureSpeedX = pitchStep * 0.017453292f;
         bureSpeedY = yawStep * 0.017453292f;
     }
+    void setStat(STAT stat) {
+        r_no_0 = stat;
+        r_no_1 = 0;
+    }
+    STAT getStat() { return (STAT) r_no_0; }
+    void setParent(cModel* pParent) { m_pParent = pParent; }
     virtual int keyKamae() { return (Key.on >> 4) & 1; }   // pl_sub joyKamae
     virtual void fire() {}
     virtual void beginReload() {}

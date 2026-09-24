@@ -115,7 +115,7 @@ void em22DmCk(cEm22* em)
     Em22Work* w = EM22_WK(em);
     int near;
 
-    if (em->hp > 0 && EmDeadCk(em) == 0) {
+    if (em->hp > 0 && em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -294,7 +294,7 @@ void cEm22::move()
     if (w->plDeadWait) {
         w->plDeadWait--;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         w->plDeadWait = 30;
     }
     if (w->stuckTimer) {
@@ -386,10 +386,7 @@ static void em22_R0_Init(cEm22* em)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->atari.init(0.0f, 0.0f, 0.0f, 450.0f, 400.0f, 400.0f, 500.0f, 3, 0x2000, 10);
     em22YarareInit(em);
     w->pCtrl11 = GetCtrlCtrl11();
@@ -1189,7 +1186,7 @@ static void em22_R1_br_JumpAtk(cEm22* em)
     if (!(em->Motion.Seq_old.Free & 1)) {
         return;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return;
     }
     if (!(w->flags & 1)) {
@@ -1459,7 +1456,7 @@ static void em22_R1_br_ParaAtk(cEm22* em)
     if (!(em->Motion.Seq_old.Free & 1)) {
         return;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return;
     }
     PSMTXInverse(em->mat, inv);
@@ -2351,7 +2348,7 @@ void em22CamMove(cEm22* em, int type)
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     w->cam.param.fovy = 50.0f;
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // 1 when the parasites may grow now: not yet out (flag bit4) and paraWait counted down.

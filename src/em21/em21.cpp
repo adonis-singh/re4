@@ -84,7 +84,7 @@ void em21DmCk(cEm21* em)
     Vec hitPos;
     u8 mode;
 
-    if (EmDeadCk(em) == 0) {
+    if (em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, &hitPos)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -249,10 +249,7 @@ static void em21_R0_Init(cEm21* em)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     at->init(0.0f, -500.0f, 0.0f, 450.0f, 400.0f, 400.0f, 1000.0f, 3, 0x2000, 10);
     em21YarareInit(em);
     w->tilt = 0.0f;
@@ -733,7 +730,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 6;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         } else {
             ang = fabsf(Muku(&em->pos, &g->pos, em->ang.y, PI));
@@ -770,7 +767,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 6;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         } else {
             ang = fabsf(Muku(&em->pos, &g->pos, em->ang.y, PI));
@@ -832,7 +829,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 0xC;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -844,7 +841,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 8;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -856,7 +853,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 2;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -878,7 +875,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 6;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -995,7 +992,7 @@ void plem21TrapCamMove(cModel* m)
     }
     cam->param.fovy = 55.0f;
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Per frame: the route point / angle to the player (routePos, routeAng, flag bit0 = reachable), to

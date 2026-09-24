@@ -51,8 +51,8 @@ public:
     Camera cam;                   // 0x000 (cam.param at 0xA4 is what CameraControl::Move copies)
     QfpsOfs (*ready_tbl[14])[3];  // 0x0F8  ready table per camera type (checkCameraType 0..0xC), [13] = area copy
     QfpsOfs (*trans_tbl[TRANS_CAM_NUM])[3];   // 0x130  transition table per TRANS_CAM type
-    QfpsOfs (*blend_src)[3];      // 0x148  current ready table
-    QfpsOfs (*blend_dst)[3];      // 0x14C  current transition table
+    QfpsOfs (*m_p_ready_array)[3]; // 0x148  current ready table
+    QfpsOfs (*m_p_trans_array)[3]; // 0x14C  current transition table
     QfpsOfs* cur;                 // 0x150  offsets of the current site
     QfpsOfs* old;                 // 0x154  offsets blended from (g_readyOfs[15] / g_transOfs[6] copies)
     void* m_LR_info;                // 0x158
@@ -92,6 +92,8 @@ public:
     void checkCameraType();
     void calcOffset(QfpsOfs* p_offset);
     void hitCheck(Mtx m, QfpsOfs* ofs, CameraParam* out);
+    QfpsOfs (*readyArrayPtr())[3] { return m_p_ready_array; }
+    QfpsOfs (*transArrayPtr())[3] { return m_p_trans_array; }
     void setBlendData(void* src, void* dst);
     void getAreaData(QfpsOfs (*ready)[3], QfpsOfs (*trans)[3]);
     void setAreaData(QfpsOfs (*ready)[3], QfpsOfs (*trans)[3]);
@@ -101,6 +103,8 @@ public:
     void bindAreaCamera(CameraAreaRec* pCut);
     void init();
     void move();
+    void resetDepressionRatio();
+    void resetDirectionRatio();
 };
 
 #endif

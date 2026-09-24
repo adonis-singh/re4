@@ -312,7 +312,7 @@ void em32DmCk(cEm32* em)
     int flag;
     int wep;
 
-    if (em->hp > 0 && EmDeadCk(em) == 0) {
+    if (em->hp > 0 && em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -689,10 +689,7 @@ static void em32_R0_Init(cEm32* em)
     YarareAdd(em, &w->hit[25], fzero, fzero, fzero, 250.0f, 300.0f, 0x56, 0);
     YarareAdd(em, &w->hit[26], fzero, fzero, fzero, 250.0f, 300.0f, 0x57, 0);
     YarareAdd(em, &w->hit[27], fzero, fzero, fzero, 250.0f, 300.0f, 0x58, 0);
-    em->lockParts = 2;
-    em->lockOfs.x = fzero;
-    em->lockOfs.y = fzero;
-    em->lockOfs.z = fzero;
+    em->setTarget(2, fzero, fzero, fzero);
     w->flags = zero;
     w->neckAng = fzero;
     w->wait = zero;
@@ -1085,7 +1082,7 @@ static void em32_R1_Ambush(cEm32* em)
         case 2:
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             if ((w->flags & 0x1000) && em32StepUpCk2(em)) {
                 break;
             }
@@ -1920,7 +1917,7 @@ static void em32_R1_CatchHit(cEm32* em)
             em->r_no_2 = 2;
             break;
         }
-        dead = EmDeadCk(em);
+        dead = em->dmg.isDamage();
         if (dead) {
             em->r_no_2 = 2;
             break;
@@ -2346,7 +2343,7 @@ void em32EscapeCamMove(cEm32* em)
     w->cam.Up.z = 0.0f;
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // Step up onto a container: the run-up towards stepPos, then the tunnel attack / wait / step down.

@@ -85,73 +85,49 @@ cEmBox* SetBox(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcNo)
     switch (em->type) {
     case 0:
     default:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 150.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 150.0f, 0.0f);
         w->size.x = 200.0f;
         w->size.y = 350.0f;
         w->size.z = 550.0f;
         break;
     case 1:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         w->size.x = 450.0f;
         w->size.y = 600.0f;
         w->size.z = 1000.0f;
         break;
     case 2:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         w->size.x = 200.0f;
         w->size.y = 350.0f;
         w->size.z = 550.0f;
         break;
     case 3:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 800.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 800.0f, 0.0f);
         w->size.x = 660.0f;
         w->size.y = 1250.0f;
         w->size.z = 660.0f;
         break;
     case 4:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 0.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 0.0f, 0.0f);
         w->size.x = 200.0f;
         w->size.y = 350.0f;
         w->size.z = 550.0f;
         break;
     case 5:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         w->size.x = 630.0f;
         w->size.y = 1250.0f;
         w->size.z = 630.0f;
         break;
     case 6:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 250.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 250.0f, 0.0f);
         w->size.x = 250.0f;
         w->size.y = 500.0f;
         w->size.z = 250.0f;
         break;
     case 7:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 1000.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 1000.0f, 0.0f);
         w->size.x = 550.0f;
         w->size.y = 1450.0f;
         w->size.z = 550.0f;

@@ -76,6 +76,18 @@ public:
     void saveDisp();
     void loadDisp();
     int checkState(u32 state);  // game/mercenaries.cpp: (flags & bit) ? 1 : 0
+    void setState(u32 state) { m_state |= state; }
+    void unsetState(u32 state) { m_state &= ~state; }
+    u32 getState(u32 state) { return m_state & state; }
+    int isZero()
+    {
+        int zero = 0;
+
+        if (checkState(TIMER_STA_ALIVE)) {
+            zero = m_frame == 0;
+        }
+        return zero;
+    }
 };
 
 class ActionButton {
@@ -92,7 +104,9 @@ class Cockpit {
 public:
     LifeMeter m_LifeMeter;         // 0x00
     BulletInfo m_BlltInfo;      // 0x84
-    CountDown m_CountDown;    // 0xB0
+private:
+    CountDown m_CountDown;    // 0xB0, used through the *CountDownTimer methods
+public:
     ActionButton m_ActBttn;    // 0xC8  sizeof == 0xCC
 
     void gameInit();
@@ -100,8 +114,39 @@ public:
     void move();
     void msgWindow(int sw);
     void lifeMeterDisp(int sw);
-    // sscrn reaches the count-down through this: `&Cckpt` is computed first, then + 0xB0
-    CountDown* getCountDown() { return &m_CountDown; }
+    void lifeMeterFix(int flag) { m_LifeMeter.fix(flag); }
+    void startCountDownTimer(int min, int sec, int ces)
+    {
+        m_CountDown.setState(TIMER_STA_ALIVE);
+        m_CountDown.initTime(min, sec, ces);
+    }
+    void startCountDownTimerFrame(u32 frame)
+    {
+        m_CountDown.setState(TIMER_STA_ALIVE);
+        m_CountDown.initTimeFrame(frame);
+    }
+    void setWarningTime(int min, int sec, int ces) { m_CountDown.warnTime(min, sec, ces); }
+    void getRemainTime(int* min, int* sec, int* ces) { m_CountDown.getTime(min, sec, ces); }
+    u32 getRemainFrame() { return m_CountDown.getFrame(); }
+    void endCountDownTimer()
+    {
+        m_CountDown.unsetState(TIMER_STA_ALIVE);
+        m_CountDown.frameOut();
+    }
+    int isZeroCountDownTimer() { return m_CountDown.isZero(); }
+    void pauseCountDownTimer() { m_CountDown.setState(TIMER_STA_PAUSE); }
+    void playCountDownTimer() { m_CountDown.unsetState(TIMER_STA_PAUSE); }
+    void dispCountDownTimer(int sw) { m_CountDown.disp(sw); }
+    void saveCountDownTimer() { m_CountDown.saveDisp(); }
+    void loadCountDownTimer() { m_CountDown.loadDisp(); }
+    void transCountDownTimer(int sw)
+    {
+        if (sw) {
+            m_CountDown.frameIn();
+        } else {
+            m_CountDown.frameOut();
+        }
+    }
 };
 
 extern Cockpit Cckpt;

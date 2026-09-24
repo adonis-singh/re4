@@ -377,12 +377,8 @@ ToolEvt::ToolEvt()
     CursolSub = 0;
     CursolFog = 0;
     CursolFocus = 0;
-    Cckpt.m_CountDown.m_state &= ~1;
-    {
-        CountDown* cd = &Cckpt.m_CountDown;
-        cd->frameOut();
-        cd->frameOut();
-    }
+    Cckpt.endCountDownTimer();
+    Cckpt.transCountDownTimer(0);
     LightMgr.roomLitSet(0);
     LightMgr.update(0, -1);
     pTl = new cLightTool;

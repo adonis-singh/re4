@@ -1153,7 +1153,7 @@ static void r300_mira_exec()
             PSVECAdd(&dir, &pos, &cam->param.pos);
             r300_work->cam.param.roll = 0.0f;
             CameraSetOrientationRoll(&r300_work->cam);
-            cc->m_pExtraCamera = (s32) &r300_work->cam;
+            cc->SetExtraCamera(&r300_work->cam);
             SceSleep(1);
         }
     }
@@ -1239,7 +1239,7 @@ static void r300_mirb_exec()
             PSVECAdd(&dir, &pos, &cam->param.pos);
             r300_work->cam.param.roll = 0.0f;
             CameraSetOrientationRoll(&r300_work->cam);
-            cc->m_pExtraCamera = (s32) &r300_work->cam;
+            cc->SetExtraCamera(&r300_work->cam);
             SceSleep(1);
         }
         if (pG->Room_flg[0] & 0x40000000) {

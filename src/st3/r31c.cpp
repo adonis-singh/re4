@@ -2361,9 +2361,8 @@ void cR31CDoor::setClosed()
 
 void cR31CCountDown::countStart()
 {
-    Cckpt.m_CountDown.m_state |= TIMER_STA_ALIVE;
-    Cckpt.getCountDown()->initTime(3, 0, 0);
-    Cckpt.getCountDown()->warnTime(0, 0, 0);
+    Cckpt.startCountDownTimer(3, 0, 0);
+    Cckpt.setWarningTime(0, 0, 0);
     setDisp(1);
     state = 1;
     running = 1;
@@ -2372,8 +2371,7 @@ void cR31CCountDown::countStart()
 // Stop the cockpit count-down (state bit 0 off, the display slides out); state 0.
 void cR31CCountDown::countEnd()
 {
-    Cckpt.m_CountDown.m_state &= ~1;
-    Cckpt.getCountDown()->frameOut();
+    Cckpt.endCountDownTimer();
     setDisp(0);
     state = 0;
     running = 0;
@@ -2383,10 +2381,10 @@ void cR31CCountDown::countEnd()
 void cR31CCountDown::setPause(int on)
 {
     if (on == 1) {
-        Cckpt.m_CountDown.m_state |= TIMER_STA_PAUSE;
+        Cckpt.pauseCountDownTimer();
         state = 2;
     } else {
-        Cckpt.m_CountDown.m_state &= ~8;
+        Cckpt.playCountDownTimer();
         state = 1;
     }
 }
@@ -2394,25 +2392,15 @@ void cR31CCountDown::setPause(int on)
 // Show (frameIn) or hide (frameOut) the count-down display.
 void cR31CCountDown::setDisp(int on)
 {
-    Cockpit* ck = &Cckpt;
-
-    if (on) {
-        ck->getCountDown()->frameIn();
-    } else {
-        ck->getCountDown()->frameOut();
-    }
+    Cckpt.transCountDownTimer(on);
 }
 
 // 1 when the count-down runs and its frame count reached 0.
 int cR31CCountDown::isTimeOut()
 {
     if (running == 1) {
-        CountDown* cd = Cckpt.getCountDown();
-        int over = 0;
+        int over = Cckpt.isZeroCountDownTimer();
 
-        if (cd->checkState(TIMER_STA_ALIVE)) {
-            over = cd->m_frame == 0;
-        }
         return over;
     }
     return 0;

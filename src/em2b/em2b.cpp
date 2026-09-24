@@ -934,10 +934,7 @@ static void em2b_R0_Init(cEm2b* em)
     YarareAdd(em, &w->hit[8], 0.0f, 0.0f, 0.0f, 480.0f, 1200.0f, 0xE, YAT_FLAG_ON | YAT_FLAG_X_AXIS);
     YarareAdd(em, &w->hit[9], 0.0f, 0.0f, 0.0f, 300.0f, 800.0f, 0x3F, 0);
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(4), EFF_EM2B, 0);
     w->espKind = EspPullCoreKind();
     r11c = 900;
@@ -1051,11 +1048,11 @@ static void em2b_R1_Wait(cEm2b* em)
         em->r_no_2++;
     case 1:
         MotionMove(em, 0);
-        if (EmDeadCk(em) && em2bStayCk(em)) {
+        if (em->dmg.isDamage() && em2bStayCk(em)) {
             em->setRno(1, 2, 0, 0xA);
             return;
         }
-        if (StaFlagChk(pG, STA_PL_CATCHED) || EmDeadCk(pPL) || (s16) pG->pl_life <= 0) {
+        if (StaFlagChk(pG, STA_PL_CATCHED) || pPL->dmg.isDamage() || (s16) pG->pl_life <= 0) {
             w->Dash_wait = 30;
         }
         if (em->l_pl > 25000000.0f) {
@@ -1907,7 +1904,7 @@ static inline void em2bHandLandingP(cEm2b* em, cParts* p)
 // The player inside 6000 of the landing hand is knocked down.
 static inline void em2bHandLandingPlCk(cParts* p)
 {
-    if ((s16) pG->pl_life > 0 && !EmDeadCk(pPL)) {
+    if ((s16) pG->pl_life > 0 && !pPL->dmg.isDamage()) {
         f32 dx = pPL->pos.x - p->world.x;
         f32 dy = pPL->pos.y - p->world.y;
         f32 dz = pPL->pos.z - p->world.z;
@@ -2367,7 +2364,7 @@ static void em2b_R1_Catch(cEm2b* em)
                 v.y += 1000.0f;
                 d = (p->world.x - v.x) * (p->world.x - v.x) + (p->world.y - v.y) * (p->world.y - v.y)
                     + (p->world.z - v.z) * (p->world.z - v.z);
-                if (d < 4000000.0f && !EmDeadCk(pPL)) {
+                if (d < 4000000.0f && !pPL->dmg.isDamage()) {
                     pPL->dmg.m_Timer = 2;
                     SetPlDamage(em, plem2b_CatchHand);
                     SndCall(8, 0x24, &p->world, em->id, 0, em);
@@ -2921,7 +2918,7 @@ static void em2b_R1_HoleAtk(cEm2b* em)
             em->r_no_2 = 4;
             break;
         }
-        if ((s16) pG->pl_life > 0 && !EmDeadCk(pPL)) {
+        if ((s16) pG->pl_life > 0 && !pPL->dmg.isDamage()) {
             f32 dx = pPL->pos.x - em2b_r11e_pos.x;
             f32 dz = pPL->pos.z - em2b_r11e_pos.z;
             d = dx * dx + dz * dz;
@@ -2946,7 +2943,7 @@ static void em2b_R1_HoleAtk(cEm2b* em)
         if (em->Motion.Seq_old.Free & 2) {
             SndCall(6, 0xE, &p->world, 0, 0, em);
         }
-        if ((s16) pG->pl_life > 0 && !EmDeadCk(pPL) && (em->Motion.Seq_old.Free & 1) && w->Atk_ck == 0) {
+        if ((s16) pG->pl_life > 0 && !pPL->dmg.isDamage() && (em->Motion.Seq_old.Free & 1) && w->Atk_ck == 0) {
             Vec v;
             f32 dx;
             f32 dz;
@@ -2956,7 +2953,7 @@ static void em2b_R1_HoleAtk(cEm2b* em)
             dz = hp->world.z - v.z;
             dx = hp->world.x - v.x;
             d = dx * dx + dz * dz;
-            if (d < 2250000.0f && !EmDeadCk(pPL)) {
+            if (d < 2250000.0f && !pPL->dmg.isDamage()) {
                 pPL->dmg.m_Timer = 0x80;
                 pG->pl_life = 0;
                 SetPlDamage(em, plem2b_CatchHand);
@@ -2974,7 +2971,7 @@ static void em2b_R1_HoleAtk(cEm2b* em)
 // The player standing higher than the giant's feet + 2000 (on the tower) falls off.
 void em2bPlFallCK(cEm2b* em)
 {
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -3681,7 +3678,7 @@ void em2bParasiteAtkCamMove(cEm2b* em)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Hit by the thrown-back rock.
@@ -4420,7 +4417,7 @@ void em2bEscapeCamMove(cEm2b* em)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Foot landing of the walk: quake, step SE, dust; the chain giant rattles.
@@ -4898,7 +4895,7 @@ int em2bTreeAtkCk(cEm2b* em)
     if (w->Atk_ck) {
         return 0;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -5341,7 +5338,7 @@ void em2bBlowCamMove(cEm2b* em, f32 rate)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Camera of the stamp: pulled behind and above the player.
@@ -5365,7 +5362,7 @@ void em2bStampCamMove(cEm2b* em)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Event placement: position / angle and the wait pose.
@@ -5491,7 +5488,7 @@ int em2bAtkRtnCk(cEm2b* em)
 {
     Em2bWork* w = EM2B_WK(em);
 
-    if (StaFlagChk(pG, STA_PL_CATCHED) || EmDeadCk(pPL) || (s16) pG->pl_life <= 0) {
+    if (StaFlagChk(pG, STA_PL_CATCHED) || pPL->dmg.isDamage() || (s16) pG->pl_life <= 0) {
         if (em->l_pl < 49000000.0f) {
             em2bThreatSet(em, w);
             return 1;
@@ -5841,7 +5838,7 @@ int em2bPressPlCk(cEm2b* em)
     Vec pos;
     u32 i;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     pos = pPL->pos;
@@ -5871,7 +5868,7 @@ int em2bPressSubCk(cEm2b* em)
     if (pSUB == 0) {
         return 0;
     }
-    if (EmDeadCk(pSUB)) {
+    if (pSUB->dmg.isDamage()) {
         return 0;
     }
     pos = pSUB->pos;

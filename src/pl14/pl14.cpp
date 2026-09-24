@@ -151,10 +151,7 @@ void cSubLuis::init()
     atari.init(0.0f, -200.0f, 0.0f, 300.0f, 200.0f, 400.0f, 900.0f, 1, 0x1000, 10);
     {
         cSubLuis* s = pEm;
-        s->lockParts = 4;
-        s->lockOfs.x = 0.0f;
-        s->lockOfs.y = 0.0f;
-        s->lockOfs.z = 0.0f;
+        s->setTarget(4, 0.0f, 0.0f, 0.0f);
     }
     setStatus(EM_STATUS_LOCKOFF);
     hp = hp_max = 0x4B0;

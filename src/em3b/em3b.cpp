@@ -168,7 +168,7 @@ void em3bDmCkCart(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
 
-    if ((em->be_flag & 2) && !EmDeadCk(em) && em->hp > 0) {
+    if ((em->be_flag & 2) && !em->dmg.isDamage() && em->hp > 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -254,7 +254,7 @@ void em3bDmCkStopCart(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
 
-    if ((em->be_flag & 2) && !EmDeadCk(em) && em->hp > 0) {
+    if ((em->be_flag & 2) && !em->dmg.isDamage() && em->hp > 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -449,10 +449,7 @@ static void em3b_R0_Init(cEm3b* em)
         break;
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_ACTIVE);
     EspDataLoad((u32) ARC(6), EFF_EM3B, 0);
     w->espKind = EspPullCoreKind();
@@ -891,7 +888,7 @@ void em3bRunDownCkCart(cEm3b* em)
     cParts* p;
     u32 i;
 
-    if ((s16) pG->pl_life > 0 && !EmDeadCk(pPL)) {
+    if ((s16) pG->pl_life > 0 && !pPL->dmg.isDamage()) {
         for (i = 0; i < 2; i++) {
             p = em->getPartsPtr(1);
             if (em3bDistXZ(p, &pPL->pos) < 2250000.0f) {

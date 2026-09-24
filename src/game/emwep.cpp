@@ -132,10 +132,7 @@ cEmWep* SetWeapon(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type)
             em->LightInfo.init2(0, 1, &ofs, &size, 2);
         }
     }
-    LockPartsSet(em, 0);
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
     em->atari.setPriority(PRI_LV3);
@@ -1797,7 +1794,7 @@ void emWepEscapeCamMove(cEmWep* pEm)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = SQRTF(len);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Puts the weapon in `parent`'s parts `partsNo_` (Rno1 3); flag skips the matrix normalisation.

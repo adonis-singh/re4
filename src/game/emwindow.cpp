@@ -264,10 +264,7 @@ int cEmWindow::init(void* bin, void* tpl, Vec* pos_, Vec* rot_, int type_, u8 et
     setStatus(EM_STATUS_ASHLEY_NO_HELP);
     atari.setPriority(PRI_LV3);
     atari.off();
-    lockParts = 0;
-    lockOfs.x = 0.0f;
-    lockOfs.y = 0.0f;
-    lockOfs.z = 0.0f;
+    setTarget(0, 0.0f, 0.0f, 0.0f);
     be_flag &= ~0x10;
     ot_type = WindowData[type].type2;
     setNoSuspend(1);

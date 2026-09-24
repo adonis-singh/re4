@@ -289,7 +289,7 @@ void objGondola_R0_Break(cObjGondola* pObj)
         len = (cp->x - ca->x) * (cp->x - ca->x) + (cp->y - ca->y) * (cp->y - ca->y) + (cp->z - ca->z) * (cp->z - ca->z);
         ObjGondolaCam.Distance = SQRTF(len);
         CameraSetOrientationUp(&ObjGondolaCam);
-        CamCtrl.m_pExtraCamera = (s32) &ObjGondolaCam;
+        CamCtrl.SetExtraCamera(&ObjGondolaCam);
         if (w->Timer) {
             w->Timer--;
             if (w->Timer == 0) {

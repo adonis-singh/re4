@@ -71,11 +71,4 @@ void adjust_add_set(Vec add);
 // Bio4.sym marks it local but the em3c module calls it).
 void GetPlPos(Vec* pPos, f32 frame, cEm* pEm);
 
-// lockParts = 0 through an int parameter: the zero becomes an SImode pseudo that every later `= 0` store of
-// the caller reuses (one `li rN, 0`; a direct `lockParts = 0` gets its own QImode zero) (emmine, emwep).
-static inline void LockPartsSet(cEm* em, int no)
-{
-    em->lockParts = no;
-}
-
 #endif

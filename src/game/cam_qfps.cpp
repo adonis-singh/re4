@@ -527,9 +527,9 @@ void CameraQuasiFPS::checkCameraType()
             break;
         }
     }
-    blend_dst = trans_tbl[m_trans_type];
+    m_p_trans_array = trans_tbl[m_trans_type];
     if (DbgFlagChk(pG, DBG_ADJUST_CAM)) {
-        blend_dst = g_transOfs[TRANS_DATA_AREA];
+        m_p_trans_array = g_transOfs[TRANS_DATA_AREA];
     }
     switch (m_trans_type) {
     case TRANS_CAM_LEON:
@@ -608,9 +608,9 @@ void CameraQuasiFPS::checkCameraType()
         }
         break;
     }
-    blend_src = ready_tbl[m_ready_type];
+    m_p_ready_array = ready_tbl[m_ready_type];
     if (DbgFlagChk(pG, DBG_ADJUST_CAM)) {
-        blend_src = g_readyOfs[14];
+        m_p_ready_array = g_readyOfs[14];
     }
 }
 
@@ -1175,7 +1175,7 @@ void CameraQuasiFPS::init()
     two = 2;
     zero = 0;
     m_walk_ratio = 0.8f;
-    CamSmth.m_ratio = 0.8f;
+    CamSmth.setRatio(0.8f);
     fz = 0.0f;  // after the 0.8 stores: pool order 0.8, 0.0
     (m_zoom_ratio = fz);
     { u8& r_ = m_init_flag; r_ = one; }
@@ -1218,19 +1218,19 @@ void CameraQuasiFPS::move()
     }
     switch (m_site) {
     case 0:
-        cur = blend_src[0];
+        cur = m_p_ready_array[0];
         old = g_readyOfs[15][0];
         break;
     case 1:
-        cur = blend_src[2];
+        cur = m_p_ready_array[2];
         old = g_readyOfs[15][1];
         break;
     case 2:
-        cur = blend_dst[0];
+        cur = m_p_trans_array[0];
         old = g_transOfs[TRANS_DATA_BLEND][0];
         break;
     case 3:
-        cur = blend_dst[2];
+        cur = m_p_trans_array[2];
         old = g_transOfs[TRANS_DATA_BLEND][1];
         break;
     }
@@ -1261,11 +1261,11 @@ void CameraQuasiFPS::move()
     case 2:
     case 4:
     case 8:
-        CamSmth.m_ratio = m_walk_ratio;
+        CamSmth.setRatio(m_walk_ratio);
         break;
     }
     if (m_init_flag) {
-        CamSmth.m_flag |= 1;
+        CamSmth.setFlag();
     }
     if (pG->debug_mode == 0xF) {
         Vec poly[3];

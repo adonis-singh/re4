@@ -556,7 +556,7 @@ void BulletInfo::move()
 
         itemInfo(im->m_wep_id, &info);
         if (info.type == 1) {
-            id = WeaponId2BulletId(im->pArm->id, im->pArm->bullet >> 13);
+            id = WeaponId2BulletId(im->pArm->id, im->pArm->getBulletType());
         } else {
             id = WeaponId2BulletId(im->m_wep_id, 0);
         }
@@ -756,7 +756,7 @@ void CountDown::move()
     s8 newTens;
     f32 ft;
 
-    if ((m_state & TIMER_STA_ALIVE) == 0) {
+    if (getState(TIMER_STA_ALIVE) == 0) {
         run = 0;
     }
     if (run == 0) {
@@ -764,9 +764,9 @@ void CountDown::move()
     }
     if (!chkFlag5014(0x00080000) && !chkFlag5014(0x00020000) &&
         (StaFlagChk(pG, STA_SUSPEND) || (SpfFlagChk(pG, SPF_PL)))) {
-        m_state |= TIMER_STA_PAUSE;
+        setState(TIMER_STA_PAUSE);
     } else {
-        m_state &= ~TIMER_STA_PAUSE;
+        unsetState(TIMER_STA_PAUSE);
     }
     if (pG->time_bonus != 0) {
         m_frame += pG->time_bonus * 30;
@@ -853,13 +853,13 @@ void CountDown::disp(int sw)
         u = IdSys.unitPtr(0x10, IDC_COUNT_DOWN);
         u->rev_flag |= 0xF;
         u->be_flag |= 8;
-        m_state &= ~TIMER_STA_ERASE;
+        unsetState(TIMER_STA_ERASE);
         break;
     case 0:
         u = IdSys.unitPtr(0x10, IDC_COUNT_DOWN);
         u->rev_flag &= ~0xF;
         u->be_flag &= ~8;
-        m_state |= TIMER_STA_ERASE;
+        setState(TIMER_STA_ERASE);
         break;
     }
 }
@@ -938,7 +938,7 @@ void CountDown::saveDisp()
 
     savedFlags = m_state;
     run = 1;
-    if ((m_state & TIMER_STA_ALIVE) == 0) {
+    if (getState(TIMER_STA_ALIVE) == 0) {
         run = 0;
     }
     if (run) {
@@ -951,7 +951,7 @@ void CountDown::loadDisp()
 {
     int run = 1;
 
-    if ((m_state & TIMER_STA_ALIVE) == 0) {
+    if (getState(TIMER_STA_ALIVE) == 0) {
         run = 0;
     }
     if (run) {

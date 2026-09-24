@@ -6,6 +6,7 @@
 #include "db_log.h"
 #include "cManager.h"
 #include "main_mem.h"
+#include <string.h>
 
 #line 8 "D:/Bio4/Prog/event.h"
 
@@ -215,14 +216,14 @@ struct EvtDebugModel {
 // Event work (game/event.cpp): a cUnit managed by EventMgr, 0x13C bytes.
 class Event : public cUnit {
 public:
-    u8 EndRNo0;                 // 0x0C
+    s8 EndRNo0;                 // 0x0C
     s8 EndRNo1;            // 0x0D  DelEvt: 0 run ExeEndEvt, 1 wait `endWait` frames
     s8 EndRNo2;            // 0x0E
-    u8 EndRNo3;            // 0x0F
+    s8 EndRNo3;            // 0x0F
     u8 Id;                 // 0x10  constructor argument (EventMgr::construct id)
     u8 Type;               // 0x11
     u8 pad_12[2];
-    int effNo;             // 0x14  effect owner slot: -1 none, 0/1 -> EspDataLoad owner 0xC4 + effNo
+    int NoWork;            // 0x14  effect owner slot: -1 none, 0/1 -> EspDataLoad owner 0xC4 + NoWork
     char Name[0x20];       // 0x18  event name ("r105s10")
     EvtHeader* pData;      // 0x38
     EvtPacket* pPacket;    // 0x3C  current packet
@@ -232,7 +233,7 @@ public:
     Mtx MatCamOya;            // 0x50  camera base matrix (ExePacket_Pos "cam0000")
     cModel* PPl;          // 0x80  the "pl0000" object model (player stand-in)
     cModel* PModOya;       // 0x84  "oya0000" position base
-    void* x88;             // 0x88
+    cModel** PModList;     // 0x88
     u32 PFuncTbl;           // 0x8C  ExePacket_Func table (void (*[])(Event*, int)), kept as an address
     int NowTotalFrame;        // 0x90
     int MaxTotalFrame;     // 0x94
@@ -346,6 +347,60 @@ public:
         u32* f = &StatusFlag;
         f[no >> 5] |= 0x80000000 >> (no & 0x1F);
     }
+    void FlgOffStatus(u32 no)
+    {
+        u32* f = &StatusFlag;
+        f[no >> 5] &= ~(0x80000000 >> (no & 0x1F));
+    }
+    void FlgXorStatus(u32 no)
+    {
+        u32* f = &StatusFlag;
+        f[no >> 5] ^= 0x80000000 >> (no & 0x1F);
+    }
+    int FlgCkStatus(u32 no)
+    {
+        u32* f = &StatusFlag;
+        return (f[no >> 5] & (0x80000000 >> (no & 0x1F))) != 0;
+    }
+    s8 GetEndRNo0() { return EndRNo0; }
+    s8 GetEndRNo1() { return EndRNo1; }
+    s8 GetEndRNo2() { return EndRNo2; }
+    s8 GetEndRNo3() { return EndRNo3; }
+    void SetEndRNo0(s8 rno) { EndRNo0 = rno; }
+    void SetEndRNo1(s8 rno) { EndRNo1 = rno; }
+    void SetEndRNo2(s8 rno) { EndRNo2 = rno; }
+    void SetEndRNo3(s8 rno) { EndRNo3 = rno; }
+    void AddEndRNo0(s8 num) { EndRNo0 += num; }
+    void AddEndRNo1(s8 num) { EndRNo1 += num; }
+    void AddEndRNo2(s8 num) { EndRNo2 += num; }
+    void AddEndRNo3(s8 num) { EndRNo3 += num; }
+    void GetName(char* pName) { strcpy(pName, Name); }
+    void SetName(char* pName) { strcpy(Name, pName); }
+    int GetNoWork() { return NoWork; }
+    void SetNoWork(int noWork) { NoWork = noWork; }
+    int GetNowTotalFrame() { return NowTotalFrame; }
+    int GetMaxTotalFrame() { return MaxTotalFrame; }
+    int GetNowFrame() { return NowFrame; }
+    int GetMaxFrame() { return MaxFrame; }
+    int GetNowCut() { return NowCut; }
+    int GetMaxCut() { return MaxCut; }
+    int GetNowStr(int noTar) { return NowStr[noTar]; }
+    void SetNowStr(int noTar, int noStr) { NowStr[noTar] = noStr; }
+    int GetSndId(int noTar) { return SndId[noTar]; }
+    void SetSndId(int noTar, int sndId) { SndId[noTar] = sndId; }
+    int GetEvtCancelCut() { return EvtCancelCut; }
+    int GetFFNowFrame() { return FFNowFrame; }
+    int GetFuncType() { return FuncType; }
+    void SetFuncType(int funcType) { FuncType = funcType; }
+    void SetModList(cModel** pModList) { PModList = pModList; }
+    void SetModOya(cModel* pModOya) { PModOya = pModOya; }
+    int GetDelTimer() { return DelTimer; }
+    void SetDelTimer(int delTimer) { DelTimer = delTimer; }
+    void SubDelTimer() { DelTimer--; }
+    int GetChangeNoStr() { return ChangeNoStr; }
+    void SetChangeNoStr(int changeNoStr) { ChangeNoStr = changeNoStr; }
+    int GetChangeNowCut() { return ChangeNowCut; }
+    void SetChangeNowCut(int changeNowCut) { ChangeNowCut = changeNowCut; }
 };
 
 // Enemy module the manager loaded for an event (EventMgr::readEm[8], 4 bytes).

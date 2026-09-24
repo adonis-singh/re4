@@ -164,7 +164,7 @@ void em25DmCk(cEm25* em)
     int wep;
     int zero;
 
-    if ((em->be_flag & 2) && EmDeadCk(em) == 0 && w->pEm_oya == 0 && em->hp > 0) {
+    if ((em->be_flag & 2) && em->dmg.isDamage() == 0 && w->pEm_oya == 0 && em->hp > 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -257,7 +257,7 @@ void cEm25::move()
     if (w->Atk_wait) {
         w->Atk_wait--;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         w->Atk_wait = 120;
     }
     if (w->Fire_timer) {
@@ -328,10 +328,7 @@ static void em25_R0_Init(cEm25* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     fzero = 0.0f;
-    em->lockParts = zero;
-    em->lockOfs.x = fzero;
-    em->lockOfs.y = fzero;
-    em->lockOfs.z = fzero;
+    em->setTarget(zero, fzero, fzero, fzero);
     em->atari.init(fzero, 500.0f, fzero, 350.0f, 350.0f, 350.0f, 1000.0f, 1, 0x2000, 10);
     YarareInit(em, fzero, fzero, fzero, 300.0f, 200.0f, 2, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[0], fzero, fzero, fzero, 100.0f, 100.0f, 0x1D, YAT_FLAG_ON);
@@ -1473,7 +1470,7 @@ int em25CatchCk(cEm25* em)
     Vec b;
     Mtx m;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {

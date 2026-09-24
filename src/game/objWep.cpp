@@ -185,8 +185,7 @@ void cObjWep::resetMotion()
         SndStop(m_StopSeId, 0);
     }
     Motion.Seq_speed = 1.0f;
-    r_no_0 = 0;
-    r_no_1 = 0;
+    setStat(S_STAY);
 }
 
 // One shot: takes a round from the magazine (ItemMgr.trigger).
@@ -392,7 +391,7 @@ void cObjWep::interrupt()
     setDisp(1, 1);
     setDisp(2, 1);
     setTrans(1);
-    if (r_no_0 == 4) {
+    if (getStat() == S_RELOAD) {
         endReload(0);
     }
     atari.offOba();

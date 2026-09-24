@@ -291,7 +291,7 @@ void em2cDmCk(cEm2c* em)
     f32 py;
 
     if (em->hp > 0) {
-        if (!(w->flags & 0x100840) && !EmDeadCk(em)) {
+        if (!(w->flags & 0x100840) && !em->dmg.isDamage()) {
             int two = 2;      // the routine 2 of the first two arms in a callee-saved register
 
             if (pG->Room_flg[2] & 0x80000000) {
@@ -316,7 +316,7 @@ void em2cDmCk(cEm2c* em)
             return;
             }
         }
-        if (em->hp > 0 && !EmDeadCk(em)) {
+        if (em->hp > 0 && !em->dmg.isDamage()) {
             switch (DmgMgr.hitCheck(&em->pos, 0)) {
             case DMG_TYPE_FIRE:
             case DMG_TYPE_FLAME:
@@ -934,7 +934,7 @@ void cEm2c::move()
     if (w->guardCnt) {
         w->guardCnt--;
     }
-    if (w->atkWait == 0 && EmDeadCk(pPL)) {
+    if (w->atkWait == 0 && pPL->dmg.isDamage()) {
         w->atkWait = 10;
     }
     if (w->Dash_wait) {
@@ -1136,10 +1136,7 @@ static void em2c_R0_Init(cEm2c* em)
         break;
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em2cClothSet(em);
     w->espKind = EspPullCoreKind();
     w->espKind2 = EspPullCoreKind();
@@ -1204,7 +1201,7 @@ static void em2c_R1_Wait(cEm2c* em)
         if (em->l_pl > 25000000.0f && pG->Game_level > 3) {
             w->atkWait = 0;
         }
-        if (EmDeadCk(em) && pG->Game_level > 1) {
+        if (em->dmg.isDamage() && pG->Game_level > 1) {
             w->atkWait = 0;
         }
         if (w->atkWait) {
@@ -4541,7 +4538,7 @@ static void em2cKickAction(cEm2c* em)
     if (pSUB) {
         cDmgInfo* d = &pSUB->dmg;  // &pSUB->dmg is computed before the dead test
 
-        if (!EmDeadCk(pSUB)) {
+        if (!pSUB->dmg.isDamage()) {
             d->set(0, 30);
         }
     }
@@ -6032,7 +6029,7 @@ void em2cEscapeCamMove(cEm2c* em)
     w->cam.Up.z = 0.0f;
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // Action button callback "back-jump" (C_Wait / T_Wait strikes): the player's back jump (plemBackjump).

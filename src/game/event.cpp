@@ -250,7 +250,7 @@ int Event::Run()
     int wait;
 
     MesClear();
-    if (SysFlagChk(pG, SYS_SCREEN_STOP) && (NowCut != 0 || NowFrame != 0)) {
+    if (SysFlagChk(pG, SYS_SCREEN_STOP) && (GetNowCut() != 0 || GetNowFrame() != 0)) {
         SysFlagOff(pG, SYS_SCREEN_STOP);
     }
     while ((flg = IsExePacket()) != 0) {
@@ -264,7 +264,7 @@ int Event::Run()
     if (EvtChk(StatusFlag, EvtStfBit(EvtStfFadeOut))) {
         if (NowTotalFrame == MaxTotalFrame - 0x1E) {
             FadeSetW(2, 0x2D, 0, 0);
-            DelTimer = 0xF;
+            SetDelTimer(0xF);
             DpfFlagOff(pG, DPF_MESSAGE);
             EvtMesDeleteAll();
         }
@@ -273,7 +273,7 @@ int Event::Run()
         if (!EvtChk(StatusFlag, EvtStfBit(EvtStfDiedemoSet))) {
             if (NowTotalFrame == MaxTotalFrame - 0x1E || NowTotalFrame == MaxTotalFrame) {
                 SetDiedemoExec();
-                DelTimer = 0xF;
+                SetDelTimer(0xF);
                 DpfFlagOff(pG, DPF_MESSAGE);
                 EvtMesDeleteAll();
             }
@@ -339,7 +339,7 @@ int Event::EspToolSetDat()
     int no;
     char* p;
 
-    EvtDebug.NowCut = NowCut;
+    EvtDebug.NowCut = GetNowCut();
     RunTool(3, 0);
     EvtDebug.NumMod = 0;
     EvtDebug.ClrModelFiles();
@@ -566,7 +566,7 @@ int Event::RunEvtCancel()
     u32* key;
 
     if (EvtChk(StatusFlag, EvtStfBit(EvtStfEvtCancelCut))) {
-        if (EvtCancelCut <= NowCut) {
+        if (GetEvtCancelCut() <= GetNowCut()) {
             return 1;
         }
     }
@@ -578,7 +578,7 @@ int Event::RunEvtCancel()
     StatusFlag |= EvtStfBit(EvtStfEvtCancelExe);
     while (!EvtChk(StatusFlag, EvtStfBit(EvtStfEventEnd))) {
         if (EvtChk(StatusFlag, EvtStfBit(EvtStfEvtCancelCut))) {
-            if (EvtCancelCut <= NowCut) {
+            if (GetEvtCancelCut() <= GetNowCut()) {
                 goto cancel_end;
             }
         }
@@ -586,7 +586,7 @@ int Event::RunEvtCancel()
             pLog->err(0, 0, "Event::RunEvtCancel : failed");
             return 0;
         }
-        if (NowCut >= MaxCut - 1) {
+        if (GetNowCut() >= GetMaxCut() - 1) {
             if (!SpfFlagChk(pG, SPF_PL) && (pPL->be_flag & 0x20)
                 && (!StaFlagChk(pG, STA_SUSPEND) || (pPL->be_flag & 0x800))) {
                 pPL->move();
@@ -639,7 +639,7 @@ void Event::ControlTransFlag()
     Obj18Work* w;
 
     n = ModTbl.GetNumDat();
-    if (DelTimer != 0) {
+    if (GetDelTimer() != 0) {
         return;
     }
     for (i = 0; i < n; i++) {
@@ -669,10 +669,10 @@ void Event::ControlTransFlag()
                 return;
             }
             if (EvtChk(StatusFlag, EvtStfBit(EvtStfEndSleepOrder)) || EvtChk(StatusFlag, EvtStfBit(EvtStfEndWaitOrder))) {
-                if (NowCut >= MaxCut) {
+                if (GetNowCut() >= GetMaxCut()) {
                     break;
                 }
-                if (NowCut == MaxCut - 1 && NowFrame > 1) {
+                if (NowCut == MaxCut - 1 && GetNowFrame() > 1) {
                     break;
                 }
             }
@@ -1044,14 +1044,14 @@ int Event::ExePacket_SetList(Event* pEvt)
     return 1;
 }
 
-// Packet 0x1C (SetEff): loads the event's effect data as effect owner 0xC4 + effNo (bit 0x40000 =
+// Packet 0x1C (SetEff): loads the event's effect data as effect owner 0xC4 + NoWork (bit 0x40000 =
 // loaded, released in ExeEndEvt).
 int Event::ExePacket_SetEff(Event* pEvt)
 {
     void* dat;
     EvtPacket* pac = pEvt->pPacket;
 
-    if (pEvt->effNo == -1 || pEvt->effNo > 1) {
+    if (pEvt->GetNoWork() == -1 || pEvt->NoWork > 1) {
         pLog->err(0, 0, "Event::ExePacket_SetEff : NoWork failed");
         return 1;
     }
@@ -1059,7 +1059,7 @@ int Event::ExePacket_SetEff(Event* pEvt)
         pLog->err(0, 0, "Event::ExePacket_SetEff : dat failed");
         return 1;
     }
-    if (EspDataLoad((u32) dat, pEvt->effNo + 0xC4, 0) == 0) {
+    if (EspDataLoad((u32) dat, pEvt->NoWork + 0xC4, 0) == 0) {
         pLog->err(0, 0, "Event::ExePacket_SetEff : failed");
         return 1;
     }
@@ -1112,7 +1112,7 @@ int Event::ExePacket_Cam(Event* pEvt)
     if (!EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfEvtCancelExe))) {
         EventCutEffDelete();
         if (EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfToolFrontExec)) == 0 || (EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfToolFrontExec)) && pac->cut == pEvt->toolCut)) {
-            EventCutEstSet(pEvt->effNo + 0xC4, pEvt->NowCut);
+            EventCutEstSet(pEvt->GetNoWork() + 0xC4, pEvt->NowCut);
         }
     }
     return 1;
@@ -1206,7 +1206,7 @@ int Event::ExePacket_Mot(Event* pEvt)
     u32 t;
 
     if (EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfToolFrontExec))) {
-        frm = pEvt->FFNowFrame;
+        frm = pEvt->GetFFNowFrame();
     }
     if (EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfEvtCancelExe))) {
         frm = pEvt->MaxFrame - 1;
@@ -1253,7 +1253,7 @@ int Event::ExePacket_Shp(Event* pEvt)
     void* w;
 
     if (EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfToolFrontExec))) {
-        frm = pEvt->FFNowFrame;
+        frm = pEvt->GetFFNowFrame();
     }
     if (EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfEvtCancelExe))) {
         frm = pEvt->MaxFrame - 1;
@@ -1276,7 +1276,7 @@ int Event::ExePacket_Shp(Event* pEvt)
 }
 
 // Packet 0xD (Esp): starts an est on the named model (or the world): type 0 = owner 1 (common event
-// effects), 5 = the event's own effect data (0xC4 + effNo), 6 = owner 0x54; flag sign bit places it
+// effects), 5 = the event's own effect data (0xC4 + NoWork), 6 = owner 0x54; flag sign bit places it
 // relative to PModOya.
 int Event::ExePacket_Esp(Event* pEvt)
 {
@@ -1315,7 +1315,7 @@ int Event::ExePacket_Esp(Event* pEvt)
         EstSet(m, -1, &pos, &rot, EFF_ROOM, pac->esp.parts, 1, ESP_CORE_KIND_NONE, 0, 0);
     }
     if (pac->esp.type == 5) {
-        e = pEvt->effNo;
+        e = pEvt->GetNoWork();
         if (e == -1 || e > 1) {
             pLog->err(0, 0, "Event::ExePacket_SetEff : NoWork failed");
             return 1;
@@ -1405,9 +1405,9 @@ int Event::ExePacket_Str(Event* pEvt)
     strcpy(key, pEvt->Name);
     blk = pac->val.no;
     no = pac->val.arg;
-    if (pEvt->ChangeNoStr != 0) {
-        no = pEvt->ChangeNoStr;
-        pEvt->ChangeNoStr = 0;
+    if (pEvt->GetChangeNoStr() != 0) {
+        no = pEvt->GetChangeNoStr();
+        pEvt->SetChangeNoStr(0);
     }
     if (blk == 0) {
         EvtMgr.EvtSndStrPlay((u32*) key, 0, no, 0, 0.0f);
@@ -1619,9 +1619,10 @@ void Event::ExeEndEvt(Event* pEvt, u32 FlagCommon)
         }
         pEvt->ModTbl.DelDatWkNo(i);
     }
-    if (pEvt->effNo != -1 && pEvt->effNo <= 1) {
+    int noWork = pEvt->GetNoWork();
+    if (noWork != -1 && noWork <= 1) {
         if (EvtChk(pEvt->StatusFlag, EvtStfBit(EvtStfSetEff))) {
-            EspDataRelease(pEvt->effNo + 0xC4, 1, 1);
+            EspDataRelease(noWork + 0xC4, 1, 1);
         } else {
             pLog->err(0, 0, "Event::ExeEndEvt: no EspDataRelease");
         }
@@ -1668,7 +1669,7 @@ int Event::ExeFunc(int mode, int param)
     if (mode == 1 && EvtChk(StatusFlag, EvtStfBit(EvtStfEvtCancelExe))) {
         return 1;
     }
-    FuncType = mode;
+    SetFuncType(mode);
     strcpy(a, pData->room);
     strcpy(b, pData->no);
     strcpy(nm, "evt_");
@@ -1708,10 +1709,10 @@ void Event::CalNextFrame()
             return;
         }
     }
-    if (ChangeNowCut != 0) {
+    if (GetChangeNowCut() != 0) {
         NowCut = ChangeNowCut - 1;
         NowFrame = MaxFrame;
-        ChangeNowCut = zero;
+        SetChangeNowCut(zero);
     }
     NowFrame++;
     NowTotalFrame++;
@@ -2117,7 +2118,7 @@ int EventMgr::construct(Event* pEvt, u32 id)
     e = new (pEvt) Event(id);
     if (e) {
         no = getWorkNo(e);
-        e->effNo = no;
+        e->NoWork = no;
         if (no == -1 || no > 1) {
             pLog->err(0, 0, "EventMgr::construct : getWorkNo failed");
             return 1;
@@ -2220,8 +2221,8 @@ int EventMgr::Run()
             }
         }
         if (EvtChk(e->StatusFlag, EvtStfBit(EvtStfEventEnd))) {
-            if (e->DelTimer != 0) {
-                e->DelTimer--;
+            if (e->GetDelTimer() != 0) {
+                e->SubDelTimer();
                 continue;
             }
             if (EvtChk(e->StatusFlag, EvtStfBit(EvtStfEndSleepOrder))) {
@@ -2664,12 +2665,12 @@ int EventMgr::DelEvt(void* pEvt, int delEvtFlag)
         if (delEvtFlag == 1) {
             SysFlagOn(pG, SYS_SCREEN_STOP);
             evt->EndRNo2 = 0;
-            evt->EndRNo1++;
+            evt->AddEndRNo1(1);
             return 1;
         }
         break;
     case 1:
-        evt->EndRNo2++;
+        evt->AddEndRNo2(1);
         if (evt->EndRNo2 <= 0) {
             return 1;
         }

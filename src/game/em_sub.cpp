@@ -1096,7 +1096,7 @@ u32 GetWepTargetList(Vec* box, Vec* pos, WepTarget* list, u32 max, int flag)
         if (em->hp <= 0) {
             continue;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             continue;
         }
         if (flag == 0xE && em->id == 0x4F) {
@@ -1309,7 +1309,7 @@ u32 GetWepTargetList2(Vec* p0, Vec* p1, WepTarget* list, u32 max, Vec* hit, Vec*
             continue;
         }
         if (em->id != 0x50) {
-            if (EmDeadCk(em)) {
+            if (em->dmg.isDamage()) {
                 continue;
             }
         }
@@ -1443,7 +1443,7 @@ int GetWepTargetListBomb(Vec* pPos, f32 radius, WepTarget* list, int num, int we
         if (em->hp <= 0) {
             continue;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             continue;
         }
         if (wep_no == 0xE && em->id == 0x4F) {
@@ -1577,7 +1577,7 @@ int PlBombHitCk(Vec* pPos, f32 radius)
     if ((s16) pG->pl_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     parts = pPL->getPartsPtr(0);
@@ -1825,7 +1825,7 @@ void EmYarareDisp(cEm* pEm)
             continue;
         }
         color = 0x60606060;
-        if (EmDeadCk(pEm) && p == pEm->dmg.m_pDamageYarare) {
+        if (pEm->dmg.isDamage() && p == pEm->dmg.m_pDamageYarare) {
             color = 0xFF000000;
         }
         if (pEm->hp <= 0) {
@@ -2117,7 +2117,7 @@ int EmAtkHitCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
     if ((s16) pG->pl_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     parts = pPL->getPartsPtr(0);
@@ -2184,7 +2184,7 @@ cEm* EmAtkLineHitCk(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm, u32* pAttr)
     if ((s16) pG->pl_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(pl)) {
+    if (pl->dmg.isDamage()) {
         return 0;
     }
     PSVECSubtract(pPos2, pPos, &d);
@@ -2248,7 +2248,7 @@ YARARE_INFO* EmAtkLineHitCkSub(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm)
     if ((s16) pG->ashley_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(sub)) {
+    if (sub->dmg.isDamage()) {
         return 0;
     }
     PSVECSubtract(pPos2, pPos, &d);
@@ -2340,7 +2340,7 @@ YARARE_INFO* EmAtkHitSubCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
     if (pSUB->hp <= 0) {
         return 0;
     }
-    if (EmDeadCk(pSUB)) {
+    if (pSUB->dmg.isDamage()) {
         return 0;
     }
     parts = pSUB->getPartsPtr(0);

@@ -532,7 +532,7 @@ static void r204_nige_check()
             if (r204_work->cnt == 1) {
                 cEm* em = r204_work->em[7].getPtr();
 
-                if (em != 0 && EmDeadCk(em)) {
+                if (em != 0 && em->dmg.isDamage()) {
                     started = 1;
                     SndStrReq(r204_work->str, 4, 200, 0);
                     r204_work->cnt = 0x23;

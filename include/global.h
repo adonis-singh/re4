@@ -298,14 +298,9 @@ extern SYSTEM_SAVE_WORK SystemSave;
 // Flag helpers: `f |= b` / `f &= ~b` through a reference. Not an aliasing device: the pG reload after a
 // store is the compiler's own (docs/matching.md, "Compiler", mem-flags patch), and a plain `pG->x = v` is
 // the form. They are kept where the original keeps consecutive updates of one word as separate
-// read-modify-write pairs with the constant in its own register, and (BitOff16) where a 16-bit clear
-// is the 32-bit `rlwinm` mask rather than `andi.`; use them where the asm shows that.
+// read-modify-write pairs with the constant in its own register; use them where the asm shows that.
 static inline void BitOn(u32& f, u32 b) { f |= b; }
 static inline void BitOff(u32& f, u32 b) { f &= ~b; }
-
-// `f &= ~b` with b a parameter keeps the 32-bit mask: `rlwinm` instead of the folded `andi.` (pl_sub).
-static inline void BitOff16(u16& f, u16 b) { f &= ~b; }
-// Plain store through the same kind of reference (debug tools restoring saved flag words).
 
 // Flag bit indices, names taken from a mix of t_flag.cpp names and PS2 symbols.
 // t_flag.cpp had some typos that showed the names were manually entered there, instead of being

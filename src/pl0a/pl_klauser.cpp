@@ -238,7 +238,7 @@ int cPlKlauser::checkXbutton()
 
 // Builds the model set: the body (4/5) as the base model, the head (6/7, Body->pShape), the
 // normal arm (8/9, krModel[0], be_flag 0x20), the mutated arm (0xA/0xB, krModel[1], alpha 0 and
-// hidden), the face (0xE/9, Body->pFace with the blend weights zeroed), an extra part (0xF/0x10)
+// hidden), the face (0xE/9, Body->m_pKnife with the blend weights zeroed), an extra part (0xF/0x10)
 // and the glow model (0x18/0x19, krModel[2], hidden, invisible_factor 0.9999, tex-render
 // material); TEV scale group 1, bare right hand, left hand 1.
 void cPlKlauser::setModel()
@@ -282,8 +282,8 @@ void cPlKlauser::setModel()
         return;
     }
     addModel(info);
-    Body->pFace = info;
-    face = Body->pFace;
+    Body->m_pKnife = info;
+    face = Body->m_pKnife;
     if (VALID_PTR(face)) {
         face->mat[2][2] = 0.0f;
         face->mat[1][1] = 0.0f;

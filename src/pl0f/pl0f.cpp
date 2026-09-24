@@ -306,10 +306,7 @@ static void pl0f_R0_Init(cPl0f* em)
     }
     // A local for the 0: an SImode zero, not merged with x12F's QImode zero across the init2 call above.
     int n = 0;
-    em->lockParts = n;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(n, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_IK_OFF);
     em->atari.m_flag &= 0xFCFF;
     em->atari.setPriority(PRI_LV1);
@@ -1254,7 +1251,7 @@ void pl0fRideCamMove(cPl0f* em, f32 rate)
     pl0f_camera.Up.y = 1.0f;
     pl0f_camera.Up.z = 0.0f;
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 static Vec pl0f_getoff_cam_ofs = { -1000.0f, 1500.0f, -5000.0f };
@@ -1278,7 +1275,7 @@ void pl0fGetoffCamMove(cPl0f* em)
     pl0f_camera.Up.y = 1.0f;
     pl0f_camera.Up.z = 0.0f;
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 static Vec pl0f_boss_cam_ofs = { -1200.0f, 1400.0f, 0.0f };
@@ -1437,7 +1434,7 @@ void pl0fBossCamMove(cPl0f* em, int hide)
     pl0f_camera.Up.y = 1.0f;
     pl0f_camera.Up.z = 0.0f;
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 static Vec pl0f_hide_cam_at = { -500.0f, 1850.0f, -1800.0f };
@@ -1484,7 +1481,7 @@ void pl0fHideModeCamMove(cPlayer* pl)
     pl0f_camera.Up.y = 1.0f;
     pl0f_camera.Up.z = 0.0f;
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 static Vec pl0f_die_cam_at = { -300.0f, 1700.0f, -2500.0f };
@@ -1531,7 +1528,7 @@ void pl0fBossDieCamMove(cPlayer* pl)
     pl0f_camera.Up.y = 1.0f;
     pl0f_camera.Up.z = 0.0f;
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 // Boarding action button: while the player is on foot (Status_flg[1] bit21 clear), faces the
@@ -3065,7 +3062,7 @@ void pl00SwimCamMove(cPlayer* pl)
     pl0f_camera.Up.y = 1.0f;
     pl0f_camera.Up.z = 0.0f;
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 // Chase camera set-up (the boss closing in on the swimmer): 40 m behind and 2 m below the player,
@@ -3104,7 +3101,7 @@ void pl00ChaseCamMove(cPlayer* pl)
     pl0f_camera.Up.y = 1.0f;
     pl0f_camera.Up.z = 0.0f;
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 // Eaten-death camera set-up: straight above the player (23 m) looking down, the up vector along
@@ -3145,7 +3142,7 @@ void pl00DieCamMove(cPlayer* pl)
     PSMTXRotRad(m, 'y', pl->ang.y);
     PSMTXMultVecSR(m, &v, &pl0f_camera.Up);
     CAM_SET(pl0f_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl0f_camera;
+    CamCtrl.SetExtraCamera(&pl0f_camera);
 }
 
 // Fall-in-the-water camera set-up: one of two random spots beside / behind the player (9 m back
@@ -3196,7 +3193,7 @@ void pl00DropCamMove(cPlayer* pl)
     pl00_drop_camera.Up.y = 1.0f;
     pl00_drop_camera.Up.z = 0.0f;
     CAM_SET(pl00_drop_camera);
-    CamCtrl.m_pExtraCamera = (s32) &pl00_drop_camera;
+    CamCtrl.SetExtraCamera(&pl00_drop_camera);
     StaFlagOff(pG, STA_WATER_CAMERA);
     if (GetWaterHeight(&at, &h)) {
         switch (pl->m_Work3) {

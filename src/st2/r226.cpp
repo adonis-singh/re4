@@ -1391,7 +1391,7 @@ void playerRunCamMovePassage(cPlayer* pl, f32 t)
     cam->Up.z = 0.0f;
     cam->Distance = VEC_DIST(&r226_cam.param.pos, &r226_cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // The bridge chase camera: offsets chased towards r226_camOfsPos/At at r226_camSpd*, FOV r226_fovyBridge.
@@ -1420,7 +1420,7 @@ void playerRunCamMoveBridge(cPlayer* pl, f32 t)
     cam->Up.z = 0.0f;
     cam->Distance = VEC_DIST(&r226_cam.param.pos, &r226_cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // The death camera in the passage: a fixed view (FOV r226_fovyDie) looking at the crushed player.
@@ -1439,7 +1439,7 @@ void playerRunCamDiePassage(cPlayer* pl)
     cam->Up.z = 0.0f;
     cam->Distance = VEC_DIST(&r226_cam.param.pos, &r226_cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Starts the pillar `smdNo` falling once the player passed it by `dist`.

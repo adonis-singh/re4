@@ -187,7 +187,7 @@ void cPlAda::move()
     cPlayer::move();
 }
 
-// Builds the model set: the body (4/5) as the base model, the hair (6/7, Body->pHair), the head
+// Builds the model set: the body (4/5) as the base model, the hair (6/7, Body->m_pHead), the head
 // with the face shape data (8/7, Body->pShape / pHeadData), an extra be_flag 0x40 part (9/0xA);
 // TEV scale group 1, neutral face, bare hands. (The error strings still name Ashley / Leon.)
 void cPlAda::setModel()
@@ -205,7 +205,7 @@ void cPlAda::setModel()
         return;
     }
     addModel(info);
-    Body->pHair = info;
+    Body->m_pHead = info;
     info = ModInfoMgr.create(PL_ARC(8), PL_ARC(7));
     if (!VALID_PTR(info)) {
         pLog->err(0, 0, "cPlLeon::setModel() failed.");
@@ -337,7 +337,7 @@ void cPlAda::setFace(int no)
 }
 
 // Head swap by number (only 0 does anything): replaces the hair model with the archive's 0xB
-// (the event head) and forgets Body->pHair.
+// (the event head) and forgets Body->m_pHead.
 void cPlAda::setHead(int no)
 {
     cModelInfo* info;
@@ -345,11 +345,11 @@ void cPlAda::setHead(int no)
     if (no != 0) {
         return;
     }
-    if (Body->pHair == 0) {
+    if (Body->m_pHead == 0) {
         return;
     }
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
     info = ModInfoMgr.create(PL_ARC_PTR(pG->pPlayer, 0xB), PL_ARC_PTR(pG->pPlayer, 7));
     if (info) {
         addModel(info);
@@ -361,11 +361,11 @@ void cPlAda::setHead(void* bin, void* tpl)
 {
     cModelInfo* info;
 
-    if (Body->pHair == 0) {
+    if (Body->m_pHead == 0) {
         return;
     }
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
     info = ModInfoMgr.create(bin, tpl);
     if (info) {
         addModel(info);

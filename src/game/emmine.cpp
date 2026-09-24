@@ -96,10 +96,7 @@ cEmMine* SetMine(void* bin, void* tpl, Vec* pos, Vec* spd, int type)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 4);
     }
-    LockPartsSet(em, 0);
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->be_flag &= ~0x01000000;
     at->setPriority(PRI_LV3);
     at->m_flag &= ~0x300;

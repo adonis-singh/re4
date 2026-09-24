@@ -140,10 +140,7 @@ cEmDoor* SetDoor(void* bin, void* tpl, Vec* pos, Vec* rot, int type, int flagNo)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 0x10);
     }
-    em->lockParts = 0;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
@@ -2332,11 +2329,8 @@ void cEmDoor::setLock(void* bin, void* tpl, int side, int strong)
         if (flg && (*flg & 4)) {
             return;
         }
-        lockOfs.x = -1160.0f;
-        lockOfs.y = 1050.0f;
-        lockOfs.z = 150.0f;
         flag |= 0x80000000;
-        lockParts = 0;
+        setTarget(0, -1160.0f, 1050.0f, 150.0f);
         clearStatus(EM_STATUS_LOCKOFF);
         v.x = -1160.0f;
         v.y = 1050.0f;
@@ -2360,11 +2354,8 @@ void cEmDoor::setLock(void* bin, void* tpl, int side, int strong)
         if (flg && (*flg & 2)) {
             return;
         }
-        lockOfs.x = -1160.0f;
-        lockOfs.y = 1050.0f;
-        lockOfs.z = -150.0f;
         flag |= 0x40000000;
-        lockParts = 0;
+        setTarget(0, -1160.0f, 1050.0f, -150.0f);
         clearStatus(EM_STATUS_LOCKOFF);
         v.x = -1160.0f;
         v.y = 1050.0f;

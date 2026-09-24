@@ -428,7 +428,7 @@ void cEm3c::move()
     if (w->Run_wait) {
         w->Run_wait--;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         if (w->Atk_wait <= 4) {
             w->Atk_wait = 5;
         }
@@ -530,10 +530,7 @@ static void em3c_R0_Init(cEm3c* em)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->atari.init(0.0f, -900.0f, 0.0f, 550.0f, 450.0f, 450.0f, 1800.0f, 1, 0x2000, 10);
     YarareInit(em, 0.0f, 0.0f, 0.0f, 200.0f, 250.0f, 2, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[0], 0.0f, 0.0f, 0.0f, 150.0f, 100.0f, 5, YAT_FLAG_ON);
@@ -2414,7 +2411,7 @@ int em3cFindCk(cEm3c* em)
         w->Be_flg |= 0x80;
         return 1;
     }
-    if (EmDeadCk(em)) {
+    if (em->dmg.isDamage()) {
         w->Be_flg |= 0x80;
         return 1;
     }

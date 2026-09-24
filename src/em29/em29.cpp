@@ -379,10 +379,7 @@ static void em29_R0_Init(cEm29* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->scale.x = 1.5f;
     em->scale.y = 1.5f;
     em->scale.z = 1.5f;

@@ -1498,7 +1498,7 @@ void pl_R0_Dijection(cPlayer* pEm)
     if (pEm->r_no_1 == 0) {
         cModelInfo* face;
         pEm->endCamera();
-        face = pEm->Body->pFace;
+        face = pEm->Body->m_pKnife;
         if (VALID_PTR(face)) {
             face->mat[2][2] = 0.0f;
             face->mat[1][1] = 0.0f;

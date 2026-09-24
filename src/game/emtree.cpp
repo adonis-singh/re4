@@ -81,10 +81,7 @@ cEmTree* SetTree(void* bin, void* tpl, Vec* pos, Vec* rot)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 0x10);
     }
-    em->lockParts = 0;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;

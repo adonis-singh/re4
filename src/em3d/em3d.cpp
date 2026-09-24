@@ -300,10 +300,7 @@ static void em3d_R0_Init(cEm3d* em)
     em->be_flag &= ~0x10;
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     YarareInit(em, 0.0f, 750.0f, -3000.0f, 1500.0f, 6000.0f, 1, YAT_FLAG_ON | YAT_FLAG_Z_AXIS | YAT_FLAG_NO_MARK);
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->cEm::setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(4), EFF_EM3D, 0);
     w->Be_flg = zero;
     w->Fire_wait = zero;

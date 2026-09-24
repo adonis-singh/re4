@@ -899,7 +899,7 @@ void SceCamMove(Vec* pCamPos, Vec* pTarget, f32 fovy)
     SceCam.Up.z = 0.0f;
     SceCam.Distance = VEC_DIST(&SceCam.param.pos, &SceCam.param.at);
     CameraSetOrientationUp(&SceCam);
-    CamCtrl.m_pExtraCamera = (s32) &SceCam;
+    CamCtrl.SetExtraCamera(&SceCam);
 }
 
 // Opens / closes a container (scroll objects id1 / id2 = lids or doors, the item model `itemNo`

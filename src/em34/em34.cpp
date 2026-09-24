@@ -311,10 +311,7 @@ static void em34_R0_Init(cEm34* em)
     YarareAdd(em, &w->hit[0], 0.0f, 0.0f, 0.0f, 200.0f, 100.0f, 5, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[1], 0.0f, -100.0f, 0.0f, 200.0f, 200.0f, 0x14, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[2], 0.0f, -100.0f, 0.0f, 200.0f, 200.0f, 0x18, YAT_FLAG_ON);
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(0x10), EFF_EM34, 0);
     w->Neck_dir_y = 0.0f;
     w->Be_flg = 0;
@@ -367,7 +364,7 @@ static void em34_R1_Wait(cEm34* em)
         em->r_no_2++;
     case 1:
         MotionMove(em, 0);
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->setRno(1, 1, 0, 0);
         }
         break;

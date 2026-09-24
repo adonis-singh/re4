@@ -939,7 +939,7 @@ static void chkReaderMove()
                 }
                 if ((r206_work->gotoNo == 0 && cnt == 0x1A4)
                     || (cnt > 0x257 && em->isAlive() && em->checkStatus(EM_STATUS_ACTIVE) == 1
-                        && EmDeadCk(em))) {
+                        && em->dmg.isDamage())) {
                     timer = 0x5A;
                 }
                 if (timer != 0) {

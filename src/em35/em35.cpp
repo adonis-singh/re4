@@ -153,7 +153,7 @@ void em35DmCk(cEm35* em)
     cParts* p;
     f32 d;
 
-    if (em->hp > 0 && EmDeadCk(em) == 0) {
+    if (em->hp > 0 && em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -955,10 +955,7 @@ static void em35_R0_Init(cEm35* em)
         break;
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(9), EFF_EM35, 0);
     w->espKind = EspPullCoreKind();
     w->flags = zero;
@@ -1158,7 +1155,7 @@ static void em35_R1_Wait(cEm35* em)
     }
     case 1:
         MotionMove(em, 0);
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             if (w->targetAngAbs > 2.0943952f && em->l_pl < 6250000.0f) {
                 em->setRno(1, 4, 0, 0);
             } else if (w->targetAngAbs > 1.0471976f) {
@@ -2307,7 +2304,7 @@ void em35EscapeCamMove(cEm35* em)
     w->cam.Up.z = 0.0f;
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // Player damage callback of the upper body's stamp (dmType 10): the crushed motion with its blood
@@ -2363,7 +2360,7 @@ void em35StampCamMove(cEm35* em)
     w->cam.Up.z = 0.0f;
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Branch check of the catch: on motion event bit 1 with the player in the grab zone
@@ -4124,7 +4121,7 @@ int em35CatchCk(cEm35* em)
     cParts* p;
     int hit;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {

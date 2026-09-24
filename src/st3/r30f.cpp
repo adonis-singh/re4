@@ -1577,8 +1577,8 @@ void setLiftMoveAdd(Vec* add)
     addPos(add, pPL);
     v = *add;
     if (CamCtrl.m_pExtraCamera != 0) {
-        PSVECAdd(&((Camera*) CamCtrl.m_pExtraCamera)->param.at, &v, &((Camera*) CamCtrl.m_pExtraCamera)->param.at);
-        PSVECAdd(&((Camera*) CamCtrl.m_pExtraCamera)->param.pos, &v, &((Camera*) CamCtrl.m_pExtraCamera)->param.pos);
+        PSVECAdd(&CamCtrl.m_pExtraCamera->param.at, &v, &CamCtrl.m_pExtraCamera->param.at);
+        PSVECAdd(&CamCtrl.m_pExtraCamera->param.pos, &v, &CamCtrl.m_pExtraCamera->param.pos);
     }
     pG->quake_ofs = v;
     // Struct-member view of pSUB: its load is not hoisted above the quake_ofs copy (the pG trick).

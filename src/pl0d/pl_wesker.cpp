@@ -145,7 +145,7 @@ void cPlWesker::move()
 }
 
 // Builds the model set: the body (4/5) as the base model, an extra part (0xA/5), the head with the
-// face shape data (8/7, Body->pShape / pHeadData), the hair (6/7, Body->pHair); TEV scale group
+// face shape data (8/7, Body->pShape / pHeadData), the hair (6/7, Body->m_pHead); TEV scale group
 // 1, neutral face, bare hands.
 void cPlWesker::setModel()
 {
@@ -176,7 +176,7 @@ void cPlWesker::setModel()
         return;
     }
     addModel(info);
-    Body->pHair = info;
+    Body->m_pHead = info;
     TevScaleGroup = 1;
     setFace(0);
     setRightHand(0);
@@ -300,8 +300,8 @@ void cPlWesker::setHead(int no)
     }
     deleteModelInfo(Body->m_pFace);
     Body->m_pFace = 0;
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
     info = ModInfoMgr.create(PL_ARC_PTR(pG->pPlayer, 0xB), PL_ARC_PTR(pG->pPlayer, 7));
     if (info) {
         addModel(info);
@@ -319,10 +319,10 @@ void cPlWesker::setHead(void* bin, void* tpl)
     }
     deleteModelInfo(Body->m_pFace);
     Body->m_pFace = 0;
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
-    deleteModelInfo(Body->pEye);
-    Body->pEye = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
+    deleteModelInfo(Body->m_pHair);
+    Body->m_pHair = 0;
     info = ModInfoMgr.create(bin, tpl);
     if (info) {
         addModel(info);

@@ -43,9 +43,9 @@ public:
     cModelInfo* m_pArmL;         // 0x18  (PS2 m_pArmL; only cleared on GC)
     cModelInfo* m_pHandR;          // 0x1C  right hand model info
     cModelInfo* m_pHandL;           // 0x20  left hand model info
-    cModelInfo* pHair;           // 0x24
-    cModelInfo* pEye;            // 0x28  (flags |= 0x40)
-    cModelInfo* pFace;           // 0x2C  face model info (pl_knife zeroes/ones its 0x5C/0x70/0x84)
+    cModelInfo* m_pHead;         // 0x24
+    cModelInfo* m_pHair;         // 0x28  (flags |= 0x40)
+    cModelInfo* m_pKnife;        // 0x2C  the knife model info (FACE_SET / pl_leon setModel scale its matrix to 0 / 1)
     u32 nowLhandNo;                  // 0x30  current left hand item no
     u32 oldLhandNo;              // 0x34  previous one (setLeftHand(0x63) restores it)
     cModel* m_pMod;              // 0x38

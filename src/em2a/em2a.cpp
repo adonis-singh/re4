@@ -286,10 +286,7 @@ static void em2a_R0_Init(cEm2a* em)
         static const Vec size = { 750.0f, 750.0f, 750.0f };
 
         em->LightInfo.init2(0, 3, &ofs, &size, 2);
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         break;
     }
     case 1:
@@ -297,10 +294,7 @@ static void em2a_R0_Init(cEm2a* em)
         static const Vec size = { 8000.0f, 8000.0f, 8000.0f };
 
         em->LightInfo.init2(0, 3, &ofs, &size, 2);
-        em->lockParts = 1;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 0.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(1, 0.0f, 0.0f, 0.0f);
         break;
     }
     }
@@ -422,7 +416,7 @@ static void em2a_R1_Trap1Bite(cEm2a* em)
             em2aTrap1CamMove(em);
             w->camTimer--;
         }
-        if ((em->Motion.Seq_old.Free & 4) && EmDeadCk(pPL)) {
+        if ((em->Motion.Seq_old.Free & 4) && pPL->dmg.isDamage()) {
             u16 frame = (*(u16*) ARC(0xB) & 0x3FFF) - 1;
 
             MotionSetCore(em, MOTION(em), ARC(0xB), 0, 0, 1, frame);
@@ -494,7 +488,7 @@ static void em2a_R1_Trap1BiteSub(cEm2a* em)
         em->r_no_2++;
     case 3:
         MotionMove(em, 0);
-        if (EmDeadCk(pSUB)) {
+        if (pSUB->dmg.isDamage()) {
             u16 frame = (*(u16*) ARC(0xB) & 0x3FFF) - 1;
 
             MotionSetCore(em, MOTION(em), ARC(0xB), 0, 0, 1, frame);
@@ -652,7 +646,7 @@ void plem2aTrapCamMove(cModel* m)
     }
     cam->param.fovy = 55.0f;
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // R1 == 3 Trap1Break: the sprung / shot trap snaps shut empty (ARC 0xC, spark effect when shot) and
@@ -980,7 +974,7 @@ void em2aTrap1CamMove(cEm2a* em)
     }
     w->cam.param.fovy = 55.0f;
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // The alive player within 300 units (same height) of the armed trap: snaps it onto his leg
@@ -993,7 +987,7 @@ int em2aTrap1BiteCk(cEm2a* em)
         > 90000.0f) {
         return 0;
     }
-    dead = EmDeadCk(pPL);
+    dead = pPL->dmg.isDamage();
     if (dead) {
         return 0;
     }
@@ -1021,7 +1015,7 @@ int em2aTrap1BiteSubCk(cEm2a* em)
     if (StaFlagChk(pG, STA_SUB_CATCHED)) {
         return 0;
     }
-    dead = EmDeadCk(pSUB);
+    dead = pSUB->dmg.isDamage();
     if (dead) {
         return 0;
     }

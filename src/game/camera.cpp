@@ -86,7 +86,7 @@ void CameraMove()
         if (StaFlagChk(pG, STA_CAMERA) && !DbgFlagChk(pG, DBG_DBG_CAM)) {
             pG->Camera = CamCtrl.camera;
             if (CamCtrl.m_pExtraCamera != 0) {
-                pG->Camera = *(Camera*) CamCtrl.m_pExtraCamera;
+                pG->Camera = *CamCtrl.m_pExtraCamera;
             }
         }
         CamCtrl.m_pExtraCamera = 0;

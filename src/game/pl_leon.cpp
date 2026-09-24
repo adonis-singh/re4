@@ -68,7 +68,7 @@ void cPlLeon::move()
 }
 
 // Loads the body (archive 4/5) and adds the costume extras (0xA for costume 0, 0x10 for 1-3), the
-// face (0xD, Body->pFace), head shape (8, pShape / pHeadData), hair (6) and eyes (9, be_flag
+// face (0xD, Body->m_pKnife), head shape (8, pShape / pHeadData), hair (6) and eyes (9, be_flag
 // 0x40), then the default face, empty right hand and left hand 1.
 void cPlLeon::setModel()
 {
@@ -99,8 +99,8 @@ void cPlLeon::setModel()
         return;
     }
     addModel(info);
-    Body->pFace = info;
-    face = Body->pFace;
+    Body->m_pKnife = info;
+    face = Body->m_pKnife;
     if (VALID_PTR(face)) {
         face->mat[2][2] = 0.0f;
         face->mat[1][1] = 0.0f;
@@ -120,7 +120,7 @@ void cPlLeon::setModel()
         return;
     }
     addModel(info);
-    Body->pHair = info;
+    Body->m_pHead = info;
     info = ModInfoMgr.create(PL_ARC_PTR(pG->pPlayer, 9), PL_ARC_PTR(pG->pPlayer, 7));
     if (!VALID_PTR(info)) {
         pLog->err(0, 0, "cPlLeon::setModel() failed.");
@@ -128,7 +128,7 @@ void cPlLeon::setModel()
     }
     addModel(info);
     info->be_flag |= 0x40;
-    Body->pEye = info;
+    Body->m_pHair = info;
     if (pG->pl_costume >= 1 && pG->pl_costume <= 3) {
         info = ModInfoMgr.create(PL_ARC_PTR(pG->pPlayer, 0x10), PL_ARC_PTR(pG->pPlayer, 5));
         if (!VALID_PTR(info)) {
@@ -283,10 +283,10 @@ void cPlLeon::setHead(int type)
     }
     deleteModelInfo(Body->m_pFace);
     Body->m_pFace = 0;
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
-    deleteModelInfo(Body->pEye);
-    Body->pEye = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
+    deleteModelInfo(Body->m_pHair);
+    Body->m_pHair = 0;
     info = ModInfoMgr.create(PL_ARC_PTR(pG->pPlayer, 0xB), PL_ARC_PTR(pG->pPlayer, 7));
     if (info) {
         addModel(info);
@@ -303,10 +303,10 @@ void cPlLeon::setHead(void* bin, void* tpl)
     }
     deleteModelInfo(Body->m_pFace);
     Body->m_pFace = 0;
-    deleteModelInfo(Body->pHair);
-    Body->pHair = 0;
-    deleteModelInfo(Body->pEye);
-    Body->pEye = 0;
+    deleteModelInfo(Body->m_pHead);
+    Body->m_pHead = 0;
+    deleteModelInfo(Body->m_pHair);
+    Body->m_pHair = 0;
     info = ModInfoMgr.create(bin, tpl);
     if (info) {
         addModel(info);

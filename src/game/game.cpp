@@ -1056,8 +1056,7 @@ void DiedemoExec(int time, int type)
     SpfFlagOn(pG, SPF_SCE_AT);
     SpfFlagOn(pG, SPF_ACTBTN);
     IdSys.kill(0xFF, IDC_ACT_BUTTON);
-    Cckpt.getCountDown()->m_state &= ~1;
-    Cckpt.getCountDown()->frameOut();
+    Cckpt.endCountDownTimer();
     PlEndCamera();
     TaskExec(1, (TaskFunc) gameDiedemo, (int) &diedemo_work);
 }

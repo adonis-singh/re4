@@ -287,10 +287,7 @@ static void em26_R0_Init(cEm26* em)
 
         em->LightInfo.init2(0, 3, &ofs, &size, 2);
     }
-    em->lockParts = 5;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(5, 0.0f, 0.0f, 0.0f);
     if (pG->stage_no == 0 && pG->room_no == 4) {
         if (em->hp < 0) {
             em->hp = 1000;

@@ -197,32 +197,25 @@ void st3_endCountDown();
 // Sets the count-down (frames, clamped at 0) and mirrors it into free word 2.
 void st3_setCountDownTimer(int frame)
 {
-    CountDown* cd;
-
     if (frame < 0) {
         frame = 0;
     }
-    cd = Cckpt.getCountDown();
-    cd->m_state |= TIMER_STA_ALIVE;
-    cd->initTimeFrame(frame);
-    SetFree(2, cd->getFrame());
+    Cckpt.startCountDownTimerFrame(frame);
+    SetFree(2, Cckpt.getRemainFrame());
 }
 
 // Frames left on the cockpit count-down.
 int st3_getCountDownTimer()
 {
-    return Cckpt.getCountDown()->getFrame();
+    return Cckpt.getRemainFrame();
 }
 
 // Resumes the count-down from free word 2 and shows it.
 static inline void st3_resumeCountDown()
 {
     u32 frame = GetFree(2);
-    CountDown* cd = Cckpt.getCountDown();
-
-    cd->m_state |= TIMER_STA_ALIVE;
-    cd->initTimeFrame(frame);
-    cd->frameIn();
+    Cckpt.startCountDownTimerFrame(frame);
+    Cckpt.transCountDownTimer(1);
 }
 
 // Start (or resume after a room change) the island escape count-down: Scenario_flg[1] 0x80 = running,
@@ -242,14 +235,8 @@ void st3_startCountDown()
 void st3_checkCountDown()
 {
     if (ScfFlagChk(pG, SCF_ST3_COUNT_DOWN_START)) {
-        int over = 0;
-        CountDown* cd = Cckpt.getCountDown();
-
-        SetFree(2, cd->getFrame());
-        if (cd->checkState(TIMER_STA_ALIVE)) {
-            over = (cd->m_frame == 0);
-        }
-        if (over == 1) {
+        SetFree(2, Cckpt.getRemainFrame());
+        if (Cckpt.isZeroCountDownTimer() == 1) {
             if (ScfFlagChk(pG, SCF_ST3_COUNT_DOWN_DIE) == 0) {
                 ScfFlagOn(pG, SCF_ST3_COUNT_DOWN_DIE);
                 ScenarioTaskAllOff();
@@ -291,12 +278,9 @@ void st3_dieDemoEvent()
 // Stop and hide the count-down (Scenario_flg[1] 0x80 off).
 void st3_endCountDown()
 {
-    CountDown* cd = Cckpt.getCountDown();
-
     ScfFlagOff(pG, SCF_ST3_COUNT_DOWN_START);
-    cd->disp(0);
-    cd->m_state &= ~1;
-    cd->frameOut();
+    Cckpt.dispCountDownTimer(0);
+    Cckpt.endCountDownTimer();
 }
 
 // The count-down state test: the module build had it inline in the header after the class (a linkonce copy
@@ -304,5 +288,5 @@ void st3_endCountDown()
 // local copy: a header definition changes this unit's allocation (declaration order)
 inline int CountDown::checkState(u32 state)
 {
-    return (m_state & state) ? 1 : 0;
+    return getState(state) ? 1 : 0;
 }

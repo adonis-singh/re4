@@ -141,10 +141,7 @@ cEmRock* SetRock(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type)
     // second block's literal zeros are the fresh post-label `li r30, 0` of the original.
     int zero;
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
@@ -1848,7 +1845,7 @@ void plemRockEscapeCamMove(cPlayer* pEm, f32 rate)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -1896,7 +1893,7 @@ void plemRockEscapeCamMove2(cPlayer* pEm, int mode)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -1933,7 +1930,7 @@ void plemRockDropDieCamMove(cEmRock* pEm)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -1983,7 +1980,7 @@ void emRockPushCamMove(cEmRock* pEm)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -2035,7 +2032,7 @@ void emRockPushCamMove2(cEmRock* pEm)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -2067,7 +2064,7 @@ void emRockDropCamMove(cEmRock* em)
     len = (cp->x - ca->x) * (cp->x - ca->x) + (cp->y - ca->y) * (cp->y - ca->y) + (cp->z - ca->z) * (cp->z - ca->z);
     cam->Distance = SQRTF(len);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Enemies (ids 0x10..0x20) within 1.5 radii of the rock are knocked down (routine 3/4).

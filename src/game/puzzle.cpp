@@ -893,13 +893,7 @@ int pzlPlayer::init(int size)
         int k = 0;
         for (i = 0; i < ItemMgr.m_array_num; i++) {
             ItemWork* item = ItemMgr.at(i);
-            int ok;
-            if (item->flags & 1) {
-                ok = item->type == (u8) extraGame;
-            } else {
-                ok = 0;
-            }
-            if (ok) {
+            if (item->isAlive(extraGame)) {
                 p = &m_piece[k];
                 PieceData* d = searchItemPieceData(item->id, piece_info);
                 if (d) {
@@ -1315,10 +1309,7 @@ pzlPiece* pzlPlayer::cmbPiece(pzlBoard* b)
         if (ex) {
             giveupExtraPiece();
         }
-        used = 0;
-        if (!(h->item->flags & 1)) {
-            used = 1;
-        }
+        used = h->item->isEmpty();
         if (!used) {
             if (rel) {
                 relPiece(m_p_active_board);

@@ -274,7 +274,7 @@ void em36DmCk(cEm36* em)
     if (em36CrashCk(em)) {
         return;
     }
-    if (em->hp > 0 && EmDeadCk(em) == 0) {
+    if (em->hp > 0 && em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -699,10 +699,7 @@ static void em36_R0_Init(cEm36* em)
     YarareAdd(em, &w->hit[28], 50.0f, 10.0f, 10.0f, 60.0f, 150.0f, 0x10, YAT_FLAG_ON | YAT_FLAG_X_AXIS);
     YarareAdd(em, &w->hit[29], 50.0f, -10.0f, 15.0f, 80.0f, 0.0f, 0x11, YAT_FLAG_ON | YAT_FLAG_X_AXIS);
     em36WeakInit(em);
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     w->x780 = 0.0f;
     // Store order read off the target: espKind[3] before [2] (0x44 takes r9, 0x43 r0), flags before wait
     // (the dying zero store is issued first), spine cleared through a stepping pointer (ascending loop).
@@ -3746,7 +3743,7 @@ void em36YarareCk(cEm36* em)
     Vec a; \
     Vec b; \
     Mtx m; \
-    if (EmDeadCk(pPL)) { \
+    if (pPL->dmg.isDamage()) { \
         return 0; \
     } \
     if ((s16) pG->pl_life <= 0) { \
@@ -3844,7 +3841,7 @@ int em36LongCatchCk(cEm36* em)
     cParts* p;
     f32 len;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -4936,7 +4933,7 @@ int em36FindCk(cEm36* em)
     if (StaFlagChk(pG, STA_PL_FIRE) && w->plRouteDis < 25000.0f) {
         find = 1;
     }
-    if (EmDeadCk(em)) {
+    if (em->dmg.isDamage()) {
         find = 1;
     }
     if (find) {

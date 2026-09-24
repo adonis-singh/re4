@@ -672,12 +672,12 @@ void CameraControl::switchCamera(CameraAreaRec* rec)
         r0 = 9;
         break;
     case 8: {
-        // two pointers to qfps: `q` (blend_src, setAreaData, bindAreaCamera) keeps the addi; `p`
-        // (blend_dst, setBlendData) and the direct `qfps.` calls share gcse's copy (mr r29,r30)
+        // two pointers to qfps: `q` (readyArrayPtr, setAreaData, bindAreaCamera) keeps the addi; `p`
+        // (transArrayPtr, setBlendData) and the direct `qfps.` calls share gcse's copy (mr r29,r30)
         CameraQuasiFPS* q = &m_QuasiFPS;
         CameraQuasiFPS* p = &m_QuasiFPS;
-        if (q->blend_src && p->blend_dst) {
-            p->setBlendData(q->blend_src, p->blend_dst);
+        if (q->readyArrayPtr() && p->transArrayPtr()) {
+            p->setBlendData(q->readyArrayPtr(), p->transArrayPtr());
         }
         q->setAreaData(area_rec->cut);
         q->bindAreaCamera(area_rec);
@@ -1011,8 +1011,8 @@ void CameraControl::areaHitCheck()
     } else if (old_area != -1) {
         CameraQuasiFPS* q = &m_QuasiFPS;
         if (r0_old == 0xA) {
-            if (q->blend_src && q->blend_dst) {
-                q->setBlendData(q->blend_src, q->blend_dst);
+            if (q->readyArrayPtr() && q->transArrayPtr()) {
+                q->setBlendData(q->readyArrayPtr(), q->transArrayPtr());
             }
             q->setBlendCount(10);
         }
@@ -1194,7 +1194,7 @@ void CameraControl::Move()
         r0_RailPan();
         break;
     case 5:
-        CamSmth.m_ratio = 0.0f;
+        CamSmth.setRatio(0.0f);
         m_pProc->move();
         cur = m_pProc->param;
         if (((CameraMotion*) m_pProc)->m_state == 1) {
@@ -1221,13 +1221,13 @@ void CameraControl::Move()
         cur = m_QuasiFPS.cam.param;
         break;
     case 0xC:
-        CamSmth.m_ratio = 0.0f;
+        CamSmth.setRatio(0.0f);
         m_pProc->move();
         cur = m_pProc->param;
         break;
     case 0x10:
     case 0x11:
-        CamSmth.m_ratio = 0.0f;
+        CamSmth.setRatio(0.0f);
         m_pProc->move();
         cur = m_pProc->param;
         break;
@@ -1237,7 +1237,7 @@ void CameraControl::Move()
         cur = m_pProc->param;
         break;
     case 0xD:
-        CamSmth.m_ratio = 0.0f;
+        CamSmth.setRatio(0.0f);
         m_pProc->move();
         cur = m_pProc->param;
         break;
@@ -1257,10 +1257,10 @@ void CameraControl::Move()
     }
     m_Inter.move(&cur);
     if (m_Inter.frame != 0) {
-        CamSmth.m_flag &= ~1;
+        CamSmth.unsetFlag();
     }
     CamSmth.move(&m_Inter.param);
-    camera.param = *CamSmth.getParam();
+    camera.param = *CamSmth.getCamPtr();
     CameraSetOrientationRoll(&camera);
     if (!DbgFlagChk(pG, DBG_DBG_CAM) && (m_state_flag & 4)) {
         pG->Camera = CamCtrl.camera;
@@ -1392,7 +1392,7 @@ void CameraControl::r0_Debug()
         p.roll = 0.0f;
         p.fovy = 55.0f;
         cur = p;
-        CamSmth.m_flag |= 1;
+        CamSmth.setFlag();
         r1++;
         break;
     case 1: {
@@ -1446,19 +1446,8 @@ void CameraControl::r0_Fix()
 
     CameraSetCutData(&cam, area_rec->cut);
     cur = cam.param;
-    CamSmth.m_flag |= 1;
+    CamSmth.setFlag();
     r0 = 0;
-}
-
-// Start smoothing with `ratio`: `stw flags` is issued before `stfs ratio` only when the flags store
-// is the LAST user of the CamSmth address in RTL order (it then carries the base register's
-// REG_DEAD, weight -2 in sched1's tie-break), while the ratio store is a scalar reference so the
-// ratio load stays below the flags load.
-static inline void smoothStart(f32 ratio)
-{
-    u32 f = CamSmth.m_flag;
-    CamSmth.m_ratio = ratio;
-    CamSmth.m_flag = f | 1;
 }
 
 // r0 == 2: fixed position panning to follow the aim point; a multi-key cut turns into a rail
@@ -1475,7 +1464,8 @@ void CameraControl::r0_Pan()
         p.fovy = *cut->fovy;
         p.at = Aim;
         cur = p;
-        smoothStart(smooth_ratio[1]);
+        CamSmth.setRatio(smooth_ratio[1]);
+        CamSmth.setFlag();
         r1++;
     case 1:
         p.pos = camera.param.pos;
@@ -1501,7 +1491,8 @@ void CameraControl::r0_Track()
         searchRail(bs, cut, &Aim, 0);
         BSpline(bs, &cam, 0);
         cur = cam.param;
-        smoothStart(smooth_ratio[2]);
+        CamSmth.setRatio(smooth_ratio[2]);
+        CamSmth.setFlag();
         r1++;
         break;
     case 1:
@@ -1529,7 +1520,8 @@ void CameraControl::r0_RailPan()
         BSpline(bs, &cam, 0);
         cam.param.at = Aim;
         cur = cam.param;
-        smoothStart(smooth_ratio[2]);
+        CamSmth.setRatio(smooth_ratio[2]);
+        CamSmth.setFlag();
         r1++;
         break;
     case 1:
@@ -1840,16 +1832,16 @@ void CameraControl::r0_RailBehind()
             cam.param.pos = hit;
         }
         if (edge_camera) {
-            CamSmth.m_ratio = rate;
+            CamSmth.setRatio(rate);
             cam.param.at = pPL->pos;
             cam.param.at.y += 1550.0f;
         } else {
-            CamSmth.m_ratio = m_behind_A_ratio;
+            CamSmth.setRatio(m_behind_A_ratio);
         }
         cur = cam.param;
-        CamSmth.m_flag |= 1;
+        CamSmth.setFlag();
         if (reset == 1) {
-            CamSmth.m_ratio = m_behind_A_ratio;
+            CamSmth.setRatio(m_behind_A_ratio);
         }
         break;
     }
@@ -1912,7 +1904,7 @@ void CameraControl::r0_Free()
         cam.param.roll = 0.0f;
         cam.param.fovy = m_behind_fovy;
         cur = cam.param;
-        CamSmth.m_flag |= 1;
+        CamSmth.setFlag();
         r2 = 0;
         r1++;
     }
@@ -2009,20 +2001,32 @@ void CamCtrlShoulderSetAim(Vec* pos)
     CamCtrl.m_QuasiFPS.m_Aim = *pos;
 }
 
+// Defined here: a float literal in an inline body in the shared header moves constant pool labels in
+// other units.
+inline void CameraQuasiFPS::resetDepressionRatio()
+{
+    m_depression_ratio = 0.0f;
+}
+
+inline void CameraQuasiFPS::resetDirectionRatio()
+{
+    m_direction_ratio = 0.0f;
+}
+
 // Shoulder camera: clears the C-stick look angles.
 void CameraControl::resetCameraAngle()
 {
     CameraQuasiFPS* q = &CamCtrl.m_QuasiFPS;
 
-    q->m_depression_ratio = 0.0f;
-    q->m_direction_ratio = 0.0f;
+    q->resetDepressionRatio();
+    q->resetDirectionRatio();
 }
 
 // Shoulder camera: returns and clears the yaw look angle (the player turns by it).
 f32 CameraControl::getCameraDirection()
 {
     f32 dir = CamCtrl.m_QuasiFPS.m_direction_ratio;
-    CamCtrl.m_QuasiFPS.m_direction_ratio = 0.0f;
+    CamCtrl.m_QuasiFPS.resetDirectionRatio();
     return dir;
 }
 
@@ -2326,9 +2330,7 @@ void CameraControl::endScope()
 void CameraControl::getTrajectory(Vec* p_pos0, Vec* p_pos1)
 {
     if (StaFlagChk(pG, STA_SCOPE_CAMERA)) {
-        cCamera* c = m_pProc;
-        *p_pos0 = c->param.pos;
-        *p_pos1 = c->param.at;
+        ((CameraScope*) m_pProc)->getTrajectory(p_pos0, p_pos1);
     }
 }
 
@@ -2379,8 +2381,8 @@ void CameraControl::LowerBinocular()
 // The binocular HUD data pointers.
 void CameraControl::GetBinocularIDAddr(void** eff_addr, void** uwf_addr)
 {
-    *eff_addr = ((CameraBinocular*) m_pProc)->id_a;
-    *uwf_addr = ((CameraBinocular*) m_pProc)->id_b;
+    *eff_addr = ((CameraBinocular*) m_pProc)->getEffAddr();
+    *uwf_addr = ((CameraBinocular*) m_pProc)->getUwfAddr();
 }
 
 // Plays a camera motion file (cutscene camera, r0 5) interpolating from the current camera over
@@ -2410,19 +2412,19 @@ int CameraControl::IsMotionEnd()
     if (r0 != 5) {
         return 1;
     }
-    return ((CameraMotion*) m_pProc)->m_state == 1;
+    return ((CameraMotion*) m_pProc)->getState() == 1;
 }
 
 // Places the camera motion in the world through `mat` (event position).
 void CameraControl::setMotionBaseMatPtr(Mtx* p_mat)
 {
-    ((CameraMotion*) m_pProc)->m_p_base_mat = p_mat;
+    ((CameraMotion*) m_pProc)->setBaseMatPtr(p_mat);
 }
 
 // The playing camera motion's work (frame / state).
 void* CameraControl::getMotionInfoPtr()
 {
-    return &((CameraMotion*) m_pProc)->m_info;
+    return ((CameraMotion*) m_pProc)->getInfoPtr();
 }
 
 // Forgets all registered attach cameras (motion-driven cameras of models).
@@ -2534,7 +2536,7 @@ void CameraControl::checkAttachCamera()
     if (m_state_flag & 4) {
         return;
     }
-    switch (m_attach_num) {
+    switch (getAttachCameraNum()) {
     case 0:
         break;
     case 1:

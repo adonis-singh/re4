@@ -161,7 +161,7 @@ static inline u32 r332_flgCk(u32* f, int no)
 // Through the manager pointer (an inline `this`): `&CamCtrl` in a register, the field at 0x250 off it.
 static inline void CamCtrlSetCam(CameraControl* cc, Camera* cam)
 {
-    cc->m_pExtraCamera = (s32) cam;
+    cc->SetExtraCamera(cam);
 }
 
 #define R332_FLAGS ((u32*) &pG->Room_flg[0])

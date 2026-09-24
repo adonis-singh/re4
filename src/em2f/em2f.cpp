@@ -317,10 +317,7 @@ static void em2f_R0_Init(cEm2f* em)
     YarareAdd(em, &w->hit[6], 0.0f, 0.0f, -600.0f, 500.0f, 600.0f, 0x1D, YAT_FLAG_ON | YAT_FLAG_Z_AXIS);
     em->hp = 1000;
     em->Motion.flip = em2f_flip_tbl;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(8), EFF_EM2F, 0);
     w->flags = zero;
     w->x580 = em->pos.y;
@@ -1195,7 +1192,7 @@ void em2fCriCamMove(cEm2f* em)
         cam->Distance = SQRTF(dx * dx + dy * dy + dz * dz);
     }
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // R0 == 2: damage (flag bit3), runs Em2f_R2_move_tbl (Dm_Normal).

@@ -497,12 +497,6 @@ extern "C" int em10HideRtnCk(cEm10* em);
 extern "C" int em10GatlingHitCk(cEm10* em);
 
 
-// Dead test on a cDmgInfo taken by pointer (m_Flag or m_Timer set), EmDeadCk without the cEm.
-static inline int em10DmgDeadCk(cDmgInfo* d)
-{
-    return (d->m_Flag || d->m_Timer) ? 1 : 0;
-}
-
 #define EM10_WINDOW(w) ((w)->pWindow)
 
 
@@ -860,7 +854,7 @@ void em10DmCk(cEm10* em)
     if (em10CrashCk(em)) {
         return;
     }
-    if ((em->be_flag & 2) && !EmDeadCk(em) && em->hp > 0) {
+    if ((em->be_flag & 2) && !em->dmg.isDamage() && em->hp > 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -3364,10 +3358,7 @@ static void em10_R0_Init(cEm10* em)
         static const Vec size = { 1000.0f, 1000.0f, 0.0f };
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     em->atari.init(0.0f, 0.0f, 0.0f, 400.0f, 250.0f, 250.0f, 800.0f, 1, 0x2000, 10);
     if (em->type == 6) {
         em->atari.m_flag |= 8;
@@ -9160,7 +9151,7 @@ static void em10_R1_ShotBowgun(cEm10* em)
             if (Ctrl12Ck(w->pCtrlGroup, CTRL12_ID_EM10_THROW)) {
                 break;
             }
-            if (EmDeadCk(pPL)) {
+            if (pPL->dmg.isDamage()) {
                 break;
             }
             if (pG->Game_level <= 4) {
@@ -9254,7 +9245,7 @@ static void em10_R1_ShotBowgun(cEm10* em)
                 em->r_no_2 = 2;
             } else {
                 w->Timer--;
-                if (Ctrl12Ck(w->pCtrlGroup, CTRL12_ID_EM10_THROW) || EmDeadCk(pPL)) {
+                if (Ctrl12Ck(w->pCtrlGroup, CTRL12_ID_EM10_THROW) || pPL->dmg.isDamage()) {
                     em->r_no_2 = 2;
                 }
             }
@@ -9406,7 +9397,7 @@ static void em10_R1_ShotRocket(cEm10* em)
             if (Ctrl12Ck(w->pCtrlGroup, CTRL12_ID_EM10_THROW)) {
                 break;
             }
-            if (EmDeadCk(pPL)) {
+            if (pPL->dmg.isDamage()) {
                 break;
             }
         }
@@ -9560,7 +9551,7 @@ static void em10_R1_ShotGatling(cEm10* em)
             w->Timer--;
         } else {
             if (!(em->flag & 1)) {
-                if (EmDeadCk(pPL)) {
+                if (pPL->dmg.isDamage()) {
                     break;
                 }
                 if (pG->Game_level <= 4) {
@@ -9935,7 +9926,7 @@ static void em10_R1_FixBomber(cEm10* em)
         if (em->r_no_3 && !(w->Be_flg & 1)) {
             break;
         }
-        if (EmDeadCk(pPL)) {
+        if (pPL->dmg.isDamage()) {
             break;
         }
         if ((s16) pG->pl_life <= 0) {
@@ -13328,7 +13319,7 @@ static void subem10_TakeAway(cSubChar* sub)
         } else {
             r = MotionMove(s, 0);
         }
-        if (EmDeadCk(s->pEmCatch)) {
+        if (s->pEmCatch->dmg.isDamage()) {
             EndSubDamage();
         }
         if (r) {
@@ -13506,7 +13497,7 @@ extern "C" void em10CamMoveTakeaway(cEm10* em)
     }
     w->Cam.param.fovy = 55.0f;
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // R0 == 2: damage reaction. Marks the Ganado down (work flag 8) and runs Em10_R1_dmg_tbl[r_no_1].
@@ -17306,7 +17297,7 @@ int em10CatchCk(cEm10* em)
     Vec b;
     Mtx m;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -17398,7 +17389,7 @@ int em10CatchSubCk(cEm10* em)
     if (pSUB == 0) {
         return 0;
     }
-    if (EmDeadCk(pSUB)) {
+    if (pSUB->dmg.isDamage()) {
         return 0;
     }
     if (pSUB->hp <= 0) {
@@ -21442,7 +21433,7 @@ int em10FindCk(cEm10* em, int a)
             break;
         }
     }
-    dead = EmDeadCk(em);
+    dead = em->dmg.isDamage();
     if (dead) {
         find = 1;
     }
@@ -22035,7 +22026,7 @@ extern "C" void em10CamMove(cEm10* em, int no, f32 rate, int shake)
     }
     w->Cam.param.fovy = 55.0f;
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 static Vec em10_campos2_r = { 1300.0f, 500.0f, 0.0f };
@@ -22138,7 +22129,7 @@ void em10CamMove2(cEm10* em)
     }
     w->Cam.param.fovy = 55.0f;
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Critical-hit (head burst / kick) cut-in camera: fixed offsets from the player matrix, optional shake.
@@ -22257,7 +22248,7 @@ extern "C" void em10CamMoveCri(cEm10* em, u32 no, int shake)
         w->Cam.Distance = SQRTF(dx * dx + dy * dy + dz * dz);
     }
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Cut-in camera of NeckHang_Ashley (`no` 0..3 = the viewpoints of the hold and the throw-off),
@@ -22337,7 +22328,7 @@ extern "C" void em10CamMoveAshley(cEm10* em, u32 no)
         w->Cam.Distance = SQRTF(dx * dx + dy * dy + dz * dz);
     }
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Grow the parasite (Plaga) out of the neck: the body object and the four head/tentacle objects.
@@ -23566,7 +23557,7 @@ extern "C" int em10TorchFrameAtkCk(cEm10* em)
     if ((s16) pG->pl_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if (w->Atk_ck) {
@@ -23600,7 +23591,7 @@ extern "C" int em10TorchFrameAtkCkSub(cEm10* em)
     if (pSUB->hp <= 0) {
         return 0;
     }
-    if (EmDeadCk(pSUB)) {
+    if (pSUB->dmg.isDamage()) {
         return 0;
     }
     old = w->Atk_ck2;
@@ -23646,7 +23637,7 @@ void em10DragonFireCk(cEm10* em)
         return;
     }
     if ((s16) pG->pl_life > 0) {
-        int dead = EmDeadCk(pPL);
+        int dead = pPL->dmg.isDamage();
         if (!dead) {
             if (EM10_DRAGON(w)->ckHitFire(&pPL->pos)) {
                 SndCall(8, 0x8F, &pPL->pos, em->id, 0, pPL);
@@ -23677,7 +23668,7 @@ void em10DragonFireCk(cEm10* em)
             continue;
         }
         d = &e->dmg;
-        dead = em10DmgDeadCk(d);
+        dead = d->isDamage();
         if (dead) {
             continue;
         }
@@ -24231,7 +24222,7 @@ static void em10KickAction(cEm10* em)
         break;
     }
     pPL->dmg.set(0, 0x1E);
-    if (pSUB && !em10DmgDeadCk(&pSUB->dmg)) {
+    if (pSUB && !pSUB->dmg.isDamage()) {
         pSUB->dmg.set(0, 0x1E);
     }
 }
@@ -24255,7 +24246,7 @@ static void em10KneeDownAction(cEm10* em)
         break;
     }
     pPL->dmg.set(0, 0x1E);
-    if (pSUB && !em10DmgDeadCk(&pSUB->dmg)) {
+    if (pSUB && !pSUB->dmg.isDamage()) {
         pSUB->dmg.set(0, 0x1E);
     }
 }
@@ -24492,13 +24483,13 @@ extern "C" void em10ActEvtSetFS(cEm10* em)
 // else Dm_FS + plem10FS (the suplex); the partner's damage hold is released.
 static void em10FSAction(cEm10* em)
 {
-    if (!em10DmgDeadCk(&em->dmg)) {
+    if (!em->dmg.isDamage()) {
         if (pG->pl_type == 4) {
             em->setRno(2, 0x14, 0, 0);
             SetPlDamage(em, plem10KneeKick);
             em->dmg.set(0, 0x1E);
             pPL->dmg.set(0, 0x1E);
-            if (pSUB && !em10DmgDeadCk(&pSUB->dmg)) {
+            if (pSUB && !pSUB->dmg.isDamage()) {
                 pSUB->dmg.set(0, 0x1E);
             }
         } else {
@@ -24506,7 +24497,7 @@ static void em10FSAction(cEm10* em)
             SetPlDamage(em, plem10FS);
             em->dmg.set(0, 0x1E);
             pPL->dmg.set(0, 0x1E);
-            if (pSUB && !em10DmgDeadCk(&pSUB->dmg)) {
+            if (pSUB && !pSUB->dmg.isDamage()) {
                 pSUB->dmg.set(0, 0x1E);
             }
         }

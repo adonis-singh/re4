@@ -444,10 +444,7 @@ static void em38_R0_Init(cEm38* em)
         em38YarareInitLower(em);
         break;
     }
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(0xB), EFF_EM38, 0);
     w->espKind = EspPullCoreKind();
     w->espKind2 = EspPullCoreKind();
@@ -2458,7 +2455,7 @@ void em38EscapeCamMove(cEm38* em)
     w->cam.Up.z = 0.0f;
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // Action button of em38_R1_T_MdlAtk / T_BigAtk: the player jumps back.

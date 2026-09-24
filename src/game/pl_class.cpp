@@ -1120,7 +1120,7 @@ void cPlayer::interrupt()
             break;
         }
     }
-    face = Body->pFace;
+    face = Body->m_pKnife;
     if (VALID_PTR(face)) {
         face->mat[2][2] = 0.0f;
         face->mat[1][1] = 0.0f;
