@@ -220,7 +220,7 @@ static void r108_initChurchBell()
 static void r108_checkDoor()
 {
     SndCall(6, 7, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (!ScfFlagChk(pG, SCF_R108_OPERATOR)) {
         ScfFlagOn(pG, SCF_R108_OPERATOR);
         OpeSetOpenTerm(7, 22600.0f, 11775.0f, -26200.0f, 1.6f);
@@ -383,10 +383,10 @@ static void r108_execPuzzle()
     CamCtrl.CutCall(5);
     quit = 0;
     SceSleep(1);
-    SceMesSet(r108_mesNo, 0x30, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(r108_mesNo, 0x30, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceMesWait();
     do {
-        SceMesSet(r108_mesNo + 1, 0x230, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(r108_mesNo + 1, 0x230, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SceMesWait();
         switch (SceMesGetSelection()) {
         case 1:

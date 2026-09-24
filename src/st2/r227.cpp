@@ -460,17 +460,14 @@ static void r227_operateElv()
     f32 lim;
 
     SceAtSetEnable(3, 0);
-    // Two sets of one pointer variable (the r40e idiom): `addi r31,r9,cMes@l; addi r31,r31,4`.
-    MesWork* w = (MesWork*) &cMes;
-    w = (MesWork*) ((u8*) w + 4);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case 1:
         SndCall(6, 0xB, 0, 0, 0, 0);
         if (r227_checkElvMovePermit() == 1) {
             break;
         }
-        SceMesSet(1, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     case -1:
     case 0:
     case 2:

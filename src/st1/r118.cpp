@@ -156,18 +156,11 @@ static void r118_execAshleyVoice()
 
         em.setPtr(0x78, -1, 0);
         if (em.isActive() == 1) {
-            int i;
-            MessageControl* mes;
-
             SceAtSetEnable(9, 0);
-            i = 0;
             SndCall(6, 0, 0, 0, 0, 0);
-            mes = &cMes;
-            SceMesSet(8, 0xB0, 1, 0x64, 0x150 - mes->getWork()->lineSpace - mes->getWork()->m_font_h - 1);
+            SceMesSet(8, 0xB0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             SceSleep(90);
-            for (; i < 16; i++) {
-                mes->Delete(i);
-            }
+            cMes.Clear();
             Cckpt.lifeMeterDisp(1);
         }
     }
@@ -214,7 +207,7 @@ static void r118_checkDoor117KeyUse()
     SceSleep(20);
     SceAtSetEnable(0x80, 1);
     SndCall(6, 8, 0, 0, 0, 0);
-    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     KyfFlagOn(pG, KYF_R118_TO_R117_DOOR);
     SceAtDataReset(4);
     CamCtrl.Comeback(0);

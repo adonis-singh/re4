@@ -513,16 +513,12 @@ int EmMoveActiveCheck(cEm* pEm)
 // the registered continuation started in its slot, fade back in.
 void SceExecEventCancel()
 {
-    MessageControl* mes = &cMes;
     cSceSys* s;
-    int i;
     u32 no;
     u32 slot;
 
     pG->Stop_flg = SceSys.cancel_stop_bak;
-    for (i = 0; i <= 0xF; i++) {
-        mes->Delete(i);
-    }
+    cMes.Clear();
     s = &SceSys;
     if (s->m_str_stop_flag == 1) {
         SndEventStrStop(0);

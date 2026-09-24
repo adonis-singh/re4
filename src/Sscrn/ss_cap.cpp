@@ -111,7 +111,7 @@ void SsCapMain::init(SUB_SCREEN* wk)
     IdTexDataLoad(SS_ARC_PTR(wk->pExam, 5), TEX_OWNER_ID_SSCRN);
     IdSub.set(SS_ARC_PTR(wk->pExam, 6), 0xFF, IDC_SSCRN_0, 0xC, 6, 0);
     sscrnLightCreate(wk, (cLit*) SS_ARC_PTR(wk->pCmmn, 0x14));
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pExam, 4));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pExam, 4));
     sscrnMainMenuInit(wk, 0);
     state = 0;
 #line 191 "D:/Bio4/Prog/ss_cap.cpp"

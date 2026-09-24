@@ -190,7 +190,7 @@ static void R405ExecEventS00()
         SndRoomBgmStart(0, 0);
         SndRoomBgmStart(1, 0);
         SceSleep(2);
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
 }
 

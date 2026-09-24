@@ -53,7 +53,7 @@ static inline u32 FlagBit(u32 f, u32 bit) { return f & bit; }
 
 #define CAM_MOTION_FLAGS(p) (*(u16*) ((u8*) (p) + 0x40))
 
-#define EVT_MES_Y (336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1)
+#define EVT_MES_Y (336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1)
 
 // 1 when the event's StatusFlag has `bit`.
 static inline int EvtStatusChk(Event* ev, u32 bit)
@@ -406,17 +406,6 @@ void ToolEvt::Run()
     }
 }
 
-// Deletes every message slot.
-static inline void MessDeleteAll()
-{
-    MessageControl* mes = &cMes;
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        mes->Delete(i);
-    }
-}
-
 // Event paused (StatusFlag bit 31, game task suspended): the stick left/right or X/Y step it: X
 // runs one cut back, Y one cut forward (RunTool), stick right plays one frame, holding the stick
 // auto-repeats every 10 frames (FFTimer); otherwise it stays stopped.
@@ -448,10 +437,10 @@ void ToolEvt::RunStop(ToolEvt* t, Event* ev)
         EvtTaskSignal(0);
         ev->DebugDisp();
         if (t->pJoy1->trg & 0x400) {
-            MessDeleteAll();
+            cMes.Clear();
             ev->RunTool(2, 0);
         } else if (t->pJoy1->trg & 0x800) {
-            MessDeleteAll();
+            cMes.Clear();
             ev->RunTool(1, 0);
         } else if (t->pJoy1->on & 0x10000) {
             DbgFlagOn(pG, DBG_NO_EST_CALL);
@@ -1056,7 +1045,7 @@ void ToolEvt::SubToolLightInit(ToolEvt* t, int sw)
     int i;
 
     if (sw == 1) {
-        MessDeleteAll();
+        cMes.Clear();
         EvtDebug.FlagEtc |= 0x20000000;
         DbgFlagOn(pG, DBG_BACK_CLIP);
     } else {
@@ -1212,7 +1201,7 @@ void ToolEvt::SubToolMessInit(ToolEvt* t, int sw)
         char path[0x80];
 
         EvtDebug.FlagEtc |= 0x04000000;
-        MessDeleteAll();
+        cMes.Clear();
         sprintf(path, "%s/evt_%s%s_mes.xml", "x:/soft/room/event/evd", t->roomNo, t->eventNo);
         // COMPILER-DIFF: candidate (gcse table size): the edit-window ctor anchor (dbg_tool.h) is one
         // more insn at gcse entry (1219 -> 1220), which turns the expression hash table from 609 to
@@ -1251,7 +1240,7 @@ void ToolEvt::SubToolMessInit(ToolEvt* t, int sw)
         CallbackLoad(t);
     } else {
         EvtDebug.FlagEtc &= ~0x04000000;
-        MessDeleteAll();
+        cMes.Clear();
         if (MessTool.p) {
             delete MessTool.p;
         }

@@ -613,7 +613,7 @@ void titleMain(TitleWork* w)
             IdTexRelease(TEX_OWNER_ID_TITLE);
             IdSys.kill(0xFF, IDC_TITLE);
             IdSys.kill(0xFF, IDC_TITLE_MENU);
-            MesData.ptr[2] = (u8*) G_ARC_PTR(ofs_28);
+            MesData.registData(2, (u8*) G_ARC_PTR(ofs_28));
             OptScrn.init(1);
             IdTexDataLoad(G_ARC_PTR(ofs_74), TEX_OWNER_ID_COCKPIT);
             IdTexDataLoad(TITLE_ARC_PTR(w->pIdDat, 0xC), TEX_OWNER_ID_EVENT);

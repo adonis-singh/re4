@@ -255,21 +255,19 @@ int MercSysMoveStart(MercSysWork* wk)
             st[1]++;
             break;
         case 1: {
-            MesWork* m = cMes.getWork();
-
-            SceMesSet(wk->mesStart, 0x20, 1, 100, MES_Y(m));
+            SceMesSet(wk->mesStart, 0x20, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             if (!FlagChkVar(EXT_FLAG_TBL, extFlagTbl[wk->stage])) {
-                SceMesSet(wk->mesA8, 0x20, 1, 100, MES_Y(m));
+                SceMesSet(wk->mesA8, 0x20, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             } else {
                 MercSaveWork save;
 
                 MercSysGetSaveWork(&save);
                 if (save.rank[wk->mode][wk->stage] <= 4) {
-                    SceMesSet(wk->mesAC, 0x20, 1, 100, MES_Y(m));
+                    SceMesSet(wk->mesAC, 0x20, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
                 }
             }
             if (pG->pl_type == 4) {
-                SceMesSet(wk->mes[4], 0, 1, 100, MES_Y(cMes.getWork()));
+                SceMesSet(wk->mes[4], 0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             }
             st[1]++;
             break;
@@ -1136,17 +1134,13 @@ int MercResult::move(MercSysWork* pWk)
         }
         _rno1++;
         if (_rno1 > 29) {
-            SceMesSet(mes[pWk->stage], 0xF0, 1, 100, MES_Y(cMes.getWork()));
+            SceMesSet(mes[pWk->stage], 0xF0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             _rno0++;
         }
         break;
     case 0xC:
         if (Key.trg & KEY_A) {
-            MessageControl* m = &cMes;
-
-            for (int i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
             FadeSetW(2, 10, 0, 0);
             if (pWk->flags & MF_ALL_RANK) {
                 _rno0 = 0x14;
@@ -1171,17 +1165,13 @@ int MercResult::move(MercSysWork* pWk)
         }
         _rno1++;
         if (_rno1 > 29) {
-            SceMesSet(pWk->mes[9], 0xF0, 1, 100, MES_Y(cMes.getWork()));
+            SceMesSet(pWk->mes[9], 0xF0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             _rno0++;
         }
         break;
     case 0x16:
         if (Key.trg & KEY_A) {
-            MessageControl* m = &cMes;
-
-            for (int i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
             FadeSetW(2, 10, 0, 0);
             return 0;
         }
@@ -1237,17 +1227,13 @@ int AdaResult::move(int messNo)
         }
         _rno1++;
         if (_rno1 > 29) {
-            SceMesSet(messNo, 0xF0, 1, 100, MES_Y(cMes.getWork()));
+            SceMesSet(messNo, 0xF0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             _rno0++;
         }
         break;
     case 2:
         if (Key.trg & KEY_A) {
-            MessageControl* m = &cMes;
-
-            for (i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
             FadeSetW(2, 10, 0, 0);
             return 0;
         }

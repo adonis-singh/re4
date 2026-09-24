@@ -252,15 +252,9 @@ static void r113_EventRideShoulder()
     SndCall(6, 0xB, 0, 0, 0, 0);
     SceSleep(10);
     SndCall(6, 0, 0, 0, 0, 0);
-    {
-        MessageControl* mes = &cMes;
-
-        SceMesSet(5, 0xF0, 1, 0x64, 0x150 - mes->getWork()->lineSpace - mes->getWork()->m_font_h - 1);
-        SceSleep(75);
-        for (i = 0; i < 16; i++) {
-            mes->Delete(i);
-        }
-    }
+    SceMesSet(5, 0xF0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
+    SceSleep(75);
+    cMes.Clear();
     r113_work->strId = 0;
     SceSetEventCancel(0, 0, 0, -1, 1);
     r113_EventRideShoulder_end();

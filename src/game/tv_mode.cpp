@@ -100,32 +100,28 @@ void tvModeTrigger(TvModeWork* pTv)
 // message (1 progressive / 2 interlaced) until A.
 void tvModeMenu_progressive(TvModeWork* pTv)
 {
-    int i;
     u32 timer;
     s8 sel;
     u8 old;
-    MesWork* w;
-    MessageControl* mes;
 
     switch (pTv->sub) {
     case 0:
-        MesData.ptr[pTv->sub] = (u8*) (pG->pCore->ofs_70 + (u32) pG->pCore);
+        MesData.registData(pTv->sub, (u8*) (pG->pCore->ofs_70 + (u32) pG->pCore));
         cMes.setLayout(0, LAYOUT_SYSTEM);
         cMes.MesSet(0, 100, 220, 0x1000051, 0, 0, 1);
         timer = 0;
-        w = cMes.getWork();
-        if ((sel = w->m_sel) == 0) {
+        if ((sel = cMes.GetSelectMessage(0)) == 0) {
             do {
                 timer++;
                 if (Joy[0].trg & 0x30003) {
                     timer = 0;
                 }
                 if (timer > 300) {
-                    sel = cMes.m_Msg[0].m_cur + 1;
+                    sel = cMes.GetSelectCursor(0) + 1;
                     break;
                 }
                 TaskSleep(1);
-            } while ((sel = w->m_sel) == 0);
+            } while ((sel = cMes.GetSelectMessage(0)) == 0);
         }
         old = pRK->tv_mode;
         if (sel == 1) {
@@ -159,10 +155,7 @@ void tvModeMenu_progressive(TvModeWork* pTv)
             cMes.MesSet(2, 100, 220, 0x1000051, 0, 0, 1);
         }
         if (Key.trg & 0x80000000) {
-            mes = &cMes;
-            for (i = 0; i < 16; i++) {
-                mes->Delete(i);
-            }
+            cMes.Clear();
             pTv->state = 2;
             pTv->sub = 0;
         }

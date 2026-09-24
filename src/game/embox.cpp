@@ -668,14 +668,14 @@ void emBoxAction(cEmBox* em)
     case 6:
     case 7:
     default:
-        cMes.MesSet(3, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(3, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         break;
     case 3:
     case 5:
         if (checkNearOtherBarrel(em) == 1) {
-            cMes.MesSet(5, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+            cMes.MesSet(5, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         } else {
-            cMes.MesSet(4, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+            cMes.MesSet(4, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         }
         break;
     }

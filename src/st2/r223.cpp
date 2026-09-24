@@ -371,12 +371,12 @@ void reva2_use_pre_reva3()
     reva_common_move(SmdGetObjPtr(0x18), 1, 1, reva2_lo, reva2_hi);
     SceSleep(15);
     if (RsfCheck(G_ROOM_ID, 6) == 0) {
-        SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     } else if (RsfCheck(G_ROOM_ID, 7) == 0) {
         RsfSet(G_ROOM_ID, 7);
         SceExec(0x12, (TaskFunc) toroko_go_and_stop, 0, 0, SCE_PRIO_DEF_2, 0);
     } else {
-        SceMesSet(5, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(5, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
     SmdGetObjPtr(0x18)->ang.x = reva2_lo;
     CamCtrl.Comeback(0);
@@ -390,11 +390,11 @@ static void reva2_move()
     SceEventStart(1);
     CamCtrl.CutCall(0xA);
     if (RsfCheck(G_ROOM_ID, 9)) {
-        SceMesSet(4, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(4, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         CamCtrl.Comeback(0);
         SceEventEnd(0);
     } else {
-        SceMesSet(2, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(2, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() == 1) {
             if (RsfCheck(G_ROOM_ID, 8)) {
                 reva2_use_after_reva3();
@@ -415,9 +415,9 @@ static void reva3_move()
     SceEventStart(1);
     CamCtrl.CutCall(0xB);
     if (RsfCheck(G_ROOM_ID, 7) == 0 || RsfCheck(G_ROOM_ID, 8)) {
-        SceMesSet(7, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(7, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     } else {
-        SceMesSet(6, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(6, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() == 1) {
             RsfSet(G_ROOM_ID, 8);
             reva_common_move(SmdGetObjPtr(0x19), 0, 2, reva3_lo, reva3_hi);

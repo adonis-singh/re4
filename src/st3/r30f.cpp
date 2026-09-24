@@ -1182,7 +1182,7 @@ static void door4_break()
         SndCall(6, 4, &pSUB->pos, 0, 0, 0);
     }
     r30f_work->bull->setSubBullFinger();
-    cMes.MesSet(6, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x02000052, 0, 0, 4);
+    cMes.MesSet(6, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x02000052, 0, 0, 4);
     SceSleep(0xF);
     SndCall(6, 0x16, &pSUB->pos, 0, 0, 0);
 }
@@ -1314,7 +1314,7 @@ void lift_stop_event()
     }
     r30f_work->bull->setNoSuspend(1);
     r30f_work->bull->setSubBullFinger();
-    cMes.MesSet(3, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x02000052, 0, 0, 4);
+    cMes.MesSet(3, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x02000052, 0, 0, 4);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
@@ -1433,7 +1433,7 @@ static void em_set()
         SndCall(6, 3, &pSUB->pos, 0, 0, 0);
     }
     r30f_work->bull->setSubBullLookBack();
-    cMes.MesSet(5, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x02000052, 0, 0, 4);
+    cMes.MesSet(5, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x02000052, 0, 0, 4);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
@@ -1520,7 +1520,7 @@ static void r30f_switch()
     SceEventStart(1);
     CamCtrl.CutCall(0x11);
     SceSleep(1);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         reva_common_move(SmdGetObjPtr(0x12), 1.38f, 0.0f);
         EffectEspDelete(0x801, ESP_CORE_KIND_ROOM01, 0, 0);
@@ -1529,7 +1529,7 @@ static void r30f_switch()
         EstSet(0, -1, 0, 0, EFF_ROOM, 0, 0x801, ESP_CORE_KIND_ROOM01, 0, 0);
         SndCall(6, 0x22, &SmdGetObjPtr(0x12)->pos, 0, 0, 0);
         SceSleep(0xF);
-        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         R30F_SAVE_FLAGS |= 0x80000000;
         SceAtSetEnable(0xA, 0);
     }

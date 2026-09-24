@@ -531,7 +531,7 @@ static void r212_RoofTrapWatcher()
 // Area 0xA, the shut roof-room door: message 2; the first time Ashley's pointing task starts.
 static void r212_MesRoofDoor()
 {
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (!(pG->Room_flg[0] & 0x01000000)) {
         pG->Room_flg[0] |= 0x01000000;
         SceExec(0x12, (TaskFunc) r212_AshleyPointToCheck, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -569,7 +569,7 @@ static void r212_AshleyPointTo(cEm* sub)
         if (sub->motionMove()) {
             sub->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x26), 10, 0, 1, 0);
             sub->r_no_2++;
-            cMes.MesSet(r212_work->mesNo, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x01000052, 0, 0, 4);
+            cMes.MesSet(r212_work->mesNo, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x01000052, 0, 0, 4);
             RoomSeCall(0x13, &sub->pos, 0, 0, sub);
         }
         break;
@@ -579,10 +579,7 @@ static void r212_AshleyPointTo(cEm* sub)
 
             sub->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x27), 10, 0, 1, 0);
             sub->r_no_2++;
-            MessageControl* m = &cMes;
-            for (i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
         }
         break;
     case 3:

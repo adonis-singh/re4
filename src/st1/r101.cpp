@@ -833,14 +833,14 @@ static void r101_checkEmReset()
 static void r101_DoorDontOpen100()
 {
     SndCall(6, 0x26, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Area 2: the door to r103 is barred — knock SE and message 0.
 static void r101_DoorDontOpen103()
 {
     SndCall(6, 0x29, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // The player holds the key: the door area unlocks.
@@ -850,7 +850,7 @@ static void r101_checkDoor102KeyUse()
         SceSleep(1);
     }
     SndCall(6, 0x25, 0, 0, 0, 0);
-    SceMesSet(0xB, 1, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0xB, 1, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     KyfFlagOn(pG, KYF_R101_IRON_DOOR);
     SceAtDataReset(0x19);
 }
@@ -870,7 +870,7 @@ static void r101_checkDoor102()
 static void r101_DoorDontOpen3()
 {
     SndCall(6, 0x27, 0, 0, 0, 0);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Once a Ganado has found the player: the fight (mode 0) or the battle stream (mode 1).

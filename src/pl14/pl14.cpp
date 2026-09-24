@@ -1566,11 +1566,11 @@ void cVoice::set(int mesNo, u16 seNo, int time)
         MessageControl* mes = &cMes;
         this->time = 0;
         on = 0;
-        for (i = 0; i < 16; i++) mes->Delete(i);
+        cMes.Clear();
     }
     if ((s16) pG->pl_life > 0) {
         seId = SndCall(8, seNo, &pSUB->pList->world, pSUB->id, 0, 0);
-        cMes.MesSet(mesNo, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x1000051, 0, 0, 4);   // fold swaps the two subtrahends
+        cMes.MesSet(mesNo, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x1000051, 0, 0, 4);   // fold swaps the two subtrahends
     }
     this->time = time;
     on = 1;
@@ -1585,7 +1585,7 @@ void cVoice::move()
         if (time-- < 0) {
             MessageControl* mes = &cMes;
             on = 0;
-            for (i = 0; i < 16; i++) mes->Delete(i);
+            cMes.Clear();
         }
     }
 }

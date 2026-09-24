@@ -366,7 +366,7 @@ static void r217_3rd_set()
 // Area 1 before the drop: message 2 (the door will not open).
 static void r217_close_door()
 {
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // The door rises (cut 10).
@@ -479,7 +479,7 @@ static void r217_Puzzle()
         while (CamCtrl.IsMotionEnd() == 0) {
             SceSleep(1);
         }
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SmdGetObjPtr(0x88)->pList->ang.x = 0.0f;
     } else {
         ScfFlagOn(pG, SCF_R217_PUZZLE_CLEAR);

@@ -1082,7 +1082,7 @@ static void r300_mira_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x11);
     SceSleep(1);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         CamCtrl.CutCall(0xD);
         SceSleep(1);
@@ -1167,7 +1167,7 @@ static void r300_mirb_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x12);
     SceSleep(1);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         CamCtrl.CutCall(0xC);
         SceSleep(1);
@@ -1371,7 +1371,7 @@ static void r300_laser_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x13);
     SceSleep(1);
-    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
 }
@@ -1382,7 +1382,7 @@ static void r300_laser2_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x14);
     SceSleep(1);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
 }
@@ -1390,7 +1390,7 @@ static void r300_laser2_exec()
 // Area 0xC: message 3 (the gate must be burnt open).
 static void r300_laser_door_exec()
 {
-    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // End of the gate Ganado event (also its cancel path): the event Ganado em[20] swapped for the list

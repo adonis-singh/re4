@@ -67,7 +67,7 @@ static R221Work* r221_work;
 // The death bits of enemy list `list` (pG->Em_flg[list]), as an integer base (the r218 idiom).
 static inline u32* emDeadWords(int list) { return EM_FLG_ROW(list); }
 
-#define R221_MES_Y (0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1)
+#define R221_MES_Y (0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1)
 
 void r221_setShutterEff(int on);
 static void r221_checkShutterOpen_end();
@@ -200,10 +200,7 @@ static void r221_checkShutter_end()
         SceEventStart(0);
         r221_checkBossAppear_end();
     }
-    MessageControl* m = &cMes;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
+    cMes.Clear();
     r221_setShutterEff(1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
@@ -623,10 +620,7 @@ static void r221_checkElevatorArrive_end()
             SndStop(r221_work->doorSe, 0);
         }
     }
-    MessageControl* m = &cMes;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
+    cMes.Clear();
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     SceAtSetEnable(8, 0);
@@ -901,10 +895,7 @@ static void r221_checkSwitchboard_end()
             r221_setElevatorEff(1);
         }
     }
-    MessageControl* m = &cMes;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
+    cMes.Clear();
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     SceExec(0x12, (TaskFunc) r221_checkBossAppear, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -939,12 +930,7 @@ static void r221_checkSwitchboard()
         SceSleep(1);
     }
     {
-        MessageControl* m = &cMes;
-        int i;
-
-        for (i = 0; i < 16; i++) {
-            m->Delete(i);
-        }
+        cMes.Clear();
     }
     r221_moveShutter(0, 0);
     CamCtrl.CutCall(6);

@@ -357,21 +357,13 @@ void roomJumpMove(test* w)
 // the next room entry, messages cleared, life refilled.
 void roomJumpExec(test* pTest)
 {
-    int i;
-
     pTest->state++;
     pG->Stop_flg = 0xFFFFFFFF;
     DbgFlagOn(pG, DBG_ROOMJMP);
     pRj->getRoomInfo(pTest->stage, pTest->room[pTest->stage] + pTest->point)->setNextPos();
     pG->JumpPoint = pTest->point;
     cMes.roomInit();
-    {
-        // A pointer local for the loop keeps &cMes in one register (lis in a callee-saved one).
-        MessageControl* mes = &cMes;
-        for (i = 0; i <= 0xF; i++) {
-            mes->Delete(i);
-        }
-    }
+    cMes.Clear();
     pG->pl_life = pG->pl_life_max;
     pG->r_continue_cnt = 0;
     pTest->flag = 1;

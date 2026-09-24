@@ -68,19 +68,6 @@ extern u8 Em10_fs_tbl[];
 extern u8 Em2c_fs_tbl[];
 
 
-// Removes all 16 message slots (event messages are cleared on cancel/end/begin).
-// Deletes every message slot (the &cMes pointer is hoisted into a callee-saved register).
-static inline void EvtMesDeleteAll()
-{
-    MessageControl* mes = &cMes;
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        mes->Delete(i);
-    }
-}
-
-
 // StatusFlag bit test helper.
 // Status / tool flag test: the `li 1; andis.; bne; li 0; cmpwi` chains.
 static inline int EvtChk(u32 f, u32 mask)
@@ -249,7 +236,7 @@ int Event::Run()
             FadeSetW(2, 0x2D, 0, 0);
             SetDelTimer(0xF);
             DpfFlagOff(pG, DPF_MESSAGE);
-            EvtMesDeleteAll();
+            cMes.Clear();
         }
     }
     if (EvtChk(StatusFlag, EvtStfBit(EvtStfDiedemo))) {
@@ -258,7 +245,7 @@ int Event::Run()
                 SetDiedemoExec();
                 SetDelTimer(0xF);
                 DpfFlagOff(pG, DPF_MESSAGE);
-                EvtMesDeleteAll();
+                cMes.Clear();
             }
         }
     }
@@ -550,7 +537,7 @@ int Event::RunEvtCancel()
     }
     StatusFlag |= EvtStfBit(EvtStfEvtCancelOn);
     StaFlagOn(pG, STA_EVENT_CANCEL);
-    EvtMesDeleteAll();
+    cMes.Clear();
     FadeSetW(1, 1, 0, 0);
     TaskSleep(2);
     StatusFlag |= EvtStfBit(EvtStfEvtCancelExe);
@@ -576,7 +563,7 @@ int Event::RunEvtCancel()
     }
 cancel_end:
     StatusFlag &= ~EvtStfBit(EvtStfEvtCancelExe);
-    EvtMesDeleteAll();
+    cMes.Clear();
     key = (u32*) Name;
     TimerMes = 0;
     DpfFlagOff(pG, DPF_MESSAGE);
@@ -1056,7 +1043,7 @@ int Event::ExePacket_SetMdt(Event* pEvt)
         pLog->err(0, 0, "Event::ExePacket_SetMdt : dat failed");
         return 1;
     }
-    MesData.ptr[1] = (u8*) dat;
+    MesData.registData(1, (u8*) dat);
     pEvt->StatusFlag |= EvtStfBit(EvtStfSetMdt);
     return 1;
 }
@@ -1431,7 +1418,7 @@ int Event::ExePacket_Mes(Event* pEvt)
         return 1;
     }
     pac = pEvt->pPacket;
-    pEvt->MesSet(pac->val.no, pac->val.arg, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    pEvt->MesSet(pac->val.no, pac->val.arg, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     return 1;
 }
 
@@ -1534,7 +1521,7 @@ void Event::ExeBeginEvt(Event* pEvt, int FlagCommon)
         EvtMgr.SetBin("etc/core/dummy.bin", (void*) (pG->pCore->ofs_20 + (u32) pG->pCore), 0, 2);
         EvtMgr.SetBin("etc/core/dummy.tpl", (void*) (pG->pCore->ofs_24 + (u32) pG->pCore), 0, 2);
     }
-    EvtMesDeleteAll();
+    cMes.Clear();
     SysFlagOn(pG, SYS_SCREEN_STOP);
     if (!EvtChk(pEvt->pData->sndFlag, 0x80000000)) {
         SndEventInit();
@@ -1616,7 +1603,7 @@ void Event::ExeEndEvt(Event* pEvt, u32 FlagCommon)
     }
     DpfFlagOff(pG, DPF_MESSAGE);
     cMes.roomInit();
-    EvtMesDeleteAll();
+    cMes.Clear();
     ShadowMemClear();
     ExeFunc(2, 0);
     pPL->move();
@@ -1890,7 +1877,7 @@ void Event::MesSet(int noMes, int timer, int px, int py)
         if (noMes == -1) {
             cMes.WaitEnd(0);
         } else {
-            EvtMesDeleteAll();
+            cMes.Clear();
             if (EvtChk(StatusFlag, EvtStfBit(EvtStfSetMdt))) {
                 SceMesSet(noMes, 0xF2, 1, px, py);
             } else {

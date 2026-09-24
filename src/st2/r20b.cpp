@@ -610,7 +610,7 @@ static void R20bDoorEventMain()
     SceAtSetEnable(0x8C, 1);
     SndCall(6, 0, 0, 0, 0, 0);
     CamCtrl.CutCall(4);
-    SceMesSet(2, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceSetEventCancel(1, (TaskFunc) R20bDoorEventEnd, 0, -1, 1);
     CamCtrl.CutCall(5);
     obj = SmdGetObjPtr(0x8F);

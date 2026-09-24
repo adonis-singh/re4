@@ -536,11 +536,11 @@ void R31bExecSwitchMainSub(int no, int flagNo, int count, int atNo, int cut)
         }
         SndCall(6, 3, &pPL->pos, 0, 0, 0);
         if (r31b_work->switchCount >= count) {
-            SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             SndCall(6, 2, &pPL->pos, 0, 0, 0);
-            SceMesSet(6, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(6, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         } else {
-            SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         }
         if (no == 4) {
             cObj* obj;
@@ -938,7 +938,7 @@ void R31bExecDoorMainSub(int no, int flagOpen, int flagDoor, int doorFlag, int a
         if (obj0) {
             SndCall(6, 1, &obj0->pos, 0, 0, 0);
         }
-        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SceSleep(1);
     }
 }

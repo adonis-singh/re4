@@ -123,9 +123,8 @@ void itemNameDisp(SUB_SCREEN* wk)
     x = (int) ((u->pos.x + 320.0f) * 0.8f);
     y = (int) ((240.0f - u->pos.y) * 0.8f);
     MessageControl* pm = &cMes;
-    Message* m = pm->getMes(0);
 
-    y -= m->m_font_h / 2;
+    y -= cMes.getFontHeight(0) / 2;
     if (!(item->flags & 1)) {
         del = 1;
     }
@@ -133,8 +132,8 @@ void itemNameDisp(SUB_SCREEN* wk)
         pm->Delete(0);
     } else {
         cMes.setFontSize(0, item_name_w[1], item_name_h[1]);
-        m->m_line_gap = 0;
-        m->m_char_gap = item_name_space[3];
+        cMes.setLineGap(0, 0);
+        cMes.setFontGap(0, item_name_space[3]);
         pm->MesSet(item->id, x, y, 0x20088, 0, 0, 4);
     }
 }
@@ -290,7 +289,7 @@ void SsItemMain::init(SUB_SCREEN* wk)
         wk->alpha_flag = 0;
         wk->alpha_cnt = 10;
     }
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pItemDat, 4));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pItemDat, 4));
     {
 #line 368 "D:/Bio4/Prog/ss_item.cpp"
         ItemScreenWork* p = (ItemScreenWork*) MEM_ALLOC(sizeof(ItemScreenWork), 1, 13);

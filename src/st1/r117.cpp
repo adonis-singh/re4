@@ -496,7 +496,7 @@ static void r117_LightMechanismMove()
 
     switch (W->mode) {
     case 0:
-        cMes.MesSet(3, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x100012, 0, 0, 4);
+        cMes.MesSet(3, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x100012, 0, 0, 4);
         sel = SceMesGetSelection();
         switch (sel) {
         case -1:
@@ -518,7 +518,7 @@ static void r117_LightMechanismMove()
         s8 oldCur = W->cur[W->sel];
         s8 oldTgt = W->tgt[W->sel];
 
-        cMes.MesSet(4, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x100012, 0, 0, 4);
+        cMes.MesSet(4, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x100012, 0, 0, 4);
         if (SceMesGetSelection() != 1) {
             W->mode--;
         } else {
@@ -557,7 +557,7 @@ static void r117_LightMechanismMove()
             W->mode++;
         } else {
             SceSleep(15);
-            SceMesSet(5, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(5, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             CamCtrl.CutCall(7);
             r117_LightSet(3);
             EstSet(0, -1, 0, 0, EFF_ROOM, 0x11, 1, ESP_CORE_KIND_ROOM01, 0, 0);

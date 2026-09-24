@@ -1469,8 +1469,8 @@ void SsPzzlMain::init(SUB_SCREEN* wk)
     sscrn_pzzl_in_init(wk);
     // setPtr(0) / setPtr(2): `stwx r0,r11,rZERO` with the `state = 0` zero pseudo (r30, live across the
     // sscrn_pzzl_in_init call) as the index, then `stw 8(r11)`.
-    MesData.setPtr(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
+    MesData.registData(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
     pzzl_dbg.init(wk);
     SndCall(0, 0x1E, 0, 0, 0, 0);
 }
@@ -1509,11 +1509,11 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
         }
         x = (int) ((u->pos.x + 320.0f) * 0.8f);
         y = (int) ((240.0f - u->pos.y) * 0.8f);
-        y -= cMes.getMes(0)->m_font_h / 2;
+        y -= cMes.getFontHeight(0) / 2;
         if (on && caseMove == 0) {
             cMes.setFontSize(0, pzzl_font_w[1], pzzl_font_h[1]);
-            cMes.getMes(0)->m_line_gap = 0;
-            cMes.getMes(0)->m_char_gap = pzzl_font_space[3];
+            cMes.setLineGap(0, 0);
+            cMes.setFontGap(0, pzzl_font_space[3]);
             cMes.MesSet(id, x, y, 0x20088, 0, 0, 4);
         } else {
             cMes.Delete(0);

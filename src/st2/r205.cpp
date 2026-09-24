@@ -484,7 +484,7 @@ static void r205_DrainEvent()
     SceEventStart(0);
     CamCtrl.CutCall(2);
     SceSleep(1);
-    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         void* zero;
 

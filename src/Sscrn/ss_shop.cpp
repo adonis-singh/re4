@@ -309,15 +309,14 @@ void shopClearZ(SUB_SCREEN* wk)
 // Gives message slots 8..12 their 0x1000-byte queue buffers (shop_msg_buf) or detaches them (on 0).
 void setShopMsgQueue(int on)
 {
-    Message* m = cMes.getMes(8);
     void** buf = shop_msg_buf;
     int i;
 
-    for (i = 0; i < 5; i++, m++, buf++) {
+    for (i = 0; i < 5; i++, buf++) {
         if (on) {
-            m->qbase = (MesQue*) *buf;
+            cMes.MesRegistQueue(8 + i, (MesQue*) *buf);
         } else {
-            m->qbase = (MesQue*) on;
+            cMes.MesReleaseQueue(8 + i);
         }
     }
 }
@@ -559,8 +558,8 @@ void SsShopMain::init(SUB_SCREEN* wk)
     }
     cur = topMenu;
     cur->init(wk);
-    MesData.setPtr(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
+    MesData.registData(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
 }
 
 // Shop frame: leaves at once (close_flag 0x10000) when the merchant data vanished; draws the case
@@ -704,7 +703,7 @@ void ShopTopMenu::move(SUB_SCREEN* wk)
             break;
         }
         case 1:
-            if (cMes.m_Msg[result].m_state & 2) {
+            if (cMes.GetMesStatus(result) & 2) {
                 if (++greetIdx == greetNum) {
                     IdSub.unitPtr(0, IDC_SSCRN_CKPT_2)->be_flag &= ~8;
                     IdSub.unitPtr(0, IDC_SSCRN_CKPT_2)->rev_flag |= 0xF;
@@ -947,8 +946,7 @@ void dispSellItemList(SUB_SCREEN* wk, int n, int cursor)
         slot = row + 8;
         cMes.setLayout(slot, LAYOUT_SHOP_LIST);
         cMes.MesSet(id, x, y, 0x200A8, slot, col, 4);
-        cMes.getMes(slot)->m_ot_type = 0x13;
-        U16Set(cMes.getMes(slot)->m_ot_no, 6);
+        cMes.MesSetOt(slot, 0x13, 6);
         IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag &= ~8;
         if (i == sw->cursor) {
             ItemInfo info;
@@ -1214,7 +1212,7 @@ void SellItemNum::move(SUB_SCREEN* wk)
                 int px = (int) ((u->pos0.x + 320.0f) * 0.8f) + sell_msg_x;
                 cMes.MesSet(shop_msg[msg].msg, px, (int) ((240.0f - u->pos0.y) * 0.8f) + sell_msg_y, 0x20801, 1, 0, 3);
             }
-            cMes.getMes(1)->m_cur = 1;
+            cMes.m_Msg[1].m_cur = 1;
             self->transit(0, wk);
             SndCall(0, 9, 0, 0, 0, 0);
             shopStrPlay(wk, shop_msg[msg].str);
@@ -1291,7 +1289,7 @@ void SellConfirm::move(SUB_SCREEN* wk)
         SndCall(0, 5, 0, 0, 0, 0);
         return;
     }
-    result = cMes.getMes(1)->m_sel;
+    result = cMes.GetSelectMessage(1);
     if (result == 0) {
         return;
     }
@@ -1408,8 +1406,7 @@ void dispBuyItemList(SUB_SCREEN* wk, int n, int cursor)
         slot = row + 8;
         cMes.setLayout(slot, LAYOUT_SHOP_LIST);
         cMes.MesSet(id, x, y, 0x200A8, slot, col, 4);
-        cMes.getMes(slot)->m_ot_type = 0x13;
-        U16Set(cMes.getMes(slot)->m_ot_no, 6);
+        cMes.MesSetOt(slot, 0x13, 6);
         if (wk->merchant->stockNew(pe->id)) {
             IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag |= 8;
         }
@@ -1636,7 +1633,7 @@ void BuyItemNum::move(SUB_SCREEN* wk)
             break;
         }
         if (msg != 0x13) {
-            result = cMes.getMes(1)->m_sel;
+            result = cMes.GetSelectMessage(1);
             if (result == 0) {
                 break;
             }
@@ -1826,7 +1823,7 @@ void BuyConfirm::move(SUB_SCREEN* wk)
             SndCall(0, 5, 0, 0, 0, 0);
         }
     } else {
-        result = cMes.getMes(1)->m_sel;
+        result = cMes.GetSelectMessage(1);
         if (result) {
             switch (result) {
             case 1:
@@ -1980,8 +1977,7 @@ void dispLvUpItemList(SUB_SCREEN* wk, int n, int cursor)
         slot = (u8) (row + 8);
         cMes.setLayout(slot, LAYOUT_SHOP_LIST);
         cMes.MesSet(id, x, y, 0x200A8, slot, col, 4);
-        U16Set(cMes.getMes(slot)->m_ot_type, 0x13);
-        U16Set(cMes.getMes(slot)->m_ot_no, 6);
+        cMes.MesSetOt(slot, 0x13, 6);
         if (wk->merchant->levelNew(le->id)) {
             IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag |= 8;
         }
@@ -2074,8 +2070,7 @@ void levelItemDisp(SUB_SCREEN* wk, int sw)
             }
             cMes.setLayout(slot, LAYOUT_SHOP_LIST);
             cMes.MesSet(type + 6, x, y, 0x200A1, slot, 0, 3);
-            cMes.getMes(slot)->m_ot_type = 0x13;
-            U16Set(cMes.getMes(slot)->m_ot_no, 6);
+            cMes.MesSetOt(slot, 0x13, 6);
             switch (type) {
             case 0:
                 bar = IdSub.unitPtr(0x30, IDC_SSCRN_CKPT_1);
@@ -2218,8 +2213,7 @@ void levelItemDisp(SUB_SCREEN* wk, int sw)
                 int no = 0xC;
                 cMes.setLayout(no, LAYOUT_SHOP_LIST);
                 cMes.MesSet(0x28, x, y, 0x200A1, no, 0, 3);
-                cMes.m_Msg[no].m_ot_type = 0x13;
-                cMes.m_Msg[no].m_ot_no = 6;
+                cMes.MesSetOt(no, 0x13, 6);
             }
         }
     }
@@ -2543,7 +2537,7 @@ void LvUpConfirm::move(SUB_SCREEN* wk)
         SndCall(0, 5, 0, 0, 0, 0);
         return;
     }
-    if (msg == 0x17 && (result = cMes.getMes(1)->m_sel) != 0) {
+    if (msg == 0x17 && (result = cMes.GetSelectMessage(1)) != 0) {
         switch (result) {
         case 1: {
             TuneLevel* t;

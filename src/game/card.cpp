@@ -225,16 +225,6 @@ static void* g_p_spln_org[1];
 // Free blocks of a slot (free bytes rounded up to the sector size).
 #define FREE_BLOCKS(s) (((s).sectorSize ? ROUNDUP((s).freeBytes, (s).sectorSize) : 0) / (s).sectorSize)
 
-// Removes every message window.
-static inline void deleteAllMes()
-{
-    MessageControl* m = &cMes;
-    int i;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
-}
-
 // Dev mode: prints the slot list (CARD SLOT A / HARD DISK) with the selected one highlighted.
 void debugInfoDisp(int slot_no, int type)
 {
@@ -505,7 +495,7 @@ void cCard::dataSelect()
         m_Rno1++;
         m_Status |= 2;
         setMsgWindow(1, 0);
-        deleteAllMes();
+        cMes.Clear();
     }
         // fallthrough
     case 1:
@@ -607,7 +597,7 @@ void cCard::dataSelect()
         if (Key.trg & KEY_B) {
             sel = 2;
         } else {
-            sel = cMes.m_Msg[0].m_sel;
+            sel = cMes.GetSelectMessage(0);
         }
         switch (sel) {
         case 1:
@@ -624,12 +614,12 @@ void cCard::dataSelect()
 /*/BF*/
             pG->CardLastSelNo = m_SaveNo;
             pG->card_serial = m_Slot[m_SlotNo].serial;
-            deleteAllMes();
+            cMes.Clear();
             break;
         case 2:
             CoreSeCall(5, 0, 0, 0, 0);
             m_Rno1 = 1;
-            deleteAllMes();
+            cMes.Clear();
             setMsgWindow(1, 0);
             break;
         }
@@ -1070,7 +1060,7 @@ void cCard::saveMain()
         SysFlagOff(pG, SYS_CARD_ACCESS);
         cardMesSet(MES_SAVE_DONE, 0, 0);
         if (Key.trg & (KEY_START | KEY_Z)) {
-            deleteAllMes();
+            cMes.Clear();
             setMsgWindow(1, 0);
             m_Rno0 = nextMode;
             m_Rno1 = 0;
@@ -1081,7 +1071,7 @@ void cCard::saveMain()
     case 11:
         cardMesSet(MES_SYS_SAVE_DONE, 0, 0);
         if (m_Timer == 0) {
-            deleteAllMes();
+            cMes.Clear();
             setMsgWindow(1, 0);
             SysFlagOff(pG, SYS_CARD_ACCESS);
             m_Rno0 = 4;
@@ -1110,7 +1100,7 @@ void cCard::exit()
         }
         break;
     case 1:
-        deleteAllMes();
+        cMes.Clear();
         if (m_aMode == 2) {
             pG->CardStatus |= 0x80000000;
             systemVISetBlack(1);
@@ -1156,7 +1146,7 @@ void cCard::exit()
             }
         }
         pG->CardStatus &= ~0x7FFFFFF8;
-        MesData.ptr[0] = (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore);
+        MesData.registData(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
         exitFlag = 1;
         break;
     }
@@ -1224,7 +1214,7 @@ void cCard::format()
             noCard = 1;
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -1249,7 +1239,7 @@ void cCard::format()
             noCard = 1;
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -1264,7 +1254,7 @@ void cCard::format()
             m_Rno1 = sel;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         }
         break;
@@ -1301,7 +1291,7 @@ void cCard::format()
             break;
         }
         if (Key.trg & KEY_A) {
-            deleteAllMes();
+            cMes.Clear();
             if (m_aMode == 2) {
                 m_Rno0 = 0;
             } else {
@@ -1358,7 +1348,7 @@ void cCard::fileDelete()
             }
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -1406,7 +1396,7 @@ void cCard::fileDelete()
         }
         cardMesSet(MES_DELETE_DONE, 0, 0);
         if (Key.trg & KEY_A) {
-            deleteAllMes();
+            cMes.Clear();
             if (m_aMode == 2) {
                 m_Rno0 = 0;
             } else {
@@ -1491,7 +1481,7 @@ void cCard::errorDisp()
             eprintf2(10, 16, 80, 170, 0, 0, "The Memory Card in Slot %c is not supported.", m_SlotNo + 'A');
             break;
         case -0x201:
-            cMes.getWork()->setNumber(m_SaveSize + m_SysSize, 2);
+            cMes.MesSetNumber(0, m_SaveSize + m_SysSize, 2);
             if (m_aMode == 2) {
                 mesNo = MES_NO_CAPA_START;
             } else {
@@ -1588,7 +1578,7 @@ void cCard::errorDisp()
             m_Rno1 = 0;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             return;
         }
         cardMesSet(mesNo, 0, 0x800000);
@@ -1600,7 +1590,7 @@ void cCard::errorDisp()
         m_Rno1++;
         break;
     case 3:
-        switch (cMes.m_Msg[0].m_sel) {
+        switch (cMes.GetSelectMessage(0)) {
         case 1:
             if (m_aMode == 2) {
                 CoreSeCall(4, 0, 0, 0, 0);
@@ -1615,7 +1605,7 @@ void cCard::errorDisp()
             m_Rno1 = 0;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         case 2:
             if (m_aMode == 2) {
@@ -1631,11 +1621,11 @@ void cCard::errorDisp()
             m_Rno1 = 0;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         case 3:
             CoreSeCall(4, 0, 0, 0, 0);
-            deleteAllMes();
+            cMes.Clear();
             switch (m_ErrCode) {
             case -0x201:
             case -0x20A:
@@ -1659,7 +1649,7 @@ void cCard::errorDisp()
         switch (probe) {
         case -3:
             if (!(m_Slot[m_SlotNo].flags & 2)) {
-                deleteAllMes();
+                cMes.Clear();
                 if (m_aMode == 2) {
                     m_Rno0 = 0;
                 } else {
@@ -1675,7 +1665,7 @@ void cCard::errorDisp()
         case -2:
         case 0:
             if (m_Slot[m_SlotNo].flags & 2) {
-                deleteAllMes();
+                cMes.Clear();
                 if (m_aMode == 2) {
                     m_Rno0 = 0;
                 } else {
@@ -1818,7 +1808,7 @@ int cCard::initSub()
         }
         m_IdDataAddr = addr;
     }
-    MesData.ptr[0] = (u8*) (pSubData->ofs[1] + (u32) pSubData);
+    MesData.registData(0, (u8*) (pSubData->ofs[1] + (u32) pSubData));
     return 1;
 }
 
@@ -2058,7 +2048,7 @@ void cCard::firstCheck10()
         break;
     case 3:
         if (m_Timer == 0) {
-            deleteAllMes();
+            cMes.Clear();
             if (m_SlotNo == 2) {
                 m_Rno0 = 3;
             } else {
@@ -2909,7 +2899,7 @@ void cCard::createSysfile()
             noCard = 1;
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -2924,7 +2914,7 @@ void cCard::createSysfile()
             m_Rno1 = sel;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         }
         break;
@@ -3014,7 +3004,7 @@ void cCard::createSysfile()
         break;
     case 10:
         if (m_Timer == 0) {
-            deleteAllMes();
+            cMes.Clear();
             SysFlagOff(pG, SYS_CARD_ACCESS);
             m_Rno0 = 4;
             m_Rno1 = 0;

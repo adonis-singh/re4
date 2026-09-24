@@ -615,7 +615,7 @@ static void chkSwitchA()
 {
     SceEventStart(0);
     CamCtrl.CutCall(0x14);
-    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         f32 spd;
 
@@ -1236,7 +1236,7 @@ static void hako_down(cObj* obj)
 // Area 0x80: the key item on the gate; the gate rises and Leon is put on the far side.
 static void r10c_ItemGet()
 {
-    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 2) {
         SceExit();
     }

@@ -97,7 +97,7 @@ static void toroko_go(int dir)
     cPlayer* pl = pPL;
 
     if (CheckDoorJumpWithAshley() == 0) {
-        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         return;
     }
     {
@@ -170,7 +170,7 @@ static void toroko_ret(int dir)
     cPlayer* pl = pPL;
 
     if (CheckDoorJumpWithAshley() == 0) {
-        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         return;
     }
     {

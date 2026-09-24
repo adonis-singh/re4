@@ -542,14 +542,14 @@ static void r333_useMes()
             SubScreenOpen(0x80, 1);
         }
     } else {
-        cMes.MesSet(0x67, 100, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 100, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
     }
 }
 
 // Leon gets on the jet ski.
 void ride()
 {
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     pG->Room_flg[0] |= 0x80000000;
     EffectEspDelete(1, ESP_CORE_KIND_ROOM03, 0, 0);
     EffectEspgenDelete(1, ESP_CORE_KIND_ROOM03, 0);
@@ -672,7 +672,7 @@ static void gameResult()
     // ahead of SceMesSet (r30), where `sel = f()` legitimises the address after the call (`li r9`).
     int* pSel = &sel;
 
-    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     *pSel = SceMesGetSelection();
     res->quit();
     delete res;

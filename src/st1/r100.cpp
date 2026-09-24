@@ -401,8 +401,8 @@ void R100Main()
             }
             W->cnt = (u32) MotionGetMaxFrame(&W->cop[0]->Motion);
             {
-                int ls = cMes.getWork()->lineSpace;
-                int fh = cMes.getWork()->m_font_h;
+                int ls = cMes.getLineGap(0);
+                int fh = cMes.getFontHeight(0);
 
                 cMes.MesSet(0x33, 0x64, 0x147 - fh - ls, 0x52, 0, 0, 4);
             }
@@ -520,7 +520,7 @@ static void r100_GakeEvent(int arg)
         W->carSub->setNoSuspend(1);
         SceEventStart(0);
         CamCtrl.CutCall(9);
-        SceMesSet(0x28, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0x28, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         while (CamCtrl.IsMotionEnd() == 0) {
             SceSleep(1);
         }
@@ -1061,13 +1061,13 @@ extern "C" void r100_trap_set()
 static void r100_MesDoor()
 {
     SndCall(6, 0x29, 0, 0, 0, 0);
-    SceMesSet(0xB, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0xB, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Area 0xC: message 0xC about the truck blocking the road.
 static void r100_MesTruck()
 {
-    SceMesSet(0xC, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0xC, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Look-down camera on the first Ganado with message 0xD (the "pardon me" line), as a short event.
@@ -1076,7 +1076,7 @@ static void r100_MesGanado()
     CamCtrl.StartLookDownEm(W->em);
     SceEventStart(1);
     W->em->setNoSuspend(1);
-    SceMesSet(0xD, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0xD, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceEventEnd(0);
     CamCtrl.EndLookDownEm();
 }
@@ -1144,13 +1144,13 @@ static void r100_MesCar01()
 static void r100_MesBrige()
 {
     if (RsfCheck(G_ROOM_ID, 10) == 0) {
-        SceMesSet(0xF, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0xF, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     } else if (RsfCheck(G_ROOM_ID, 14) == 0) {
         r100_GakeEvent(0);
     } else {
         SceEventStart(0);
         CamCtrl.CutCall(8);
-        SceMesSet(0xE, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0xE, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         while (CamCtrl.IsMotionEnd() == 0) {
             SceSleep(1);
         }

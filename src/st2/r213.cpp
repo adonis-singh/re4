@@ -825,7 +825,7 @@ static void R213EventSwitchMain()
         SceEventStart(1);
         CamCtrl.CutCall(3);
         SceSleep(10);
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() != 1) {
             CamCtrl.Comeback(0);
             SceEventEnd(0);

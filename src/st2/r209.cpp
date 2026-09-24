@@ -1262,7 +1262,7 @@ static void r209_SwitchAppearCheck()
     cObj* objB7 = SmdGetObjPtr(0xB7);
 
     if (RsfCheck(G_ROOM_ID, 5) == 0) {
-        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() == 1) {
             RsfSet(G_ROOM_ID, 5);
             RoomSeCall(0x17, 0, 0, 0, 0);
@@ -1346,7 +1346,7 @@ static void r209_BridgeAppearCheck()
     cObj* obj = SmdGetObjPtr(0xAD);
 
     if (RsfCheck(G_ROOM_ID, 5) && RsfCheck(G_ROOM_ID, 8) == 0) {
-        SceMesSet(5, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(5, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() == 1) {
             RoomSeCall(0x17, 0, 0, 0, 0);
             RsfSet(G_ROOM_ID, 8);
@@ -1376,7 +1376,7 @@ static void r209_BridgeAppearCheck()
             r209_BridgeAppearCheckEnd();
         }
     } else {
-        SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
 }
 
@@ -1865,13 +1865,13 @@ static void r209_PanelPuzzle()
     SceEventStart(1);
     CamCtrl.CutCall(9);
     SceSleep(1);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     do {
         tbl[3] = 0;
         tbl[2] = 0;
         tbl[1] = 0;
         tbl[0] = 0;
-        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         switch (SceMesGetSelection()) {
         case 1:
             tbl[0] = r209_work->bridge[0];
@@ -1911,7 +1911,7 @@ static void r209_PanelPuzzle()
             return;
         }
     } else if (quit == 0) {
-        SceMesSet(7, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(7, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
     for (i = 0; i < 4; i++) {
         tbl[i] = 0;

@@ -759,7 +759,7 @@ snipe_done:
     }
     SceSleep(0x32);
     SndCall(6, 0xB, 0, 0, 0, 0);
-    SceMesSet(2, 0xA2, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0xA2, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceSleep(0xA);
     SceSleep(0x37);
     CamCtrl.Comeback(0);
@@ -877,7 +877,7 @@ wave_done:
     }
     SceSleep(0xF);
     SndCall(6, 0xC, 0, 0, 0, 0);
-    SceMesSet(4, 0xA2, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(4, 0xA2, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     while (SubCharGetStatus() & 0x01000000) {
         SceSleep(1);
     }
@@ -902,7 +902,7 @@ wave_done:
     }
     SceSleep(1);
     SndCall(6, 3, 0, 0, 0, 0);
-    SceMesSet(5, 2, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(5, 2, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (pSUB != NULL) {
         EmMgr.destroy(pSUB);
         StaFlagOff(pG, STA_SUB_ASHLEY);
@@ -1008,7 +1008,7 @@ static void r206_checkDoor()
 // Area 7 before the reunion: message 0x67 (Ashley is not with Leon; cannot leave).
 static void r206_checkDoorToR20c()
 {
-    cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+    cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
 }
 
 // Area 8 once: Ashley calls out (SE 6/5) under camera cut 9.
@@ -1036,7 +1036,7 @@ static void r206_asl_call()
 // Area 6 after the reunion: message 6.
 static void r206_checkDoor2()
 {
-    SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Debug task: on debug trigger 0 switch control to Ashley (PlSelect(1)) and run area 0.

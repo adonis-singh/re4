@@ -346,7 +346,7 @@ void SceMesCamSndSet(int mes_no, int cam_no, int se_no, int attr)
     if (se_no != -1) {
         SndCall(6, se_no, 0, 0, 0, 0);
     }
-    SceMesSet(mes_no, cam_no == -1 ? 0 : 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(mes_no, cam_no == -1 ? 0 : 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Up-cut message through SceAtSetMes: message `a` (flags bit0 = type 1), camera cut `b`, SE `c`
@@ -380,10 +380,10 @@ int SceMesGetSelection()
 {
     int r;
 
-    if ((r = cMes.getWork()->m_sel) == 0) {
+    if ((r = cMes.GetSelectMessage(0)) == 0) {
         do {
             SceSleep(1);
-        } while ((r = cMes.getWork()->m_sel) == 0);
+        } while ((r = cMes.GetSelectMessage(0)) == 0);
     }
     return r;
 }
@@ -391,7 +391,7 @@ int SceMesGetSelection()
 // Sleeps while message slot 0 is open.
 void SceMesWait()
 {
-    while (cMes.m_Msg[0].m_state & 1) {
+    while (cMes.GetMesStatus(0) & 1) {
         SceSleep(1);
     }
 }
@@ -788,7 +788,7 @@ void SceChapterEnd()
     FadeKillAll();
     FadeSetW(0x80000000, 10, 0, 0);
     SceSleep(0xF);
-    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     Vec plPos;
     Vec plRot;
     // The two zeros are assigned after the FadeSetW so its `col.end = 0` keeps its own zero pseudo (the

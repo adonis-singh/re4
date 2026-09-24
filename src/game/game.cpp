@@ -303,17 +303,15 @@ void gameStageInit()
         if (!SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
             if (!SysFlagChk(pG, SYS_OMAKE_ETC_GAME) && pG->room_id == 0x120 &&
                 (SysFlagChk(pG, SYS_NEW_GAME) || pG->SaveKind == 3)) {
-                Message* m;
                 int res;
 
                 DpfFlagOff(pG, DPF_MESSAGE);
                 cMes.setLayout(0, 0);
-                m = cMes.getMes(0);
-                cMes.MesSet(150, 100, 336 - m->lineSpace - m->m_font_h - 1, 1, 0, 0, 4);
-                if ((res = m->m_sel) == 0) {
+                cMes.MesSet(150, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
+                if ((res = cMes.GetSelectMessage(0)) == 0) {
                     do {
                         TaskSleep(1);
-                    } while ((res = cMes.getMes(0)->m_sel) == 0);
+                    } while ((res = cMes.GetSelectMessage(0)) == 0);
                 }
                 switch (res) {
                 case 1:

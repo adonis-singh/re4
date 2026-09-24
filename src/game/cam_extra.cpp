@@ -834,20 +834,18 @@ void IdBinocular::move(void* p)
     }
     if (!StaFlagChk(pG, STA_EVENT)) {
         IdUnit* u = IdSys.unitPtr(0x36, IDC_BINOCULAR);
-        MessageControl* mc;
-        Message* ms;
+        u32 col;
         s16 x = (s16) ((u->pos0.x + 320.0f) * 0.8f);
         s16 y = (s16) ((240.0f - u->pos0.y) * 0.8f);
         cMes.setLayout(1, LAYOUT_ACT_BTN);
-        mc = &cMes;
-        ms = &mc->m_Msg[1];
-        mc->MesSet(1, x, (s16) (y - ms->m_font_h / 2), 0x20081, 1, 0, 4);
+        cMes.MesSet(1, x, (s16) (y - cMes.getFontHeight(1) / 2), 0x20081, 1, 0, 4);
         u = IdSys.unitPtr(0x1B, IDC_BINOCULAR);
         rate = u->col[3] / 255.0f;
-        ms->m_col = ((u8) ((f32) (ms->m_col >> 24) * rate) << 24) |
-                    ((u8) ((f32) ((ms->m_col >> 16) & 0xFF) * rate) << 16) |
-                    ((u8) ((f32) ((ms->m_col >> 8) & 0xFF) * rate) << 8) |
-                    (u8) ((f32) (ms->m_col & 0xFF) * rate);
+        col = cMes.GetColor(1);
+        cMes.SetColor(1, ((u8) ((f32) (col >> 24) * rate) << 24) |
+                             ((u8) ((f32) ((col >> 16) & 0xFF) * rate) << 16) |
+                             ((u8) ((f32) ((col >> 8) & 0xFF) * rate) << 8) |
+                             (u8) ((f32) (col & 0xFF) * rate));
     }
     {
         f32 t0[2] = {1.0f, 16.0f};
@@ -908,12 +906,7 @@ void IdBinocular::quit(void*)
     if (StaFlagChk(pG, STA_EVENT)) {
         Cckpt.lifeMeterDisp(0);
     }
-    {
-        MessageControl* mes = &cMes;
-        for (i = 0; i <= 0xF; i++) {
-            mes->Delete(i);
-        }
-    }
+    cMes.Clear();
 }
 
 // ---------------------------------------------------------------------------

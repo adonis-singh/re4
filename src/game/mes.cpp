@@ -55,10 +55,6 @@ struct OSFontHeader {
     u32 sheetFullSize;  // 0x28
 };
 
-// Message slot address as an expression (not an inline call): the multiply lands in the same pseudo
-// as the sum, which is what the original codegen shows.
-#define MES(no) ((Message*) ((no) * sizeof(Message) + (u32) this + sizeof(u32)))
-
 // Font file: offsets to the TPL and to the width table.
 struct MesFontFile {
     u32 tplOfs;    // 0x00
@@ -250,8 +246,8 @@ struct MesTblBlock {
 // 4 ...) for the current language; NULL when out of range.
 u16* MessageData::getAddr(int no, int data_type)
 {
-    u32* tbl = (u32*) ptr[data_type];
-    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[lang + 1]);
+    u32* tbl = (u32*) m_Data[data_type];
+    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[m_language + 1]);
 
     if (no > (int) blk->count - 1) {
         return NULL;
@@ -262,8 +258,8 @@ u16* MessageData::getAddr(int no, int data_type)
 // Number of messages in file `type` for the current language.
 int MessageData::getMesNum(int data_type)
 {
-    u32* tbl = (u32*) ptr[data_type];
-    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[lang + 1]);
+    u32* tbl = (u32*) m_Data[data_type];
+    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[m_language + 1]);
 
     return blk->count;
 }
@@ -271,7 +267,7 @@ int MessageData::getMesNum(int data_type)
 // Width of a space glyph (13 px Japanese, 8 px otherwise).
 int MessageData::getSpaceWidth()
 {
-    if (lang == 0) {
+    if (m_language == 0) {
         return 13;
     }
     return 8;
@@ -306,10 +302,10 @@ void MessageControl::setLayout(int no, int type)
     };
     static s8* p_layout;
 
-    p_layout = layout_tbl[MesData.lang][type];
+    p_layout = layout_tbl[MesData.getLanguage()][type];
     setFontSize(no, p_layout[0], p_layout[1]);
-    U16Set(MES(no)->m_char_gap, p_layout[3]);
-    MES(no)->m_line_gap = p_layout[5];
+    setFontGap(no, p_layout[3]);
+    setLineGap(no, p_layout[5]);
 }
 
 // Selects the language block of the message files (0 Japanese, 1 English, 2..5 French/German/
@@ -318,29 +314,29 @@ void MessageControl::setLanguage(int lang)
 {
     switch (lang) {
     case 0:
-        MesData.lang = lang;
+        MesData.setLanguage(lang);
         break;
     case 1:
-        MesData.lang = lang;
+        MesData.setLanguage(lang);
         break;
     case 3:
-        MesData.lang = 2;
+        MesData.setLanguage(2);
         break;
     case 4:
-        MesData.lang = 3;
+        MesData.setLanguage(3);
         break;
     case 5:
-        MesData.lang = 4;
+        MesData.setLanguage(4);
         break;
     case 6:
-        MesData.lang = 5;
+        MesData.setLanguage(5);
         break;
     case 2:
-        MesData.lang = 1;
+        MesData.setLanguage(1);
         break;
     default:
         pLog->err(0, 0, "MesCtrl::setLanguage() Invalid LANG_TYPE");
-        MesData.lang = 1;
+        MesData.setLanguage(1);
         break;
     }
 }
@@ -381,7 +377,6 @@ void MessageControl::init()
     u32 size;
     u32 sz = 0;
     int i;
-    Message* m;
 
     if (Dvd.FileExistCheck("Font/common_j.fnt", &size) != -1) {
         sz = size;
@@ -406,12 +401,11 @@ void MessageControl::init()
     setLanguage(pSys->language);
     x11F8 = 0;
     m_state = 0;
-    m = m_Msg;
-    for (i = 0; i < 16; m++, i++) {
+    for (i = 0; i < 16; i++) {
         if (i <= 2) {
-            m->qbase = MsgQueue[i];
+            MesRegistQueue(i, MsgQueue[i]);
         } else {
-            m->qbase = NULL;
+            MesReleaseQueue(i);
         }
     }
 }
@@ -420,10 +414,10 @@ void MessageControl::init()
 // common font, resets the state.
 void MessageControl::gameInit()
 {
-    MesData.setPtr(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(1, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(2, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(3, (u8*) (pG->pCore->ofs_54 + (u32) pG->pCore));
+    MesData.registData(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(1, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(2, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(3, (u8*) (pG->pCore->ofs_54 + (u32) pG->pCore));
     pG->IsMessageInit = 1;
     loadCommonFont();
     setLanguage(pSys->language);
@@ -435,13 +429,9 @@ void MessageControl::gameInit()
 // reloads the stage font when the event font was loaded.
 void MessageControl::roomInit()
 {
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        Delete(i);
-    }
-    MesData.setPtr(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(1, (u8*) pG->RoomMes);
+    Clear();
+    MesData.registData(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(1, (u8*) pG->RoomMes);
     setLayout(0, 0);
     if (checkState(1)) {
         loadStageFont();
@@ -602,9 +592,7 @@ void MessageControl::Trans()
 // Sets the glyph draw size of slot `no`.
 void MessageControl::setFontSize(int no, s16 font_w, s16 font_h)
 {
-    Message* m = getMes(no);
-    m->m_font_w = font_w;
-    m->m_font_h = font_h;
+    m_Msg[no].setFontSize(font_w, font_h);
 }
 
 // Starts message `no` in slot `slot` at (x, y): the font by `type` (0 common, 2 stage/event, 3
@@ -666,7 +654,7 @@ void MessageControl::Delete(int no)
     if (no > 15) {
         return;
     }
-    MES(no)->setDie();
+    m_Msg[no].setDie();
     m_Msg[no].m_state &= ~1;
 }
 
@@ -1467,7 +1455,7 @@ int Message::code0a()
     if (d > 9) {
         d = 0;
     }
-    if (MesData.lang == 0) {
+    if (MesData.getLanguage() == 0) {
         if (attrCk(0x10000000)) {
             code = d + 0xE;
         } else {
@@ -1492,7 +1480,7 @@ int Message::code0a()
         m_number = numberSave;
         digit = digitSave;
         if (attrCk(0x10000000)) {
-            if (MesData.lang == 0) {
+            if (MesData.getLanguage() == 0) {
                 code = 0xD;
             } else {
                 code = 0xAC;
@@ -1587,7 +1575,7 @@ int Message::code11()
     m_pRetAddr = m_pMes;
     m_pRetFont = m_pFont;
     m_pMes = MesData.getAddr(no, 3);
-    if (MesData.lang == 0) {
+    if (MesData.getLanguage() == 0) {
         m_pFont = &MesFont[0];
     }
     return 0;

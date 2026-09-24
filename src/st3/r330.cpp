@@ -117,7 +117,7 @@ void R330EventS00Main()
 {
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         if (CheckDoorJumpWithAshley() == 0) {
-            cMes.MesSet(0x67, 100, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+            cMes.MesSet(0x67, 100, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         } else {
             cEm* a;
             cEm* b;

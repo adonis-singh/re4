@@ -15,7 +15,7 @@ struct ArcFile {
     u32 ofs_1C;   // 0x1C  vibration pattern table (pl_dmg: VibSetData)
     u32 ofs_20;   // 0x20  obstacle model bin (obj20 SetObaModel)
     u32 ofs_24;   // 0x24  obstacle model tpl
-    u32 ofs_28;   // 0x28  message tables (mes: MesData.ptr[0..2])
+    u32 ofs_28;   // 0x28  message tables (mes: MesData.m_Data[0..2])
     u32 ofs_2C;   // 0x2C  core light data (game: cLightMgr::roomInit core cLit)
     u32 ofs_30;   // 0x30  core camera data (game: CameraControl::CoreDataRead)
     u32 ofs_34;   // 0x34
@@ -26,13 +26,13 @@ struct ArcFile {
     u32 ofs_48;   // 0x48
     u32 ofs_4C;   // 0x4C
     u32 ofs_50;   // 0x50  debug effect data (eff_sys: EspDataLoad owner 0xD1)
-    u32 ofs_54;   // 0x54  message table type 3 (mes: MesData.ptr[3])
+    u32 ofs_54;   // 0x54  message table type 3 (mes: MesData.m_Data[3])
     u32 ofs_58;   // 0x58  item examine light cuts 0..4 (examine ItemExamine::init)
     u32 ofs_5C;   // 0x5C
     u32 ofs_60;   // 0x60
     u32 ofs_64;   // 0x64
     u32 ofs_68;   // 0x68
-    u32 ofs_6C;   // 0x6C  system message table (dvd: MesData.ptr[4])
+    u32 ofs_6C;   // 0x6C  system message table (dvd: MesData.m_Data[4])
     u32 ofs_70;   // 0x70  TV-mode message table (tv_mode)
     u32 ofs_74;   // 0x74  HUD id textures (cockpit: IdTexDataLoad(.., 4))
     u32 ofs_78;   // 0x78
@@ -166,7 +166,7 @@ struct GlobalWork {
     f32 prim_rate;         // 0x4F14  worst free ratio of the primitive buffer seen so far
     s32 prim_cnt;          // 0x4F18  entries used so far this frame
     s32 nPrim;          // 0x4F1C  entries per frame (game: ConsGetRoomValue(8), 0x8000 while stopped)
-    void* RoomMes;        // 0x4F20  room message table (mes: MesData.ptr[1])
+    void* RoomMes;        // 0x4F20  room message table (mes: MesData.m_Data[1])
     void* pCamCore;    // 0x4F24  core camera data ("B40x")
     void* pCamRoom;    // 0x4F28  room camera data ("B40x")
     void* Rtp;        // 0x4F2C  room "RTP" data (read: ReadAreaData)

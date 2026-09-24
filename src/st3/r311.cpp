@@ -211,7 +211,7 @@ int r311_execAshleyEvent()
         SceSleep(1);
         se = SndCall(6, 5, 0, 0, 0, 0);
         pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x2C), 10, 0, 1, 0);
-        SceMesSet(4, 0xF0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(4, 0xF0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         while (CamCtrl.IsMotionEnd() == 0) {
             if (Key.trg & 0x20000000) {
                 if (se) {
@@ -222,10 +222,7 @@ int r311_execAshleyEvent()
             }
             SceSleep(1);
         }
-        MessageControl* m = &cMes;
-        for (int k = 0; k < 16; k++) {
-            m->Delete(k);
-        }
+        cMes.Clear();
         SubCharCtrl(1, 0);
         pSUB->setNoSuspend(0);
         pSUB->setPos(&save);
@@ -718,7 +715,7 @@ static void r311_execAshleyOperateTerminal()
 static void r311_checkIronBallTerminal()
 {
     if (R311_SAVE_FLAGS & 0x40000000) {
-        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         return;
     }
     if (pSUB != NULL && RouteCkPosToPosDis(&pPL->pos, &pSUB->pos) < 4000.0f && !StaFlagChk(pG, STA_SUB_CATCHED)) {

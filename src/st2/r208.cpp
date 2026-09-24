@@ -823,13 +823,13 @@ static void asl_yubisasi()
     CamCtrl.CutCall(0xF);
     SceSleep(0xF);
     SndCall(6, 4, 0, 0, 0, 0);
-    SceMesSet(2, 0xA0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0xA0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
     CamCtrl.CutCall(0x10);
     SceSleep(0xF);
-    SceMesSet(3, 0xA0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0xA0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
@@ -1196,7 +1196,7 @@ static void r208_checkCrank()
     if (CheckDoorJumpWithAshley() == 0) {
         sel = 1;
     } else {
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         sel = SceMesGetSelection();
     }
     if (sel == 1) {
@@ -1610,7 +1610,7 @@ extern "C" void r208_CarryOnShoulder()
         pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x35), 0xA, 0, 1, 0);
         SceSleep((u32) MotionGetMaxFrame(&pSUB->Motion) - 70);
         SndCall(6, 5, 0, 0, 0, 0);
-        SceMesSet(1, 0xA0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(1, 0xA0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SceSleep(0x19);
         CamCtrl.Comeback(0);
         pPL->setNoSuspend(0);

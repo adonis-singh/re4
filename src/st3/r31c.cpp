@@ -941,7 +941,7 @@ static void r31c_TimerDoorCountDown()
     EstSet(r31c_work->door8, -1, 0, 0, EFF_ROOM, 0x18, 1, ESP_CORE_KIND_NONE, 0, 0);
     KyfFlagOn(pG, KYF_ST1_23);
     RoomSeCall(0x12, 0, 0, 0, 0);
-    SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
@@ -1748,7 +1748,7 @@ static void r31c_KrauserCorpseMes()
     CamCtrl.StartLookDownEm(r31c_work->krauser2.getPtr());
     SceEventStart(1);
     r31c_work->krauser2.setNoSuspend(1);
-    SceMesSet(4, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(4, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceEventEnd(0);
     CamCtrl.EndLookDownEm();
 }

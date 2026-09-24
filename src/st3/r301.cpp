@@ -149,7 +149,7 @@ static void r301_execContinuePoint_end()
 // The continue point: ask, then slide the rock away with a dust effect and save.
 static void r301_execContinuePoint()
 {
-    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case -1:
     case 0:

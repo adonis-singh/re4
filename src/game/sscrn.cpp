@@ -455,11 +455,7 @@ void SubScreenExec()
             }
             wk->p_module = (OSModuleHeader*) wk->relAddr;
             {
-                MessageControl* mes = &cMes;
-                int i;
-                for (i = 0; i < 16; i++) {
-                    mes->Delete(i);
-                }
+                cMes.Clear();
             }
             if (pSys->language == 0) {
                 cMes.setupFont(28, 28, (TEXPalette*) SS_ARC_PTR(wk->pCmmn, 4), 3);

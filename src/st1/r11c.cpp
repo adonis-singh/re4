@@ -996,7 +996,7 @@ static void r11c_selectRoute()
     RmfFlagOff(pG, RMF_GATE_OPEN);
     SceEventStart(0);
     CamCtrl.CutCall(3);
-    SceMesSet(0, 0x220, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x220, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case 1:
         if ((r11c_save()->flags & 0x40000000) && !(r11c_save()->flags & 0x20000000)) {

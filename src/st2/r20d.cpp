@@ -789,7 +789,7 @@ static void r20d_checkSalazarCrestUse()
     SceSleep(20);
     SndCall(6, 4, 0, 0, 0, 0);
     SceAtSetEnable(0x85, 1);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceEventEnd(0);
 }
 
@@ -805,7 +805,7 @@ static void r20d_execRoundSwitch()
         }
         SceExit();
     }
-    SceMesSet(0, 0x200, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x200, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case -1:
     case 0:

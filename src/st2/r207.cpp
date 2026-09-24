@@ -585,7 +585,7 @@ static void r207_GetSword(int no)
         }
         break;
     }
-    SceMesSet(mes, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(mes, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 2) {
         SceExit();
     }
@@ -725,7 +725,7 @@ void r207_SetSword(int which, int mode)
     r207_ItemModelSet(SceAtItemModelPtr(at), mode);
     RoomSeCall(3, &obj->pos, 0, 0, 0);
     if (pSys->language == 0) {
-        SceMesSet(mes, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(mes, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
     if (RsfCheck(G_ROOM_ID, 4) && RsfCheck(G_ROOM_ID, 7)) {
         SceExec(0x12, (TaskFunc) r207_WallMove, 0, 0, SCE_PRIO_DEF_2, 0);

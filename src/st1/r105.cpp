@@ -285,7 +285,7 @@ static void r105_markInit()
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
-    SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     r105_work->state = 1;
     r105_work->sub = 0;
 }
@@ -303,9 +303,9 @@ static void r105_markMain()
     switch (r105_work->sub) {
     case 0:
         if (mk->mes == 0) {
-            SceMesSet(2, 0x220, mk->sel, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(2, 0x220, mk->sel, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         } else {
-            SceMesSet(2, 0x2A0, mk->sel, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(2, 0x2A0, mk->sel, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         }
         mk->mes = 1;
         mk->sel = SceMesGetSelection();
@@ -378,7 +378,7 @@ static void r105_markMain()
                 if (mk->obj[0].obj) {
                     SndCall(6, 5, &mk->obj[0].obj->pos, 0, 0, 0);
                 }
-                SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+                SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
                 r105_work->state = 2;
                 r105_work->sub = 0;
             } else {
@@ -662,7 +662,7 @@ static void r105_checkDoor()
     SmdSetTrans(0x23, 0);
     SceAtDataReset(1);
     SndCall(6, 0xB, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     KyfFlagOn(pG, KYF_R105_TO_R101_DOOR);
     ScfFlagOn(pG, SCF_90);
     CamCtrl.Comeback(0);

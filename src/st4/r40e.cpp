@@ -331,18 +331,14 @@ static void R40EExecEventS00()
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         SceEventStart(0);
         pPL->setNoSuspend(1);
-        // Two sets of one pointer variable: `addi r31,r9,cMes@l; addi r31,r31,4` in place (a fresh
-        // `cMes.getWork()` pseudo gives `addi r9,..; addi r31,r9,4`).
-        MesWork* w = (MesWork*) &cMes;
-        w = (MesWork*) ((u8*) w + 4);
-        SceMesSet(0, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() != 1) {
             CamCtrl.Comeback(0);
             SceEventEnd(0);
         } else {
             SndCall(6, 2, 0, 0, 0, 0);
             if ((u32) ItemMgr.num(0xC) <= 4) {
-                SceMesSet(2, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+                SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
                 CamCtrl.Comeback(0);
                 SceEventEnd(0);
             } else {

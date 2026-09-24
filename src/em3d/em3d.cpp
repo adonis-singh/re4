@@ -58,7 +58,7 @@ static void em3d_R1_WarpMove(cEm3d* em);
 // Radio message `no` at the bottom of the screen, held for 90 frames.
 static inline void em3dMesSet(Em3dWork* w, int no)
 {
-    SceMesSet(no, 0xB2, 1, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(no, 0xB2, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     w->Se_wait = 90;
 }
 

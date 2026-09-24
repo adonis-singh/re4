@@ -264,7 +264,7 @@ static void r310_pushBox2_ashley()
         SceSleep(1);
     }
     if (pSys->language == 0) {
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         // COMPILER-DIFF: #12 fallthrough-arm form. A literal 0 here is cse's known-zero `language` register (kept in
         // r30 across SceMesSet); the original's arm stored a fresh `li 0`. `(work & 4) >> 3` is 0 only to combine.
         r310_work->subTask = (SCE_TASK*) (((u32) r310_work & 4) >> 3);
@@ -504,7 +504,7 @@ static void r310_pushBox1_ashley()
         SceSleep(1);
     }
     if (pSys->language == 0) {
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         // COMPILER-DIFF: #12 fallthrough-arm form. A literal 0 here is cse's known-zero `language` register (kept in
         // r30 across SceMesSet); the original's arm stored a fresh `li 0`. `(work & 4) >> 3` is 0 only to combine.
         r310_work->subTask = (SCE_TASK*) (((u32) r310_work & 4) >> 3);

@@ -155,7 +155,7 @@ static void r216_BattleStart()
     u32 i;
     R216Em* e;   // shared by both loops: a multi-block pseudo, so the work load is not tied into it
 
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 2) {
         SceExit();
     }

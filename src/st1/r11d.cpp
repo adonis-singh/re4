@@ -478,7 +478,7 @@ static void r11d_checkDoor()
     SmdSetTrans(0x20, 0);
     KyfFlagOn(pG, KYF_R11D_TO_R10F_DOOR);
     SndCall(6, 0xB, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceAtDataReset(1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);

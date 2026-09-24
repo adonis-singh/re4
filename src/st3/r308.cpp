@@ -357,7 +357,6 @@ void R308EnemyDieEnd()
 static void R308SwitchMain()
 {
     void* zero = 0;
-    MesWork* w;
 
     SceEventStart(1);
     R308_EFF_DELETE(2);
@@ -365,8 +364,7 @@ static void R308SwitchMain()
     R308_EFF_DELETE(5);
     EstSet(0, -1, 0, 0, EFF_ROOM, 2, 0x2001, ESP_CORE_KIND_ROOM02, zero, zero);
     CamCtrl.CutCall(2);
-    w = cMes.getWork();
-    SceMesSet(0, 0x20, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() != 1) {
         R308_EFF_DELETE(3);
         R308_EFF_DELETE(4);
