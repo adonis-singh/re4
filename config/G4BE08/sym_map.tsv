@@ -3482,7 +3482,7 @@ address	size	section	unit	scope	name	demangled
 0x800E8F68	0xD0	.text	game/dvd.cpp	global	DmaTransReq__5cAramiUlUlUli	cAram::DmaTransReq
 0x800E9038	0x8C	.text	game/dvd.cpp	global	pullAramQueue__5cAramPi	cAram::pullAramQueue
 0x800E90C4	0x20	.text	game/dvd.cpp	global	aram_cb	aram_cb
-0x800E90E4	0xB4	.text	game/dvd.cpp	global	DmaTrans__5cAramP7AramReqi	cAram::DmaTrans
+0x800E90E4	0xB4	.text	game/dvd.cpp	global	DmaTrans__5cAramP11cAramQueuei	cAram::DmaTrans
 0x800E9198	0x50	.text	game/dvd.cpp	global	TransCheck__5cArami	cAram::TransCheck
 0x800E91E8	0xE4	.text	game/dvd.cpp	global	DmaCancel__5cArami	cAram::DmaCancel
 0x800E92CC	0x9C	.text	game/dvd.cpp	global	DmaCancelAll__5cAram	cAram::DmaCancelAll

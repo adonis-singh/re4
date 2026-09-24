@@ -407,7 +407,7 @@ void MemorySwap(void* mram, u32 aram, u32 size)
     u32 n;
 
     if (Dvd.pCur_queue) {
-        while (Dvd.pCur_queue->chk(0x20)) {
+        while (Dvd.pCur_queue->CkFlag(0x20)) {
             Dvd.pCur_queue->Read();
         }
     }
@@ -446,7 +446,7 @@ void trans2aram_cb(u32 arq_req)
     ARQRequest* r = (ARQRequest*) arq_req;
     cDvdQueue* q = (cDvdQueue*) r->owner;
 
-    q->m_be_flag &= ~0x01000000;
+    q->ResetFlag(0x01000000);
     q->aramSize += r->length;
 }
 
@@ -456,7 +456,7 @@ void cDvdQueue::trans2aram(void* buf, u32 addr, u32 size)
     u32 n = ALIGN32(size);
 
     DCFlushRange(buf, n);
-    m_be_flag |= 0x01000000;
+    SetFlag(0x01000000);
     ARQPostRequest(&m_ArqReq, (u32) this, ARQ_TYPE_MRAM_TO_ARAM, 1, (u32) buf, addr, n, trans2aram_cb);
 }
 
@@ -466,11 +466,11 @@ void dvdread_callback(s32 result, DVDFileInfo* pInfo)
 {
     cDvdQueue* q = (cDvdQueue*) pInfo->cb.userData;
 
-    q->m_be_flag &= ~0x02000000;
+    q->ResetFlag(0x02000000);
     if (result == -3) {
-        q->m_be_flag |= 0x100000;
+        q->SetFlag(0x100000);
     } else if (result != ALIGN32(q->m_DivReadSize)) {
-        q->m_be_flag |= 0x200000;
+        q->SetFlag(0x200000);
     }
 }
 
@@ -490,7 +490,7 @@ void cDvdQueue::readInit()
         if (fileOpen() == 0) {
             m_Rno0 = 3;
             m_Rno1 = 0;
-            m_be_flag |= 0x200000;
+            SetFlag(0x200000);
             m_ResultCode = -1;
             OSReport("DVD: File not found : %s\n", m_Name);
             break;
@@ -498,13 +498,13 @@ void cDvdQueue::readInit()
         if (length == 0) {
             length = fileGetLength();
         }
-        setStatus(ST_READ);
+        SetQueueStatus(ST_READ);
         m_Rno1++;
     case 1:
         pFilehead[m_NestDepth] = (DvdHeader*) &header_buff[m_NestDepth << 10];
-        if (chk(0x80000000) || m_NestDepth != 0) {
+        if (CkFlag(0x80000000) || m_NestDepth != 0) {
             u32* p;
-            m_be_flag |= 0x20;
+            SetFlag(0x20);
             m_BaseOffset[m_NestDepth] = m_NestDepth ? pFilehead[m_NestDepth - 1]->ofs : m_Offset;
             p = m_BaseOffset;
             m_DivReadSize = 0x400;
@@ -517,7 +517,7 @@ void cDvdQueue::readInit()
             pFilehead[m_NestDepth]->sndType = 0;
             pFilehead[m_NestDepth]->dest = 0;
             pFilehead[m_NestDepth][1].type = 0xFFFFFFFF;
-            if (chk(0x6) && m_NestDepth == 0) {
+            if (CkFlag(0x6) && m_NestDepth == 0) {
                 m_Rno1 = 3;
             } else {
                 m_Rno1 = 0xA;
@@ -528,23 +528,23 @@ void cDvdQueue::readInit()
         }
         break;
     case 2:
-        if (chk(0x02000000)) {
+        if (CkFlag(0x02000000)) {
             break;
         }
-        m_be_flag &= ~0x20;
-        if (chk(0x100000)) {
+        ResetFlag(0x20);
+        if (CkFlag(0x100000)) {
             m_Rno1 = 0;
             m_Rno0 = 3;
             break;
         }
-        if (chk(0x6) && m_NestDepth == 0) {
+        if (CkFlag(0x6) && m_NestDepth == 0) {
             m_Rno1++;
         } else {
             m_Rno1 = 0xA;
         }
         break;
     case 3:
-        if (chk(0x80000000)) {
+        if (CkFlag(0x80000000)) {
             size = 0;
             for (h = (DvdHeader*) header_buff + 1; h->type != TRANS_EOF; h++) {
                 if (h->type == TRANS_MRAM) {
@@ -555,7 +555,7 @@ void cDvdQueue::readInit()
             size = length;
             pFilehead[m_NestDepth]->type = 0;
         }
-        if (chk(0x2)) {
+        if (CkFlag(0x2)) {
             heap = MemGetCurrentHeap();
             if (this->m_HeapNo != heap) {
                 MemSetCurrentHeap(this->m_HeapNo);
@@ -574,7 +574,7 @@ void cDvdQueue::readInit()
             OSReport("DVD: Memory allocate failed\n");
             m_Rno0 = 3;
             m_Rno1 = 0;
-            m_be_flag |= 0x200000;
+            SetFlag(0x200000);
             m_ResultCode = -3;
             break;
         }
@@ -586,8 +586,8 @@ void cDvdQueue::readInit()
         m_Rno0 = 1;
         m_Rno1 = 0;
         if (m_NestDepth == 0) {
-            if (chk(0x10)) {
-                if (chk(0x80000000)) {
+            if (CkFlag(0x10)) {
+                if (CkFlag(0x80000000)) {
                     size = 0;
                     for (h = (DvdHeader*) header_buff + 1; h->type != TRANS_EOF; h++) {
                         if (h->type == TRANS_MRAM) {
@@ -602,7 +602,7 @@ void cDvdQueue::readInit()
             m_MramAddr = (u32) pBuff;
             m_AramAddr = aram;
         }
-        if (chk(0x80000000)) {
+        if (CkFlag(0x80000000)) {
             pFilehead[m_NestDepth]++;
         }
         break;
@@ -632,7 +632,7 @@ void cDvdQueue::readMain()
         case TRANS_EOF:
             if (m_NestDepth == 0) {
                 m_Rno0 = 3;
-                m_be_flag |= 0x04000000;
+                SetFlag(0x04000000);
                 m_Rno1 = 0;
             } else {
                 m_NestDepth--;
@@ -749,32 +749,32 @@ void cDvdQueue::readMain()
         break;
     case 1:
         m_Counter = OSGetTick();
-        m_be_flag |= 0x20;
+        SetFlag(0x20);
         m_DivReadSize = m_LeftSize > 0x20000 ? 0x20000 : m_LeftSize;
         fileReadAsync(DVD_BUFF, m_DivReadSize, m_Offset);
         m_Rno1++;
         break;
     case 2:
-        if (chk(0x02000000)) {
+        if (CkFlag(0x02000000)) {
             break;
         }
-        if (chk(0x100000)) {
+        if (CkFlag(0x100000)) {
             m_Rno1 = 0;
             m_Rno0 = 3;
             break;
         }
-        if (chk(0x200000)) {
+        if (CkFlag(0x200000)) {
             OSReport("DVD: Read Error!!!\n");
-            m_be_flag &= ~0x200020;
+            ResetFlag(0x200020);
             m_Rno1--;
             break;
         }
         (this->*trans_proc_tbl[(*ph)->type])(DVD_BUFF, m_TransAddr, m_DivReadSize);
         m_Rno1++;
-        m_be_flag &= ~0x20;
+        ResetFlag(0x20);
         break;
     case 3:
-        if (chk(0x01000000)) {
+        if (CkFlag(0x01000000)) {
             break;
         }
         m_LeftSize -= m_DivReadSize;
@@ -810,7 +810,7 @@ void cDvdQueue::readMain()
 // Rno0 == 2: waits for the cancelled DVD command to return, then exit.
 void cDvdQueue::readCancelWait()
 {
-    if (chk(0x100000)) {
+    if (CkFlag(0x100000)) {
         m_Rno0 = 3;
     }
 }
@@ -820,17 +820,17 @@ void cDvdQueue::readCancelWait()
 void cDvdQueue::readExit()
 {
     fileClose();
-    if (chk(0x04000000)) {
-        setStatus(ST_COMPLETE);
+    if (CkFlag(0x04000000)) {
+        SetQueueStatus(ST_COMPLETE);
         OSReport("DVD: Read Ok ");
-    } else if (chk(0x100000)) {
-        setStatus(ST_CANCEL);
+    } else if (CkFlag(0x100000)) {
+        SetQueueStatus(ST_CANCEL);
         OSReport("DVD: Read Cancel: %s ", m_Name);
-    } else if (chk(0x200000)) {
-        setStatus(ST_ERROR);
+    } else if (CkFlag(0x200000)) {
+        SetQueueStatus(ST_ERROR);
         OSReport("DVD: Read Error : %s\n", m_Name);
     }
-    m_be_flag |= 0x400000;
+    SetFlag(0x400000);
 }
 
 // One step of the queue's routine (Rno0 table); 1 while the read is still in progress.
@@ -856,9 +856,9 @@ int cDvdQueue::Read()
     } else {
         SysFlagOff(pG, SYS_SN_PC_READ);
     }
-    if (chk(0x400000)) {
+    if (CkFlag(0x400000)) {
         ret = 0;
-    } else if (!chk(1)) {
+    } else if (!CkFlag(1)) {
         ret = 0;
     }
     return ret;
@@ -897,25 +897,25 @@ void cDvdQueue::Initialize()
     }
     m_Kind = hed;
     if (w->mode & 0x1) {
-        m_be_flag |= 0x40000000;
+        SetFlag(0x40000000);
     } else if (w->mode & 0x100) {
-        m_be_flag |= 0x100;
+        SetFlag(0x100);
     }
     if (w->mode & 0x8000) {
-        m_be_flag |= 0x80000000;
+        SetFlag(0x80000000);
     }
     if (w->mode & 0x4) {
         m_HeapNo = MemGetCurrentHeap();
-        m_be_flag |= 0x2;
+        SetFlag(0x2);
     } else if (w->mode & 0x2) {
         m_HeapNo = MemGetCurrentDbgHeap();
-        m_be_flag |= 0x4;
+        SetFlag(0x4);
     }
     if (w->mode & 0x20) {
-        m_be_flag |= 0x10;
+        SetFlag(0x10);
     }
     if (w->mode & 0x40) {
-        m_be_flag |= 0x20000000;
+        SetFlag(0x20000000);
     }
     sprintf(reqfile, "%s", w->file);
     reqline = w->line;
@@ -960,23 +960,23 @@ int cDvdQueue::LinkQueue()
             p = n;
         }
     }
-    setStatus(ST_PUSH);
+    SetQueueStatus(ST_PUSH);
     return m_Id;
 }
 
 // Frees the slot.
 void cDvdQueue::PushQueue()
 {
-    m_be_flag &= ~1;
+    ResetFlag(1);
 }
 
 // Frees the MRAM the slot allocated for a read that failed / was cancelled.
 void cDvdQueue::ErrMemFree()
 {
-    if (chk(0x6)) {
+    if (CkFlag(0x6)) {
         void* p = pBuff;
         if (p) {
-            if (chk(0x2)) {
+            if (CkFlag(0x2)) {
                 MemFree(p);
             } else {
                 Debug_free(p);
@@ -1008,7 +1008,7 @@ int cDvdQueue::fileGetLength()
 int cDvdQueue::fileReadAsync(void* addr, u32 size, u32 offset)
 {
     m_Info.cb.userData = this;
-    m_be_flag |= 0x02000000;
+    SetFlag(0x02000000);
     return DVDReadAsyncPrio(&m_Info, addr, ALIGN32(size), offset, dvdread_callback, 2);
 }
 
@@ -1029,8 +1029,8 @@ int cDvdQueue::fileClose()
 int cAram::DmaTransReq(int type, u32 src, u32 dst, u32 len, int mode)
 {
     int no;
-    AramReq* r;
-    AramReq* p;
+    cAramQueue* r;
+    cAramQueue* p;
 
     r = pullAramQueue(&no);
     if (r == 0) {
@@ -1058,16 +1058,16 @@ int cAram::DmaTransReq(int type, u32 src, u32 dst, u32 len, int mode)
 }
 
 // A free ARAM request slot (marked in use) and its index.
-AramReq* cAram::pullAramQueue(int* id)
+cAramQueue* cAram::pullAramQueue(int* id)
 {
     int i;
-    AramReq* r;
+    cAramQueue* r;
 
     for (i = 0; i < 16; i++) {
         if (AramQueue[i].be_flag == 0) {
             r = &AramQueue[i];
-            memclr_asm(r, sizeof(AramReq));
-            r->be_flag |= 1;
+            memclr_asm(r, sizeof(cAramQueue));
+            r->SetFlag(1);
             *id = i;
             return r;
         }
@@ -1078,31 +1078,31 @@ AramReq* cAram::pullAramQueue(int* id)
 // ARQ callback: marks the request done and frees the current pointer.
 void aram_cb(u32 arq_req)
 {
-    AramReq* r = (AramReq*) ((ARQRequest*) arq_req)->owner;
+    cAramQueue* r = (cAramQueue*) ((ARQRequest*) arq_req)->owner;
 
-    r->be_flag |= 0x04000000;
+    r->SetFlag(0x04000000);
     Aram.pCur_queue = 0;
 }
 
 // Posts the request to the ARQ; with wait spins until done and frees the slot.
-void cAram::DmaTrans(AramReq* pQueue, int mode)
+void cAram::DmaTrans(cAramQueue* pQueue, int mode)
 {
     pQueue->len = ALIGN32(pQueue->len);
     DCFlushRange((void*) (pQueue->type == 0 ? pQueue->src : pQueue->dst), pQueue->len);
     ARQPostRequest(&ArqReq, (u32) pQueue, pQueue->type, 1, pQueue->src, pQueue->dst, pQueue->len, aram_cb);
     if (mode & 1) {
-        while (pQueue->chk(0x04000000) == 0) {}
-        pQueue->be_flag = 0;
+        while (pQueue->CkFlag(0x04000000) == 0) {}
+        pQueue->clear();
     }
 }
 
 // 1 when request `no` finished (the slot is freed).
 int cAram::TransCheck(int id)
 {
-    AramReq* r = &AramQueue[id];
+    cAramQueue* r = &AramQueue[id];
 
-    if (r->be_flag == 0 || r->chk(0x04000000) == 1) {
-        r->be_flag = 0;
+    if (r->be_flag == 0 || r->CkFlag(0x04000000) == 1) {
+        r->clear();
         return 1;
     }
     return 0;
@@ -1111,7 +1111,7 @@ int cAram::TransCheck(int id)
 // Removes pending request `no` from the list (the running one cannot be cancelled: 1).
 int cAram::DmaCancel(int id)
 {
-    AramReq* p;
+    cAramQueue* p;
     int ret = 0;
 
     if (pCur_queue == &AramQueue[id]) {
@@ -1145,7 +1145,7 @@ void cAram::DmaCancelAll()
         }
     }
     while (pQueue_list) {
-        pQueue_list->be_flag = 0;
+        pQueue_list->clear();
         pQueue_list = pQueue_list->next;
     }
     ARQFlushQueue();
@@ -1200,13 +1200,13 @@ void cDvd::ReadProc()
     q->tick = OSGetTick();
     readProcMain(q);
     pCur_queue = 0;
-    sync = q->chk(0x40000000);
-    intr = q->chk(0x100);
+    sync = q->CkFlag(0x40000000);
+    intr = q->CkFlag(0x100);
     OSReport(" %d\n", OSTicksToMilliseconds(OSGetTick() - q->tick));
-    if (q->chk(0x20000000) == 1) {
+    if (q->CkFlag(0x20000000) == 1) {
         q->PushQueue();
     } else {
-        q->m_be_flag |= 0x800;
+        q->SetFlag(0x800);
     }
     if (sync == 0) {
         if (intr == 1) {
@@ -1221,8 +1221,8 @@ void cDvd::ReadProc()
 void cDvd::readProcMain(cDvdQueue* pQueue)
 {
     while (pQueue->Read() == 1) {
-        if (!pQueue->chk(0x40000000)) {
-            if (!pQueue->chk(0x100)) {
+        if (!pQueue->CkFlag(0x40000000)) {
+            if (!pQueue->CkFlag(0x100)) {
                 TaskSleep(1);
             }
         } else {
@@ -1241,24 +1241,24 @@ void cDvd::ReadNblk2Blk(int id)
     if (q == 0) {
         return;
     }
-    switch (q->getStatus()) {
+    switch (q->GetQueueStatus()) {
     case ST_READ:
-        q->m_be_flag |= 0x40000000;
-        if (q->chk(0x100) == 1) {
+        q->SetFlag(0x40000000);
+        if (q->CkFlag(0x100) == 1) {
             iTaskKill();
         } else {
             TaskKill(3);
         }
         readProcMain(q);
-        q->m_be_flag |= 0x800;
+        q->SetFlag(0x800);
         pCur_queue = 0;
         OSReport(" %d\n", OSTicksToMilliseconds(OSGetTick() - q->tick));
         break;
     case ST_PUSH:
-        q->m_be_flag |= 0x40000000;
+        q->SetFlag(0x40000000);
         if (q == pCur_queue) {
             pCur_queue = 0;
-            if (q->chk(0x100) == 1) {
+            if (q->CkFlag(0x100) == 1) {
                 iTaskKill();
             } else {
                 TaskKill(3);
@@ -1315,7 +1315,7 @@ int cDvd::ReadReq()
         return -2;
     }
     q->Initialize();
-    if (q->chk(0x40000000) == 1) {
+    if (q->CkFlag(0x40000000) == 1) {
         no = q->m_Id;
         blockRead(q);
         return no;
@@ -1330,7 +1330,7 @@ void cDvd::blockRead(cDvdQueue* pQueue)
     cDvdQueue* save = 0;
 
     if (pCur_queue) {
-        while (pCur_queue->chk(0x20) == 1) {
+        while (pCur_queue->CkFlag(0x20) == 1) {
             pCur_queue->Read();
         }
         save = pCur_queue;
@@ -1352,7 +1352,7 @@ void cDvd::Watcher()
 {
     if (pCur_queue == 0 && pQueue_list) {
         bool ok;
-        if (pQueue_list->chk(0x100) == 1) {
+        if (pQueue_list->CkFlag(0x100) == 1) {
             ok = iTaskExec(DvdReadProc);
         } else {
             ok = TaskExec(3, DvdReadProc, 0);
@@ -1363,7 +1363,7 @@ void cDvd::Watcher()
         }
     }
     if (Aram.pCur_queue == 0 && Aram.pQueue_list) {
-        AramReq* r = Aram.pQueue_list;
+        cAramQueue* r = Aram.pQueue_list;
         Aram.pCur_queue = r;
         Aram.pQueue_list = r->next;
         Aram.DmaTrans(r, 0);
@@ -1378,7 +1378,7 @@ void readcancel_cb(s32 result, DVDCommandBlock* block)
 {
     cDvdQueue* q = (cDvdQueue*) block->userData;
 
-    q->m_be_flag |= 0x100000;
+    q->SetFlag(0x100000);
 }
 
 // Cancels request `no`: pending ones are dropped, the running one gets DVDCancelAsync and waits
@@ -1393,11 +1393,11 @@ int cDvd::ReadCancel(int id, int mode)
     q = getQueuePtr(id);
     if (q == 0) {
         ret = -2;
-    } else if ((q->m_be_flag & 0x70000) == 0) {
+    } else if (q->GetQueueStatus() == 0) {
         if (q == pCur_queue) {
-            q->m_be_flag |= 0x100000;
+            q->SetFlag(0x100000);
             if (mode == 0x40) {
-                q->m_be_flag |= 0x20000000;
+                q->SetFlag(0x20000000);
             }
             q->m_Rno0 = 3;
             n = q->m_Name;
@@ -1413,16 +1413,16 @@ int cDvd::ReadCancel(int id, int mode)
             if (mode == 0x40) {
                 q->PushQueue();
             } else {
-                q->setStatus(ST_CANCEL);
+                q->SetQueueStatus(ST_CANCEL);
             }
         }
         OSReport("DVD: Read Cancel: %s\n", n);
         ret = 0;
-    } else if (q->getStatus() == ST_READ) {
+    } else if (q->GetQueueStatus() == ST_READ) {
         q->m_Info.cb.userData = q;
         DVDCancelAsync(&q->m_Info.cb, readcancel_cb);
         if (mode == 0x40) {
-            q->m_be_flag |= 0x20000000;
+            q->SetFlag(0x20000000);
         }
         q->m_Rno0 = 2;
     } else {
@@ -1436,7 +1436,7 @@ void cDvd::ReadCancelAll()
 {
     if (pCur_queue) {
         DVDCancelAll();
-        if (pCur_queue->chk(0x100) == 1) {
+        if (pCur_queue->CkFlag(0x100) == 1) {
             iTaskKill();
         } else {
             TaskKill(3);
@@ -1456,9 +1456,9 @@ cDvdQueue* cDvd::pullReadQueue()
 
     for (i = 0; i < 16; i++) {
         q = &DvdQueue[i];
-        if (q->chk(1) == 0) {
+        if (q->EmptyCk()) {
             memclr_asm(q, sizeof(cDvdQueue));
-            q->m_be_flag |= 1;
+            q->SetFlag(1);
             q->m_Id = ReadID++;
             if (ReadID == 0) {
                 ReadID = 1;
@@ -1504,11 +1504,11 @@ int cDvd::readCheckMain(int id, DvdReadInfo* pInfo)
     if (id >= 0) {
         q = getQueuePtr(id);
         if (q != 0) {
-            switch (q->getStatus()) {
+            switch (q->GetQueueStatus()) {
             case ST_READ:
                 break;
             case ST_COMPLETE:
-                if (q->chk(0x800) == 1) {
+                if (q->CkFlag(0x800) == 1) {
                     if (pInfo) {
                         memcpy(pInfo->addr, q->addrTbl, sizeof(pInfo->addr));
                         memcpy(pInfo->size, q->sizeTbl, sizeof(pInfo->size));
@@ -1520,14 +1520,14 @@ int cDvd::readCheckMain(int id, DvdReadInfo* pInfo)
                 }
                 break;
             case ST_CANCEL:
-                if (q->chk(0x800) == 1) {
+                if (q->CkFlag(0x800) == 1) {
                     ret = -4;
                     q->ErrMemFree();
                     q->PushQueue();
                 }
                 break;
             case ST_ERROR:
-                if (q->chk(0x800) == 1) {
+                if (q->CkFlag(0x800) == 1) {
                     ret = q->m_ResultCode;
                     q->ErrMemFree();
                     q->PushQueue();
@@ -2013,8 +2013,8 @@ void cDvd::queueStatusDisp()
     for (i = 0; i < 16; y += 0x10, i++) {
         eprintf(0x20, y, 0, 0x15, "[%2d]", i);
         p = &Dvd.DvdQueue[i];
-        if (Dvd.DvdQueue[i].chk(1) == 1) {
-            eprintf(0x48, y, 0, 0x15, "%s %s", queue_stat[Dvd.DvdQueue[i].getStatus()], p->m_Name);
+        if (Dvd.DvdQueue[i].CkFlag(1) == 1) {
+            eprintf(0x48, y, 0, 0x15, "%s %s", queue_stat[Dvd.DvdQueue[i].GetQueueStatus()], p->m_Name);
         }
     }
     y += 0x10;

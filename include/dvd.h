@@ -107,12 +107,15 @@ public:
     int reqline;            // 0x308
     u32 tick;       // 0x30C
 
-    int chk(u32 bit) { return (m_be_flag & bit) ? 1 : 0; }
-    void setStatus(int s) {
+    int GetQueueStatus() { return (m_be_flag >> 16) & 7; }
+    void SetQueueStatus(int s) {
         m_be_flag &= ~0x70000;
         m_be_flag |= s << 16;
     }
-    int getStatus() { return (m_be_flag >> 16) & 7; }
+    int CkFlag(u32 bit) { return (m_be_flag & bit) ? 1 : 0; }
+    void SetFlag(u32 bit) { m_be_flag |= bit; }
+    void ResetFlag(u32 bit) { m_be_flag &= ~bit; }
+    int EmptyCk() { return !CkFlag(1); }
     char* getName() { return m_Name; }
 
     void trans2mram(void* buf, u32 addr, u32 size);
@@ -133,29 +136,30 @@ public:
 };
 
 // One ARAM DMA request (16 in cAram, 0x18 bytes).
-struct AramReq {
+struct cAramQueue {
     volatile u32 be_flag;  // 0x00  bit0 in use, 0x04000000 done
     u32 type;           // 0x04  ARQ_TYPE_MRAM_TO_ARAM / ARAM_TO_MRAM
     u32 src;            // 0x08
     u32 dst;            // 0x0C
     u32 len;            // 0x10
-    AramReq* next;      // 0x14
+    cAramQueue* next;      // 0x14
 
-    int chk(u32 bit) { return (be_flag & bit) ? 1 : 0; }
+    void SetFlag(u32 bit) { be_flag |= bit; }
+    int CkFlag(u32 bit) { return (be_flag & bit) ? 1 : 0; }
     void clear() { be_flag = 0; }
 };
 
 // ARAM DMA queue (`Aram`, 0x1A8 bytes).
 class cAram {
 public:
-    AramReq* pCur_queue;       // 0x00
-    AramReq* pQueue_list;      // 0x04
+    cAramQueue* pCur_queue;       // 0x00
+    cAramQueue* pQueue_list;      // 0x04
     ARQRequest ArqReq;      // 0x08
-    AramReq AramQueue[16];   // 0x28
+    cAramQueue AramQueue[16];   // 0x28
 
     int DmaTransReq(int type, u32 src, u32 dst, u32 len, int mode);
-    AramReq* pullAramQueue(int* id);
-    void DmaTrans(AramReq* req, int mode);
+    cAramQueue* pullAramQueue(int* id);
+    void DmaTrans(cAramQueue* req, int mode);
     int TransCheck(int id);
     int DmaCancel(int id);
     void DmaCancelAll();
