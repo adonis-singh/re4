@@ -276,6 +276,7 @@ public:
     int Run();
     void EspSetModelPtr(cModel* pMod);
     int EspToolSetDat();
+    int DelMod(char* pName);
     void EspToolSetMod(int npMod, char* name);
     int GetModelPtrNo(int* pNoWork, cModel** pPtr, char* name);
     int RunTool(int mode, int subFrame);
@@ -456,6 +457,8 @@ public:
     int init();
     int myRoomInit();           // room start (game gameRoomInit, after arrayAlloc(2))
     int DelAll();
+    int end();
+    int DelFunc(char* pName);
     int SetEvs(void* evs);      // room "EVS" data (game gameRoomInit)
     int Run();
     int IsAliveEvt(u32* pName, Event** ppEvt, int aliveEvtType);

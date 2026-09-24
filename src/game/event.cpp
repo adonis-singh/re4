@@ -2067,10 +2067,10 @@ int Event::GetMod(void** mod, char* nm, u8* type, int* wkNo)
     return 1;
 }
 
-// Never called (only its string survives in .rodata).
-static inline int EventDelMod(Event* evt, char* nm)
+// Never called (its linked copy was stripped, only the string survives in .rodata).
+int Event::DelMod(char* pName)
 {
-    if (evt->ModTbl.DelDat(nm) == 0) {
+    if (ModTbl.DelDat(pName) == 0) {
         pLog->err(0, 0, "Event::DelMod : failed");
         return 0;
     }
@@ -2130,10 +2130,10 @@ int EventMgr::myRoomInit()
     return 1;
 }
 
-// Never called (only its string survives in .rodata).
-static inline int EventMgrEnd(EventMgr* mgr)
+// Never called (its linked copy was stripped, only the string survives in .rodata).
+int EventMgr::end()
 {
-    if (mgr->EvdTbl.end() == 0 || mgr->BinTbl.end() == 0 || mgr->FuncTbl.end() == 0 || mgr->ReadTbl.end() == 0) {
+    if (EvdTbl.end() == 0 || BinTbl.end() == 0 || FuncTbl.end() == 0 || ReadTbl.end() == 0) {
         pLog->err(0, 0, "EventMgr::end : failed");
         return 0;
     }
@@ -2829,10 +2829,10 @@ int EventMgr::SetFunc(char* nm, void* func)
     return 1;
 }
 
-// Never called (only its string survives in .rodata).
-static inline int EventMgrDelFunc(EventMgr* mgr, char* nm)
+// Never called (its linked copy was stripped, only the string survives in .rodata).
+int EventMgr::DelFunc(char* pName)
 {
-    if (mgr->FuncTbl.DelDat(nm) == 0) {
+    if (FuncTbl.DelDat(pName) == 0) {
         pLog->err(0, 0, "EventMgr::DelFunc : failed");
         return 0;
     }
