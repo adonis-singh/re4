@@ -271,7 +271,7 @@ void tBlockInit()
         }
     }
     TaskSleep(2);
-    DC.dbgHeap = 1;
+    DC.setUseDebugMemFlag(1);
     Block.noMemCtrl = 1;
     if (Block.debugData == 1) {
         Debug_free(Block.pData);
@@ -339,7 +339,7 @@ static void tBlockExit()
         memcpy(buf, &pW->file, pW->fileSize);
         Block.pUnit = (cBlockUnit*) Debug_alloc(pW->file.hdr.nBlock << 4, 0);
         Block.roomInit(buf);
-        DC.dbgHeap = 0;
+        DC.setUseDebugMemFlag(0);
         Block.noMemCtrl = 0;
         file_unlock(pW->pathX);
         pG->Disp_flg = pW->saveDispFlag;

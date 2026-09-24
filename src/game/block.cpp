@@ -851,7 +851,7 @@ void cBlock::dispDebugInfo()
         eprintf(20, y, 4, 18, "%2d %9s %13s", i, cmdName[u->command], stateName[u->state]);
         y += 16;
         eprintf(20, y, 7, 18, "   %9s %12s %8X %8X %8X %X", dataCmdName[u->pData->getCommand()],
-                dataCondName[u->pData->getCondition()], u->pData->getAddr(), u->pData->getDest(), u->pData->getArg(),
+                dataCondName[u->pData->getCondition()], u->pData->getAddr(), u->pData->getDestAddr(), u->pData->getArgAddr(),
                 u->pData->getSize());
     }
 }

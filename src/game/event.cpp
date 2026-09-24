@@ -2375,10 +2375,10 @@ int EventMgr::EvtReadSub(char* pNameEvt, int loadType, int emId, int* pPtr, int 
     if (loadType == 0) {
         if (emId != 0) {
             if (fresh == 1) {
-                if (memSize > unit->m_size) {
+                if (memSize > unit->getSize()) {
                     size = memSize;
                 } else {
-                    size = unit->m_size;
+                    size = unit->getSize();
                 }
                 r = EmReadSearch(emId, 0, size);
                 if (pPtr != 0) {
@@ -2389,7 +2389,7 @@ int EventMgr::EvtReadSub(char* pNameEvt, int loadType, int emId, int* pPtr, int 
             if (unit->waitLoadOk() == 0) {
                 unit->setCommand(CMND_CLEAR_DATA, 0, 0);
                 DelRead(pNameEvt);
-                pLog->err(0, 0, "readEvent() : out of memory (0x%x)[%s]", unit->m_size, pNameEvt);
+                pLog->err(0, 0, "readEvent() : out of memory (0x%x)[%s]", unit->getSize(), pNameEvt);
                 return 0;
             }
             EspEmDataSwapPush(emId);
@@ -2399,12 +2399,12 @@ int EventMgr::EvtReadSub(char* pNameEvt, int loadType, int emId, int* pPtr, int 
                 pLog->err(0, 0, "EventMgr::EvtRead : no id SearchEmModule [%x]", emId);
                 return 0;
             }
-            if (unit->m_size > mod->size) {
+            if (unit->getSize() > mod->size) {
                 DelRead(pNameEvt);
-                pLog->err(0, 0, "EventMgr::EvtRead : event size too large!![%d]>[%d]", unit->m_size, mod->size);
+                pLog->err(0, 0, "EventMgr::EvtRead : event size too large!![%d]>[%d]", unit->getSize(), mod->size);
                 return 0;
             }
-            MemorySwap(mod->pArc, (u32) unit->m_addr, unit->m_size);
+            MemorySwap(mod->pArc, (u32) unit->getAddr(), unit->getSize());
             ReadWkTbl[no].swapped = 1;
             r = mod->pArc;
             if (pPtr != 0) {
@@ -2415,20 +2415,20 @@ int EventMgr::EvtReadSub(char* pNameEvt, int loadType, int emId, int* pPtr, int 
             if (unit->waitUseOk() == 0) {
                 unit->setCommand(CMND_CLEAR_DATA, 0, 0);
                 DelRead(pNameEvt);
-                pLog->err(0, 0, "readEvent() : out of memory (0x%x)[%s]", unit->m_size, pNameEvt);
+                pLog->err(0, 0, "readEvent() : out of memory (0x%x)[%s]", unit->getSize(), pNameEvt);
                 return 0;
             }
-            addr = unit->m_addr;
+            addr = unit->getAddr();
             if (pPtr != 0) {
                 *pPtr = (int) addr;
             }
         }
     } else {
         if (emId != 0) {
-            if (memSize > unit->m_size) {
+            if (memSize > unit->getSize()) {
                 size = memSize;
             } else {
-                size = unit->m_size;
+                size = unit->getSize();
             }
             r = EmReadSearch(emId, 0, size);
             if (pPtr != 0) {
@@ -2544,11 +2544,11 @@ int EventMgr::EvtFree(char* pNameEvt)
     em = ReadWkTbl[no].em;
     if (unit != 0) {
         if (unit->waitLoadOk() == 0) {
-            pLog->err(0, 0, "EvtFree() : out of memory (0x%x)[%s]", unit->m_size, pNameEvt);
+            pLog->err(0, 0, "EvtFree() : out of memory (0x%x)[%s]", unit->getSize(), pNameEvt);
         }
         if (em != 0 && ReadWkTbl[no].swapped == 1) {
             mod = SearchEmModule(em);
-            MemorySwap(mod->pArc, (u32) unit->m_addr, unit->m_size);
+            MemorySwap(mod->pArc, (u32) unit->getAddr(), unit->getSize());
             ReadWkTbl[no].swapped = 0;
             EspEmDataSwapPop(em);
         }

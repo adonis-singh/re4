@@ -364,7 +364,7 @@ void gameRoomInit()
     int n;
     void* p;
 
-    DC.m_nblock_read_stop = 1;
+    DC.setNBlkStop(1);
     SndReadAddrInit();
     gameRoomMemInit();
     if (pG->shooting_mode != 0) {
@@ -561,7 +561,7 @@ void gameRoomInit()
     fadeSetG(0x80000000, 20, 0, 0);
     SubScreenWait(15);
     SysFlagOff(pG, SYS_TRANS_STOP);
-    DC.m_nblock_read_stop = 0;
+    DC.setNBlkStop(0);
     pG->Rno0 = 3;
     pG->SaveKind = 0;
 }
