@@ -63,7 +63,9 @@ public:
 class Message {
 public:
     u32 stop_bak;       // 0x00  pG->flags_170 saved while the message stops the game
+private:
     u32 be_flag;          // 0x04  bit 0 = active, bit 1 = first frame
+public:
     u8 r_no_0;              // 0x08  code01 step
     u8 r_no_1;
     u8 r_no_2;
@@ -100,7 +102,9 @@ public:
     u16 m_char_gap;      // 0x78
     u16 x7A;
     u32 m_col;          // 0x7C
+private:
     u32 m_attr;           // 0x80
+public:
     s16 m_spd;          // 0x84
     s16 m_spd_cnt;       // 0x86
     s16 m_spd_old;      // 0x88
@@ -131,8 +135,10 @@ public:
 
     virtual ~Message() {}
 
-    int chkFlag(u32 b) { return (be_flag & b) ? 1 : 0; }
-    void clrActive() { be_flag &= ~1; }
+    int isAlive() { return be_flag & 1; }
+    void setBorn() { be_flag |= 3; }
+    void setDie() { be_flag &= ~1; }
+    u32 attrCk(u32 attr) { return m_attr & attr; }
     void init(int no, int px, int py, u32 attr, int col, MessageFont* font);
     void move();
     void WidthCk();

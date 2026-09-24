@@ -550,7 +550,7 @@ void MessageControl::Move()
     int act = 0;
     int i;
 
-    if (m->be_flag & 1) {
+    if (m->isAlive()) {
         act = 1;
     }
     if (act) {
@@ -558,7 +558,7 @@ void MessageControl::Move()
     } else {
         for (i = 0; i < 16; i++, p++) {
             int a = 0;
-            if (p->be_flag & 1) {
+            if (p->isAlive()) {
                 a = 1;
             }
             if (a) {
@@ -581,7 +581,7 @@ void MessageControl::Trans()
     }
     m = &m_Msg[15];
     act = 0;
-    if (m->be_flag & 1) {
+    if (m->isAlive()) {
         act = 1;
     }
     if (act) {
@@ -589,7 +589,7 @@ void MessageControl::Trans()
     } else {
         for (i = 0; i < 16; i++, p++) {
             int a = 0;
-            if (p->be_flag & 1) {
+            if (p->isAlive()) {
                 a = 1;
             }
             if (a) {
@@ -666,7 +666,7 @@ void MessageControl::Delete(int no)
     if (no > 15) {
         return;
     }
-    MES(no)->clrActive();
+    MES(no)->setDie();
     m_Msg[no].m_state &= ~1;
 }
 
@@ -687,7 +687,7 @@ void Message::init(int no, int px, int py, u32 attr, int col, MessageFont* pFont
     int i;
 
     m_pFont = pFont;
-    be_flag |= 3;
+    setBorn();
     m_state = (m_state & ~2) | 1;
     r_no_3 = 0;
     r_no_2 = 0;
@@ -748,7 +748,7 @@ void Message::move()
     int ret;
     int code;
 
-    if (!(be_flag & 2) && (m_attr & 0x80)) {
+    if (!(be_flag & 2) && attrCk(0x80)) {
         be_flag &= ~1;
         m_state &= ~1;
     }
@@ -767,7 +767,7 @@ void Message::move()
                 pLog->err(0, 0, "Message [%d]: Overflow!", 0);
                 return;
             }
-            if (!(m_attr & 0xC0) && m_spd_flag == 0) {
+            if (!attrCk(0xC0) && m_spd_flag == 0) {
                 if (m_spd_cnt++ < m_spd) {
                     return;
                 }
@@ -1117,7 +1117,7 @@ void Message::trans()
     MesQue* q;
 
     for (q = qbase; q < qp; q++) {
-        if (m_attr & 0x20) {
+        if (attrCk(0x20)) {
             AddOtDirect(m_ot_type, q, (void (*)()) messageTrans, m_ot_no, 0x1000, NULL, 0.0f);
         } else {
             messageTrans(q);
@@ -1219,10 +1219,10 @@ int Message::code01()
         break;
     case 1:
         m_state |= 2;
-        if (!(m_attr & 0x01000000)) {
+        if (!attrCk(0x01000000)) {
             m_state &= ~1;
-            be_flag &= ~1;
-            if (!(m_attr & 0x10)) {
+            setDie();
+            if (!attrCk(0x10)) {
                 pG->Stop_flg = stop_bak;
             }
         }
@@ -1274,7 +1274,7 @@ int Message::code03()
 // Code 04 (new page): restarts the page (code00); ignored in no-wait mode.
 int Message::code04()
 {
-    if (m_attr & 0x80) {
+    if (attrCk(0x80)) {
         return 0;
     }
     m_pMes++;
@@ -1285,7 +1285,7 @@ int Message::code04()
 // Code 05 (speed): frames per glyph = arg.
 int Message::code05()
 {
-    if (m_attr & 0x80) {
+    if (attrCk(0x80)) {
         return 0;
     }
     m_pMes++;
@@ -1321,11 +1321,11 @@ int Message::code08()
 {
     int ret = 2;
 
-    if (m_attr & 0x02000000) {
+    if (attrCk(0x02000000)) {
         return 0;
     }
     if (m_btn == 0) {
-        if (m_attr & 0x00400000) {
+        if (attrCk(0x00400000)) {
             m_cur = m_selTbl_size - 1;
             putSelCursol();
         }
@@ -1341,33 +1341,33 @@ int Message::code08()
             ret = 0;
             m_sel = m_cur + 1;
             if (m_sel == 1) {
-                if (m_attr & 0x100) {
+                if (attrCk(0x100)) {
                     SndCall(0, 0xF, NULL, 0, 0, NULL);
                 }
-                if (m_attr & 0x200) {
+                if (attrCk(0x200)) {
                     SndCall(0, 0x11, NULL, 0, 0, NULL);
                 }
-                if (m_attr & 0x400) {
+                if (attrCk(0x400)) {
                     SndCall(0, 0x13, NULL, 0, 0, NULL);
                 }
             } else if (m_sel == 3) {
-                if (m_attr & 0x400) {
+                if (attrCk(0x400)) {
                     SndCall(0, 0x12, NULL, 0, 0, NULL);
                 }
             }
         } else if (Key.trg & 0x40000000) {
-            if (m_attr & 0x00100000) {
-                if (m_attr & 0x00200000) {
+            if (attrCk(0x00100000)) {
+                if (attrCk(0x00200000)) {
                     m_sel = m_selTbl_size;
                     ret = 0;
                 } else {
                     m_sel = -1;
                     ret = 0;
                 }
-            } else if (m_attr & 0x00200000) {
+            } else if (attrCk(0x00200000)) {
                 m_cur = m_selTbl_size - 1;
             }
-        } else if (m_attr & 0x00800000) {
+        } else if (attrCk(0x00800000)) {
             s8 old = m_cur;
             if (Key.trg & 0x01000000) {
                 m_cur--;
@@ -1381,11 +1381,11 @@ int Message::code08()
                 }
             }
             if (old != m_cur) {
-                if (m_attr & 0x100) {
+                if (attrCk(0x100)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x200) {
+                } else if (attrCk(0x200)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x400) {
+                } else if (attrCk(0x400)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
                 } else {
                     SndCall(0, 0xA, NULL, 0, 0, NULL);
@@ -1405,11 +1405,11 @@ int Message::code08()
                 }
             }
             if (old != m_cur) {
-                if (m_attr & 0x100) {
+                if (attrCk(0x100)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x200) {
+                } else if (attrCk(0x200)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x400) {
+                } else if (attrCk(0x400)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
                 } else {
                     SndCall(0, 0xA, NULL, 0, 0, NULL);
@@ -1432,7 +1432,7 @@ int Message::code09()
 {
     int ret = 2;
 
-    if (m_attr & 0x80) {
+    if (attrCk(0x80)) {
         return 0;
     }
     if (m_wait_cnt == 0) {
@@ -1468,7 +1468,7 @@ int Message::code0a()
         d = 0;
     }
     if (MesData.lang == 0) {
-        if (m_attr & 0x10000000) {
+        if (attrCk(0x10000000)) {
             code = d + 0xE;
         } else {
             code = d + 3;
@@ -1491,7 +1491,7 @@ int Message::code0a()
     if (digit == 0) {
         m_number = numberSave;
         digit = digitSave;
-        if (m_attr & 0x10000000) {
+        if (attrCk(0x10000000)) {
             if (MesData.lang == 0) {
                 code = 0xD;
             } else {
