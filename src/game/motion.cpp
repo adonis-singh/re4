@@ -521,10 +521,7 @@ u32 MotionMove(cModel* pEm, CAMERA* pCamera)
                     PSVECAdd(&p->motParts.rot, &rotScl, &rotAdd);
                     p->pos = posAdd;
                     p->ang = rotAdd;
-                    RotMatrix(p->l_mat, &p->ang);
-                    TransMatrix(p->l_mat, &p->pos);
-                    ScaleMatrix(p->l_mat, &p->scale);
-                    PSMTXCopy(p->l_mat, p->mat);
+                    p->matCalc();
                 }
             }
             if (new_add) {

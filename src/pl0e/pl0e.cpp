@@ -580,10 +580,7 @@ void pl0eBoatControl(cPl0e* em)
     PSMTXMultVec(em->mat, &w->ofsF0, &v);
     PSVECAdd(&em->pos, &v, &em->pos);
     TransMatrix(m, &em->pos);
-    RotMatrix(em->l_mat, &em->ang);
-    TransMatrix(em->l_mat, &em->pos);
-    ScaleMatrix(em->l_mat, &em->scale);
-    PSMTXCopy(em->l_mat, em->mat);
+    em->matCalc();
     pl0eScrAdjust(em);
     pl0eGetBoatDir(em);
     pl0eBoatRoll(em);

@@ -726,10 +726,7 @@ static void em2a_R1_Trap1R100(cEm2a* em)
 // R1 == 6 Trap2Set: the armed tripwire bomb: only rebuilds the model matrix each frame.
 static void em2a_R1_Trap2Set(cEm2a* em)
 {
-    RotMatrix(em->l_mat, &em->ang);
-    TransMatrix(em->l_mat, &em->pos);
-    ScaleMatrix(em->l_mat, &em->scale);
-    PSMTXCopy(em->l_mat, em->mat);
+    em->matCalc();
     em->partsMatCalc();
 }
 
@@ -749,10 +746,7 @@ static void em2a_R1_Trap2Bomb(cEm2a* em)
             em2aTrap2Bomb(em);
             em->r_no_2++;
         }
-        RotMatrix(em->l_mat, &em->ang);
-        TransMatrix(em->l_mat, &em->pos);
-        ScaleMatrix(em->l_mat, &em->scale);
-        PSMTXCopy(em->l_mat, em->mat);
+        em->matCalc();
         em->partsMatCalc();
         break;
     }

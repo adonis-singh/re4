@@ -424,10 +424,7 @@ void CameraScope::move()
     PSVECAdd(&pos_ofs, &dir, &ofs);
     {
         cModel* pl = pPL; // held in r30 across the four calls, `&pl->worldMat` in r29
-        RotMatrix(pl->l_mat, &pl->ang);
-        TransMatrix(pl->l_mat, &pl->pos);
-        ScaleMatrix(pl->l_mat, &pl->scale);
-        PSMTXCopy(pl->l_mat, pl->mat);
+        pl->matCalc();
     }
     PSMTXMultVec(pPL->mat, &pos_ofs, &param.pos);
     PSMTXMultVec(pPL->mat, &ofs, &param.at);

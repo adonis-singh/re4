@@ -137,10 +137,7 @@ void obj14_R1_Break(cObjBell* pObj)
 // Rebuilds the bell matrix and parts (when no motion drives them).
 void obj14MatCalc(cObjBell* pObj)
 {
-    RotMatrix(pObj->l_mat, &pObj->ang);
-    TransMatrix(pObj->l_mat, &pObj->pos);
-    ScaleMatrix(pObj->l_mat, &pObj->scale);
-    PSMTXCopy(pObj->l_mat, pObj->mat);
+    pObj->matCalc();
     if (pObj->Motion.pMot == 0) {
         pObj->partsMatCalc();
     }

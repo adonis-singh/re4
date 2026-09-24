@@ -872,10 +872,7 @@ void obj16MatCalc(cObj16* obj)
         PSMTXConcat(p->mat, obj->mat, obj->mat);
         obj->Motion.Mot_flag |= 0x40000000;
     } else {
-        RotMatrix(obj->l_mat, &obj->ang);
-        TransMatrix(obj->l_mat, &obj->pos);
-        ScaleMatrix(obj->l_mat, &obj->scale);
-        PSMTXCopy(obj->l_mat, obj->mat);
+        obj->matCalc();
     }
     if (obj->Motion.pMot == 0) {
         obj->partsMatCalc();

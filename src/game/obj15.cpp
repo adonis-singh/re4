@@ -309,10 +309,7 @@ void obj15MatCalc(cObjGatling* pObj)
     if (w->pTarget == 0) {
         w->pTarget = pPL;
     }
-    RotMatrix(pObj->l_mat, &pObj->ang);
-    TransMatrix(pObj->l_mat, &pObj->pos);
-    ScaleMatrix(pObj->l_mat, &pObj->scale);
-    PSMTXCopy(pObj->l_mat, pObj->mat);
+    pObj->matCalc();
     if (pObj->Motion.pMot == 0) {
         pObj->partsMatCalc();
     }

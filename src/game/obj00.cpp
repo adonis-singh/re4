@@ -34,10 +34,7 @@ void cObj00::move()
     if (Motion.pMot) {
         MotionMove(this, 0);
     } else if (!(w->be_flag & 0x16)) {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
     }
     if (w->pEm_oya) {
         if (!w->pEm_oya->isAlive()) {

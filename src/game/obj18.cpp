@@ -285,10 +285,7 @@ void cObj18::move()
         MotionMove(this, 0);
         partsWorldCalc();
     } else {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
     }
     if (w->pEm_oya) {
         if (!w->pEm_oya->isAlive()) {

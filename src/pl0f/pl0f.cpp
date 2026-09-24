@@ -3548,10 +3548,7 @@ void pl0fSwimPosSet(cPlayer* pl)
     pl->ang.y = GetXZAngle(&pl->pos, &boat->pos);
     RotMatrix(pl->mat, &pl->ang);
     TransMatrix(pl->mat, &pl->pos);
-    RotMatrix(pl->l_mat, &pl->ang);
-    TransMatrix(pl->l_mat, &pl->pos);
-    ScaleMatrix(pl->l_mat, &pl->scale);
-    PSMTXCopy(pl->l_mat, pl->mat);
+    pl->matCalc();
     EffectEspDelete(0, ESP_CORE_KIND_BOAT, boat, 0);
     EffectEspgenDelete(0, ESP_CORE_KIND_BOAT, boat);
     EffectEfmDelete(0, ESP_CORE_KIND_BOAT, boat);

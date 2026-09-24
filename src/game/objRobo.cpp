@@ -85,10 +85,7 @@ cObjRobo* SetObjRobo(void* bin, void* tpl, Vec* pos, Vec* rot)
         obj->ang.y = 0.0f;
         obj->ang.z = 0.0f;
     }
-    RotMatrix(obj->l_mat, &obj->ang);
-    TransMatrix(obj->l_mat, &obj->pos);
-    ScaleMatrix(obj->l_mat, &obj->scale);
-    PSMTXCopy(obj->l_mat, obj->mat);
+    obj->matCalc();
     obj->partsMatCalc();
     obj->partsWorldCalc();
     w->r_no_0 = 0;

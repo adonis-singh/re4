@@ -42,10 +42,7 @@ void cObj12::move()
         w->Motion_info = MotionMove(this, 0);
     }
     if (!(w->be_flag & 0x106)) {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
     }
     if (w->pEm_oya) {
         if (!w->pEm_oya->isAlive()) {

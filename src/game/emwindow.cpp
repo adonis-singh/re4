@@ -207,10 +207,7 @@ int cEmWindow::init(void* bin, void* tpl, Vec* pos_, Vec* rot_, int type_, u8 et
     if (rot_) {
         ang = *rot_;
     }
-    RotMatrix(l_mat, &ang);
-    TransMatrix(l_mat, &pos);
-    ScaleMatrix(l_mat, &scale);
-    PSMTXCopy(l_mat, mat);
+    matCalc();
     type = type_;
     if (WindowData[type_].field == 0) {
         SetEnableFence(0, 0);

@@ -591,10 +591,7 @@ void markGoalInit(SUB_SCREEN* wk)
         m->pGoal->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pGoal;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
+    mdl->matCalc();
     if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
@@ -735,10 +732,7 @@ void markMerchantInit(SUB_SCREEN* wk)
         m->pMerchant->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pMerchant;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
+    mdl->matCalc();
     if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
@@ -894,10 +888,7 @@ void markTreasureInit(SUB_SCREEN* wk)
         m->pTreasure->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pTreasure;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
+    mdl->matCalc();
     if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
@@ -1023,10 +1014,7 @@ void markCoinInit(SUB_SCREEN* wk)
         m->pCoin->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pCoin;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
+    mdl->matCalc();
     if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
@@ -1150,10 +1138,7 @@ void markSaveInit(SUB_SCREEN* wk)
         m->pSave->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pSave;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
+    mdl->matCalc();
     if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();

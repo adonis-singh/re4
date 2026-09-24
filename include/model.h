@@ -43,16 +43,16 @@ public:
         r_scale.z = 1.0f;
     }
     virtual ~cCoord() {}
-    // l_mat from ang / pos / scale.
+    // l_mat from ang / pos / scale, copied to mat.
     void matCalc() {
         RotMatrix(l_mat, &ang);
         TransMatrix(l_mat, &pos);
         ScaleMatrix(l_mat, &scale);
+        PSMTXCopy(l_mat, mat);
     }
-    // Rebuilds l_mat and mat; cModel overrides it to update the parts too.
+    // cModel overrides it to update the parts too.
     virtual void matUpdate() {
         matCalc();
-        PSMTXCopy(l_mat, mat);
     }
 };
 

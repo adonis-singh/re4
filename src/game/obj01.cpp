@@ -171,10 +171,7 @@ void cObj01::move00()
         invisible_factor = w->pEm->invisible_factor;
         invisible_factor2 = w->pEm->invisible_factor2;
     } else {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
         invisible_factor = 1.0f;
         invisible_factor2 = 1.0f;
     }
