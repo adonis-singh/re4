@@ -34,12 +34,7 @@ int EspgenDataSet(EspSeqData* head, int no, EspInfo* info, u32* seed, cModel* mo
     rec = (EspGenWork*) ((u32) head + list);
     if (info->Core_flg & 0x1000) {
         u32 no = rec->Parent_no;
-        list = (u32) EspEvModList;
-        if (no > 0x7F) {
-            model = NULL;
-        } else {
-            model = *(cModel**) (list + (no << 2));
-        }
+        model = EspEvModList.GetModelPtr(no);
     }
 
     switch (rec->Kind) {

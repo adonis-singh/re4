@@ -14,11 +14,6 @@
 //    (COMPILER-DIFF candidate #3: the original's gcse copies the strcpy argument pseudo right after
 //    the call for the loop's `&mname`; ours recomputes it at the block end and coalesces).
 //    `BitOn(EvtDebug.pModel[no].flags, ..)` for the `lwzu/stw 0(r9)` RMW pairs.
-//  - EspSetModelPtr: `u32 tbl = (u32) EspEvModList; *(cModel**) (tbl + (n << 2)) = m` -- an integer
-//    base and a shift index keep both address operands unflagged, so regclass gives the index a BASE
-//    register (`stwx r4,r11,r9`); `tbl[n]` on a pointer flags the base (index r0) and `n * 4` makes
-//    expand put the MULT first (`add idx,tbl`).
-//  - EvtSndStrStop/Play: evtStrNo/evtStrId helpers (u32 base of the member array) for the same reason.
 //  - IsExePacket: the middle `return 0` is a `goto ng` to the final `return 0` (jump2 otherwise
 //    cross-jumps it into the FIRST copy, COMPILER-DIFF 6 shape).
 //  - NameChange: no `dst` local; `nameBuf` used directly, so the return-block use is a gcse PRE copy of
@@ -91,16 +86,6 @@ static inline void EvtMesDeleteAll()
 static inline int EvtChk(u32 f, u32 mask)
 {
     return (f & mask) ? 1 : 0;
-}
-
-// Event model number -> model (EspEvModList slot, 0 when out of range).
-// The event model list entry when `no` is a valid index.
-static inline cModel* EspEvModGet(int no)
-{
-    if (no >= 0 && no < 0x80) {
-        return EspEvModList[no];
-    }
-    return 0;
 }
 
 // One Hermite curve of the fog / focus data (64 keys).
@@ -199,9 +184,7 @@ int Event::init(char* nm, EvtHeader* data)
         pLog->err(0, 0, "Event::init : memory failed");
         return 0;
     }
-    for (i = 0; i < 0x80; i++) {
-        EspEvModList[i] = 0;
-    }
+    EspEvModList.Clear();
     EndRNo0 = 0;
     EndRNo1 = 0;
     EndRNo2 = 0;
@@ -321,12 +304,7 @@ func:
 // Appends a model to EspEvModList (event model numbers used by effect records with Core_flg 0x1000).
 void Event::EspSetModelPtr(cModel* pMod)
 {
-    u32 tbl = (u32) EspEvModList;
-    int n = EmListNo;
-
-    if (n >= 0 && n < 0x80) {
-        *(cModel**) (tbl + (n << 2)) = pMod;
-    }
+    EspEvModList.SetModelPtr(EmListNo, pMod);
     EmListNo++;
 }
 
@@ -471,7 +449,7 @@ int Event::GetModelPtrNo(int* pNoWork, cModel** pPtr, char* pNameMod)
         return 0;
     }
     for (i = 0; i < EmListNo; i++) {
-        if (m == EspEvModGet(i)) {
+        if (m == EspEvModList.GetModelPtr(i)) {
             *pPtr = m;
             *pNoWork = i;
             return 1;
@@ -2951,12 +2929,6 @@ int EventMgr::SetEvs(void* evs)
     return 1;
 }
 
-// Event stream slot accessors through an integer base: `evt->strNo[blk]` forces `evt + 0xC0` into a
-// pointer-flagged temp (regclass then wants the index in GENERAL_REGS, r0); a `u32` base variable
-// keeps both unflagged so the shifted index takes a BASE register (`lwzx r29,r10,r11`).
-static inline int& evtStrNo(Event* evt, int blk) { u32 p = (u32) evt->NowStr; return *(int*) (p + (blk << 2)); }
-static inline u32& evtStrId(Event* evt, int blk) { u32 p = (u32) evt->SndId; return *(u32*) (p + (blk << 2)); }
-
 // Stops the stream playing in block `blk` of the named event and waits for it to end (mode 1 also
 // waits for the request to clear); clears the block's slot.
 int EventMgr::EvtSndStrStop(u32* pName, int noTar, int flag)
@@ -2968,8 +2940,8 @@ int EventMgr::EvtSndStrStop(u32* pName, int noTar, int flag)
     if (GetEvt(pName, (void**) &evt) != 1) {
         return 0;
     }
-    no = evtStrNo(evt, noTar);
-    id = evtStrId(evt, noTar);
+    no = evt->GetNowStr(noTar);
+    id = evt->GetSndId(noTar);
     if (no != -1) {
         if (id != 0) {
             if (SndStrReq(id, 8, 0, 0) == 1) {
@@ -3000,8 +2972,8 @@ int EventMgr::EvtSndStrStop(u32* pName, int noTar, int flag)
                 } while (SndStrStatusCk(noTar, no, 0x10) != 0);
             }
         }
-        evtStrId(evt, noTar) = 0;
-        evtStrNo(evt, noTar) = -1;
+        evt->SetSndId(noTar, 0);
+        evt->SetNowStr(noTar, -1);
         OSReport("EventMgr::EvtSndStrStop : stop (%d)\n", noTar);
         return 1;
     }
@@ -3050,8 +3022,8 @@ void EventMgr::EvtSndStrPlay(u32* pName, int noTar, int noStr, int flag, f32 s_t
                 SndStrReq(id, 2, 0, 0);
             }
         }
-        evtStrId(evt, noTar) = id;
-        evtStrNo(evt, noTar) = noStr;
+        evt->SetSndId(noTar, id);
+        evt->SetNowStr(noTar, noStr);
         EvtDebug.NowStr[noTar] = noStr;
         OSReport("EventMgr::EvtSndStrPlay : start (%d)-(%d)\n", noTar, noStr);
     }

@@ -296,11 +296,7 @@ void EspRoomInit()
     EspDataLoad(pG->pCore->ofs_50 + (u32) pG->pCore, EFF_ITM, 0);
     g_nLoop = 200;
     sys->pEspBufSave = NULL;
-    m = EspEvModList;
-    for (i = 0; i < 0x80; i++) {
-        *m = NULL;
-        m++;
-    }
+    EspEvModList.Clear();
 }
 
 // Reserves `num` consecutive GXTexObj slots from the 0x1F4 entry pool (TexObj_flg bitmap);

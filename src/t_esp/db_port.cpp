@@ -776,16 +776,12 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
         u8 hi;
         u32 nLit;
         int k;
-        cModel** list;
 
         EvtDebug.FlagEtc = (EvtDebug.FlagEtc & 0x7FFFFFFF) | 0x40000000;
         StaFlagOn(pG, STA_SUSPEND);
         StaFlagOn(pG, STA_EVENT_SYSYTEM);
         StaFlagOn(pG, STA_EFFAREA_USE_CAM);
-        list = EspEvModList;
-        for (room = 0; room < 0x80; room++) {
-            list[room] = 0;
-        }
+        EspEvModList.Clear();
         n = EVT_CUT_NO(buf3);
         c = n;
         // `hi` is set twice: a single-set quotient has nonzero_bits <= 0x1F and combine drops the target's `clrlslwi` mask
@@ -956,20 +952,13 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 Vec size;
                 Vec center;
                 cModel* p;
-                u32 la;
                 cModelInfo* info;
                 ModelBound* b;
                 u8 lit;
 
                 em->setNoSuspend(1);
                 p = dbModGetEmPtr(slot);
-                // an integer address variable: with `cModel** list` the REGNO_POINTER_FLAG makes `list` the base and
-                // the index takes r0 (target: both unflagged -> the index is BASE_REGS r9, the sum global r11); the shift
-                // keeps `la` first in the PLUS (EXPAND_SUM moves a MULT operand first)
-                la = (u32) EspEvModList;
-                if ((u32) slot <= 0x7F) {
-                    *(cModel**) (la + ((u32) slot << 2)) = p;
-                }
+                EspEvModList.SetModelPtr(slot, p);
                 em->ot_type = M.otType;
                 if (flagOn(M.flags, 0x80000000)) {
                     em->z_mode = 1;
@@ -1469,22 +1458,7 @@ extern "C" void DB_VecMulEmPartsMat(u32 parts, Vec* in, Vec* out, Mtx* m, EspGen
     Vec v;
 
     if (DB_isGetComeEventTool() == 1) {
-        // COMPILER-DIFF: #13 (the original never allocates the REG_EQUIV `high` pseudo, so the table address
-        // carries no r9 preference and `p` takes r9 in global-alloc pass 0). Same bytes from C: the address is a
-        // u32 local set before the test (`lis r9; addi r11` in the compare block) and the element address an
-        // unflagged `la + (no << 2)` sum, so regclass makes both operands BASE_REGS and the index is local-alloc'd
-        // r9 (not r0, not tied to `no`); the index lives while `la` does, which prunes `la`'s r9 preference and
-        // leaves r9 to `p` (`la` r11). The `li r9,0` before the `bgt` is jump2's post-reload
-        // "if (c) { x = a; goto l; } x = b" hoist: the else arm's first insn `slwi r9,r0,2` sets `p`'s register.
-        u32 no = gen->Parent_no;
-        u32 la = (u32) EspEvModList;
-        cModel* p;
-        if (no > 0x7F) {
-            p = 0;
-        } else {
-            p = *(cModel**) (la + (no << 2));
-        }
-        em = p;
+        em = EspEvModList.GetModelPtr(gen->Parent_no);
         if (em == 0) {
             NONE_BODY;
             return;
