@@ -207,8 +207,8 @@ void R213SuInit()
             tbl[0] = 1;
             tbl[1] = 0;
             tbl[4] = 0xF7;
-            tbl[5] = r213_work->tex->m_Tex_no;
-            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+            tbl[5] = r213_work->tex->GetTexNo();
+            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
         } else {
             pLog->err(0, 0, "R213Init() : Manager alloc failed!!");
         }
@@ -1059,9 +1059,9 @@ extern "C" void Evt_R213S00_Func(Event* e)
                 EffectEspgenDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 EffectEfmDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 if (r213_work->tex) {
-                    EffectEspDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
-                    EffectEspgenDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
-                    EffectEfmDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEspDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+                    EffectEspgenDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEfmDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
                 }
                 SpfFlagOn(pG, SPF_ESP_AREA);
             }
@@ -1075,14 +1075,14 @@ extern "C" void Evt_R213S00_Func(Event* e)
                 EffectEspgenDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 EffectEfmDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 if (r213_work->tex) {
-                    EffectEspDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
-                    EffectEspgenDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
-                    EffectEfmDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEspDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+                    EffectEspgenDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEfmDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
                 }
                 StaFlagOff(pG, STA_EVENT);
                 SstSet(EFF_ROOM, 0xFFFF, ESP_CORE_KIND_SST, 0, 0x2F, 0);
                 if (r213_work->tex) {
-                    EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
+                    EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
                 }
                 StaFlagOn(pG, STA_EVENT);
                 SpfFlagOff(pG, SPF_ESP_AREA);
@@ -1104,15 +1104,15 @@ extern "C" void Evt_R213S00_Func(Event* e)
         EffectEspgenDelete(0x4001, ESP_CORE_KIND_SST, 0);
         EffectEfmDelete(0x4001, ESP_CORE_KIND_SST, 0);
         if (r213_work->tex) {
-            EffectEspDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
-            EffectEspgenDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
-            EffectEfmDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
+            EffectEspDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+            EffectEspgenDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
+            EffectEfmDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
         }
         frame = 0;
         StaFlagOff(pG, STA_EVENT);
         SstSet(EFF_ROOM, 0xFFFF, ESP_CORE_KIND_SST, 0, 0x2F, 0);
         if (r213_work->tex) {
-            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
+            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
         }
         StaFlagOn(pG, STA_EVENT);
         SpfFlagOff(pG, SPF_ESP_AREA);

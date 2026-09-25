@@ -143,7 +143,7 @@ TexRenderMng* Ctrl12GetTexRenderEm2b(cCtrl* pCtrl)
     if (t == 0) {
         GetTexRenderMgr(&w->tex2b);
         if (w->tex2b != 0) {
-            EstSet(0, -1, 0, 0, EFF_ROOM, 0x42, w->tex2b->m_Core_flg | 1, ESP_CORE_KIND_NONE, t, t);
+            EstSet(0, -1, 0, 0, EFF_ROOM, 0x42, w->tex2b->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, t, t);
         }
     }
     return w->tex2b;

@@ -47,9 +47,9 @@ extern "C" void setTexRender(cModelInfo* info)
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = pl0aTex->m_Tex_no;
-        pl0aTex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_PL00, 0xC, pl0aTex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = pl0aTex->GetTexNo();
+        pl0aTex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_PL00, 0xC, pl0aTex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "SetTexRender() : Manager alloc failed!!");
     }

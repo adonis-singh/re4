@@ -70,15 +70,10 @@ int GetTexRenderMgr(TexRenderMng** ppMgr)
     if (!(*ppMgr)->AllocBuf()) {
         return 0;
     }
-    (*ppMgr)->m_Tex_no = (u8) g_RndMgrNum + 0xF8;
-    {
-        // the original stores the mask through a u16 reference (the load of g_RndMgrNum below is
-        // not hoisted above a plain member store)
-        u16& mask = (*ppMgr)->m_Core_flg;
-        mask = 8 << g_RndMgrNum;
-    }
+    (*ppMgr)->SetTexNo((u8) g_RndMgrNum + 0xF8);
+    (*ppMgr)->SetCoreFlg(8 << g_RndMgrNum);
     g_RndMgrNum++;
-    (*ppMgr)->used = 1;
+    (*ppMgr)->SetAlive(1);
     return 1;
 }
 
@@ -87,13 +82,13 @@ void RenderTexRenderMgr(TexRenderMng* m)
 {
     u32 ofs, w, h;
 
-    if (m->m_W_size == 0xE0) {
-        ofs = (u32) ((f32) m->m_H_size * 2.0f / 0.875f - (f32) m->m_W_size * 2.0f);
+    if (m->GetWSize() == 0xE0) {
+        ofs = (u32) ((f32) m->GetHSize() * 2.0f / 0.875f - (f32) m->GetWSize() * 2.0f);
     } else {
-        ofs = (m->m_W_size >> 2) + (m->m_W_size >> 4);
+        ofs = (m->GetWSize() >> 2) + (m->GetWSize() >> 4);
     }
-    w = m->m_W_size * 2 + ofs;
-    h = m->m_H_size * 2;
+    w = m->GetWSize() * 2 + ofs;
+    h = m->GetHSize() * 2;
 
     if (w > 0x280) {
         pLog->err(0, 0, "RenderTexRenderMgr:: Invalid SX[%d]", w);
@@ -104,7 +99,7 @@ void RenderTexRenderMgr(TexRenderMng* m)
         h = 0x210;
     }
     EFBReSize(w, h);
-    GXSetScissor(ofs >> 1, 0, m->m_W_size << 1, m->m_H_size << 1);
+    GXSetScissor(ofs >> 1, 0, m->GetWSize() << 1, m->GetHSize() << 1);
 }
 
 // OT callback (slot's OT, after its render pass): copies the EFB into the target's buffer at
@@ -121,17 +116,17 @@ void CopyTexRenderMgr(TexRenderMng* m)
 
         GXSetCopyFilter(0, rmode->sample_pattern, 0, vfilter);
         GXSetAlphaUpdate(1);
-        if (m->m_W_size == 0xE0) {
-            ofs = (u32) ((f32) m->m_H_size * 2.0f / 0.875f - (f32) m->m_W_size * 2.0f);
+        if (m->GetWSize() == 0xE0) {
+            ofs = (u32) ((f32) m->GetHSize() * 2.0f / 0.875f - (f32) m->GetWSize() * 2.0f);
         } else {
-            ofs = (m->m_W_size >> 2) + (m->m_W_size >> 4);
+            ofs = (m->GetWSize() >> 2) + (m->GetWSize() >> 4);
         }
         // The original reloads m->sx and m->sy here in both paths: a memory kill at the top of the
         // join block makes neither load anticipatable, so gcse does not PRE the if-arm's m->sy
         // load into the else arm (an empty asm keeps the two conversion paths' jumps on the join).
         asm volatile("" : : : "memory");
-        w = m->m_W_size * 2;
-        h = m->m_H_size * 2;
+        w = m->GetWSize() * 2;
+        h = m->GetHSize() * 2;
         if (w > 0x280) {
             pLog->err(0, 0, "CopyTexRenderMgr:: Invalid SX[%d]", w);
             w = 0x280;
@@ -141,13 +136,13 @@ void CopyTexRenderMgr(TexRenderMng* m)
             h = 0x210;
         }
         GXSetTexCopySrc(ofs >> 1, 0, w, h);
-        GXSetTexCopyDst(m->m_W_size, m->m_H_size, 6, 1);
-        GXCopyTex(m->m_Texture_buffer, 1);
+        GXSetTexCopyDst(m->GetWSize(), m->GetHSize(), 6, 1);
+        GXCopyTex(m->GetBufAddr(), 1);
         GXSetAlphaUpdate(0);
         GXSetCopyFilter(rmode->aa, rmode->sample_pattern, 1, rmode->vfilter);
         GXPixModeSync();
         GXInvalidateTexAll();
-        switch (m->m_Rep_type) {
+        switch (m->GetRepeatType()) {
         case 1:
             wrap = 1;
             break;
@@ -159,12 +154,12 @@ void CopyTexRenderMgr(TexRenderMng* m)
             break;
         default:   // its own `wrap = 2` (cross-jumped into case 0): with a fallthrough the err block's
                    // string `lis` gains an anti-dependence on the call and is scheduled before `lwz pLog`
-            pLog->err(0, 0, "TexRenderMng:: Invalid REPTYPE[%d]", m->m_Rep_type);
+            pLog->err(0, 0, "TexRenderMng:: Invalid REPTYPE[%d]", m->GetRepeatType());
             wrap = 2;
             break;
         }
-        GXInitTexObj(&m->m_Tex_obj, m->m_Texture_buffer, m->m_W_size, m->m_H_size, 6, wrap, wrap, 0);
-        GXInitTexObjLOD(&m->m_Tex_obj, 1, 1, 0.0f, 0.0f, 0.0f, 0, 0, 0);
+        GXInitTexObj(m->GetTexObj(), m->GetBufAddr(), m->GetWSize(), m->GetHSize(), 6, wrap, wrap, 0);
+        GXInitTexObjLOD(m->GetTexObj(), 1, 1, 0.0f, 0.0f, 0.0f, 0, 0, 0);
         g_draw = 1;
     }
     if (m == &g_RndMgr[g_RndMgrNum - 1]) {
@@ -181,7 +176,7 @@ void TransTexRenderMgr()
     u32 i;
 
     for (i = 0; i < (u32) g_RndMgrNum; i++) {
-        if (g_RndMgr[i].used != 0) {
+        if (g_RndMgr[i].IsAlive() != 0) {
             AddOtDirect((u16) i, &g_RndMgr[i], (void (*)()) RenderTexRenderMgr, 9, 0x800, NULL, 0.0f);
             AddOtDirect((u16) i, &g_RndMgr[i], (void (*)()) CopyTexRenderMgr, 0, 0x800, NULL, 0.0f);
         }
@@ -204,10 +199,10 @@ TexRenderMng::TexRenderMng()
 // Resets the target: unused, no buffer, 128 x 128, mirror wrap.
 void TexRenderMng::Init()
 {
-    used = 0;
+    m_Be_flg = 0;
     m_Texture_buffer = NULL;
     m_Tex_no = 0;
-    x29 = 0;
+    pad = 0;
     m_Core_flg = 0;
     m_W_size = 0x80;
     m_H_size = 0x80;
@@ -218,7 +213,7 @@ void TexRenderMng::Init()
 int TexRenderMng::AllocBuf()
 {
 #line 323 "D:/Bio4/Prog/TexRender.cpp"
-    m_Texture_buffer = MEM_ALLOC(m_W_size * m_H_size * 4, 1, 13);
+    m_Texture_buffer = MEM_ALLOC(GetTexBufSize(), 1, 13);
     if (m_Texture_buffer == NULL) {
         pLog->err(0, 0, "TexRenderMng::AllocBuf() : not enough memory");
         return 0;
@@ -244,11 +239,10 @@ void TexRenderInit(TexRenderMng** ppMgr, int size, int repType)
     }
     if (size != 0) {
         TexRenderMng* m = *ppMgr;
-        m->m_W_size = size;
-        m->m_H_size = size;
+        m->SetWHSize(size, size);
         (*ppMgr)->ReAllocBuf();
     }
-    (*ppMgr)->m_Rep_type = repType;
+    (*ppMgr)->SetRepeatType(repType);
 }
 
 // Makes parts `parts` of model `m` show the render target: installs `tbl` as the parts' texture
@@ -269,7 +263,7 @@ void TexRenderModSet(cModel* pMod, int modelInfoNo, u8* pBlendTbl, TexRenderMng*
     pBlendTbl[0] = 1;
     pBlendTbl[1] = 0;
     pBlendTbl[4] = 0xF7;
-    pBlendTbl[5] = pMgr->m_Tex_no;
+    pBlendTbl[5] = pMgr->GetTexNo();
     info = GetModelInfoAddr(pMod->pModelInfo, modelInfoNo);
     if (info != NULL) {
         info->be_flag |= 8;

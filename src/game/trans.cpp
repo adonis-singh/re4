@@ -320,7 +320,7 @@ void org_LoadTexObj(u32 id, int map)
     if (id <= 0xF7) {
         GXLoadTexObj(&gx->texObj[id], map);
     } else {
-        GXLoadTexObj(&GetTexRenderMgrAddr(id - 0xF8)->m_Tex_obj, map);
+        GXLoadTexObj(GetTexRenderMgrAddr(id - 0xF8)->GetTexObj(), map);
     }
 }
 

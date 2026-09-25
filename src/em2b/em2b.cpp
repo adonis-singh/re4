@@ -6383,9 +6383,9 @@ void em2bTexrenderInit(cEm2b* em)
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = w->pMgr->m_Tex_no;
-    w->pMgr->m_Rep_type = 1;
-    w->pMgr->m_H_size = w->pMgr->m_W_size = 0x40;
+    tbl[5] = w->pMgr->GetTexNo();
+    w->pMgr->SetRepeatType(1);
+    w->pMgr->SetWHSize(0x40, 0x40);
 }
 
 // 1 while the giant kneels with the parasite exposed (Be_flg bit14: Dm_Face / Dm_Tree), the window for

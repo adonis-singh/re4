@@ -4489,13 +4489,13 @@ void em32TexrenderInit(cEm32* em)
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = w->pTex->m_Tex_no;
-    w->pTex->m_Rep_type = 1;
-    w->pTex->m_H_size = w->pTex->m_W_size = 0x40;
-    EffectEspDelete(w->pTex->m_Core_flg | 0x801, w->espKind[1], em, 0);
-    EffectEspgenDelete(w->pTex->m_Core_flg | 0x801, w->espKind[1], em);
-    EffectEfmDelete(w->pTex->m_Core_flg | 0x801, w->espKind[1], em);
-    EstSet(0, -1, 0, 0, EFF_EM32, 0, w->pTex->m_Core_flg | 0x801, w->espKind[1], em, 0);
+    tbl[5] = w->pTex->GetTexNo();
+    w->pTex->SetRepeatType(1);
+    w->pTex->SetWHSize(0x40, 0x40);
+    EffectEspDelete(w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em, 0);
+    EffectEspgenDelete(w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em);
+    EffectEfmDelete(w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em);
+    EstSet(0, -1, 0, 0, EFF_EM32, 0, w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em, 0);
 }
 
 // The player's position 18 frames ahead (plPos) and the angle / squared distance to it.

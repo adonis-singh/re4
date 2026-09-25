@@ -1925,13 +1925,13 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r332_work->tex->m_Tex_no;
-        r332_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r332_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r332_work->tex->GetTexNo();
+        r332_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r332_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }
-    r332_work->tex->m_H_size = r332_work->tex->m_W_size = 0x40;
+    r332_work->tex->SetWHSize(0x40, 0x40);
     obj = SmdGetObjPtr(0x77);
     obj->pModelInfo->setTexBlendTbl(tbl);
     obj->pModelInfo->setBlendRatio(0xFF);

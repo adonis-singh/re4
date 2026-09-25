@@ -429,22 +429,21 @@ void EffEm2d_setTexRender(cModel* pMod)
         }
         StaFlagOn(pG, STA_EFFEM2D_TEXRND);
         mgr = pMgr;
-        mgr->m_W_size = 0x40;
-        mgr->m_H_size = 0x40;
+        mgr->SetWHSize(0x40, 0x40);
         pMgr->ReAllocBuf();
         tbl[0] = 4;
         tbl[1] = 0;
         tbl[4] = 0;
         mgr2 = pMgr;
-        tbl[5] = mgr2->m_Tex_no;
+        tbl[5] = mgr2->GetTexNo();
         tbl[6] = 2;
-        tbl[7] = mgr2->m_Tex_no;
+        tbl[7] = mgr2->GetTexNo();
         tbl[8] = 4;
-        tbl[9] = mgr2->m_Tex_no;
+        tbl[9] = mgr2->GetTexNo();
         tbl[0xA] = 6;
-        tbl[0xB] = mgr2->m_Tex_no;
-        mgr2->m_Rep_type = repType;
-        EstSet(0, -1, NULL, NULL, EFF_EM2D, 0x1F, pMgr->m_Core_flg | 0x801, ESP_CORE_KIND_NONE, 0, NULL);
+        tbl[0xB] = mgr2->GetTexNo();
+        mgr2->SetRepeatType(repType);
+        EstSet(0, -1, NULL, NULL, EFF_EM2D, 0x1F, pMgr->GetCoreFlg() | 0x801, ESP_CORE_KIND_NONE, 0, NULL);
     }
     pMod->pModelInfo->setTexBlendTbl(tbl);
     pMod->pModelInfo->setBlendRatio(0);

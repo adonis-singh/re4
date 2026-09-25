@@ -466,12 +466,12 @@ static inline void r11b_evtTexRenderSet(Event* e, void*& mod, int a, int b)
 // Drop the event's water effects bound to the two render targets' masks.
 static inline void r11b_evtEffDelete()
 {
-    EffectEspDelete(r11b_work->tex[0]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-    EffectEspgenDelete(r11b_work->tex[0]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-    EffectEfmDelete(r11b_work->tex[0]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-    EffectEspDelete(r11b_work->tex[1]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-    EffectEspgenDelete(r11b_work->tex[1]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-    EffectEfmDelete(r11b_work->tex[1]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
+    EffectEspDelete(r11b_work->tex[0]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+    EffectEspgenDelete(r11b_work->tex[0]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+    EffectEfmDelete(r11b_work->tex[0]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+    EffectEspDelete(r11b_work->tex[1]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+    EffectEspgenDelete(r11b_work->tex[1]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+    EffectEfmDelete(r11b_work->tex[1]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
 }
 
 // Event r11bs00 callback (two Ganados dump the officer's body in the lake; Del Lago takes them): hides
@@ -557,22 +557,22 @@ extern "C" void Evt_R11BS00_Func(Event* e)
             if (e->NowFrame == 0) {
                 r11b_evtTexRenderSet(e, mod, 1, 0);
                 r11b_evtEffDelete();
-                EstSet(0, -1, 0, 0, EFF_ROOM, 6, r11b_work->tex[1]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EstSet(0, -1, 0, 0, EFF_ROOM, 6, r11b_work->tex[1]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
             }
             break;
         case 7:
             if (e->NowFrame == 0) {
                 r11b_evtTexRenderSet(e, mod, 0, 1);
                 r11b_evtEffDelete();
-                EstSet(0, -1, 0, 0, EFF_ROOM, 7, r11b_work->tex[1]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EstSet(0, -1, 0, 0, EFF_ROOM, 7, r11b_work->tex[1]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
             }
             break;
         case 8:
             if (e->NowFrame == 0) {
                 r11b_evtTexRenderSet(e, mod, 1, 0);
                 r11b_evtEffDelete();
-                EstSet(0, -1, 0, 0, EFF_ROOM, 8, r11b_work->tex[1]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-                EstSet(0, -1, 0, 0, EFF_ROOM, 9, r11b_work->tex[0]->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EstSet(0, -1, 0, 0, EFF_ROOM, 8, r11b_work->tex[1]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EstSet(0, -1, 0, 0, EFF_ROOM, 9, r11b_work->tex[0]->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
             }
             break;
         default:

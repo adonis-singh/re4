@@ -665,7 +665,7 @@ static inline void texBlendTbl(u8* tbl, TexRenderMng* t)
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = t->m_Tex_no;
+    tbl[5] = t->GetTexNo();
 }
 
 #define INFO0(m) ((m)->pModelInfo)
@@ -972,7 +972,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 static u8 tbl1[0x20];
 
                 t = GetTexRenderMgrAddr(0);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl0, t);
                     texBlendSet(INFO6(em), tbl0);
                     INFO0(em)->be_flag |= 4;
@@ -986,7 +986,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                     em->Refract_ratio = 0x90;
                 }
                 t = GetTexRenderMgrAddr(1);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl1, t);
                     texBlendSet(INFO7(em), tbl1);
                     texBlendSet(INFO8(em), tbl1);
@@ -1018,14 +1018,14 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
 
                 if (nameIs4(name, 'p', 'l', '0', '0')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl2, t);
                         texBlendSet(INFO6(em), tbl2);
                     }
                 }
                 if (G_ROOM_ID == 0x11C && nameIs4(name, 'p', 'l', '0', '4')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl3, t);
                         texBlendSet(INFO4(em), tbl3);
                     }
@@ -1036,7 +1036,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 static u8 tbl4[0x20];
 
                 t = GetTexRenderMgrAddr(0);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl4, t);
                     texBlendSet(em->pModelInfo, tbl4);
                 }
@@ -1046,7 +1046,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 static u8 tbl5[0x20];
 
                 t = GetTexRenderMgrAddr(2);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl5, t);
                     texBlendSet(em->pModelInfo->pList, tbl5);
                 }
@@ -1061,14 +1061,14 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
 
                 if (db_cutNo == 4 && nameIs4(name, 'p', 'l', '0', '0')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl6, t);
                         texBlendSet(INFO6(em), tbl6);
                     }
                 }
                 if (G_ROOM_ID == 0x325 && db_cutNo == 7 && nameIs4(name, 'p', 'l', '0', '0')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl7, t);
                         texBlendSet(INFO6(em), tbl7);
                     }
@@ -1080,7 +1080,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 if ((db_cutNo == 0x33 || db_cutNo == 0x36) && nameIs4(name, 'e', 'v', 'm', 'a') && name[0x13] == '1' &&
                     name[0x14] == '0' && name[0x15] == '0' && name[0x16] == 'a') {
                     t = GetTexRenderMgrAddr(2);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl8, t);
                         texBlendSet(em->pModelInfo, tbl8);
                         em->pModelInfo->blend_mode = 1;
@@ -1263,8 +1263,8 @@ extern "C" void EspToolUpdate(DbToolWk* wk, int texNo)
     }
     if (texNo) {
         TexRenderMng* t = GetTexRenderMgrAddr(texNo - 1);
-        if (t->used) {
-            drawTexture2(&t->m_Tex_obj, 0x14C, 0x36, 0, 0xA0, 0xA0);
+        if (t->IsAlive()) {
+            drawTexture2(t->GetTexObj(), 0x14C, 0x36, 0, 0xA0, 0xA0);
         }
     }
     if (db_nearClip == 1) {

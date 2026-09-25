@@ -770,13 +770,13 @@ void setModTexRender(cObj* pMod, int no)
     u8* tbl = buf;
     TexRenderMng* mgr = GetTexRenderMgrAddr(no);
 
-    if (mgr->used == 0) {
+    if (mgr->IsAlive() == 0) {
         return;
     }
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = mgr->m_Tex_no;
+    tbl[5] = mgr->GetTexNo();
     pMod->pModelInfo->setTexBlendTbl(tbl);
     pMod->pModelInfo->setBlendRatio(0xFF);
     pMod->Shader_type = 1;

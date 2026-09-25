@@ -1231,10 +1231,10 @@ extern "C" void Evt_R11CS10_Func(Event* e)
 static inline void r11c_evtEsp(Event* e, u8 no)
 {
     if (e->NowFrame == 0) {
-        EffectEspDelete(W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-        EffectEspgenDelete(W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-        EffectEfmDelete(W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-        EstSet(0, -1, 0, 0, EFF_ROOM, no, W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+        EffectEspDelete(W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+        EffectEspgenDelete(W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+        EffectEfmDelete(W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+        EstSet(0, -1, 0, 0, EFF_ROOM, no, W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
     }
 }
 

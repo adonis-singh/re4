@@ -6203,11 +6203,11 @@ void em2cTexrenderInit(cEm2c* em)
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = w->pTex->m_Tex_no;
-    w->pTex->m_Rep_type = 1;
-    w->pTex->m_H_size = w->pTex->m_W_size = 0x40;
+    tbl[5] = w->pTex->GetTexNo();
+    w->pTex->SetRepeatType(1);
+    w->pTex->SetWHSize(0x40, 0x40);
     zero = 0;
-    EstSet(0, -1, 0, 0, EFF_EM2C, 0, w->pTex->m_Core_flg | 0x801, ESP_CORE_KIND_NONE, (void*) zero, (void*) zero);
+    EstSet(0, -1, 0, 0, EFF_EM2C, 0, w->pTex->GetCoreFlg() | 0x801, ESP_CORE_KIND_NONE, (void*) zero, (void*) zero);
 }
 
 // Freezes the boss (liquid nitrogen): flag 0x800, ice guard guardCnt 900, the room's frozen flag
