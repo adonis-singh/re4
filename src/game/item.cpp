@@ -1851,21 +1851,12 @@ int addMoney(int n)
     return 1;
 }
 
-// Inline wrappers: the caller's `&inf` is substituted into the hard-register argument set (recomputed
-// `addi r4,r1,16` per call, not PRE'd into a callee-saved register).
-static inline void itemInfoIW(ITEM_ID id, ItemInfo* inf)
-{
-    itemInfo(id, inf);
-}
-
-
 // Picks up `num` of item `id` (0 = the item's default count): money ids 0x7C..0x7E become pesetas,
 // 0xF? bonus time/points go to the mercenaries timer, stackables top up an existing slot up to
 // maxNum (0 when full), otherwise a new slot is constructed (m_pNew). Returns 0 when nothing was taken.
 int cItemMgr::get(ITEM_ID id, int num)
 {
     ItemInfo info;
-    ItemInfo inf;
     ItemInfo* pInfo = &info;
     ItemWork* p;
     int max;
@@ -1900,8 +1891,7 @@ int cItemMgr::get(ITEM_ID id, int num)
         MercSysSetBonusTime(num * 30);
         return 1;
     }
-    itemInfoIW(id, &inf);
-    switch (inf.type) {
+    switch (itemType(id)) {
     case 5:
     case 12:
     case 13:
@@ -1911,12 +1901,10 @@ int cItemMgr::get(ITEM_ID id, int num)
                 int total;
 
                 if (num == 0) {
-                    itemInfoIW(id, &inf);
-                    num = inf.defNum;
+                    num = itemDefNum(id);
                 }
                 total = p->num + num;
-                itemInfo(p->id, &inf);
-                if (total <= inf.maxNum) {
+                if (total <= itemMaxNum(p->id)) {
                     {
                         int t = num + p->num;
 
