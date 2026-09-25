@@ -259,7 +259,7 @@ static void em18_R0_Init(cEm18* em)
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 1800.0f, 1, 0x2000, 10);
     em->atari.m_flag |= 8;
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     one = 1;
     em->setStatus(one);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);

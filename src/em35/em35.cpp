@@ -896,7 +896,7 @@ static void em35_R0_Init(cEm35* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     switch (em->type) {
     case 0:
     default:

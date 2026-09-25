@@ -296,22 +296,58 @@ struct MotionParts {
                      //        bit8: heel-to-toe, bit9: no floor, bit10: reach limit, bit12: twist, bit13-15: IK plane axis
 };
 
-// Light area block (game/light_area.cpp), cModel::litArea at cModel+0x30C: scales one light's
-// colour on the model.
-struct EmLightArea {
-    u32 x0;          // 0x00
-    u32 flags;       // 0x04  bit0 active, bit1 scale valid
-    s32 lightNo;     // 0x08  cLight::x140 of the light to scale
-    f32 scale;       // 0x0C
+// Light area state (game/light_area.cpp), cModel::State at cModel+0x30C: scales one light's colour on
+// the model.
+class cModelState {
+private:
+    static const u32 FLG_NONE = 0;
+    static const u32 FLG_IN_ROOM = 1;
+    static const u32 LFLG_NONE = 0;
+    static const u32 LFLG_IGNORE_ON = 1;
+    static const u32 LFLG_USE = 2;
+    u32 m_Flag;        // 0x00  FLG_IN_ROOM: inside an area (sce_at)
+    u32 m_LightFlag;   // 0x04  LFLG_IGNORE_ON: light area active, LFLG_USE: scale valid
+    u32 m_LightNo;     // 0x08  cLight::x140 of the light to scale
+    f32 m_LightPow;    // 0x0C
 
-    int chk(u32 bit)
+public:
+    cModelState();
+    void SetInRoom(int in)
     {
-        if (flags & bit) {
+        if (in) {
+            m_Flag |= FLG_IN_ROOM;
+        } else {
+            m_Flag &= ~FLG_IN_ROOM;
+        }
+    }
+    int IsInRoom() { return m_Flag & FLG_IN_ROOM; }
+    void SetLightIgnore() { m_LightFlag |= LFLG_IGNORE_ON; }
+    int IsLightIgnore()
+    {
+        if (m_LightFlag & LFLG_IGNORE_ON) {
             return 1;
         }
         return 0;
     }
-    void on(u32 bit) { flags |= bit; }   // player.cpp init1: `addi rX,this,0x30C; lwz/stw 4(rX)`
+    void SetLightIgnoreUse(int use)
+    {
+        if (use) {
+            m_LightFlag |= LFLG_USE;
+        } else {
+            m_LightFlag &= ~LFLG_USE;
+        }
+    }
+    int IsLightIgnoreUse()
+    {
+        if (m_LightFlag & LFLG_USE) {
+            return 1;
+        }
+        return 0;
+    }
+    void SetLightNo(int no) { m_LightNo = no; }
+    u32 GetLightNo() { return m_LightNo; }
+    void SetLightPow(f32 pow) { m_LightPow = pow; }
+    f32 GetLightPow() { return m_LightPow; }
 };
 
 // Model info pool (game/model.cpp `ModInfoMgr`, 0x34 bytes): a cManager<cModelInfo>; the
@@ -468,7 +504,7 @@ public:
     Vec* inscreen_pos;                  // 0x300  (cModel::cModel clears it)
     u32 pPath;                  // 0x304  (cModel::cModel clears it)
     void* pFsdTbl;      // 0x308  foot shadow table (pl_leon: pl_fs_tbl; trans FootShadow)
-    EmLightArea litArea;       // 0x30C .. 0x31C  light_area: per-light colour scale (trans_lit lightSetColor); no PS2 equivalent
+    cModelState State;         // 0x30C .. 0x31C  light_area: per-light colour scale (trans_lit lightSetColor)
     cTexChg* pTexChg;          // 0x31C  texture change work (trans commonModelTrans: pTexChg->move); no PS2 equivalent
 
     cModel();

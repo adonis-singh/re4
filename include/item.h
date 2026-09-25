@@ -194,6 +194,9 @@ int gld_cmp(const void* a, const void* b);
 int order_cmp(const void* a, const void* b);
 }
 
+// Each reads one field of the ItemInfo that itemInfo() fills; the original has these as free inlines (an
+// ItemInfo temp at every call site). Free inlines carry no symbol, so these three identifiers are not
+// recovered from the original.
 inline u8 itemType(ITEM_ID id)
 {
     ItemInfo info;

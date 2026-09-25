@@ -652,7 +652,7 @@ static void em32_R0_Init(cEm32* em)
     em->LightInfo.init2(0, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 10000.0f, 10000.0f, 10000.0f }), 2);
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 1500.0f, 1, 0x2000, 10);
     em->atari.setPriority(PRI_LV1);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     fzero = 0.0f;
     v.x = fzero;
     v.y = fzero;

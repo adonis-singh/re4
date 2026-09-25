@@ -241,7 +241,7 @@ static void r203_EventMeetAgain()
     if (r203_work->data->waitLoadOk() == 1) {
         MemorySwap(m->pArc, (u32) r203_work->data->m_addr, r203_work->data->m_size);
         EvtMgr.SetEvt(m->pArc, 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         MemorySwap(m->pArc, (u32) r203_work->data->m_addr, r203_work->data->m_size);

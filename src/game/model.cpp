@@ -39,12 +39,12 @@ cPartsMgr* cModel::pm = &PartsMgr;
 // Clears a model's light-area state.
 // The 0.0 pool load of the light area sinks below the three word stores: an inlined helper
 // (integrate.c drops RTX_UNCHANGING_P from the pool MEM).
-static inline void LightAreaInit(EmLightArea* la)
+inline cModelState::cModelState()
 {
-    la->x0 = 0;
-    la->flags = 0;
-    la->lightNo = 0;
-    la->scale = 0.0f;
+    m_Flag = FLG_NONE;
+    m_LightFlag = LFLG_NONE;
+    m_LightNo = 0;
+    m_LightPow = 0.0f;
 }
 
 
@@ -52,7 +52,6 @@ static inline void LightAreaInit(EmLightArea* la)
 // alpha_omit 0xFF.
 cModel::cModel()
 {
-    LightAreaInit(&litArea);
     alpha_omit = 0xFF;
     speed.x = 0.0f;
     speed.y = 0.0f;

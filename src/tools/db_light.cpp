@@ -151,7 +151,7 @@ public:
     void clearWork();
     void clearSubMenu();
 #ifdef DB_LIGHT_SET_LOG_MODE
-    void setLogMode(int on);
+    void setLogMode(bool on);
 #endif
     int lightAnalysis();
 };
@@ -4019,12 +4019,12 @@ static void load()
 {
     static u32 evtKey;
     static int evtAction;
-    static u32 evName[8];
+    static char evName[0x20];
     static char evStr[8];
     char path[0x100];
     void* evt;
     EvtDebugNames* ev;
-    u32* key;
+    char* key;
 
     eprintf(0x20, 0x2A, 4, pTool->PageNo, "LOAD");
     switch (pTool->rno1) {
@@ -4059,7 +4059,7 @@ static void load()
                 pTool->rno1 = 12;
                 ev = (EvtDebugNames*) &EvtDebug;
                 key = evName;
-                strcpy((char*) key, ev->name);
+                strcpy(key, ev->name);
                 strcpy(evStr, ev->str);
                 if (EvtMgr.GetEvt(key, &evt) == 1) {
                     evtKey = ((Event*) evt)->NowCut;
@@ -4284,12 +4284,12 @@ static void save()
 {
     static u32 evtKey;
     static int evtAction;
-    static u32 evName[8];
+    static char evName[0x20];
     static char evStr[8];
     char path[0x100];
     void* evt;
     EvtDebugNames* ev;
-    u32* key;
+    char* key;
 
     eprintf(0x20, 0x2A, 4, pTool->PageNo, "SAVE");
     switch (pTool->rno1) {
@@ -4335,7 +4335,7 @@ static void save()
                 pTool->rno1 = 14;
                 ev = (EvtDebugNames*) &EvtDebug;
                 key = evName;
-                strcpy((char*) key, ev->name);
+                strcpy(key, ev->name);
                 strcpy(evStr, ev->str);
                 if (EvtMgr.GetEvt(key, &evt) == 1) {
                     evtKey = ((Event*) evt)->NowCut;
@@ -4959,14 +4959,14 @@ void cLightTool::clearSubMenu()
 
 #ifdef DB_LIGHT_SET_LOG_MODE
 // t_esp build: error logging on / off (the log switch of the tool and of the manager).
-void cLightTool::setLogMode(int on)
+void cLightTool::setLogMode(bool on)
 {
     if (on == 1) {
         pTool->Flag |= 0x20;
     } else {
         pTool->Flag &= ~0x20;
     }
-    LightMgr.m_logMode = on;
+    LightMgr.setLogMode(on);
 }
 #endif
 

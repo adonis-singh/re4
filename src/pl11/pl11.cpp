@@ -29,7 +29,7 @@ static void Pl11Init(cEm* em)
 cSubAshley::cSubAshley()
 {
     hp = pG->ashley_life;
-    litArea.on(1);
+    State.SetLightIgnore();
     pFsdTbl = pl_fs_tbl;
     EspDataLoad((u32) SUB_ARC(this, 0x11), EFF_PL01, 0);
     pSUB = this;

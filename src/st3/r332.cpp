@@ -1671,7 +1671,7 @@ void Evt_R332S00_Func(Event* e)
             ResetShadowCamMoveSize();
         }
         if (e->NowCut == 0 && e->NowFrame == 0) {
-            int skip = EvtSkipCk(e);
+            int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
             if (skip == 0) {
                 FadeSetW(0x80000002, 40, 0, 0);

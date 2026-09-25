@@ -72,7 +72,7 @@ static void r102_execEvent00()
     SceEventStart(0);
     if (r102_work->evd->waitUseOk() == 1) {
         EvtMgr.SetEvt(r102_work->evd->m_addr, 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
     }

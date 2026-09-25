@@ -813,7 +813,7 @@ static inline void r227_waitEvt()
 {
     for (;;) {
         EventMgr* em = &EvtMgr;
-        u32* key = &em->NowExeEvtKey;
+        char* key = em->GetNowExeEvtNamePtr();
 
         if (em->IsAliveEvt(key, 0, 0) == 0) {
             break;
@@ -985,7 +985,7 @@ static void Evt_R227S00_Func(Event* e)
             v = 0;
         }
         if (v == 0) {
-            EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x88, 1, 0.0f);
+            EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x88, 1, 0.0f);
         }
         break;
     }

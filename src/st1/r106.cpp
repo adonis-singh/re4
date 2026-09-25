@@ -368,7 +368,7 @@ static void r106_Event()
             ev->StatusFlag |= EvtStfBit(EvtStfFadeOut);
         }
         evt = &EvtMgr;
-        while (evt->IsAliveEvt(&evt->NowExeEvtKey, 0, 0) != 0) {
+        while (evt->IsAliveEvt(evt->GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
     }

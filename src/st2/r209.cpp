@@ -1025,7 +1025,7 @@ static void r209_2ndBattle()
     if (r209_work->evd->waitLoadOk() == 1) {
         MemorySwap(m->pArc, (u32) r209_work->evd->m_addr, r209_work->evd->m_size);
         EvtMgr.SetEvt(m->pArc, (u32*) 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
             SceSleep(1);
         }
         MemorySwap(m->pArc, (u32) r209_work->evd->m_addr, r209_work->evd->m_size);

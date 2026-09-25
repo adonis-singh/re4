@@ -354,7 +354,7 @@ static void r212_EventTrap()
     if (r212_work->evd->waitLoadOk() == 1 && m != 0) {
         MemorySwap(m->pArc, (u32) r212_work->evd->m_addr, r212_work->evd->m_size);
         EvtMgr.SetEvt(m->pArc, 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
             SceSleep(1);
         }
         MemorySwap(m->pArc, (u32) r212_work->evd->m_addr, r212_work->evd->m_size);

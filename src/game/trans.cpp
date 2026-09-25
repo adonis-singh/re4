@@ -59,15 +59,6 @@ struct GxWork {
 };
 #define GXWORK() ((GxWork*) &pG->gxStage)
 
-// cModel fields past the 0x1D8 the header declares (KNOWN DEBT: cModel is 0x320 in the original).
-struct cModelExt {
-    u8 pad_0[0x308];
-    void* pFsdTbl;  // 0x308
-    EmLightArea litArea;   // 0x30C
-    cTexChg* pTexChg;      // 0x31C
-};
-#define MODEL_EXT(m) ((cModelExt*) (m))
-
 // Parts (cParts) fields past cCoord: the parts chain and the inverse bind matrix.
 struct cPartsWk {
     u8 pad_0[0xF4];
@@ -1221,8 +1212,8 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
                     GXInitTexObjLOD(&gx->texObj[i], filt, 1, (f32) min_lod, (f32) max_lod, lod_bias, 0, edge, aniso);
                 }
             }
-            if (MODEL_EXT(m)->pTexChg != 0) {
-                MODEL_EXT(m)->pTexChg->move(gx->texObj);
+            if (m->pTexChg != 0) {
+                m->pTexChg->move(gx->texObj);
             }
         }
         g_prev_tpl_addr = info->tpl_addr;
@@ -1274,7 +1265,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
         info = info->pList;
     }
     if (!StaFlagChk(pG, STA_PROC_SHD_TEX)) {
-        if (MODEL_EXT(m)->pFsdTbl != 0 && (m->be_flag & 0x10)) {
+        if (m->pFsdTbl != 0 && (m->be_flag & 0x10)) {
             DrawFootShadow((cEm*) m);
         }
     }
@@ -2067,11 +2058,11 @@ void SetCastShadowLight(cModel* m, Vec* pos, Vec* dir, ShadowMng* mng)
     GXInitLightSpot(&lobj, 89.0f, 4);
     GXInitLightDistAttn(&lobj, 0.0f, 0.0f, 0);
     if (m != 0) {
-        EmLightArea* la = &MODEL_EXT(m)->litArea;
-        if (la->chk(1) == 1 && la->chk(2) == 1 && la->lightNo == mng->pLight->LitIndex) {
-            k.r = k.r * (u8) la->scale;
-            k.g = k.g * (u8) la->scale;
-            k.b = k.b * (u8) la->scale;
+        cModelState* la = &m->State;
+        if (la->IsLightIgnore() == 1 && la->IsLightIgnoreUse() == 1 && la->GetLightNo() == mng->pLight->LitIndex) {
+            k.r = k.r * (u8) la->GetLightPow();
+            k.g = k.g * (u8) la->GetLightPow();
+            k.b = k.b * (u8) la->GetLightPow();
         }
     }
     c = k;

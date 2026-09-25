@@ -3364,7 +3364,7 @@ static void em10_R0_Init(cEm10* em)
         em->atari.m_flag |= 8;
         em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     }
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     if (em->type == 6) {
         em->setStatus(EM_STATUS_LOCKOFF);
         if (em->type == 6) {

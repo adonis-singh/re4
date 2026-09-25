@@ -230,6 +230,7 @@ public:
     virtual void moveMatCalcBefore() {}
     virtual void initCloth() {}
     virtual void moveCloth() {}
+    void setEyeMode(u8 mode) { m_EyeMode = mode; }
     // Partner (id 3) dead while the player is in routine 0: routine 6 (die), damage info 0x80.
     // Inline, but defined in pl_class.cpp: player.cpp's move() calls it out of line.
     void subCharLiveCheck();

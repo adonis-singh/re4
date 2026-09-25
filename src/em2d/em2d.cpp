@@ -1034,7 +1034,7 @@ static void em2d_R0_Init(cEm2d* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 700.0f, 550.0f, 550.0f, 1000.0f, 1, 0x2000, 10);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     YarareInit(em, 0.0f, -50.0f, 0.0f, 210.0f, 100.0f, 6, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[0], 0.0f, 0.0f, 0.0f, 260.0f, 50.0f, 2, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[1], 0.0f, 0.0f, 0.0f, 260.0f, 200.0f, 3, YAT_FLAG_ON);

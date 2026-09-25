@@ -1709,8 +1709,8 @@ static void Evt_R31CS01_Func(Event* e)
         SmdGetObjPtr(0x97)->be_flag |= 2;
         break;
     case 3:
-        if (EvtStatusCk(e, 0x4000) == 0) {
-            EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x8B, 1, 0.0f);
+        if (e->FlgCkStatus(EvtStfEvtCancelSet) == 0) {
+            EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x8B, 1, 0.0f);
         }
         break;
     }

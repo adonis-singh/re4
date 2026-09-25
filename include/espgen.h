@@ -130,8 +130,6 @@ struct cEspSystem {
 
     int GetTexObjFlag(u32 no);
     void SetTexObjFlag(u32 no, int flg);
-    int GetActiveEspNum() { return ActiveEspNum; }
-    int GetMaxEspNum() { return nEsp; }
 };
 extern cEspSystem* g_pEspSys;
 

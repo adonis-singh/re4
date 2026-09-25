@@ -118,6 +118,7 @@ public:
 
     void set(int frame, CameraParam* p);
     void move(CameraParam* arg);
+    CameraParam* getCamPtr() { return &param; }
 };
 
 class CameraSmooth : public CAMERA {

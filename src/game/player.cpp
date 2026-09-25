@@ -255,7 +255,7 @@ void cPlayer::init1()
         static const Vec lightSize = { 1000.0f, 1000.0f, 0.0f };
         LightInfo.init2(0, 1, &lightOfs, &lightSize, 1);
     }
-    litArea.on(1);
+    State.SetLightIgnore();
     atari.init(0.0f, -200.0f, 0.0f, 400.0f, 200.0f, 400.0f, 800.0f, 1, 0x1000, 10);
     lockOfs.x = 0.0f;
     lockOfs.y = 0.0f;

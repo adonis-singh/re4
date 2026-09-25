@@ -371,7 +371,7 @@ static void r117_EventAshleyFind()
     if (W->evd0->waitLoadOk() == 1) {
         MemorySwap(W->mod->pArc, (u32) W->evd0->m_addr, W->evd0->m_size);
         EvtMgr.SetEvt(W->mod->pArc, (u32*) 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         SysFlagOn(pG, SYS_SCREEN_STOP);
@@ -414,7 +414,7 @@ static void r117_EventSaddlerAppear()
         if (EvtMgr.SetEvt(W->mod->pArc, (u32*) &ev)) {
             ev->StatusFlag |= EvtStfBit(EvtStfFadeOut);
         }
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         MemorySwap(W->mod->pArc, (u32) W->evd1->m_addr, W->evd1->m_size);

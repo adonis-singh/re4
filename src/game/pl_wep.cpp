@@ -1060,10 +1060,7 @@ void PlWepLockRand(cModel* pEm, int mflag, f32* ang_x, f32* ang_y)
     f32 sY;
 
     *ang_x *= PI / 2.0f;
-    rP = wep->m_pWep->bureX;
-    rY = wep->m_pWep->bureY;
-    sP = wep->m_pWep->bureSpeedX;
-    sY = wep->m_pWep->bureSpeedY;
+    wep->m_pWep->getAbility(&rP, &rY, &sP, &sY);
     if (mflag & 1) {
         wep->pitch = *ang_x;
         wep->m_CenterY = *ang_y;

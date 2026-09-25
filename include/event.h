@@ -24,9 +24,6 @@ public:
         }
         return pData + no;
     }
-    // some inline in the original event.h carries an empty string literal: 4 zero bytes follow
-    // the file-name string in every including unit's .rodata
-    const char* emptyName() { return ""; }
 };
 
 class cModel;
@@ -358,7 +355,7 @@ public:
         u32* f = &StatusFlag;
         f[no >> 5] ^= 0x80000000 >> (no & 0x1F);
     }
-    int FlgCkStatus(u32 no)
+    bool FlgCkStatus(u32 no)
     {
         u32* f = &StatusFlag;
         return (f[no >> 5] & (0x80000000 >> (no & 0x1F))) != 0;
@@ -431,10 +428,9 @@ enum EvtReadFlag {
 // roomInit / arrayAlloc / arrayFree / dispWorkNum on it).
 class EventMgr : public cManager<Event> {
 public:
-    union {
-        u32 NowExeEvtKey;  // 0x34  first word of the running event name as a key (sce_com SceChapterEnd: IsAliveEvt / GetEvt)
-        char NowExeEvtName[0x30];  // 0x34  name of the running event ("" = none)
-    };
+private:
+    char NowExeEvtName[0x30];  // 0x34  name of the running event ("" = none)
+public:
     EvtReadEm ReadWkTbl[8];   // 0x64  enemy modules loaded per read slot
     char NameTmp[0x20];    // 0x84  NameChange result
     u32 pUnit[0x20];         // 0xA4  cleared by myRoomInit
@@ -461,7 +457,10 @@ public:
     int DelFunc(char* pName);
     int SetEvs(void* evs);      // room "EVS" data (game gameRoomInit)
     int Run();
-    int IsAliveEvt(u32* pName, Event** ppEvt, int aliveEvtType);
+    void SetNowExeEvtName(const char* name) { strcpy(NowExeEvtName, name); }
+    char* GetNowExeEvtNamePtr() { return NowExeEvtName; }
+    void DelNowExeEvtName() { strcpy(NowExeEvtName, ""); }
+    int IsAliveEvt(const char* pName, Event** ppEvt, int aliveEvtType);
     int EvtReadAram(char* name, int emId, int* pPtr, int blockType, u32 size);
     int EvtReadMram(char* name, int emId, int* pPtr, int blockType, u32 size);
     int NameCheck(char* name);
@@ -475,7 +474,7 @@ public:
     // Starts the loaded event data ("even" "t" header); `key` (optional) receives its key.
     int SetEvt(void* data, u32* key);
     int SetEvt(char* name, Event** out);
-    int GetEvt(u32* pName, void** ppEvt);
+    int GetEvt(const char* pName, void** ppEvt);
     int DelEvt(void* evt, int a);
     int SetBin(char* name, void* data, void* dat2, int flag);
     // Looks a file of the running event up by name; 0 when it is not loaded.
@@ -489,8 +488,8 @@ public:
     int SetRead(char* name, int* wkNo, void* unit);
     int GetRead(void** pDat, int* pWkNo, char* name);
     int DelRead(char* name);
-    int EvtSndStrStop(u32* pName, int noTar, int wait);
-    void EvtSndStrPlay(u32* pName, int noTar, int noStr, int wait, f32 s_time);
+    int EvtSndStrStop(const char* pName, int noTar, int wait);
+    void EvtSndStrPlay(const char* pName, int noTar, int noStr, int wait, f32 s_time);
     int GetZeroPartsWorldPos(cModel* pMod, Vec* pPos, Vec* pAng);
     void ClearEmWindowFcv();
     void SetEmWindowFcv(void* a, void* b, void* c);
@@ -500,13 +499,16 @@ public:
 
 extern EventMgr EvtMgr;
 
-// The running event's name key of the event manager, read through a helper: a plain scalar access, not a member chain.
-static inline u32* evtKey(EventMgr* m) { return &m->NowExeEvtKey; }
 
-// Event::StatusFlag bit test as a 0/1 value: an inline gives the `li 1; and.; bne; li 0` chain.
-static inline int EvtStatusCk(Event* e, u32 bit) { int on = 1; if ((e->StatusFlag & bit) == 0) { on = 0; } return on; }
-// The skip bit of StatusFlag (0x40000000) the same way.
-static inline int EvtSkipCk(Event* e) { int skip = 1; if ((e->StatusFlag & EvtStfBit(EvtStfToolFrontExec)) == 0) { skip = 0; } return skip; }
+// EventDebug::FlagEtc tool switches, bit numbers from the top like the Event status flags.
+enum FlagEtcFlag {
+    FlagEvent2Esp = 0,
+    FlagEsp2Event = 1,
+    FlagLightTool = 2,
+    FlagFogTool = 3,
+    FlagFocusTool = 4,
+    FlagMessTool = 5
+};
 
 // Event debug tool work (game/event.cpp `EvtDebug`, 0xE8 bytes).
 class EventDebug {
@@ -516,15 +518,47 @@ public:
     char camName[0x30];    // 0x90  packet 0xE name
     s32 mesCnt[3];         // 0xC0
     int NowStr[2];          // 0xCC  last stream number per block
+private:
     s32 StfStrTimer;           // 0xD4
+public:
     int NowCut;           // 0xD8
+private:
     s32 NumMod;            // 0xDC
+public:
     EvtDebugModel* PMod; // 0xE0  0x60 entries
-    u32 FlagEtc;             // 0xE4  tool switches (bit19 fog off, bit20 focus off, bit18 lit off, bit21 mes off)
+private:
+    u32 FlagEtc;             // 0xE4  FlagEtcFlag bits (tool switches)
 
+public:
     EventDebug();
     ~EventDebug();
     int myRoomInit();          // room start (game gameRoomInit)
+    bool FlagCkEtc(u32 no)
+    {
+        u32* f = &FlagEtc;
+        return (f[no >> 5] & (0x80000000 >> (no & 0x1F))) != 0;
+    }
+    void FlagOnEtc(u32 no)
+    {
+        u32* f = &FlagEtc;
+        f[no >> 5] |= 0x80000000 >> (no & 0x1F);
+    }
+    void FlagOffEtc(u32 no)
+    {
+        u32* f = &FlagEtc;
+        f[no >> 5] &= ~(0x80000000 >> (no & 0x1F));
+    }
+    int GetStfStrTimer() { return StfStrTimer; }
+    void SetStfStrTimer(int timer) { StfStrTimer = timer; }
+    void CalStfStrTimer()
+    {
+        if (StfStrTimer > 0) {
+            StfStrTimer--;
+        }
+    }
+    int GetNumMod() { return NumMod; }
+    void ClrNumMod() { NumMod = 0; }
+    void AddNumMod() { NumMod++; }
     char* getEvName() { return evName; }
     char* getCamName() { return camName; }
     void ClrModelFiles();

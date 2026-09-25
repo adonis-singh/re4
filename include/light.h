@@ -268,6 +268,7 @@ public:
     virtual int construct(cLight* pSat, u32 room_no);
 
     void init(void (**funcTbl)(cLight*));
+    void setLogMode(bool on) { m_logMode = on; }
     int roomInit(cLit* core, cLit* room, cLit* third);
     cLight* create(cLightWork* pLw);
     cLight* createBack(cLightWork* pLw);

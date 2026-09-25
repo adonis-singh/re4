@@ -405,7 +405,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
             break;
         case 0x13:
             if (e->NowFrame == 380) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, e->MaxFrame - 380, 0, 0);

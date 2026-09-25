@@ -1259,7 +1259,7 @@ void CameraControl::Move()
     if (m_Inter.frame != 0) {
         CamSmth.unsetFlag();
     }
-    CamSmth.move(&m_Inter.param);
+    CamSmth.move(m_Inter.getCamPtr());
     camera.param = *CamSmth.getCamPtr();
     CameraSetOrientationRoll(&camera);
     if (!DbgFlagChk(pG, DBG_DBG_CAM) && (m_state_flag & 4)) {

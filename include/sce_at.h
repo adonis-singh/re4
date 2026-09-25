@@ -92,7 +92,7 @@ struct SceAtScrAt {
 
 // Field info payload (type 0xD, SceAtCreateFieldAt; emwindow reads it through SceAtCheckFieldInfo).
 struct SceAtField {
-    int value;        // 0x00 (0x5C)  0 = the model inside gets litArea.x0 bit0
+    int value;        // 0x00 (0x5C)  0 = the model inside gets State.SetInRoom(1)
     cModel* pModel;   // 0x04 (0x60)  creator
 };
 

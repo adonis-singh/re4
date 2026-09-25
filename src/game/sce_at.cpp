@@ -493,7 +493,7 @@ int sceAtCheck_main(cEm* em, int target_type)
     int c;
     int kind;
 
-    em->litArea.x0 &= ~1;
+    em->State.SetInRoom(0);
     pos = em->pos;
     pos.y += 250.0f;
     front.x = 0.0f;
@@ -1783,11 +1783,11 @@ int sceAtFunc_scr_at(SceAtWork* w, cModel* pModel)
     return 0;
 }
 
-// Type 0xD handler (field info): value 0 flags the model inside (litArea.x0 bit0, dark area).
+// Type 0xD handler (field info): value 0 flags the model inside (State in-room flag, dark area).
 int sceAtFunc_field_info(SceAtWork* w, cModel* pModel)
 {
     if (w->field.value == 0) {
-        ((cEm*) pModel)->litArea.x0 |= 1;
+        ((cEm*) pModel)->State.SetInRoom(1);
     }
     return 0;
 }

@@ -998,7 +998,7 @@ int SubCharMotionReset()
 // Eye control mode (0 wander, 1 from the motion).
 void PlSetEyeMode(u8 mode)
 {
-    pPL->m_EyeMode = mode;
+    pPL->setEyeMode(mode);
 }
 
 // The player's facing yaw including the waist twist (aim direction).

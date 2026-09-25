@@ -74,7 +74,7 @@ static inline void r10b_waitEvt()
 {
     // `&EvtMgr` inside the loop (no pointer local before it): loop.c hoists the `addi` into the
     // inner preheader from its own `lis` (the target's second EvtMgr high, r26).
-    while (EvtMgr.IsAliveEvt(evtKey(&EvtMgr), 0, 0)) {
+    while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
         SceSleep(1);
     }
 }
@@ -345,7 +345,7 @@ static void R10b_chkWater()
             SceSleep(2);
             if (readEvent(4, 1, &evt)) {
                 EvtMgr.SetEvt(evt, 0);
-                while (EvtMgr.IsAliveEvt(evtKey(&EvtMgr), 0, 0)) {
+                while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
                     SceSleep(1);
                 }
                 freeEvent(4);
@@ -419,7 +419,7 @@ static void r10b_GakeEvent()
         SceSleep(2);
         if (readEvent(3, 1, &evt)) {
             EvtMgr.SetEvt(evt, 0);
-            while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+            while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
                 SceSleep(1);
             }
             freeEvent(3);
@@ -717,7 +717,7 @@ extern "C" void Evt_R10BS20_Func(Event* e)
         }
         break;
     case 3:
-        EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x1D, 1, 0.0f);
+        EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x1D, 1, 0.0f);
         break;
     }
 }

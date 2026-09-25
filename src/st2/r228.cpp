@@ -356,7 +356,7 @@ extern "C" void Evt_R228S00_Func(Event* e)
             break;
         case 2:
             if (e->NowFrame == e->MaxFrame - 10) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 10, 0, 0);
@@ -365,35 +365,35 @@ extern "C" void Evt_R228S00_Func(Event* e)
             break;
         case 3:
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOn(pG, SYS_SCREEN_STOP);
                 }
             }
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 10, 0, 0);
                 }
             }
             if (e->NowFrame == 1) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOff(pG, SYS_SCREEN_STOP);
                 }
             }
             if (e->NowFrame == e->MaxFrame - 30) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 30, 0, 0);
                 }
             }
             if (e->NowFrame == e->MaxFrame - 1) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOn(pG, SYS_SCREEN_STOP);
@@ -437,14 +437,14 @@ extern "C" void Evt_R228S01_Func(Event* e)
             if (e->NowFrame == 0) {
                 EvtMgr.EvtReadAram("event/evd/r228s02.evd", 0, 0, 0, 0);
                 pG->Room_flg[0] |= 0x00100000;
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 20, 0, 0);
                 }
             }
             if (e->NowFrame == 1) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOff(pG, SYS_SCREEN_STOP);

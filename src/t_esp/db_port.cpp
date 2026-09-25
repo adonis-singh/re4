@@ -151,17 +151,7 @@ extern "C" int symbol_check(char** pp, const char* sym);
 extern "C" void sp_PosRand_trans_1a(EspSeqData* head, EspGenWork* gen);
 // COMPILER-DIFF: #1 (the original moves the cModel* argument before the f32 one: `mr r4; fmr f1`)
 
-// 1 when the effect tool was entered from the event tool (EvtDebug.FlagEtc bit 30).
-static inline int evtToolOn()
-{
-    int on = 1;
-    if ((EvtDebug.FlagEtc & 0x40000000) == 0) {
-        on = 0;
-    }
-    return on;
-}
-
-// the same `on` shape for another flag word (EspToolInit: `li 1; cmp; bcc; li 0; cmpwi; beq`)
+// flag word test: `li 1; cmp; bcc; li 0; cmpwi; beq` (EspToolInit)
 static inline int flagOn(u32 f, u32 bit)
 {
     int on = 1;
@@ -200,7 +190,7 @@ extern "C" cModel* GetActiveModel(EspGenWork* gen)
 {
     cModel* m;
 
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         return dbModGetEmPtr(gen->Parent_no);
     }
     m = dbModGetEmPtr(db_modelNo);
@@ -447,13 +437,6 @@ extern "C" void SeqSet(EspSeqData* head, int mode)
 {
     cModel* m;
     u16 f;
-    // COMPILER-DIFF: #13 (int shape, em27DmCk): the EstSet stack zero is a function-scope constant with
-    // one use in another block, so update_equiv_regs moves the `li` next to the store (r0). It is assigned
-    // right before the evtToolOn() test: for sched1 the set is a free insn of that block and takes the t1 slot
-    // next to the `lis`, so the inline's `on = 1` slips to t2 behind the flags load (the target's
-    // reload-materialised `li`), out of the high's r9 range, and `on` reuses r9.
-    int zero;
-
     m = dbModGetEmPtr(db_modelNo);
     if (m == 0) {
         m = EmMgr.at(db_modelNo);
@@ -466,11 +449,10 @@ extern "C" void SeqSet(EspSeqData* head, int mode)
     } else {
         f = (u16) (8 << (mode - 1));
     }
-    zero = 0;
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         f |= 0x1000;
     }
-    EstSet(m, -1, 0, 0, head, f | 1, ESP_CORE_KIND_NONE, m, EFF_DEBUG, (void*) zero);
+    EstSet(m, -1, 0, 0, head, f | 1, ESP_CORE_KIND_NONE, m, EFF_DEBUG, 0);
 }
 
 // Loads the event's camera data for the event-tool preview (EvtDebug camName).
@@ -770,14 +752,15 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
     SetLoopFlag(0, 2);
     SetLoopFlag(0, 3);
     SetLoopFlag(0, 4);
-    if (flagOn(EvtDebug.FlagEtc, 0x80000000)) {
+    if (EvtDebug.FlagCkEtc(FlagEvent2Esp)) {
         int n;
         u8 c;
         u8 hi;
         u32 nLit;
         int k;
 
-        EvtDebug.FlagEtc = (EvtDebug.FlagEtc & 0x7FFFFFFF) | 0x40000000;
+        EvtDebug.FlagOffEtc(FlagEvent2Esp);
+        EvtDebug.FlagOnEtc(FlagEsp2Event);
         StaFlagOn(pG, STA_SUSPEND);
         StaFlagOn(pG, STA_EVENT_SYSYTEM);
         StaFlagOn(pG, STA_EFFAREA_USE_CAM);
@@ -821,7 +804,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 l->be_flag &= 2; // sic: the original masks with 2, not ~2 (`rlwinm 0,30,30`)
             }
         }
-        nModel = EvtDebug.NumMod;
+        nModel = EvtDebug.GetNumMod();
         for (i = 0; i < nModel; i++) {
             // set before the static guards: a set after their `bne`s is `maybe_never` for loop.c and stays in the body
             int* pParent = &parent;
@@ -1153,7 +1136,7 @@ extern "C" void EspToolExit()
     LightMgr.setFog();
     LightToolEnd();
     Block.dispAllBlock(0);
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         DbMenuSetExecTool("EVENT TOOL");
         StaFlagOff(pG, STA_SUSPEND);
         StaFlagOff(pG, STA_EVENT_SYSYTEM);
@@ -1174,7 +1157,7 @@ extern "C" void EspToolExit()
 // 1 when the tool was started from the event tool.
 extern "C" int DB_isGetComeEventTool()
 {
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         return 1;
     }
     return 0;

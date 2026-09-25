@@ -83,6 +83,12 @@ public:
         bureSpeedX = pitchStep * 0.017453292f;
         bureSpeedY = yawStep * 0.017453292f;
     }
+    void getAbility(f32* pitch, f32* yaw, f32* pitchStep, f32* yawStep) {
+        *pitch = bureX;
+        *yaw = bureY;
+        *pitchStep = bureSpeedX;
+        *yawStep = bureSpeedY;
+    }
     void setStat(STAT stat) {
         r_no_0 = stat;
         r_no_1 = 0;

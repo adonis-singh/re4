@@ -424,7 +424,7 @@ static void em38_R0_Init(cEm38* em)
         }
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     em->atari.off();
     switch (em->type) {
     case 0:

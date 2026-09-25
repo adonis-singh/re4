@@ -857,7 +857,7 @@ static void Evt_R104S00_Func(Event* e)
             fadeOn = 0;
         }
         if (fadeOn == 0) {
-            EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x86, 1, 0.0f);
+            EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x86, 1, 0.0f);
         }
         break;
     }

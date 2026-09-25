@@ -347,7 +347,7 @@ static void r11c_EventBesiegedStart()
         EvtMgr.SetEvt(mod->pArc, (u32*) 0);
         SceSleep(2);
         SceSleep(2);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         MemorySwap(mod->pArc, (u32) W->evd0->m_addr, W->evd0->m_size);
@@ -566,7 +566,7 @@ static void r11c_EventBesiegedStart()
             if (EvtMgr.SetEvt(mod2->pArc, (u32*) &ev)) {
                 ev->StatusFlag |= EvtStfBit(EvtStfFadeOut);
             }
-            while (EvtMgr.IsAliveEvt(evtKey(&EvtMgr), 0, 0) != 0) {
+            while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
                 SceSleep(1);
             }
             MemorySwap(mod2->pArc, (u32) W->evd1->m_addr, W->evd1->m_size);

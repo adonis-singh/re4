@@ -4448,7 +4448,7 @@ address	size	section	unit	scope	name	demangled
 0x80138914	0xD0	.text	game/event.cpp	global	myRoomInit__8EventMgr	EventMgr::myRoomInit
 0x801389E4	0x78	.text	game/event.cpp	global	DelAll__8EventMgr	EventMgr::DelAll
 0x80138A5C	0x29C	.text	game/event.cpp	global	Run__8EventMgr	EventMgr::Run
-0x80138CF8	0xE0	.text	game/event.cpp	global	IsAliveEvt__8EventMgrPUlPP5Eventi	EventMgr::IsAliveEvt
+0x80138CF8	0xE0	.text	game/event.cpp	global	IsAliveEvt__8EventMgrPCcPP5Eventi	EventMgr::IsAliveEvt
 0x80138DD8	0x58	.text	game/event.cpp	global	EvtReadAram__8EventMgrPciPiiUl	EventMgr::EvtReadAram
 0x80138E30	0x3C	.text	game/event.cpp	global	EvtReadMram__8EventMgrPciPiiUl	EventMgr::EvtReadMram
 0x80138E6C	0xD4	.text	game/event.cpp	global	NameCheck__8EventMgrPc	EventMgr::NameCheck
@@ -4459,7 +4459,7 @@ address	size	section	unit	scope	name	demangled
 0x8013979C	0x40	.text	game/event.cpp	global	ToolCoreEvdDel__8EventMgr	EventMgr::ToolCoreEvdDel
 0x801397DC	0x140	.text	game/event.cpp	global	SetEvt__8EventMgrPvPUl	EventMgr::SetEvt
 0x8013991C	0x148	.text	game/event.cpp	global	SetEvt__8EventMgrPcPP5Event	EventMgr::SetEvt
-0x80139A64	0x24	.text	game/event.cpp	global	GetEvt__8EventMgrPUlPPv	EventMgr::GetEvt
+0x80139A64	0x24	.text	game/event.cpp	global	GetEvt__8EventMgrPCcPPv	EventMgr::GetEvt
 0x80139A88	0x150	.text	game/event.cpp	global	DelEvt__8EventMgrPvi	EventMgr::DelEvt
 0x80139BD8	0x90	.text	game/event.cpp	global	SetBin__8EventMgrPcPvT2i	EventMgr::SetBin
 0x80139C68	0x160	.text	game/event.cpp	global	GetBin__8EventMgrPPvPCci	EventMgr::GetBin
@@ -4473,8 +4473,8 @@ address	size	section	unit	scope	name	demangled
 0x8013A308	0xA4	.text	game/event.cpp	global	GetRead__8EventMgrPPvPiPc	EventMgr::GetRead
 0x8013A3AC	0x50	.text	game/event.cpp	global	DelRead__8EventMgrPc	EventMgr::DelRead
 0x8013A3FC	0xD8	.text	game/event.cpp	global	SetEvs__8EventMgrPv	EventMgr::SetEvs
-0x8013A4D4	0x198	.text	game/event.cpp	global	EvtSndStrStop__8EventMgrPUlii	EventMgr::EvtSndStrStop
-0x8013A66C	0x1C4	.text	game/event.cpp	global	EvtSndStrPlay__8EventMgrPUliiif	EventMgr::EvtSndStrPlay
+0x8013A4D4	0x198	.text	game/event.cpp	global	EvtSndStrStop__8EventMgrPCcii	EventMgr::EvtSndStrStop
+0x8013A66C	0x1C4	.text	game/event.cpp	global	EvtSndStrPlay__8EventMgrPCciiif	EventMgr::EvtSndStrPlay
 0x8013A830	0x148	.text	game/event.cpp	global	GetZeroPartsWorldPos__8EventMgrP6cModelP3VecT2	EventMgr::GetZeroPartsWorldPos
 0x8013A978	0x14	.text	game/event.cpp	global	ClearEmWindowFcv__8EventMgr	EventMgr::ClearEmWindowFcv
 0x8013A98C	0x10	.text	game/event.cpp	global	SetEmWindowFcv__8EventMgrPvN21	EventMgr::SetEmWindowFcv

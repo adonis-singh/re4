@@ -490,7 +490,7 @@ extern "C" void Evt_R11BS00_Func(Event* e)
         switch (e->NowCut) {
         case 0:
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 30, 0, 0);
@@ -502,7 +502,7 @@ extern "C" void Evt_R11BS00_Func(Event* e)
             break;
         case 2:
             if (e->NowFrame == 0x84) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     EstSet(0, -1, 0, 0, EFF_ROOM, 0xB, 1, ESP_CORE_KIND_NONE, 0, 0);
@@ -511,7 +511,7 @@ extern "C" void Evt_R11BS00_Func(Event* e)
             break;
         case 3:
             if (e->NowFrame == 0x55) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     EstSet(0, -1, 0, 0, EFF_ROOM, 0xB, 1, ESP_CORE_KIND_NONE, 0, 0);
@@ -520,7 +520,7 @@ extern "C" void Evt_R11BS00_Func(Event* e)
             break;
         case 4:
             if (e->NowFrame == 0x26) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     EstSet(0, -1, 0, 0, EFF_ROOM, 0xB, 1, ESP_CORE_KIND_NONE, 0, 0);
@@ -529,7 +529,7 @@ extern "C" void Evt_R11BS00_Func(Event* e)
             break;
         case 5:
             if (e->NowFrame == 0x5D) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     EstSet(0, -1, 0, 0, EFF_ROOM, 0xB, 1, ESP_CORE_KIND_NONE, 0, 0);
@@ -537,13 +537,13 @@ extern "C" void Evt_R11BS00_Func(Event* e)
             }
             break;
         case 8: {
-            int skip = EvtSkipCk(e);
+            int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
             if (skip == 0) {
                 SetNearClipDist(1.0f);
             }
             if (e->NowFrame == 0x68) {
-                int skip2 = EvtSkipCk(e);
+                int skip2 = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip2 == 0) {
                     EstSet(0, -1, 0, 0, EFF_ROOM, 0xB, 1, ESP_CORE_KIND_NONE, 0, 0);

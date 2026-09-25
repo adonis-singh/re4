@@ -2234,7 +2234,7 @@ static void Evt_R320S00_Func(Event* e)
             SmdSetTrans(0x18, 0);
         }
         if (e->NowCut == 7 && e->NowFrame == 0x78) {
-            int skip = EvtSkipCk(e);
+            int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
             if (skip == 0) {
                 FadeSetW(2, e->MaxFrame - 0x78, 0, 0);
@@ -2318,7 +2318,7 @@ static void Evt_R320S01_Func(Event* e)
                 e->EspSetModelPtr(obj);
             }
             {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 0x1E, 0, 0);
