@@ -1052,10 +1052,10 @@ int pzlPlayer::removeExtraPiece()
 {
     if (m_extra->isOnBoard()) {
         pzlBoard* b;
-        if (m_board->search(m_extra)) {
-            b = m_board;
-        } else if (m_space->search(m_extra)) {
-            b = m_space;
+        if (boardPtr()->search(m_extra)) {
+            b = boardPtr();
+        } else if (spacePtr()->search(m_extra)) {
+            b = spacePtr();
         } else {
             pLog->err(0, 0, "pzlPlayer::removeExtraPiece(): Piece not found.");
             return 0;
@@ -1132,7 +1132,7 @@ int pzlPlayer::selPiece(pzlBoard* b)
             for (;;) {
                 b->m_cur_x += d;
                 if (p == 0) {
-                    SEL_CHECK(m_cur_x, m_size_x, 3, 4, doneX);
+                    SEL_CHECK(m_cur_x, size_x(), 3, 4, doneX);
                     break;
                 }
                 {
@@ -1142,7 +1142,7 @@ int pzlPlayer::selPiece(pzlBoard* b)
                             goto doneX;
                         }
                     } else {
-                        SEL_CHECK(m_cur_x, m_size_x, 3, 4, doneX);
+                        SEL_CHECK(m_cur_x, size_x(), 3, 4, doneX);
                         goto doneX;
                     }
                 }
@@ -1165,7 +1165,7 @@ doneX:
             for (;;) {
                 b->m_cur_y += d;
                 if (p == 0) {
-                    SEL_CHECK(m_cur_y, m_size_y, 1, 2, doneY);
+                    SEL_CHECK(m_cur_y, size_y(), 1, 2, doneY);
                     break;
                 }
                 {
@@ -1175,7 +1175,7 @@ doneX:
                             goto doneY;
                         }
                     } else {
-                        SEL_CHECK(m_cur_y, m_size_y, 1, 2, doneY);
+                        SEL_CHECK(m_cur_y, size_y(), 1, 2, doneY);
                         goto doneY;
                     }
                 }
@@ -1309,7 +1309,7 @@ pzlPiece* pzlPlayer::cmbPiece(pzlBoard* b)
         used = h->item->isEmpty();
         if (!used) {
             if (rel) {
-                relPiece(m_p_active_board);
+                relPiece();
             }
         } else {
             m_inhand = 0;
@@ -1385,14 +1385,14 @@ int pzlPlayer::movePiece()
             ret = 1;
         } else if (joy->trg & 0x20) {
             p->rotate(0);
-            if (fabsf((f32) (s8) p->size_y()) > (f32) (m_p_active_board->m_size_y + 2)) {
+            if (fabsf((f32) (s8) p->size_y()) > (f32) (m_p_active_board->size_y() + 2)) {
                 p->rotate(0);
             }
             ret = 2;
             goto cursor;
         } else if (joy->trg & 0x40) {
             p->rotate(1);
-            if (fabsf((f32) (s8) p->size_y()) > (f32) (m_p_active_board->m_size_y + 2)) {
+            if (fabsf((f32) (s8) p->size_y()) > (f32) (m_p_active_board->size_y() + 2)) {
                 p->rotate(1);
             }
             ret = 2;
@@ -1451,22 +1451,22 @@ int pzlPlayer::movePiece()
                     int edge;
                     int h;
                     f32 fy;
-                    pzlBoard* cb = m_board;
+                    pzlBoard* cb = boardPtr();
                     f32 ny = 0.0f;
                     if (m_p_active_board == cb) {
-                        m_p_active_board = m_space;
+                        m_p_active_board = spacePtr();
                         ny = p->m_pos_y - -2.0f;
-                    } else if (m_p_active_board == m_space) {
+                    } else if (m_p_active_board == spacePtr()) {
                         m_p_active_board = cb;
                         ny = p->m_pos_y + -2.0f;
                     }
                     p->m_pos_y = ny;
-                    if (fabsf((f32) (s8) p->size_y()) > (f32) (m_p_active_board->m_size_y + 2)) {
+                    if (fabsf((f32) (s8) p->size_y()) > (f32) (m_p_active_board->size_y() + 2)) {
                         p->rotate(1);
                         p->snap();
                     }
                     if (dir == 1) {
-                        edge = m_p_active_board->m_size_x;
+                        edge = m_p_active_board->size_x();
                         if (p->size_x() > 0) {
                             edge -= (int) (fabsf((f32) (s8) p->size_x()) - 1.0f);
                         }
@@ -1516,7 +1516,7 @@ int pzlPlayer::movePiece()
                         }
                         if (fabsf((f32) (s8) p->size_y()) == 1.0f && m_p_active_board->outPiece(p) == 1) {
                             int step = -1;
-                            if (p->m_pos_y < (f32) (s8) (m_p_active_board->m_size_y / 2)) {
+                            if (p->m_pos_y < (f32) (s8) (m_p_active_board->size_y() / 2)) {
                                 step = 1;
                             }
                             do {
@@ -1525,7 +1525,7 @@ int pzlPlayer::movePiece()
                         }
                         if (fabsf((f32) (s8) p->size_x()) == 1.0f && m_p_active_board->outPiece(p) == 1) {
                             int step = -1;
-                            if (p->m_pos_x < (f32) (s8) (m_p_active_board->m_size_x / 2)) {
+                            if (p->m_pos_x < (f32) (s8) (m_p_active_board->size_x() / 2)) {
                                 step = 1;
                             }
                             do {
@@ -1570,7 +1570,7 @@ cursor:
         m_p_active_board->m_cur_x = 0;
     }
     {
-        int wm = m_p_active_board->m_size_x - 1;
+        int wm = m_p_active_board->size_x() - 1;
         if (m_p_active_board->m_cur_x > wm) {
             m_p_active_board->m_cur_x = wm;
         }
@@ -1579,7 +1579,7 @@ cursor:
         m_p_active_board->m_cur_y = 0;
     }
     {
-        int hm = m_p_active_board->m_size_y - 1;
+        int hm = m_p_active_board->size_y() - 1;
         if (m_p_active_board->m_cur_y > hm) {
             m_p_active_board->m_cur_y = hm;
         }
@@ -1599,10 +1599,10 @@ void pzlPlayer::rehash()
         }
         if (p->item->flags == 0) {
             if (p->isOnBoard()) {
-                if (m_board->search(p)) {
-                    m_board->rmPiece(p);
-                } else if (m_space->search(p)) {
-                    m_space->rmPiece(p);
+                if (boardPtr()->search(p)) {
+                    boardPtr()->rmPiece(p);
+                } else if (spacePtr()->search(p)) {
+                    spacePtr()->rmPiece(p);
                 }
             }
             p->model->push();
@@ -1705,14 +1705,14 @@ int PutInCase(ITEM_ID item_id, u16 item_num, int size)
     pl->appendExtraPiece(&item);
     pl->inHandExtraPiece();
     {
-        p = pl->m_extra;
-        s8 bh = pl->m_board->m_size_y;
-        s8 bw = pl->m_board->m_size_x;
+        p = pl->pieceExtra();
+        s8 bh = pl->boardPtr()->size_y();
+        s8 bw = pl->boardPtr()->size_x();
         for (i = 0; i < bh; i++) {
             for (j = 0; j < bw; j++) {
                 p->set_ver0_x((f32) j);
                 p->set_ver0_y((f32) i);
-                if (pl->putPiece(pl->m_board)) {
+                if (pl->putPiece(pl->boardPtr())) {
                     ok = 1;
                     goto placed;
                 }
@@ -1723,7 +1723,7 @@ int PutInCase(ITEM_ID item_id, u16 item_num, int size)
             for (j = 0; j < bw; j++) {
                 p->set_ver0_x((f32) j);
                 p->set_ver0_y((f32) i);
-                if (pl->putPiece(pl->m_board)) {
+                if (pl->putPiece(pl->boardPtr())) {
                     ok = 1;
                     goto placed;
                 }

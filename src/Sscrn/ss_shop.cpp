@@ -357,14 +357,14 @@ void shopModelAlloc(SUB_SCREEN* wk)
 
     wk->attr_flag |= 1;
     ssModInfoMgr.roomInit();
-    ssModInfoMgr.arrayAlloc(pl->m_piece_max + 4);
+    ssModInfoMgr.arrayAlloc(pl->pieceMax() + 4);
     ssPartsMgr.roomInit();
     ssPartsMgr.arrayAlloc(0xBE);
     cModel::mm = &ssModInfoMgr;
     cModel::pm = &ssPartsMgr;
     MapMgr.roomInit();
-    MapMgr.arrayAlloc(pl->m_piece_max + 4);
-    for (i = 0; i < pl->m_piece_max + 4; i++) {
+    MapMgr.arrayAlloc(pl->pieceMax() + 4);
+    for (i = 0; i < pl->pieceMax() + 4; i++) {
         MapMgr.create(0, i);
     }
 }
@@ -1645,14 +1645,14 @@ void BuyItemNum::move(SUB_SCREEN* wk)
                 wk->puzzlePlayer->appendExtraPiece(&sw->buy);
                 wk->puzzlePlayer->inHandExtraPiece();
                 pl = wk->puzzlePlayer;
-                p = pl->m_extra;
-                h = pl->m_space->m_size_y;
-                w = pl->m_space->m_size_x;
+                p = pl->pieceExtra();
+                h = pl->spacePtr()->size_y();
+                w = pl->spacePtr()->size_x();
                 for (y = 0; y < h; y++) {
                     for (x = 0; x < w; x++) {
                         p->set_ver0_x((f32) x);
                         p->set_ver0_y((f32) y);
-                        if (pl->putPiece(pl->m_space)) {
+                        if (pl->putPiece(pl->spacePtr())) {
                             goto PUT;
                         }
                     }
@@ -1662,15 +1662,15 @@ void BuyItemNum::move(SUB_SCREEN* wk)
                     for (x = 0; x < w; x++) {
                         p->set_ver0_x((f32) x);
                         p->set_ver0_y((f32) y);
-                        if (pl->putPiece(pl->m_space)) {
+                        if (pl->putPiece(pl->spacePtr())) {
                             goto PUT;
                         }
                     }
                 }
             PUT:
-                pl->m_p_active_board = pl->m_space;
-                pl->getPiece(pl->m_space);
-                pieceModelSet(wk->puzzlePlayer->m_extra);
+                pl->m_p_active_board = pl->spacePtr();
+                pl->getPiece(pl->spacePtr());
+                pieceModelSet(wk->puzzlePlayer->pieceExtra());
                 wk->back2 = 1;
                 sw->placed = 1;
                 dispItem(0, 0);
@@ -1710,7 +1710,7 @@ int deleteExtraPiece(SUB_SCREEN* wk)
 {
     pzlPlayer* pl = wk->puzzlePlayer;
 
-    if (pl->m_extra) {
+    if (pl->pieceExtra()) {
         if (pl->removeExtraPiece()) {
             return 1;
         }
@@ -1735,7 +1735,7 @@ int buyItem(SUB_SCREEN* wk)
             p->y = sw->buy.y;
             p->orient = sw->buy.orient;
             p->board = sw->buy.board;
-            wk->puzzlePlayer->m_extra->item = p;
+            wk->puzzlePlayer->pieceExtra()->item = p;
         }
     } else {
         ItemWork* p = ItemMgr.newbie();
@@ -1863,7 +1863,7 @@ void BuyConfirm::move(SUB_SCREEN* wk)
         }
         break;
     case 3:
-        wk->puzzlePlayer->m_space->rmPiece(wk->puzzlePlayer->m_extra);
+        wk->puzzlePlayer->spacePtr()->rmPiece(wk->puzzlePlayer->pieceExtra());
         wk->puzzlePlayer->inHandExtraPiece();
         transit(2, wk);
         IdSub.unitPtr(0xF9, IDC_SSCRN_CKPT_0)->rev_flag |= 0xF;
@@ -1886,7 +1886,7 @@ void BuyPuzzleEnd::move(SUB_SCREEN* wk)
 {
     ShopWork* sw = wk->shop;
 
-    if (wk->puzzlePlayer->m_board->search(wk->puzzlePlayer->m_extra)) {
+    if (wk->puzzlePlayer->boardPtr()->search(wk->puzzlePlayer->pieceExtra())) {
         buyItem(wk);
         transit(1, wk);
         shopStrPlay(wk, shop_msg[21].str);

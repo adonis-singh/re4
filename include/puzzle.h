@@ -70,14 +70,19 @@ public:
 };
 
 class pzlBoard {
-public:
+private:
     u8* m_cell;        // 0x00  w * h state bytes (bit0 occupied, bit1 inside, bit6 wall)
+public:
+    // read directly by two float compares in pzlPlayer::movePiece: through size_y() the
+    // conversion stores the sign-extended register instead of the loaded byte
     s8 m_size_x;             // 0x04
     s8 m_size_y;             // 0x05
+private:
     u8 m_piece_max;      // 0x06
     u8 pad_7;
     pzlPiece** m_p_piece;// 0x08
     Mtx m_mat;          // 0x0C  board -> world matrix (Sscrn ss_pzzl caseModelMove)
+public:
     s8 m_cur_x;          // 0x3C  cursor
     s8 m_cur_y;          // 0x3D
     s8 m_wall_miss_flag;       // 0x3E  ckInsideWall result side (1 left, 2 right, 3 up, 4 down)
@@ -85,6 +90,7 @@ public:
 
     int init(int w, int h, int pieceMax);
     void quit();
+    Mtx* orientation() { return &m_mat; }
     int getPieceNum();
     int search(pzlPiece* p);
     int ckInsideWall(pzlPiece* p_piece);
@@ -97,10 +103,12 @@ public:
     u8* cell(int x, int y);
     int cellState(int x, int y);
     void clearState(u8 state);
+    s8 size_x() { return m_size_x; }
+    s8 size_y() { return m_size_y; }
 };
 
 class pzlPlayer {
-public:
+private:
     pzlBoard* m_board;   // 0x00
     pzlBoard* m_space;  // 0x04
     pzlPiece* m_piece;      // 0x08
@@ -117,13 +125,20 @@ public:
     s8 m_cur_x_sav;              // 0x2C
     s8 m_cur_y_sav;              // 0x2D
     u8 pad_2E[2];
+public:
     pzlBoard* m_p_active_board;         // 0x30
 
     int init(int size);
     void quit();
+    pzlBoard* boardPtr() { return m_board; }
+    pzlBoard* spacePtr() { return m_space; }
     int pieceNum();
+    int pieceMax() { return m_piece_max; }
+    pzlPiece* pieceAt(int no) { return &m_piece[no]; }
     pzlPiece* piecePtr(int no);
     pzlPiece* piecePtr(ItemWork* item);
+    pzlPiece* pieceInHand() { return m_inhand; }
+    pzlPiece* pieceExtra() { return m_extra; }
     void save();
     int appendExtraPiece(ItemWork* pItem);
     int removeExtraPiece();
@@ -141,6 +156,11 @@ public:
     void saveCursor();
     void loadCursor();
     void salvCursor();
+    int selPiece() { return selPiece(m_p_active_board); }
+    pzlPiece* ptrPiece() { return ptrPiece(m_p_active_board); }
+    void getPiece() { getPiece(m_p_active_board); }
+    int putPiece() { return putPiece(m_p_active_board); }
+    int relPiece() { return relPiece(m_p_active_board); }
 };
 
 extern PieceInfo piece_info[];
