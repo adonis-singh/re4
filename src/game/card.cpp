@@ -135,7 +135,9 @@ public:
     void* pFrame;    // 0x10
     void* pLoadDat;  // 0x14  load frame
     void* pBg;       // 0x18  message background
+private:
     s32 m_act_flag;      // 0x1C  1 up, 2 down, 4 decided, 8 moving
+public:
     IDSystem m_IdSave;  // 0x20
     s32 m_mode;        // 0x70
     s8 rno0;        // 0x74
@@ -153,6 +155,7 @@ public:
     void save(cCard* c);
     void quit();
     void setAction(int a);
+    s32 getAction() { return m_act_flag; }
 };
 
 void dispSaveInfo(int no, SaveInfo* info, int type, int broken);
@@ -493,13 +496,13 @@ void cCard::dataSelect()
             }
         }
         m_Rno1++;
-        m_Status |= 2;
+        setStatus(2);
         setMsgWindow(1, 0);
         cMes.Clear();
     }
         // fallthrough
     case 1:
-        if (g_id->m_act_flag != 0) {
+        if (g_id->getAction() != 0) {
             break;
         }
         if (Key.rep & (KEY_UP | KEY_DOWN)) {
@@ -961,7 +964,7 @@ void cCard::saveMain()
             m_Slot[m_SlotNo].fileFlag[m_SaveNo] = 1;
             memcpy(m_pSaveInfo[m_SaveNo], pSaveBuf + 0x2000, 0x200);
             g_id->setAction(4);
-            m_Status &= ~1;
+            resetStatus(1);
         }
         m_Rno1++;
         // fallthrough
@@ -1056,7 +1059,7 @@ void cCard::saveMain()
         }
         break;
     case 10:
-        m_Status |= 1;
+        setStatus(1);
         SysFlagOff(pG, SYS_CARD_ACCESS);
         cardMesSet(MES_SAVE_DONE, 0, 0);
         if (Key.trg & (KEY_START | KEY_Z)) {
@@ -3329,8 +3332,8 @@ void CardID::updateSaveInfo(cCard* pCard)
 
     for (i = 0; i < 7; i++) {
         int type = 0x40 + i;
-        s8 sl = pCard->m_SlotNo;
-        int base = pCard->m_SaveNo - 3;
+        s8 sl = pCard->getSlotNo();
+        int base = pCard->getSaveNo() - 3;
         int no = base + i;
         u32 f;
         // The original loop body spans more than 100 insn slots (notes included), so haifa never
@@ -3343,12 +3346,12 @@ void CardID::updateSaveInfo(cCard* pCard)
             no -= 20;
         }
         g_id->m_IdSave.unitPtr(0x15, type)->be_flag |= 8;
-        f = (&pCard->m_Slot[sl])->fileFlag[no];
+        f = pCard->getSlotInfo(sl)->fileFlag[no];
         if (f & 1) {
             if (f & 2) {
-                dispSaveInfo(no, (SaveInfo*) pCard->m_pSaveInfo[(s8) no], type, 1);
+                dispSaveInfo(no, (SaveInfo*) pCard->getSaveInfo((s8) no), type, 1);
             } else {
-                dispSaveInfo(no, (SaveInfo*) pCard->m_pSaveInfo[(s8) no], type, 0);
+                dispSaveInfo(no, (SaveInfo*) pCard->getSaveInfo((s8) no), type, 0);
             }
         } else {
             dispSaveInfo(no, 0, type, 0);
@@ -3449,7 +3452,7 @@ void CardID::move(cCard* pCard)
         m_IdSave.unitPtr(1, IDC_SSCRN_FAR_0)->be_flag |= 8;
         m_IdSave.unitPtr(0x15, IDC_NUM_00)->be_flag |= 8;
     }
-    if (pCard->m_Rno0 == 5) {
+    if (pCard->getRno0() == 5) {
         a = m_IdSave.unitPtr(0, IDC_SSCRN_FAR_0);
         b = m_IdSave.unitPtr(0xA, IDC_SSCRN_FAR_0);
         if ((a->rev_flag & 0xF) == 0) {
@@ -3473,13 +3476,9 @@ void CardID::wait(cCard* pCard)
 {
     IdUnit* a;
     IdUnit* b;
-    int v = 1;
 
-    if (!(pCard->m_Status & 2)) {
-        v = 0;
-    }
-    if (v) {
-        pCard->m_Status &= ~2;
+    if (pCard->ckStatus(2)) {
+        pCard->resetStatus(2);
         a = g_id->m_IdSave.unitPtr(0, IDC_SSCRN_FAR_0);
         b = g_id->m_IdSave.unitPtr(0xA, IDC_SSCRN_FAR_0);
         a->path0 = b->path0;
@@ -3510,17 +3509,17 @@ void CardID::normal(cCard* pCard)
 {
     IdUnit* u;
 
-    if (m_act_flag & 4) {
+    if (getAction() & 4) {
         u = IdSys.unitPtr(1, IDC_SSCRN_NEAR_0);
         u->rev_flag &= ~0xF;
         IdSys.setTime(u, 0);
         rno0 = 5;
         SndCall(0, 0x2D, 0, 0, 0, 0);
-    } else if (m_act_flag & 1) {
+    } else if (getAction() & 1) {
         rno0 = 3;
         updateSaveInfo(pCard);
         up_down(pCard);
-    } else if (m_act_flag & 2) {
+    } else if (getAction() & 2) {
         rno0 = 4;
         updateSaveInfo(pCard);
         up_down(pCard);
@@ -3586,10 +3585,10 @@ void CardID::up_down(cCard* pCard)
             rno0 = 2;
             rno1 = 0;
         } else {
-            if (m_act_flag & 1) {
+            if (getAction() & 1) {
                 rno0 = 3;
                 rno1 = 0;
-            } else if (m_act_flag & 2) {
+            } else if (getAction() & 2) {
                 rno0 = 4;
                 rno1 = 0;
             }
@@ -3613,7 +3612,7 @@ void CardID::save(cCard* pCard)
     int n = ((s8*) h)[3];
     int i;
 
-    if (pCard->m_Rno0 == 5) {
+    if (pCard->getRno0() == 5) {
         u->rev_flag |= 0xF;
         return;
     }

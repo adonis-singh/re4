@@ -141,7 +141,7 @@ enum CARD_MES_NO {
 };
 
 class cCard {
-public:
+private:
     u32 m_NeedMemSize;      // 0x000  heap range parked in `swap`
     u8 m_Rno0;             // 0x004  state (row of the MainLoop table)
     u8 m_Rno1;             // 0x005
@@ -183,6 +183,7 @@ public:
     u32 sysFlags;        // 0x41C
                          // 0x420
 
+public:
     cCard();
     ~cCard();
     void slotSelect();
@@ -226,6 +227,22 @@ public:
     void cardMesSet(int mes_no, int wk_no, u32 attr);   // no: CARD_MES_NO
     void calcTplAddr(struct TEXPalette* tpl);
     void setMsgWindow(int a, int sw);
+    bool ckStatus(u32 bit)
+    {
+        bool on = true;
+
+        if ((m_Status & bit) == 0) {
+            on = false;
+        }
+        return on;
+    }
+    s8 getSaveNo() { return m_SaveNo; }
+    u8 getSlotNo() { return m_SlotNo; }
+    CardSlot* getSlotInfo(int no) { return &m_Slot[no]; }
+    u8* getSaveInfo(int no) { return m_pSaveInfo[no]; }
+    u8 getRno0() { return m_Rno0; }
+    void setStatus(u32 bit) { m_Status |= bit; }
+    void resetStatus(u32 bit) { m_Status &= ~bit; }
 
 #line 386 "D:/Bio4/Prog/card.h"
     void* operator new(unsigned int size) { return MEM_CALLOC(size, 1, 13); }
