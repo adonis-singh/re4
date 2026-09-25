@@ -15,6 +15,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_wep.h"
 #include "global.h"
 #include "main.h"

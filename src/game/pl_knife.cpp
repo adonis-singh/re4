@@ -6,6 +6,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "global.h"
 #include "main.h"
 #include "cam_ctrl.h"
@@ -75,7 +76,7 @@ void knife_r2_ready(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     if (joyLKamae() == 0 && pl->r_no_3 != 3) {
         setWepTrans(pl, 1);
-        FACE_SET(pl, 0.0f);
+        pl->Body->setKnife(false);
         if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
@@ -143,7 +144,7 @@ void knife_r3_ready10(cPlayer* pl)
 {
     if (MotionCheckCrossFrame(&pl->Motion, 4.0f)) {
         setWepTrans(pl, 0);
-        FACE_SET(pl, 1.0f);
+        pl->Body->setKnife(true);
     }
     if (pG->weapon_no == 0xD && pG->weapon_type == 2) {
         if (MotionCheckCrossFrame(&pl->Motion, 10.0f)) {
@@ -425,7 +426,7 @@ void knife_r3_down00(cPlayer* pl)
         pl->m_Work0 = 0;
     }
     if (mot0 == 0) {
-        FACE_SET(pl, 0.0f);
+        pl->Body->setKnife(false);
         setWepTrans(pl, 1);
         pl->r_no_0 = 0;
         pl->r_no_1 = 0;
@@ -452,7 +453,7 @@ void knife_r3_down00(cPlayer* pl)
 void knife_r3_down10(cPlayer* pl)
 {
     if (MotionCheckCrossFrame(&pl->Motion, 4.0f)) {
-        FACE_SET(pl, 0.0f);
+        pl->Body->setKnife(false);
         setWepTrans(pl, 1);
     }
     if (MotionCheckCrossFrame(&pl->Motion, 15.0f)) {
@@ -472,7 +473,7 @@ void knife_r3_down10(cPlayer* pl)
             m3r.reset(0.0f);
         }
     } else if ((Key.on & 0x10F) || (pl->m_Work0 != 0 && joyKamae() == 0) || (pl->m_Work0 == 0 && joyKamae() != 0)) {
-        FACE_SET(pl, 0.0f);
+        pl->Body->setKnife(false);
         setWepTrans(pl, 1);
         if (pG->weapon_no == 0xD && pG->weapon_type == 2) {
             ((cObjLauncher*) pl->Wep->m_pWep)->grip(0);

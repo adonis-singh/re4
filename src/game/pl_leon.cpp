@@ -73,7 +73,6 @@ void cPlLeon::move()
 void cPlLeon::setModel()
 {
     cModelInfo* info;
-    cModelInfo* face;
 
     info = (cModelInfo*) modelInit(PL_ARC_PTR(pG->pPlayer, 4), PL_ARC_PTR(pG->pPlayer, 5));
     if (!VALID_PTR(info)) {
@@ -100,12 +99,7 @@ void cPlLeon::setModel()
     }
     addModel(info);
     Body->m_pKnife = info;
-    face = Body->m_pKnife;
-    if (VALID_PTR(face)) {
-        face->mat[2][2] = 0.0f;
-        face->mat[1][1] = 0.0f;
-        face->mat[0][0] = 0.0f;
-    }
+    Body->setKnife(false);
     info = ModInfoMgr.create(PL_ARC_PTR(pG->pPlayer, 8), PL_ARC_PTR(pG->pPlayer, 7));
     if (!VALID_PTR(info)) {
         pLog->err(0, 0, "cPlLeon::setModel() failed.");

@@ -6,6 +6,7 @@
 #include "dmg.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_push.h"
 #include "pl_npc.h"
 #include "global.h"
@@ -1093,7 +1094,6 @@ void cPlayer::beginEvent(u32 flag)
 // Stop everything the routines left running: cameras, neck, motion speed, weapon, face, sounds.
 void cPlayer::interrupt()
 {
-    cModelInfo* face;
 
     endCamera();
     stat.on(F_SHADOW);
@@ -1120,12 +1120,7 @@ void cPlayer::interrupt()
             break;
         }
     }
-    face = Body->m_pKnife;
-    if (VALID_PTR(face)) {
-        face->mat[2][2] = 0.0f;
-        face->mat[1][1] = 0.0f;
-        face->mat[0][0] = 0.0f;
-    }
+    Body->setKnife(false);
     if (pG->pl_type == 4 && (StaFlagChk(pG, STA_KLAUSER_TRANSFORM))) {
         StaFlagOff(pG, STA_KLAUSER_TRANSFORM);
         x890 = 0;

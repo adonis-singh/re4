@@ -5,6 +5,7 @@
 #include "atari_init.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_push.h"
 #include "pl_npc.h"
 #include "global.h"
@@ -1496,14 +1497,8 @@ void pl_R1_Fall(cPlayer* pEm)
 void pl_R0_Dijection(cPlayer* pEm)
 {
     if (pEm->r_no_1 == 0) {
-        cModelInfo* face;
         pEm->endCamera();
-        face = pEm->Body->m_pKnife;
-        if (VALID_PTR(face)) {
-            face->mat[2][2] = 0.0f;
-            face->mat[1][1] = 0.0f;
-            face->mat[0][0] = 0.0f;
-        }
+        pEm->Body->setKnife(false);
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x57), PL_ARC_PTR(pG->pPlayer, 0x58), 3, 1, 0);
         pEm->r_no_1 = 1;
     }

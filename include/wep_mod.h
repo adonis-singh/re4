@@ -13,6 +13,7 @@
 #include "obj.h"
 #include "pl_wep.h"
 #include "player.h"
+#include "pl_body.h"
 #include "global.h"
 #include "db_log.h"
 

@@ -6,7 +6,8 @@
 #include "model.h"
 #include "em.h"
 #include "global.h"
-#include "pl_body.h"
+// pl_body.h is left to its users: a unit that includes it parses setKnife and takes two extra pool labels.
+#include "math_sub.h"
 #include "pl_wep.h"
 #include "pl_cloth.h"
 #include "cFlag.h"
@@ -367,20 +368,6 @@ void Pl_R0_Event(cPlayer* pEm);
 void pl_R1_Event_Normal(cPlayer* pEm);
 void pl_R1_Event_ToWalk(cPlayer* pEm);
 void pl_R1_Event_Smooth(cPlayer* pEm);
-
-// Face model info of `pl`: the diagonal of its matrix (the face scale) set to `v` (pl_knife, pl_rocket).
-// A plain block: a do/while(0) body's loop notes lengthen the live ranges around it and flip the
-// callee-saved order of pl_rocket down30's pl / joyLKamae result. Needs main_mem.h (VALID_PTR) and
-// pl_body.h at the use site.
-#define FACE_SET(pl, v)                                 \
-    {                                                   \
-        cModelInfo* face = (pl)->Body->m_pKnife;          \
-        if (VALID_PTR(face)) {                          \
-            face->mat[2][2] = v;                              \
-            face->mat[1][1] = v;                              \
-            face->mat[0][0] = v;                              \
-        }                                               \
-    }
 
 // game/player.cpp
 extern Vec PlFancePos;    // point behind the fence / window the player climbs to (pl_class windowCheck)

@@ -151,7 +151,7 @@ public:
     cModelInfo* pList;   // 0x14  next parts info
     u8 pad_18[0x38 - 0x18];
     ModelBound bound;    // 0x38
-    Mtx mat;             // 0x5C .. 0x8C  (cModelInfo::cModelInfo: identity; FACE_SET / pl_leon setModel scale the diagonal to 0 / 1)
+    Mtx mat;             // 0x5C .. 0x8C  (cModelInfo::cModelInfo: identity; cPlBody::setKnife scales the diagonal to 0 / 1)
     union {
         u8 color[4];     // 0x8C  RGBA (word store; 0xFF fill when the RGB part is 0)
         u32 colorWord;   // 0x8C  (cModelInfo::cModelInfo: 0xFFFFFFFF)

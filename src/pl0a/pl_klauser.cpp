@@ -244,7 +244,6 @@ int cPlKlauser::checkXbutton()
 void cPlKlauser::setModel()
 {
     cModelInfo* info;
-    cModelInfo* face;
 
     info = (cModelInfo*) modelInit(PL_ARC(4), PL_ARC(5));
     if (!VALID_PTR(info)) {
@@ -283,12 +282,7 @@ void cPlKlauser::setModel()
     }
     addModel(info);
     Body->m_pKnife = info;
-    face = Body->m_pKnife;
-    if (VALID_PTR(face)) {
-        face->mat[2][2] = 0.0f;
-        face->mat[1][1] = 0.0f;
-        face->mat[0][0] = 0.0f;
-    }
+    Body->setKnife(false);
     info = ModInfoMgr.create(PL_ARC(0xF), PL_ARC(0x10));
     if (!VALID_PTR(info)) {
         pLog->err(0, 0, "cPlLeon::setModel() failed.");

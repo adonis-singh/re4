@@ -6,6 +6,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "global.h"
 #include "db_log.h"
 #include "main.h"

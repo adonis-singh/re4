@@ -17,6 +17,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_wep.h"
 #include "global.h"
 #include "main.h"
@@ -193,7 +194,7 @@ static void wep13_r3_ready20(cPlayer* pl)
 static void wep13_r3_ready30(cPlayer* pl)
 {
     if (MotionCheckCrossFrame(&pl->Motion, 5.0f)) {
-        FACE_SET(pl, 0.0f);
+        pl->Body->setKnife(false);
     }
     if (MotionCheckCrossFrame(&pl->Motion, 14.0f)) {
         LAUNCHER(pl)->grip(1);
@@ -513,7 +514,7 @@ static void wep13_r3_down30(cPlayer* pl)
         }
     }
     if (MotionCheckCrossFrame(&pl->Motion, 13.0f)) {
-        FACE_SET(pl, 1.0f);
+        pl->Body->setKnife(true);
     }
     if (joyLKamae() == 0) {
         LAUNCHER(pl)->grip(0);

@@ -10,6 +10,7 @@
 #include "em.h"
 #include "global.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_npc.h"
 #include "pl_cloth.h"
 #include "shape.h"

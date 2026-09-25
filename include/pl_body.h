@@ -5,6 +5,7 @@
 #include "vec.h"
 #include "model.h"
 #include "math_sub.h"
+#include "main_mem.h"
 
 // Face shape motion data built by cPlBody::makeSpaeData (PS2 PL_SHAPE_DATA, 0x58 bytes): a header,
 // two key tables and four keys.
@@ -45,7 +46,7 @@ public:
     cModelInfo* m_pHandL;           // 0x20  left hand model info
     cModelInfo* m_pHead;         // 0x24
     cModelInfo* m_pHair;         // 0x28  (flags |= 0x40)
-    cModelInfo* m_pKnife;        // 0x2C  the knife model info (FACE_SET / pl_leon setModel scale its matrix to 0 / 1)
+    cModelInfo* m_pKnife;        // 0x2C  the knife model info (setKnife scales its matrix to 0 / 1)
     u32 nowLhandNo;                  // 0x30  current left hand item no
     u32 oldLhandNo;              // 0x34  previous one (setLeftHand(0x63) restores it)
     cModel* m_pMod;              // 0x38
@@ -55,6 +56,23 @@ public:
     cPlBody(cModel* model);
     void move();
     void waistSet(f32 y);
+    void setKnife(bool on)
+    {
+        // Stores through face would make the compiler reload m_pKnife after each one.
+        cModelInfo* face = m_pKnife;
+
+        if (VALID_PTR(face)) {
+            if (on) {
+                face->mat[2][2] = 1.0f;
+                face->mat[1][1] = 1.0f;
+                face->mat[0][0] = 1.0f;
+            } else {
+                face->mat[2][2] = 0.0f;
+                face->mat[1][1] = 0.0f;
+                face->mat[0][0] = 0.0f;
+            }
+        }
+    }
     void waistMove();
     void makeSpaeData();
     void initWepHand(u32 addr);
