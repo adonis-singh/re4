@@ -63,6 +63,7 @@ struct DvdReadInfo {
 // One read queue slot (16 in cDvd, 0x310 bytes each).
 class cDvdQueue {
 public:
+    // volatile: the DVD read and ARAM DMA callbacks change bits while the main task polls them.
     volatile u32 m_be_flag;   // 0x00  bit0 in use, bit1 main heap, bit2 debug heap, bit4 (0x10),
                          //       bit5 reading, bit8 interrupt task, bit11 done,
                          //       bits16-18 status (0 PUSH 1 READ 2 COMPLETE 3 CANCEL 4 ERROR),
@@ -137,6 +138,7 @@ public:
 
 // One ARAM DMA request (16 in cAram, 0x18 bytes).
 struct cAramQueue {
+    // volatile: the ARAM callback sets the done bit while DmaTrans spins on it.
     volatile u32 be_flag;  // 0x00  bit0 in use, 0x04000000 done
     u32 type;           // 0x04  ARQ_TYPE_MRAM_TO_ARAM / ARAM_TO_MRAM
     u32 src;            // 0x08
@@ -146,7 +148,7 @@ struct cAramQueue {
 
     void SetFlag(u32 bit) { be_flag |= bit; }
     int CkFlag(u32 bit) { return (be_flag & bit) ? 1 : 0; }
-    void clear() { be_flag = 0; }
+    void PushQueue() { be_flag = 0; }
 };
 
 // ARAM DMA queue (`Aram`, 0x1A8 bytes).

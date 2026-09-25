@@ -1092,7 +1092,7 @@ void cAram::DmaTrans(cAramQueue* pQueue, int mode)
     ARQPostRequest(&ArqReq, (u32) pQueue, pQueue->type, 1, pQueue->src, pQueue->dst, pQueue->len, aram_cb);
     if (mode & 1) {
         while (pQueue->CkFlag(0x04000000) == 0) {}
-        pQueue->clear();
+        pQueue->PushQueue();
     }
 }
 
@@ -1102,7 +1102,7 @@ int cAram::TransCheck(int id)
     cAramQueue* r = &AramQueue[id];
 
     if (r->be_flag == 0 || r->CkFlag(0x04000000) == 1) {
-        r->clear();
+        r->PushQueue();
         return 1;
     }
     return 0;
@@ -1122,7 +1122,7 @@ int cAram::DmaCancel(int id)
         for (p = pQueue_list; p->next; p = p->next) {
             if (p->next == &AramQueue[id]) {
                 p->next = p->next->next;
-                (&AramQueue[id])->clear();
+                (&AramQueue[id])->PushQueue();
                 ret = 1;
                 break;
             }
@@ -1145,7 +1145,7 @@ void cAram::DmaCancelAll()
         }
     }
     while (pQueue_list) {
-        pQueue_list->clear();
+        pQueue_list->PushQueue();
         pQueue_list = pQueue_list->next;
     }
     ARQFlushQueue();

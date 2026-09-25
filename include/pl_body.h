@@ -58,18 +58,18 @@ public:
     void waistSet(f32 y);
     void setKnife(bool on)
     {
-        // Stores through face would make the compiler reload m_pKnife after each one.
-        cModelInfo* face = m_pKnife;
+        // Stores through knife would make the compiler reload m_pKnife after each one.
+        cModelInfo* knife = m_pKnife;
 
-        if (VALID_PTR(face)) {
+        if (VALID_PTR(knife)) {
             if (on) {
-                face->mat[2][2] = 1.0f;
-                face->mat[1][1] = 1.0f;
-                face->mat[0][0] = 1.0f;
+                knife->mat[2][2] = 1.0f;
+                knife->mat[1][1] = 1.0f;
+                knife->mat[0][0] = 1.0f;
             } else {
-                face->mat[2][2] = 0.0f;
-                face->mat[1][1] = 0.0f;
-                face->mat[0][0] = 0.0f;
+                knife->mat[2][2] = 0.0f;
+                knife->mat[1][1] = 0.0f;
+                knife->mat[0][0] = 0.0f;
             }
         }
     }
