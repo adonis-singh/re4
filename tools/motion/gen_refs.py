@@ -31,6 +31,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SRC = os.path.join(ROOT, 'src')
+INCLUDE = os.path.join(ROOT, 'include')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'refs.py')
 
 CALL = re.compile(r'\b(MotionSetCore|PlRegistMotion|SubCharRegistMotion|setEvtMotion|setGondolaMotion|setR11DMotion)\s*\('
@@ -40,6 +41,8 @@ CALL = re.compile(r'\b(MotionSetCore|PlRegistMotion|SubCharRegistMotion|setEvtMo
 WRAPPER_NAME = re.compile(r'Mot|mot|Blend|setDown|ButtonCount')
 FUNC_DEF = re.compile(r'^[A-Za-z_][\w:<>*&,\s]*?\b([\w~]+(?:::[\w~]+)?)\s*\([^;{}]*\)\s*(?:const)?\s*\{?\s*$')
 ARC_MACRO = re.compile(r'#define\s+(\w+)\((\w+)(?:,\s*(\w+))?\)\s+(.*)')
+# global.h WEP_MOT(pl, idx, no) / PLA_MOT: `((pl)->m_MotTbl[idx] = WEP_ARC_PTR(no))`
+FILL_MACRO = re.compile(r'#define\s+(\w+)\((\w+),\s*(\w+),\s*(\w+)\)\s+\(\(\2\)->(\w+)\[\3\]\s*=\s*(.*)\)\s*$', re.M)
 NUM = r'(0x[0-9A-Fa-f]+|\d+)'
 
 
@@ -81,13 +84,31 @@ def const(s):
     return v // 4 if m.group(2) else v
 
 
+def header_macros():
+    """The ARC-style macros of include/*.h (em.h ARC / EM_ARC, pl_mod.h SUB_ARC ...): every unit
+    sees them; a unit's own #define of the same name wins. Also the table-fill macros
+    (FILL_MACRO): name -> (field, index param, value param, value expression)."""
+    arcs, fills = {}, {}
+    for name in sorted(os.listdir(INCLUDE)):
+        if name.endswith('.h'):
+            text = open(os.path.join(INCLUDE, name), encoding='utf-8', errors='replace').read()
+            for m in ARC_MACRO.finditer(text):
+                arcs[m.group(1)] = (m.group(2), m.group(3), m.group(4))
+            for m in FILL_MACRO.finditer(text):
+                fills[m.group(1)] = (m.group(5), m.group(3), m.group(4), m.group(6))
+    return arcs, fills
+
+
+HEADER_MACROS, FILL_MACROS = header_macros()
+
+
 class File:
     def __init__(self, path):
         self.path = path
         self.rel = os.path.relpath(path, SRC)
         self.text = open(path, encoding='utf-8', errors='replace').read()
         self.lines = self.text.split('\n')
-        self.macros = {}
+        self.macros = dict(HEADER_MACROS)
         for m in ARC_MACRO.finditer(self.text):
             self.macros[m.group(1)] = (m.group(2), m.group(3), m.group(4))
         self.module = self.rel.split('/')[0]      # em10, wep04, game, st1 ...
@@ -121,6 +142,7 @@ class File:
 def classify_arc(arc_expr, f, func_text):
     a = arc_expr.replace(' ', '')
     a = re.sub(r'^\((PlArc|RoomArc|SsArc)\*\)', '', a)
+    a = re.sub(r'\((\w+)\)', r'\1', a)     # a macro's parenthesised parameter: EM_ARC(pl, n) -> (pl)->subArc
     if a in ('pG->pPlayer', 'PL_DATA_ADDR', '(PlArc*)PL_DATA_ADDR'):
         return 'player', None
     if a in ('pG->pRoom', 'pGS->pRoom', '(PlArc*)pG->pRoom'):
@@ -233,6 +255,9 @@ def field_sources(expr, f, files):
     sel = re.escape(field) + (r'\[\s*(0x[0-9A-Fa-f]+|\d+)\s*\]' if idx is not None else r'()\b')
     # `w->mot[3] = ARC(..);` or the PSet(dst, src) macro of the weapon modules (m_MotTbl slots)
     pat = re.compile(r'(?:->|\.)' + sel + r'\s*=\s*([^;=]+);|PSet\((?:\w+->|\w+\.)?' + sel + r',\s*([^;]+)\);')
+    # `WEP_MOT(pl, 0x00, 0x0B);`: a FILL_MACRO of this field, its value expression with the argument
+    fill_pats = [(re.compile(r'\b' + name + r'\(\s*[^,()]+,\s*(\w+)\s*,\s*(\w+)\s*\)\s*;'), vparam, expr)
+                 for name, (ffield, _, vparam, expr) in FILL_MACROS.items() if ffield == field and idx is not None]
     # the player's motion table is filled by every weapon module (WeaponInitFunc) and pl_ashley.cpp:
     # a generic reader (game/, em*/) sees every module's fill, a weapon routine only its own module's
     # (the shared wep/pl_*.cpp objects are linked into several modules: WEP_UNITS); a work field
@@ -260,6 +285,16 @@ def field_sources(expr, f, files):
             r = resolve(am.group(2) or am.group(4), g, func_text)
             if r and r + (g.rel, line) not in out:
                 out.append(r + (g.rel, line))
+        for fp, vparam, expr in fill_pats:
+            for am in fp.finditer(g.text):
+                if const(am.group(1)) != want:
+                    continue
+                line = g.line_of(am.start())
+                func, fline = g.function_at(line)
+                func_text = '\n'.join(g.lines[fline - 1:line])
+                r = resolve(re.sub(r'\b' + vparam + r'\b', am.group(2), expr), g, func_text)
+                if r and r + (g.rel, line) not in out:
+                    out.append(r + (g.rel, line))
     _field_cache[key] = out
     return out
 
