@@ -122,12 +122,12 @@ API HostModel* mot_model_create(int n, const int* parent, const float* restPos)
     cEm* m = &h->model;
     coordInit(m);
     m->nParts = (u8) n;
-    m->pParts = n ? &h->parts[0] : NULL;
+    m->pList = n ? &h->parts[0] : NULL;
     m->Motion.Seq_speed = 1.0f;
     for (int i = 0; i < n; i++) {
         cEm* p = &h->parts[i];
         coordInit(p);
-        p->pParts = (i + 1 < n) ? &h->parts[i + 1] : NULL;
+        p->pList = (i + 1 < n) ? &h->parts[i + 1] : NULL;
         p->pParent = parent[i] < 0 ? (cCoord*) m : (cCoord*) &h->parts[parent[i]];
         p->pos.x = restPos[3 * i];
         p->pos.y = restPos[3 * i + 1];
@@ -138,10 +138,10 @@ API HostModel* mot_model_create(int n, const int* parent, const float* restPos)
     m->partsWorldCalc();
     for (int i = 0; i < n; i++) {
         cEm* p = &h->parts[i];
-        PSMTXIdentity(p->ik.bindMat);
-        p->ik.bindMat[0][3] = -p->mat[0][3];
-        p->ik.bindMat[1][3] = -p->mat[1][3];
-        p->ik.bindMat[2][3] = -p->mat[2][3];
+        PSMTXIdentity(p->lt_inv_mat);
+        p->lt_inv_mat[0][3] = -p->mat[0][3];
+        p->lt_inv_mat[1][3] = -p->mat[1][3];
+        p->lt_inv_mat[2][3] = -p->mat[2][3];
     }
     m->partsMatCalc();
     m->partsWorldCalc();

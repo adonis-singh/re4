@@ -4,8 +4,8 @@
 // Vec/Mtx/Quaternion, the motion structures (include/model.h, motion.h, cam_ctrl.h) and a
 // cCoord/cModel with the members the motion / IK / parts-matrix code touches, plus declarations of
 // the functions they call. The byte offsets differ from the GameCube layout (64-bit pointers);
-// the offset-based accessor macros of motion.h (MOTION, MOTION_PARTS, IK_PARTS, PARTS_BIND_MAT)
-// are redirected to members. Nothing here changes what the game functions compute.
+// motion.h's offset-based MOTION macro is redirected to the member. Nothing here changes what the
+// game functions compute.
 #ifndef RE4_HOST_STUB_H
 #define RE4_HOST_STUB_H
 
@@ -149,6 +149,8 @@ struct MotionWork : public MotionWorkSub {
     u16* blendTbl;
 };
 
+typedef u16 HERMITE_KEY[3];
+
 struct MotionParts {
     Vec pos;
     Vec rot;
@@ -157,16 +159,8 @@ struct MotionParts {
         u32 x198;
         f32 ikAng;
     };
-    u16 hist[6][3];
+    HERMITE_KEY hist[6];
     u32 flags;
-};
-
-struct IkParts {
-    Mtx bindMat;
-    f32 len;
-    Mtx mat;
-    Vec axis;
-    Vec dir;
 };
 
 struct HermitePrm {
@@ -192,26 +186,30 @@ public:
     Vec scale;
     Vec r_scale;
     Mtx prevMat;
+
+    void matCalc();
 };
 
 class cModel;
-typedef cModel cParts;   // the game types parts as cModel* / cParts*; one class here
+typedef cModel cParts;   // the game's cParts is its own class; one class here for models and parts
 
 class cModel : public cCoord {
 public:
-    union {
-        cModel* pParts;   // parts: next parts of the model's list; model: first parts
-        cParts* pList;
-    };
+    cParts* pList;   // parts: next parts of the model's list; model: first parts
     u8 id;
     u8 nParts;
     u8 kindid;
     MotionWork Motion;
+    Mtx lt_inv_mat;   // cParts members (include/model.h)
     MotionParts motParts;
-    IkParts ik;
+    f32 length;
+    Mtx ik_inv_mat;
+    Vec up_vector;
+    Vec ik_dir;
     Vec inv_offset;
 
-    cModel* getPartsPtr(int no);
+    HERMITE_KEY* getKeyHist() { return motParts.hist; }
+    cParts* getPartsPtr(int no);
     void partsMatCalc();
     void partsWorldCalc();
     void matBlend(f32 rate);
@@ -234,9 +232,6 @@ public:
 #define EM_STATUS_IK_OFF 3
 
 #define MOTION(m) (&((cMotModel*) (m))->Motion)
-#define MOTION_PARTS(p) (&((cModel*) (p))->motParts)
-#define IK_PARTS(p) (&((cModel*) (p))->ik)
-#define PARTS_BIND_MAT(p) (((cModel*) (p))->ik.bindMat)
 
 // ---- globals the files reference ----------------------------------------------------------------
 
@@ -301,7 +296,7 @@ void C_QUATMtx(Quaternion* q, const Mtx m);
 void C_QUATSlerp(const Quaternion* p, const Quaternion* q, Quaternion* r, f32 t);
 void IKInit(cModel* m, MotionWorkSub* w);
 void InverseKinematics(cModel* m, int flag);
-void ikCalc(cModel* root, cModel* joint, cModel* eff);
+void ikCalc(cParts* root, cParts* joint, cParts* eff);
 void cModel_matBlend(cModel* m, f32 rate);
 int HermiteInterpolation(HermitePrm* prm, Vec* out, u16* hist);
 int Fcc_next_axis_addr(int type, int n);
@@ -309,10 +304,10 @@ void PartsWorldPosCalc(cModel* m);
 void MotionBlendOff(cModel* m);
 void MotionPause(cModel* m);
 void MotionClear(cModel* m, int flag);
-struct Camera;   // cam_ctrl.h; MotionMove / MotionMoveCore take a Camera* the host passes as NULL
-u32 MotionMove(cModel* m, Camera* pCamera);
+struct CAMERA;   // camera.h; MotionMove / MotionMoveCore take a CAMERA* the host passes as NULL
+u32 MotionMove(cModel* m, CAMERA* pCamera);
 u16 MotionMoveSub(cModel* m, MotionWorkSub* w);
-void MotionMoveCore(cModel* m, MotionWorkSub* w, Camera* pCamera);
+void MotionMoveCore(cModel* m, MotionWorkSub* w, CAMERA* pCamera);
 void MotionHokan(cModel* m, MotionWorkSub* w);
 void MotionGetSpeed(cModel* m, MotionWorkSub* w, int flag, Vec* pos, Vec* rot);
 void MotionAddSpeed(cModel* m, MotionWorkSub* w, Vec* pos, Vec* rot);
@@ -339,5 +334,14 @@ f32 hermite(f32* p, f32* v, f32 t);
 f32 RootSumSquare3(Vec* v);
 f32 GetDistance3(Vec* a, Vec* b);
 void MotionSetCore(cModel* m, void* w, void* data, void* seq, int hokan, int flags, int frame);   // include/motion.h
+
+// include/model.h cCoord::matCalc: l_mat from ang / pos / scale, copied to mat.
+inline void cCoord::matCalc()
+{
+    RotMatrix(l_mat, &ang);
+    TransMatrix(l_mat, &pos);
+    ScaleMatrix(l_mat, &scale);
+    PSMTXCopy(l_mat, mat);
+}
 
 #endif
