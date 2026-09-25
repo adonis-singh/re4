@@ -203,7 +203,7 @@ int back2PieceSelect(SUB_SCREEN* wk)
     if (wk->puzzlePlayer->m_space->getPieceNum() != 0) {
         ret = 0;
     } else {
-        Cckpt.m_LifeMeter.frameIn();
+        Cckpt.lifeMeterFrameIn();
         IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag &= 0xF0;
         tempSpaceDisp(0);
         idMainMenuFade(wk, 1);
@@ -1263,12 +1263,8 @@ void SsPzzlInit::move(SUB_SCREEN* wk)
             generalModelAlloc(wk);
             playerModelInit();
             sscrnLightClear(wk);
-            {
-                LifeMeter* life = &Cckpt.m_LifeMeter;
-
-                life->fix(1);
-                life->frameIn();
-            }
+            Cckpt.lifeMeterFix(1);
+            Cckpt.lifeMeterFrameIn();
         } else {
             sscrnModelClear(wk);
         }
@@ -1684,7 +1680,7 @@ void sscrn_pzzl_out_init(SUB_SCREEN* wk)
     u = IdSub.unitPtr(1, IDC_SSCRN_CKPT_2);
     u->rev_flag |= 1;
     if (wk->menu_next == 2) {
-        Cckpt.m_LifeMeter.frameOut();
+        Cckpt.lifeMeterFrameOut();
         wk->alpha_flag = 1;
     }
 }
@@ -1739,7 +1735,7 @@ void PiecePopDown::move(SUB_SCREEN* wk)
 // and dims the main menu.
 void PzzlThinking::init(SUB_SCREEN* wk)
 {
-    Cckpt.m_LifeMeter.frameOut();
+    Cckpt.lifeMeterFrameOut();
     IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag |= 0xF;
     tempSpaceDisp(1);
     idMainMenuFade(wk, 0);
@@ -1914,7 +1910,7 @@ void PieceSelect::move(SUB_SCREEN* wk)
                     state = 1;
                     SndCall(0, 0x2A, 0, 0, 0, 0);
                 } else {
-                    Cckpt.m_LifeMeter.frameIn();
+                    Cckpt.lifeMeterFrameIn();
                     IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag &= 0xF0;
                 }
             } else if (link[3] == 0) {

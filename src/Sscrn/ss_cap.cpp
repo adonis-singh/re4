@@ -189,7 +189,7 @@ static int sscrn_cap_out(SUB_SCREEN* wk)
         IdSub.dispSw(IDC_SSCRN_MAIN_MENU, 1);
         wk->alpha_flag = 0;
         wk->alpha_cnt = 0;
-        Cckpt.m_LifeMeter.fix(0);
+        Cckpt.lifeMeterFix(0);
         FadeSetW(0x80000000, 7, 0, 0);
         ret = 1;
     }

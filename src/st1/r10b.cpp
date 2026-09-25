@@ -271,7 +271,7 @@ static void R10b_chkEmDie()
     SceSleep(1);
     r10b_work->em0 = GetEmPtrFromList(0xA0);
     boss = r10b_work->boss;
-    Cckpt.m_LifeMeter.flags = (u32) boss;
+    Cckpt.lifeMeterBoss(boss);
     for (;;) {
         if (DebugTrg(1)) {
             boss->hp = 1;

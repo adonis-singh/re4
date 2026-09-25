@@ -1495,7 +1495,7 @@ void R332EventS00End()
     EvtMgr.EvtReadAram("event/evd/r332s20.evd", (u8) GetEmIdFromList(0xA9), 0, 0, 0);
     em = (cEm31*) r332_work->em[0].getPtr();
     if (em) {
-        Cckpt.m_LifeMeter.flags = (u32) em;
+        Cckpt.lifeMeterBoss(em);
     }
     SndRoomBgmStart(0, 0);
     EstSet(pPL, -1, 0, 0, EFF_ROOM, 9, 1, ESP_CORE_KIND_ROOM02, 0, 0);

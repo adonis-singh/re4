@@ -47,7 +47,7 @@ void cActionButton::move()
     u32 tag;
     ActBtnWork* w;
 
-    Cckpt.m_ActBttn.m_disp_flag = 0;
+    Cckpt.m_ActBttn.setDispFlag(0);
     m_active_flag = 0;
     if (SpfFlagChk(pG, SPF_ACTBTN) || (StaFlagChk(pG, STA_DIEDEMO)) || m_stop_flag_old) {
         init();
@@ -141,7 +141,7 @@ void cActionButton::disp(ActBtnWork* work)
         cMes.MesSet(kind + 0x16, x, (s16) y, 0xF1, 1, col, 4);
         break;
     }
-    Cckpt.m_ActBttn.m_disp_flag = btn;
+    Cckpt.m_ActBttn.setDispFlag(btn);
 }
 
 // 1 when the prompt's button is pressed this frame: by button kind, trigger or hold (flags

@@ -158,7 +158,7 @@ void LifeMeter::roomInit()
     m_state_color1[2][1] = u->col1[1];
     m_state_color1[2][2] = u->col1[2];
     m_state_color1[2][3] = u->col1[3];
-    flags = 0;
+    m_pEm = 0;
     move();
 }
 

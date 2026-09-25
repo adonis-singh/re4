@@ -116,7 +116,7 @@ static void r228_checkSalazarBattle()
     GamePointBossReset();
     cEmWrap boss;
     boss.setPtr(0x2C, -1, 1);
-    Cckpt.m_LifeMeter.flags = (u32) boss.getPtr();
+    Cckpt.lifeMeterBoss(boss.getPtr());
     cEmWrap em0;
     cEmWrap em1;
     cEmWrap em2;

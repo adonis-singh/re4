@@ -466,7 +466,7 @@ int retry_load_menu(OptionScreen* pOpt)
                 Cckpt.roomInit();
                 Cckpt.move();
                 Cockpit* ck = &Cckpt;
-                ck->m_LifeMeter.fix(1);
+                ck->lifeMeterFix(1);
                 ck->lifeMeterDisp(0);
             }
             IdTexDataLoad(OPT_PTR(0x20), TEX_OWNER_ID_DEAD);

@@ -305,11 +305,8 @@ void SsFileInit::move(SUB_SCREEN* wk)
             generalModelAlloc(wk);
             playerModelInit();
             sscrnLightClear(wk);
-            {
-                LifeMeter* life = &Cckpt.m_LifeMeter;
-                life->fix(1);
-                life->frameIn();
-            }
+            Cckpt.lifeMeterFix(1);
+            Cckpt.lifeMeterFrameIn();
         } else {
             sscrnModelClear(wk);
         }
@@ -540,7 +537,7 @@ void sscrn_file_out_init(SUB_SCREEN* wk)
 {
     IdSub.unitPtr(0, IDC_SSCRN_FAR_1)->rev_flag |= 1;
     if (wk->menu_next == 2) {
-        Cckpt.m_LifeMeter.frameOut();
+        Cckpt.lifeMeterFrameOut();
         wk->alpha_flag = 1;
     }
 }

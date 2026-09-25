@@ -203,8 +203,8 @@ void SsItemInit::move(SUB_SCREEN* wk)
             sscrnLightClear(wk);
             {
                 Cockpit* ck = &Cckpt;
-                ck->m_LifeMeter.fix(1);
-                ck->m_LifeMeter.frameIn();
+                ck->lifeMeterFix(1);
+                ck->lifeMeterFrameIn();
             }
         } else {
             sscrnModelClear(wk);
@@ -481,7 +481,7 @@ void sscrn_item_out_init(SUB_SCREEN* wk)
     u = IdSub.unitPtr(1, IDC_SSCRN_CKPT_2);
     u->rev_flag |= 1;
     if (wk->menu_next == 2) {
-        Cckpt.m_LifeMeter.frameOut();
+        Cckpt.lifeMeterFrameOut();
         wk->alpha_flag = 1;
     }
 }

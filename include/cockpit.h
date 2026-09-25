@@ -3,12 +3,15 @@
 
 #include "types.h"
 
+class cEm;
+
 // HUD (game/cockpit.cpp), instance `Cckpt` (0xCC bytes): the life meter, the bullet counter, the
 // count-down timer and the action button prompt. Id table types: 0x21 life meter, 0x20 action
 // button, 0x23 count-down, 0x2F message window, 0x30 HUD frame, 0x32 bullet icon.
 class LifeMeter {
+private:
+    cEm* m_pEm;        // 0x00  boss shown in the life bar (0 none)
 public:
-    u32 flags;         // 0x00
     u8 pad_4[0x18];    // 0x04
     f32 m_life;          // 0x1C  smoothed player life
     s8 m_life_level;          // 0x20  lifeLevel(20, pl_life_max, 1200)
@@ -29,6 +32,7 @@ public:
     void disp(int sw);
     void frameOut();
     void frameIn();
+    void boss(cEm* em) { m_pEm = em; }
 };
 
 class BulletInfo {
@@ -91,20 +95,21 @@ public:
 };
 
 class ActionButton {
-public:
+private:
     u8 m_disp_flag;             // 0x00  button prompt to show (0 none)
     u8 m_disp_flag_old;            // 0x01  prompt shown last frame
     u8 pad_2[2];
 
+public:
     void roomInit();
     void move();
+    void setDispFlag(u8 flag) { m_disp_flag = flag; }
 };
 
 class Cockpit {
-public:
+private:
     LifeMeter m_LifeMeter;         // 0x00
     BulletInfo m_BlltInfo;      // 0x84
-private:
     CountDown m_CountDown;    // 0xB0, used through the *CountDownTimer methods
 public:
     ActionButton m_ActBttn;    // 0xC8  sizeof == 0xCC
@@ -115,6 +120,9 @@ public:
     void msgWindow(int sw);
     void lifeMeterDisp(int sw);
     void lifeMeterFix(int flag) { m_LifeMeter.fix(flag); }
+    void lifeMeterFrameIn() { m_LifeMeter.frameIn(); }
+    void lifeMeterFrameOut() { m_LifeMeter.frameOut(); }
+    void lifeMeterBoss(cEm* em) { m_LifeMeter.boss(em); }
     void startCountDownTimer(int min, int sec, int ces)
     {
         m_CountDown.setState(TIMER_STA_ALIVE);

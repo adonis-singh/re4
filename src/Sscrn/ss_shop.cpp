@@ -1850,7 +1850,7 @@ void BuyConfirm::move(SUB_SCREEN* wk)
         if (sw->placed) {
             deleteExtraPiece(wk);
             tempSpaceDisp(0);
-            Cckpt.m_LifeMeter.frameIn();
+            Cckpt.lifeMeterFrameIn();
             IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag &= 0xF0;
         }
         transit(0, wk);

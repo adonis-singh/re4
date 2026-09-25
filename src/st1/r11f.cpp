@@ -186,7 +186,7 @@ static void r11f_EventS00()
     } else {
         EvtMgr.EvtReadExec("event/evd/r11fs02.evd", 0, EvtReadFlagNone);
         if (r11f_work->em0.setEm(0xF8, -1, 1, 1, 1)) {
-            Cckpt.m_LifeMeter.flags = (u32) r11f_work->em0.getPtr();
+            Cckpt.lifeMeterBoss(r11f_work->em0.getPtr());
         }
         GamePointBossReset();
         {
@@ -544,7 +544,7 @@ static void r11f_EventS10EndProc()
     }
     SceEventEnd(0);
     if (r11f_work->em0.isActive()) {
-        Cckpt.m_LifeMeter.flags = (u32) r11f_work->em0.getPtr();
+        Cckpt.lifeMeterBoss(r11f_work->em0.getPtr());
     }
     SceExec(0x12, r11f_Eventxxx, 0, 0, SCE_PRIO_DEF_2, 0);
 }
