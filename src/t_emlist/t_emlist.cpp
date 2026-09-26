@@ -508,7 +508,7 @@ struct EmListWork {
     u8 pad_56[6];
     EmListEnt cur;     // 0x5C  entry being edited
     int camMode;       // 0x7C  free camera mode (START)
-    Camera cam;        // 0x80  free camera (emlistCamToPoin aims it at the entry)
+    CAMERA cam;        // 0x80  free camera (emlistCamToPoin aims it at the entry)
     JOY joy;           // 0x178
 };
 
@@ -2768,7 +2768,7 @@ void emlistCamToPoin()
     Vec d;
     Vec pos;
     Vec scr;
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     EmListEnt* p = EMLIST_ENT(EmList.wk->listNo);
 
     if (p->id != 0 && pG->stage_no == p->room >> 8 && pG->room_no == (p->room & 0xFF)) {
@@ -2790,7 +2790,7 @@ void emlistCamToPoin()
             VEC_DIST(&EmList.wk->cam.param.pos, &EmList.wk->cam.param.at);
         EmList.wk->cam.param.fovy = cam->param.fovy;
         CameraSetOrientationUp(&EmList.wk->cam);
-        CamCtrl.m_pExtraCamera = (s32) &EmList.wk->cam;
+        CamCtrl.SetExtraCamera(&EmList.wk->cam);
         cam->param.at = EmList.wk->cam.param.at;
         cam->param.pos = EmList.wk->cam.param.pos;
         EmList.wk->cursorX = (Screen.x + Screen.width) * 0.5f;

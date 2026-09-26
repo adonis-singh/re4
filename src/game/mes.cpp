@@ -55,10 +55,6 @@ struct OSFontHeader {
     u32 sheetFullSize;  // 0x28
 };
 
-// Message slot address as an expression (not an inline call): the multiply lands in the same pseudo
-// as the sum, which is what the original codegen shows.
-#define MES(no) ((Message*) ((no) * sizeof(Message) + (u32) this + sizeof(u32)))
-
 // Font file: offsets to the TPL and to the width table.
 struct MesFontFile {
     u32 tplOfs;    // 0x00
@@ -250,8 +246,8 @@ struct MesTblBlock {
 // 4 ...) for the current language; NULL when out of range.
 u16* MessageData::getAddr(int no, int data_type)
 {
-    u32* tbl = (u32*) ptr[data_type];
-    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[lang + 1]);
+    u32* tbl = (u32*) m_Data[data_type];
+    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[m_language + 1]);
 
     if (no > (int) blk->count - 1) {
         return NULL;
@@ -262,8 +258,8 @@ u16* MessageData::getAddr(int no, int data_type)
 // Number of messages in file `type` for the current language.
 int MessageData::getMesNum(int data_type)
 {
-    u32* tbl = (u32*) ptr[data_type];
-    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[lang + 1]);
+    u32* tbl = (u32*) m_Data[data_type];
+    MesTblBlock* blk = (MesTblBlock*) ((u8*) tbl + tbl[m_language + 1]);
 
     return blk->count;
 }
@@ -271,7 +267,7 @@ int MessageData::getMesNum(int data_type)
 // Width of a space glyph (13 px Japanese, 8 px otherwise).
 int MessageData::getSpaceWidth()
 {
-    if (lang == 0) {
+    if (m_language == 0) {
         return 13;
     }
     return 8;
@@ -306,10 +302,10 @@ void MessageControl::setLayout(int no, int type)
     };
     static s8* p_layout;
 
-    p_layout = layout_tbl[MesData.lang][type];
+    p_layout = layout_tbl[MesData.getLanguage()][type];
     setFontSize(no, p_layout[0], p_layout[1]);
-    U16Set(MES(no)->m_char_gap, p_layout[3]);
-    MES(no)->m_line_gap = p_layout[5];
+    setFontGap(no, p_layout[3]);
+    setLineGap(no, p_layout[5]);
 }
 
 // Selects the language block of the message files (0 Japanese, 1 English, 2..5 French/German/
@@ -318,29 +314,29 @@ void MessageControl::setLanguage(int lang)
 {
     switch (lang) {
     case 0:
-        MesData.lang = lang;
+        MesData.setLanguage(lang);
         break;
     case 1:
-        MesData.lang = lang;
+        MesData.setLanguage(lang);
         break;
     case 3:
-        MesData.lang = 2;
+        MesData.setLanguage(2);
         break;
     case 4:
-        MesData.lang = 3;
+        MesData.setLanguage(3);
         break;
     case 5:
-        MesData.lang = 4;
+        MesData.setLanguage(4);
         break;
     case 6:
-        MesData.lang = 5;
+        MesData.setLanguage(5);
         break;
     case 2:
-        MesData.lang = 1;
+        MesData.setLanguage(1);
         break;
     default:
         pLog->err(0, 0, "MesCtrl::setLanguage() Invalid LANG_TYPE");
-        MesData.lang = 1;
+        MesData.setLanguage(1);
         break;
     }
 }
@@ -381,7 +377,6 @@ void MessageControl::init()
     u32 size;
     u32 sz = 0;
     int i;
-    Message* m;
 
     if (Dvd.FileExistCheck("Font/common_j.fnt", &size) != -1) {
         sz = size;
@@ -404,14 +399,13 @@ void MessageControl::init()
     loadCommonFont();
     loadSystemFont();
     setLanguage(pSys->language);
-    x11F8 = 0;
+    m_stop = 0;
     m_state = 0;
-    m = m_Msg;
-    for (i = 0; i < 16; m++, i++) {
+    for (i = 0; i < 16; i++) {
         if (i <= 2) {
-            m->qbase = MsgQueue[i];
+            MesRegistQueue(i, MsgQueue[i]);
         } else {
-            m->qbase = NULL;
+            MesReleaseQueue(i);
         }
     }
 }
@@ -420,14 +414,14 @@ void MessageControl::init()
 // common font, resets the state.
 void MessageControl::gameInit()
 {
-    MesData.setPtr(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(1, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(2, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(3, (u8*) (pG->pCore->ofs_54 + (u32) pG->pCore));
+    MesData.registData(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(1, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(2, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(3, (u8*) (pG->pCore->ofs_54 + (u32) pG->pCore));
     pG->IsMessageInit = 1;
     loadCommonFont();
     setLanguage(pSys->language);
-    x11F8 = 0;
+    m_stop = 0;
     m_state = 0;
 }
 
@@ -435,13 +429,9 @@ void MessageControl::gameInit()
 // reloads the stage font when the event font was loaded.
 void MessageControl::roomInit()
 {
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        Delete(i);
-    }
-    MesData.setPtr(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
-    MesData.setPtr(1, (u8*) pG->RoomMes);
+    Clear();
+    MesData.registData(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
+    MesData.registData(1, (u8*) pG->RoomMes);
     setLayout(0, 0);
     if (checkState(1)) {
         loadStageFont();
@@ -550,7 +540,7 @@ void MessageControl::Move()
     int act = 0;
     int i;
 
-    if (m->be_flag & 1) {
+    if (m->isAlive()) {
         act = 1;
     }
     if (act) {
@@ -558,7 +548,7 @@ void MessageControl::Move()
     } else {
         for (i = 0; i < 16; i++, p++) {
             int a = 0;
-            if (p->be_flag & 1) {
+            if (p->isAlive()) {
                 a = 1;
             }
             if (a) {
@@ -581,7 +571,7 @@ void MessageControl::Trans()
     }
     m = &m_Msg[15];
     act = 0;
-    if (m->be_flag & 1) {
+    if (m->isAlive()) {
         act = 1;
     }
     if (act) {
@@ -589,7 +579,7 @@ void MessageControl::Trans()
     } else {
         for (i = 0; i < 16; i++, p++) {
             int a = 0;
-            if (p->be_flag & 1) {
+            if (p->isAlive()) {
                 a = 1;
             }
             if (a) {
@@ -602,9 +592,7 @@ void MessageControl::Trans()
 // Sets the glyph draw size of slot `no`.
 void MessageControl::setFontSize(int no, s16 font_w, s16 font_h)
 {
-    Message* m = getMes(no);
-    m->m_font_w = font_w;
-    m->m_font_h = font_h;
+    m_Msg[no].setFontSize(font_w, font_h);
 }
 
 // Starts message `no` in slot `slot` at (x, y): the font by `type` (0 common, 2 stage/event, 3
@@ -666,7 +654,7 @@ void MessageControl::Delete(int no)
     if (no > 15) {
         return;
     }
-    MES(no)->clrActive();
+    m_Msg[no].setDie();
     m_Msg[no].m_state &= ~1;
 }
 
@@ -687,7 +675,7 @@ void Message::init(int no, int px, int py, u32 attr, int col, MessageFont* pFont
     int i;
 
     m_pFont = pFont;
-    be_flag |= 3;
+    setBorn();
     m_state = (m_state & ~2) | 1;
     r_no_3 = 0;
     r_no_2 = 0;
@@ -703,7 +691,7 @@ void Message::init(int no, int px, int py, u32 attr, int col, MessageFont* pFont
     this->m_pos_y = py;
     m_pos0_y = py;
     m_col = mes_col_tbl[col];
-    qp = qbase;
+    m_pMque = m_queue;
     this->m_attr = attr;
     m_wait_cnt = 0;
     m_bttn_wait = 0;
@@ -748,7 +736,7 @@ void Message::move()
     int ret;
     int code;
 
-    if (!(be_flag & 2) && (m_attr & 0x80)) {
+    if (!(be_flag & 2) && attrCk(0x80)) {
         be_flag &= ~1;
         m_state &= ~1;
     }
@@ -763,11 +751,11 @@ void Message::move()
                 break;
             }
         } else {
-            if (qp != NULL && qp >= qbase + 0x100) {
+            if (m_pMque != NULL && m_pMque >= m_queue + 0x100) {
                 pLog->err(0, 0, "Message [%d]: Overflow!", 0);
                 return;
             }
-            if (!(m_attr & 0xC0) && m_spd_flag == 0) {
+            if (!attrCk(0xC0) && m_spd_flag == 0) {
                 if (m_spd_cnt++ < m_spd) {
                     return;
                 }
@@ -797,7 +785,7 @@ void Message::WidthCk()
     u16* save;
     u16 code;
 
-    qp = qbase;
+    m_pMque = m_queue;
     m_pos_y = m_pos0_y;
     m_state |= 8;
     save = m_pMes;
@@ -854,7 +842,7 @@ void Message::WidthCk()
                 pLog->err(0, 0, "Message [%d]: line overflow!!", 0);
             }
         } else {
-            if (qp != NULL && qp >= qbase + 0x100) {
+            if (m_pMque != NULL && m_pMque >= m_queue + 0x100) {
                 pLog->err(0, 0, "Message [%d]: queue overflow!!", 0);
                 break;
             }
@@ -899,7 +887,7 @@ void Message::WidthCk()
         m_pos_y = (0x180 - n * (s16) m_line_gap) >> 1;
     }
     m_pMes = save;
-    qp = qbase;
+    m_pMque = m_queue;
     m_jump_idx = 0;
 }
 
@@ -916,15 +904,15 @@ void Message::QueSet(int code, MessageFont* p_font)
     w = (s16) ((f32) p_font->getSize(code, &l, &r) * m_scale_w);
     h = (s16) ((f32) (int) p_font->m_char_h * m_scale_h);
     if (!(m_state & 8)) {
-        if (qp != NULL) {
-            qp->x = m_pos_x;
-            qp->y = m_pos_y;
-            qp->color = m_col;
-            qp->code = code;
-            qp->w = w;
-            qp->h = h;
-            qp->font = p_font;
-            qp++;
+        if (m_pMque != NULL) {
+            m_pMque->x = m_pos_x;
+            m_pMque->y = m_pos_y;
+            m_pMque->color = m_col;
+            m_pMque->code = code;
+            m_pMque->w = w;
+            m_pMque->h = h;
+            m_pMque->font = p_font;
+            m_pMque++;
         } else {
             MesQue q;
             q.x = m_pos_x;
@@ -969,13 +957,13 @@ void Message::setNumber(u32 num, u16 digits)
     digitSave = digit;
 }
 
-// Shows the cursor glyph at the selected choice (selCur queue entries, code 1 = on).
+// Shows the cursor glyph at the selected choice (m_selTbl queue entries, code 1 = on).
 void Message::putSelCursol()
 {
     int i;
 
     for (i = 0; i < m_selTbl_size; i++) {
-        selCur[i]->code = (m_cur == i);
+        m_selTbl[i]->code = (m_cur == i);
     }
 }
 
@@ -1116,8 +1104,8 @@ void Message::trans()
 {
     MesQue* q;
 
-    for (q = qbase; q < qp; q++) {
-        if (m_attr & 0x20) {
+    for (q = m_queue; q < m_pMque; q++) {
+        if (attrCk(0x20)) {
             AddOtDirect(m_ot_type, q, (void (*)()) messageTrans, m_ot_no, 0x1000, NULL, 0.0f);
         } else {
             messageTrans(q);
@@ -1190,11 +1178,11 @@ void Message::WaitEnd()
 // line, speed, choice and cursor state.
 int Message::code00()
 {
-    if (qbase != NULL) {
-        qp = qbase;
-        memclr_asm(qbase, 0x1000);
+    if (m_queue != NULL) {
+        m_pMque = m_queue;
+        memclr_asm(m_queue, 0x1000);
     } else {
-        qp = NULL;
+        m_pMque = NULL;
     }
     WidthCk();
     m_pos_x = m_pos0_x[0];
@@ -1219,10 +1207,10 @@ int Message::code01()
         break;
     case 1:
         m_state |= 2;
-        if (!(m_attr & 0x01000000)) {
+        if (!attrCk(0x01000000)) {
             m_state &= ~1;
-            be_flag &= ~1;
-            if (!(m_attr & 0x10)) {
+            setDie();
+            if (!attrCk(0x10)) {
                 pG->Stop_flg = stop_bak;
             }
         }
@@ -1274,7 +1262,7 @@ int Message::code03()
 // Code 04 (new page): restarts the page (code00); ignored in no-wait mode.
 int Message::code04()
 {
-    if (m_attr & 0x80) {
+    if (attrCk(0x80)) {
         return 0;
     }
     m_pMes++;
@@ -1285,7 +1273,7 @@ int Message::code04()
 // Code 05 (speed): frames per glyph = arg.
 int Message::code05()
 {
-    if (m_attr & 0x80) {
+    if (attrCk(0x80)) {
         return 0;
     }
     m_pMes++;
@@ -1309,7 +1297,7 @@ int Message::code07()
         m_spd_old = m_spd;
     }
     m_spd = 0;
-    selCur[m_selTbl_size++] = qp;
+    m_selTbl[m_selTbl_size++] = m_pMque;
     QueSet(0, NULL);
     return 0;
 }
@@ -1321,11 +1309,11 @@ int Message::code08()
 {
     int ret = 2;
 
-    if (m_attr & 0x02000000) {
+    if (attrCk(0x02000000)) {
         return 0;
     }
     if (m_btn == 0) {
-        if (m_attr & 0x00400000) {
+        if (attrCk(0x00400000)) {
             m_cur = m_selTbl_size - 1;
             putSelCursol();
         }
@@ -1341,33 +1329,33 @@ int Message::code08()
             ret = 0;
             m_sel = m_cur + 1;
             if (m_sel == 1) {
-                if (m_attr & 0x100) {
+                if (attrCk(0x100)) {
                     SndCall(0, 0xF, NULL, 0, 0, NULL);
                 }
-                if (m_attr & 0x200) {
+                if (attrCk(0x200)) {
                     SndCall(0, 0x11, NULL, 0, 0, NULL);
                 }
-                if (m_attr & 0x400) {
+                if (attrCk(0x400)) {
                     SndCall(0, 0x13, NULL, 0, 0, NULL);
                 }
             } else if (m_sel == 3) {
-                if (m_attr & 0x400) {
+                if (attrCk(0x400)) {
                     SndCall(0, 0x12, NULL, 0, 0, NULL);
                 }
             }
         } else if (Key.trg & 0x40000000) {
-            if (m_attr & 0x00100000) {
-                if (m_attr & 0x00200000) {
+            if (attrCk(0x00100000)) {
+                if (attrCk(0x00200000)) {
                     m_sel = m_selTbl_size;
                     ret = 0;
                 } else {
                     m_sel = -1;
                     ret = 0;
                 }
-            } else if (m_attr & 0x00200000) {
+            } else if (attrCk(0x00200000)) {
                 m_cur = m_selTbl_size - 1;
             }
-        } else if (m_attr & 0x00800000) {
+        } else if (attrCk(0x00800000)) {
             s8 old = m_cur;
             if (Key.trg & 0x01000000) {
                 m_cur--;
@@ -1381,11 +1369,11 @@ int Message::code08()
                 }
             }
             if (old != m_cur) {
-                if (m_attr & 0x100) {
+                if (attrCk(0x100)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x200) {
+                } else if (attrCk(0x200)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x400) {
+                } else if (attrCk(0x400)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
                 } else {
                     SndCall(0, 0xA, NULL, 0, 0, NULL);
@@ -1405,11 +1393,11 @@ int Message::code08()
                 }
             }
             if (old != m_cur) {
-                if (m_attr & 0x100) {
+                if (attrCk(0x100)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x200) {
+                } else if (attrCk(0x200)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
-                } else if (m_attr & 0x400) {
+                } else if (attrCk(0x400)) {
                     SndCall(0, 0xE, NULL, 0, 0, NULL);
                 } else {
                     SndCall(0, 0xA, NULL, 0, 0, NULL);
@@ -1432,7 +1420,7 @@ int Message::code09()
 {
     int ret = 2;
 
-    if (m_attr & 0x80) {
+    if (attrCk(0x80)) {
         return 0;
     }
     if (m_wait_cnt == 0) {
@@ -1460,15 +1448,15 @@ int Message::code0a()
     s16 w;
     int a;
 
-    if (qp >= qbase + 0x100) {
+    if (m_pMque >= m_queue + 0x100) {
         return 2;
     }
     d = m_number / digit;
     if (d > 9) {
         d = 0;
     }
-    if (MesData.lang == 0) {
-        if (m_attr & 0x10000000) {
+    if (MesData.getLanguage() == 0) {
+        if (attrCk(0x10000000)) {
             code = d + 0xE;
         } else {
             code = d + 3;
@@ -1491,8 +1479,8 @@ int Message::code0a()
     if (digit == 0) {
         m_number = numberSave;
         digit = digitSave;
-        if (m_attr & 0x10000000) {
-            if (MesData.lang == 0) {
+        if (attrCk(0x10000000)) {
+            if (MesData.getLanguage() == 0) {
                 code = 0xD;
             } else {
                 code = 0xAC;
@@ -1587,7 +1575,7 @@ int Message::code11()
     m_pRetAddr = m_pMes;
     m_pRetFont = m_pFont;
     m_pMes = MesData.getAddr(no, 3);
-    if (MesData.lang == 0) {
+    if (MesData.getLanguage() == 0) {
         m_pFont = &MesFont[0];
     }
     return 0;

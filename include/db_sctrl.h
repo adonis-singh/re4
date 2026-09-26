@@ -49,7 +49,7 @@ void SctrlInitAxisRange(DbSctrlWork* w, f32 xMax, f32 xMin, f32 yMax, f32 yMin);
 void SctrlAdjustAxisRange(DbSctrlWork* w);
 void SctrlSetAxisLabel(DbSctrlWork* w, const char* x, const char* y);
 void SctrlInitCursor(DbSctrlWork* w, f32 x, f32 y);
-void dbSctrlScreenOrientation(DbSctrlWork* w, Camera* cam, f32 fovy);
+void dbSctrlScreenOrientation(DbSctrlWork* w, CAMERA* cam, f32 fovy);
 // returns the routine's result (0 once the editor quits; t_event's fog / focus tools test it)
 int DbSctrl(DbSctrlWork* w, int x, int y);
 int grabPoint(DbSctrlWork* w);

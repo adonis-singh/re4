@@ -1,8 +1,8 @@
 // game/obj15: object id 0x15, the mounted gatling gun (D:/Bio4/Prog/obj15.cpp): a turret that an
-// enemy rides (setRide); it turns towards `target` (the player) limited by maxRot, spins up (30
+// enemy rides (setRide); it turns towards `pTarget` (the player) limited by Rot_max, spins up (30
 // frames) and fires every third frame (obj15GunHitck: line hit against the player with
 // Obj15_atk_info_tbl damage, or a wall spark), 40 rounds per reload; three cEmHit boxes take
-// weapon damage and break it (R1 1) unless breakMode says otherwise; an optional eat collision
+// weapon damage and break it (R1 1) unless Break_mode says otherwise; an optional pEat collision
 // follows it.
 #include "atari.h"
 #include "light.h"
@@ -41,7 +41,7 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->gatling;
+    w = GATLING_WK((cObjGatling*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetObj15() failed.");
         ObjMgr.destroy(obj);
@@ -50,15 +50,15 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    w = &obj->gatling;
-    obj->sub2B4.atari.throughOn();
+    w = GATLING_WK((cObjGatling*) obj);
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    w->ride = 0;
-    w->breakMode = 0;
-    w->target = 0;
-    w->seOn = 0;
-    w->ammo = 40;
-    w->seHandle = 0;
+    w->pEm = 0;
+    w->Break_mode = 0;
+    w->pTarget = 0;
+    w->Se_on = 0;
+    w->Fire_num = 40;
+    w->Seid = 0;
     if (pos) {
         obj->pos = *pos;
     } else {
@@ -74,8 +74,8 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
         obj->ang.y = 0.0f;
         obj->ang.z = 0.0f;
     }
-    w->rotY = obj->ang.y;
-    w->maxRot = 3.1415927f;
+    w->St_dir = obj->ang.y;
+    w->Rot_max = 3.1415927f;
     {
         Vec hpos;
         Vec hrot;
@@ -86,23 +86,23 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
         hrot.x = 0.0f;
         hrot.y = 0.0f;
         hrot.z = 0.0f;
-        w->hit[0] = SetEmHit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore), (void*) (pG->pCore->ofs_24 + (u32) pG->pCore), &hpos, &hrot, 1);
-        if (w->hit[0]) {
-            w->hit[0]->setParent(obj, 0, 0);
-            YarareInitCube(w->hit[0], 430.0f, 0.0f, 520.0f, 300.0f, 1600.0f, 50.0f, 1, YAT_FLAG_ON);
+        w->pHit[0] = SetEmHit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore), (void*) (pG->pCore->ofs_24 + (u32) pG->pCore), &hpos, &hrot, 1);
+        if (w->pHit[0]) {
+            w->pHit[0]->setParent(obj, 0, 0);
+            YarareInitCube(w->pHit[0], 430.0f, 0.0f, 520.0f, 300.0f, 1600.0f, 50.0f, 1, YAT_FLAG_ON);
         }
-        w->hit[1] = SetEmHit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore), (void*) (pG->pCore->ofs_24 + (u32) pG->pCore), &hpos, &hrot, 1);
-        if (w->hit[1]) {
-            w->hit[1]->setParent(obj, 0, 0);
-            YarareInitCube(w->hit[1], -430.0f, 0.0f, 520.0f, 300.0f, 1600.0f, 50.0f, 1, YAT_FLAG_ON);
+        w->pHit[1] = SetEmHit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore), (void*) (pG->pCore->ofs_24 + (u32) pG->pCore), &hpos, &hrot, 1);
+        if (w->pHit[1]) {
+            w->pHit[1]->setParent(obj, 0, 0);
+            YarareInitCube(w->pHit[1], -430.0f, 0.0f, 520.0f, 300.0f, 1600.0f, 50.0f, 1, YAT_FLAG_ON);
         }
-        w->hit[2] = SetEmHit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore), (void*) (pG->pCore->ofs_24 + (u32) pG->pCore), &hpos, &hrot, 1);
-        if (w->hit[2]) {
-            w->hit[2]->setParent(obj, 0, 0);
-            YarareInitCube(w->hit[2], 0.0f, 0.0f, 0.0f, 300.0f, 1600.0f, 300.0f, 1, YAT_FLAG_ON);
+        w->pHit[2] = SetEmHit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore), (void*) (pG->pCore->ofs_24 + (u32) pG->pCore), &hpos, &hrot, 1);
+        if (w->pHit[2]) {
+            w->pHit[2]->setParent(obj, 0, 0);
+            YarareInitCube(w->pHit[2], 0.0f, 0.0f, 0.0f, 300.0f, 1600.0f, 300.0f, 1, YAT_FLAG_ON);
         }
     }
-    w->eat = 0;
+    w->pEat = 0;
     obj->r_no_0 = 1;
     obj->r_no_1 = 0;
     obj->r_no_2 = 0;
@@ -114,32 +114,32 @@ cObjGatling* SetObjGatling(void* bin, void* tpl, Vec* pos, Vec* rot)
 // the gun, target timeout.
 void cObjGatling::move()
 {
-    GatlingWork* w = &gatling;
+    GatlingWork* w = GATLING_WK(this);
 
-    if (w->ride) {
-        if ((w->ride->be_flag & 0x201) != 1) {
-            w->ride = 0;
+    if (w->pEm) {
+        if (!w->pEm->isAlive()) {
+            w->pEm = 0;
         }
-        if (w->ride) {
-            if (w->ride->hp <= 0) {
-                w->ride = 0;
+        if (w->pEm) {
+            if (w->pEm->hp <= 0) {
+                w->pEm = 0;
             }
         }
     }
     obj15DmCk(this);
     Obj15_R1_move_tbl[r_no_1](this);
-    if (w->eat) {
+    if (w->pEat) {
         if (be_flag & 2) {
-            w->eat->m_Flag |= 4;
-            w->eat->setCoord(&pos, &ang);
+            w->pEat->setEnable();
+            w->pEat->setCoord(&pos, &ang);
         } else {
-            w->eat->m_Flag &= ~4;
+            w->pEat->setDisable();
         }
     }
-    if (w->targetTimer) {
-        w->targetTimer--;
-        if (w->targetTimer == 0) {
-            w->target = 0;
+    if (w->Heli_lock_timer) {
+        w->Heli_lock_timer--;
+        if (w->Heli_lock_timer == 0) {
+            w->pTarget = 0;
         }
     }
 }
@@ -149,76 +149,76 @@ void cObjGatling::move()
 // out of ammo / rider gone / fire stopped, then back to 0. Fires only while the player is alive.
 void obj15_R1_Set(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     f32 dist;
     f32 lim;
     f32 ang;
 
-    if (w->target == 0) {
-        w->target = pPL;
+    if (w->pTarget == 0) {
+        w->pTarget = pPL;
     }
     switch (pObj->r_no_2) {
     case 0:
-        w->cnt = 0;
-        w->firing = 0;
-        if (w->ride == 0) {
+        w->Fire_timer = 0;
+        w->Fire_go = 0;
+        if (w->pEm == 0) {
             break;
         }
-        if (w->fire == 0) {
+        if (w->Fire_ready == 0) {
             break;
         }
         {
             Vec tpos;
 
             pObj->getPartsPtr(2);
-            tpos = w->target->pos;
-            w->fire = 0;
-            w->firing = 1;
-            w->cnt = 0;
+            tpos = w->pTarget->pos;
+            w->Fire_ready = 0;
+            w->Fire_go = 1;
+            w->Fire_timer = 0;
             tpos.y += 2000.0f;
         }
         pObj->r_no_2++;
     case 1:
-        dist = VEC_DISTXZ(&pObj->pos, &w->target->pos);
+        dist = VEC_DISTXZ(&pObj->pos, &w->pTarget->pos);
         if (dist < 5000.0f) {
             dist = 5000.0f;
         }
         dist *= 0.0002f;
-        if (w->cnt <= 14) {
+        if (w->Fire_timer <= 14) {
             lim = 1.0f / dist * 0.03926991f;
         } else {
             lim = 1.0f / dist * 0.019634955f;
         }
-        ang = LIMIT_ANGLE(Muku(&pObj->pos, &w->target->pos, pObj->ang.y, lim) + pObj->ang.y);
-        pObj->ang.y = w->rotY + Muku2(w->rotY, ang, w->maxRot);
+        ang = LIMIT_ANGLE(Muku(&pObj->pos, &w->pTarget->pos, pObj->ang.y, lim) + pObj->ang.y);
+        pObj->ang.y = w->St_dir + Muku2(w->St_dir, ang, w->Rot_max);
         pObj->ang.y = LIMIT_ANGLE(pObj->ang.y);
         obj15BarrelMove(pObj);
-        if (w->ammo == 0 || w->ride == 0 || w->firing == 0) {
+        if (w->Fire_num == 0 || w->pEm == 0 || w->Fire_go == 0) {
             pObj->r_no_2++;
         }
         break;
     case 2:
-        w->breakTimer = 30;
+        w->Timer = 30;
         pObj->r_no_2++;
     case 3:
-        if (w->breakTimer) {
-            w->breakTimer--;
+        if (w->Timer) {
+            w->Timer--;
             obj15BarrelMove(pObj);
             pObj->r_no_2 = 0;
         }
         break;
     }
     obj15MatCalc(pObj);
-    if (w->firing) {
+    if (w->Fire_go) {
         if ((s16) pG->pl_life > 0) {
-            w->cnt++;
-            if (w->cnt > 30) {
-                if (w->cnt % 3 == 0) {
-                    if (w->ammo) {
-                        w->ammo--;
+            w->Fire_timer++;
+            if (w->Fire_timer > 30) {
+                if (w->Fire_timer % 3 == 0) {
+                    if (w->Fire_num) {
+                        w->Fire_num--;
                         if (obj15GunHitck(pObj)) {
-                            if (w->ammo > 10) {
-                                w->ammo = 10;
+                            if (w->Fire_num > 10) {
+                                w->Fire_num = 10;
                             }
                         }
                     }
@@ -232,21 +232,21 @@ void obj15_R1_Set(cObjGatling* pObj)
 // Rno1 == 1 (broken): once spawns the explosion (est 1/0xD) and does the break work.
 void obj15_R1_Break(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     u32 i;
 
     if (pObj->r_no_2 == 0) {
         EstSet(0, -1, &pObj->pos, &pObj->ang, EFF_ROOM, 0xD, 0, ESP_CORE_KIND_NONE, 0, 0);
-        SndStop(w->seHandle, 0);
+        SndStop(w->Seid, 0);
         for (i = 0; i < 3; i++) {
-                if (w->hit[i]) {
-                        w->hit[i]->hp = 0;
-                        w->hit[i] = 0;
+                if (w->pHit[i]) {
+                        w->pHit[i]->hp = 0;
+                        w->pHit[i] = 0;
                 }
         }
         pObj->be_flag &= ~2;
-        if (w->eat) {
-                w->eat->m_Flag &= ~4;
+        if (w->pEat) {
+                w->pEat->setDisable();
         }
         pObj->r_no_2++;
     }
@@ -257,15 +257,15 @@ void obj15_R1_Break(cObjGatling* pObj)
 // firing (with the spin sound); stops the sound when not firing.
 void obj15BarrelMove(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     Vec tpos;
-    cModel* parts;
+    cCoord* parts;
 
-    if (w->target == 0) {
-        w->target = pPL;
+    if (w->pTarget == 0) {
+        w->pTarget = pPL;
     }
-    tpos = w->target->pos;
-    parts = w->ride;
+    tpos = w->pTarget->pos;
+    parts = w->pEm;
     tpos.y += 1400.0f;
     if (parts) {
         Vec d;
@@ -277,42 +277,39 @@ void obj15BarrelMove(cObjGatling* pObj)
         len = SQRTF(d.x * d.x + d.z * d.z);
         ang = -atan2f(d.y, len);
         parts->ang.x = parts->ang.x * 0.9f + ang * 0.1f;
-        if (w->firing && (s16) pG->pl_life > 0) {
+        if (w->Fire_go && (s16) pG->pl_life > 0) {
             parts = pObj->getPartsPtr(3);
             parts->ang.z += 0.20943952f;
             parts->ang.z = LIMIT_ANGLE(parts->ang.z);
-            if (w->seOn == 0) {
-                w->seOn = 1;
-                w->seHandle = SndCall(6, 0x24, &pObj->pos, 0, 0, 0);
+            if (w->Se_on == 0) {
+                w->Se_on = 1;
+                w->Seid = SndCall(6, 0x24, &pObj->pos, 0, 0, 0);
             }
         } else {
-            if (w->seOn) {
-                SndStop(w->seHandle, 0);
+            if (w->Se_on) {
+                SndStop(w->Seid, 0);
                 SndCall(6, 0x25, &pObj->pos, 0, 0, 0);
             }
-            w->seOn = 0;
+            w->Se_on = 0;
         }
     } else {
-        if (w->seOn) {
-            SndStop(w->seHandle, 0);
+        if (w->Se_on) {
+            SndStop(w->Seid, 0);
             SndCall(6, 0x25, &pObj->pos, 0, 0, 0);
         }
-        w->seOn = 0;
+        w->Se_on = 0;
     }
 }
 
 // Rebuilds the gun matrix and parts.
 void obj15MatCalc(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
 
-    if (w->target == 0) {
-        w->target = pPL;
+    if (w->pTarget == 0) {
+        w->pTarget = pPL;
     }
-    RotMatrix(pObj->l_mat, &pObj->ang);
-    TransMatrix(pObj->l_mat, &pObj->pos);
-    ScaleMatrix(pObj->l_mat, &pObj->scale);
-    PSMTXCopy(pObj->l_mat, pObj->mat);
+    pObj->matCalc();
     if (pObj->Motion.pMot == 0) {
         pObj->partsMatCalc();
     }
@@ -330,7 +327,7 @@ int obj15GunHitck(cObjGatling* pObj)
     Vec hit;
     Vec dir;
     cEm* em;
-    cModel* parts;
+    cParts* parts;
     u32 attr;
 
     EstSet(pObj, -1, 0, 0, EFF_ROOM, 0x1F, 0, ESP_CORE_KIND_NONE, pObj, 0);
@@ -390,7 +387,7 @@ static void obj15GunHitckDbg(cObjGatling* obj)
 {
     Vec ofs;
     Vec mzl;
-    cModel* parts;
+    cParts* parts;
 
     ofs.x = 0.0f;
     ofs.y = 150.0f;
@@ -407,54 +404,54 @@ static void obj15GunHitckDbg(cObjGatling* obj)
 // Sets the enemy operating the gun.
 void cObjGatling::setRide(cEm* pEm)
 {
-    gatling.ride = pEm;
+    GATLING_WK(this)->pEm = pEm;
 }
 
 // Rider request: start firing.
 void cObjGatling::setFire()
 {
-    gatling.fire = 1;
+    GATLING_WK(this)->Fire_ready = 1;
 }
 
 // Rider request: stop firing.
 void cObjGatling::stopFire()
 {
-    gatling.firing = 0;
+    GATLING_WK(this)->Fire_go = 0;
 }
 
 // 1 when the gun is empty.
 int cObjGatling::ckReload()
 {
-    return gatling.ammo == 0;
+    return GATLING_WK(this)->Fire_num == 0;
 }
 
 // Refills 40 rounds.
 void cObjGatling::setReload()
 {
-    gatling.ammo = 40;
+    GATLING_WK(this)->Fire_num = 40;
 }
 
-// Weapon hits on the three hit bodies (only when breakable, stat 0x0101): spark effects; breakMode
+// Weapon hits on the three hit bodies (only when breakable, stat 0x0101): spark effects; Break_mode
 // 0 breaks the gun (R1 1) with a sound.
 void obj15DmCk(cObjGatling* pObj)
 {
-    GatlingWork* w = &pObj->gatling;
+    GatlingWork* w = GATLING_WK(pObj);
     u32 i;
 
     if (pObj->r_no_0 == 1 && pObj->r_no_1 == 1) {
         return;
     }
     for (i = 0; i < 3; i++) {
-        if (w->hit[i]) {
-            switch ((u32) w->hit[i]->ckDmgWeapon()) {
+        if (w->pHit[i]) {
+            switch ((u32) w->pHit[i]->ckDmgWeapon()) {
             default:
-                EmDmBloodSet2(w->hit[i], 1, 0x1D, 0, 0, 0);
+                EmDmBloodSet2(w->pHit[i], 1, 0x1D, 0, 0, 0);
                 break;
             case 0:
                 break;
             case 0xD:
             case 0x12:
-                if (w->breakMode == 0) {
+                if (w->Break_mode == 0) {
                     pObj->r_no_0 = 1;
                     pObj->r_no_1 = 1;
                     pObj->r_no_2 = 0;
@@ -462,7 +459,7 @@ void obj15DmCk(cObjGatling* pObj)
                     return;
                 }
                 SndCall(6, 0x16, &pObj->pos, 0, 0, 0);
-                EmDmBloodSet2(w->hit[i], 1, 0x1D, 0, 0, 0);
+                EmDmBloodSet2(w->pHit[i], 1, 0x1D, 0, 0, 0);
                 break;
             }
         }
@@ -472,15 +469,15 @@ void obj15DmCk(cObjGatling* pObj)
 // Creates the eat collision that follows the gun.
 void cObjGatling::setEat(void* data, int type)
 {
-    GatlingWork* w = &gatling;
+    GatlingWork* w = GATLING_WK(this);
 
-    w->eat = EatMgr.create(data, 0, &pos, &ang, type);
+    w->pEat = EatMgr.create(data, 0, &pos, &ang, type);
 }
 
 // Max yaw away from the rest angle (radians).
 void cObjGatling::setMaxRot(f32 rot_max)
 {
-    gatling.maxRot = rot_max;
+    GATLING_WK(this)->Rot_max = rot_max;
 }
 
 // 1 when the gun is flagged breakable/broken (stat high half 0x0101).
@@ -492,28 +489,28 @@ int cObjGatling::ckBreak()
 // 0 = weapon hits break it, else only setBreak does.
 void cObjGatling::setBreakMode(u8 mode)
 {
-    gatling.breakMode = mode;
+    GATLING_WK(this)->Break_mode = mode;
 }
 
 // Breaks the gun from the room script (break work, R1 1 without the explosion effect).
 void cObjGatling::setBreak()
 {
-    GatlingWork* w = &gatling;
+    GatlingWork* w = GATLING_WK(this);
     u32 i;
 
     if (r_no_0 == 1 && r_no_1 == 1) {
         return;
     }
-    SndStop(w->seHandle, 0);
+    SndStop(w->Seid, 0);
     for (i = 0; i < 3; i++) {
-        if (w->hit[i]) {
-            w->hit[i]->hp = 0;
-            w->hit[i] = 0;
+        if (w->pHit[i]) {
+            w->pHit[i]->hp = 0;
+            w->pHit[i] = 0;
         }
     }
     be_flag &= ~2;
-    if (w->eat) {
-        w->eat->m_Flag &= ~4;
+    if (w->pEat) {
+        w->pEat->setDisable();
     }
     r_no_0 = 1;
     r_no_1 = 1;

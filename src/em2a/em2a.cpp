@@ -109,10 +109,10 @@ void em2aDmCkTrap1(cEm2a* em)
     SndCall(8, 2, &em->pos, em->id, 0, em);
     EmDmBloodSet2(em, 0x22, 9, 0, 0, 0);
     if (em->r_no_0 == 1 && em->r_no_1 == 5) {
-        EmRoutineSet(em, 1, 4, 0, 0);
+        em->setRno(1, 4, 0, 0);
     } else {
         GameAddPoint(LVADD_CRITICALHIT);
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
     }
 }
 
@@ -128,7 +128,7 @@ void em2aDmCkTrap2(cEm2a* em)
         // both arms call EmSetDie: the arm's own `mr r3, em` copy is scheduled above the hp store,
         // so the original's cross-jump starts at the `bl` and each arm keeps the copy
         EmSetDie(em);
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
     } else {
         int wep;
 
@@ -144,7 +144,7 @@ void em2aDmCkTrap2(cEm2a* em)
         GameAddPoint(LVADD_CRITICALHIT);
         em->hp = 0;
         EmSetDie(em);
-        EmRoutineSet(em, 1, 7, 0, 0);
+        em->setRno(1, 7, 0, 0);
     }
 }
 
@@ -177,11 +177,11 @@ static Em2aFunc Em2a_R1_move_tbl[16] = {
 
 // The camera plemResuceAshley installs (the partner rescue cut): explicitly zero-initialised so it
 // stays in .data.
-static Camera em2a_rescue_cam = { 0 };
+static CAMERA em2a_rescue_cam = { 0 };
 // COMPILER-DIFF: candidate #12 (cse related-value): `cam = &em2a_rescue_cam` after the `&em2a_rescue_cam.param.pos/at`
 // pointers are known is a fresh `lis/addi` pair in the original; our cse rewrites it as `at - 0xB0`.
 // An asm-labelled alias declaration gives cse a distinct SYMBOL_REF and keeps the fresh pair.
-extern Camera em2a_rescue_cam_v asm("em2a_rescue_cam");
+extern CAMERA em2a_rescue_cam_v asm("em2a_rescue_cam");
 // .data is padded to 8 bytes before the linker's BSS tag word.
 asm(".section .data\n\t.balign 8\n\t.text");
 
@@ -246,7 +246,7 @@ static void em2a_R0_Init(cEm2a* em)
         // (temp in f0, scale in f31); a shared `goto wire` block ties the whole chain to f31
         {
             f32 hp = (f32) em->hp;
-            cModel* p;
+            cParts* p;
 
             scale = hp * 0.001f * 0.5f;
             p = em->getPartsPtr(1);
@@ -266,7 +266,7 @@ static void em2a_R0_Init(cEm2a* em)
         }
         {
             f32 hp = (f32) em->hp;
-            cModel* p;
+            cParts* p;
 
             scale = hp * 0.001f * 0.5f;
             p = em->getPartsPtr(1);
@@ -286,10 +286,7 @@ static void em2a_R0_Init(cEm2a* em)
         static const Vec size = { 750.0f, 750.0f, 750.0f };
 
         em->LightInfo.init2(0, 3, &ofs, &size, 2);
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         break;
     }
     case 1:
@@ -297,10 +294,7 @@ static void em2a_R0_Init(cEm2a* em)
         static const Vec size = { 8000.0f, 8000.0f, 8000.0f };
 
         em->LightInfo.init2(0, 3, &ofs, &size, 2);
-        em->lockParts = 1;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 0.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(1, 0.0f, 0.0f, 0.0f);
         break;
     }
     }
@@ -308,7 +302,7 @@ static void em2a_R0_Init(cEm2a* em)
     at = &em->atari;
     at->init(0.0f, 0.0f, 0.0f, 500.0f, 400.0f, 400.0f, 1500.0f, 3, 0x2000, 10);
     zero = 0;
-    AtariOff(at, 0xFCFF);
+    at->off();
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em2aYarareInit(em);
     w->espKind = EspPullCoreKind();
@@ -322,10 +316,10 @@ static void em2a_R0_Init(cEm2a* em)
     default:
         switch (em->set) {
         default:
-            EmRoutineSet(em, 1, 0, zero, zero);
+            em->setRno(1, 0, zero, zero);
             break;
         case 1:
-            EmRoutineSet(em, 1, 5, zero, zero);
+            em->setRno(1, 5, zero, zero);
             break;
             // dead loop: its LOOP_END note stops cse from following `beq case2`, so the arm does not
             // know zero == 0 and `z` is a fresh SI zero pseudo set before the clearStatus call (li r30,0)
@@ -335,18 +329,18 @@ static void em2a_R0_Init(cEm2a* em)
 
             em->hp = zero;
             em->clearStatus(EM_STATUS_ACTIVE);
-            EmRoutineSet(em, 1, 3, z, 1);
+            em->setRno(1, 3, z, 1);
             break;
         }
         }
         break;
     case 1:
         EstSet(em, -1, 0, 0, EFF_EM2A, 3, 0x800, (u8) w->espKind, em, (void*) zero);
-        EmRoutineSet(em, 1, 6, zero, zero);
+        em->setRno(1, 6, zero, zero);
         break;
     case 2:
         EstSet(em, -1, 0, 0, EFF_EM2A, 5, 0x800, (u8) w->espKind, em, (void*) zero);
-        EmRoutineSet(em, 1, 6, zero, zero);
+        em->setRno(1, 6, zero, zero);
         break;
     }
     em2a_R0_Move(em);
@@ -422,7 +416,7 @@ static void em2a_R1_Trap1Bite(cEm2a* em)
             em2aTrap1CamMove(em);
             w->camTimer--;
         }
-        if ((em->Motion.Seq_old.Free & 4) && EmDeadCk(pPL)) {
+        if ((em->Motion.Seq_old.Free & 4) && pPL->dmg.isDamage()) {
             u16 frame = (*(u16*) ARC(0xB) & 0x3FFF) - 1;
 
             MotionSetCore(em, MOTION(em), ARC(0xB), 0, 0, 1, frame);
@@ -494,7 +488,7 @@ static void em2a_R1_Trap1BiteSub(cEm2a* em)
         em->r_no_2++;
     case 3:
         MotionMove(em, 0);
-        if (EmDeadCk(pSUB)) {
+        if (pSUB->dmg.isDamage()) {
             u16 frame = (*(u16*) ARC(0xB) & 0x3FFF) - 1;
 
             MotionSetCore(em, MOTION(em), ARC(0xB), 0, 0, 1, frame);
@@ -517,7 +511,7 @@ static void em2a_R1_Trap1BiteSub(cEm2a* em)
 // every 30..45 frames, "partner held" bit Status_flg[2] bit29) until freed, then EndSubDamage.
 static void subem2a_Trap1Bite(cSubChar* sub_)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     sub->subArc = sub->pEmCatch->subArc;
     StaFlagOn(pG, STA_SUB_CATCHED);
@@ -621,8 +615,8 @@ static void plemResuceAshley(cPlayer* pl)
 // Installs the rescue cut camera (em2a_rescue_cam) beside the player looking at the trap.
 void plem2aTrapCamMove(cModel* m)
 {
-    Camera* c = &pG->Camera;
-    Camera* cam;
+    CAMERA* c = &pG->Camera;
+    CAMERA* cam;
     Vec v;
     Vec a;
 
@@ -652,7 +646,7 @@ void plem2aTrapCamMove(cModel* m)
     }
     cam->param.fovy = 55.0f;
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // R1 == 3 Trap1Break: the sprung / shot trap snaps shut empty (ARC 0xC, spark effect when shot) and
@@ -732,10 +726,7 @@ static void em2a_R1_Trap1R100(cEm2a* em)
 // R1 == 6 Trap2Set: the armed tripwire bomb: only rebuilds the model matrix each frame.
 static void em2a_R1_Trap2Set(cEm2a* em)
 {
-    RotMatrix(em->l_mat, &em->ang);
-    TransMatrix(em->l_mat, &em->pos);
-    ScaleMatrix(em->l_mat, &em->scale);
-    PSMTXCopy(em->l_mat, em->mat);
+    em->matCalc();
     em->partsMatCalc();
 }
 
@@ -755,10 +746,7 @@ static void em2a_R1_Trap2Bomb(cEm2a* em)
             em2aTrap2Bomb(em);
             em->r_no_2++;
         }
-        RotMatrix(em->l_mat, &em->ang);
-        TransMatrix(em->l_mat, &em->pos);
-        ScaleMatrix(em->l_mat, &em->scale);
-        PSMTXCopy(em->l_mat, em->mat);
+        em->matCalc();
         em->partsMatCalc();
         break;
     }
@@ -811,8 +799,8 @@ int em2aTrap2HitCk(cEm2a* em)
 // sets hp 0 and returns 1.
 int em2aTrap2HitCkPL(cEm2a* em)
 {
-    cModel* p0;
-    cModel* p2;
+    cParts* p0;
+    cParts* p2;
     f32 len;
     Mtx inv;
     Vec v;
@@ -833,8 +821,8 @@ int em2aTrap2HitCkPL(cEm2a* em)
 // An alive Ganado (ids 0x10..0x20) inside the wire box: 1 when found.
 int em2aTrap2HitCkEM(cEm2a* em)
 {
-    cModel* p0;
-    cModel* p2;
+    cParts* p0;
+    cParts* p2;
     f32 len;
     Mtx inv;
     Vec v;
@@ -877,8 +865,8 @@ int em2aTrap2HitCkEM(cEm2a* em)
 void em2aTrap2Bomb(cEm2a* em)
 {
     Em2aWork* w = EM2A_WK(em);
-    cModel* p1;
-    cModel* p;
+    cParts* p1;
+    cParts* p;
     Vec d;
     Vec e;
     f32 wh;
@@ -924,7 +912,7 @@ void em2aTrap2Bomb(cEm2a* em)
     PSVECAdd(&p->world, &d, &e);
     PlWepHitCheck2(0, &e, &e, 0x13, 2, 3000.0f);
     {
-        Camera* c = &pG->Camera;
+        CAMERA* c = &pG->Camera;
         f32 dist;
 
         p = em->getPartsPtr(1);
@@ -953,7 +941,7 @@ void em2aTrap2Bomb(cEm2a* em)
 void em2aTrap1CamMove(cEm2a* em)
 {
     Em2aWork* w = EM2A_WK(em);
-    Camera* c = &pG->Camera;
+    CAMERA* c = &pG->Camera;
     Mtx m;
     Vec v;
 
@@ -980,7 +968,7 @@ void em2aTrap1CamMove(cEm2a* em)
     }
     w->cam.param.fovy = 55.0f;
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // The alive player within 300 units (same height) of the armed trap: snaps it onto his leg
@@ -993,7 +981,7 @@ int em2aTrap1BiteCk(cEm2a* em)
         > 90000.0f) {
         return 0;
     }
-    dead = EmDeadCk(pPL);
+    dead = pPL->dmg.isDamage();
     if (dead) {
         return 0;
     }
@@ -1004,7 +992,7 @@ int em2aTrap1BiteCk(cEm2a* em)
         return 0;
     }
     em->pos.y = pPL->pos.y;
-    EmRoutineSet(em, 1, 1, 0, dead);
+    em->setRno(1, 1, 0, dead);
     return 1;
 }
 
@@ -1021,7 +1009,7 @@ int em2aTrap1BiteSubCk(cEm2a* em)
     if (StaFlagChk(pG, STA_SUB_CATCHED)) {
         return 0;
     }
-    dead = EmDeadCk(pSUB);
+    dead = pSUB->dmg.isDamage();
     if (dead) {
         return 0;
     }
@@ -1036,6 +1024,6 @@ int em2aTrap1BiteSubCk(cEm2a* em)
         return 0;
     }
     em->pos.y = pSUB->pos.y;
-    EmRoutineSet(em, 1, two, 0, dead);
+    em->setRno(1, two, 0, dead);
     return 1;
 }

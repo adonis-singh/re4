@@ -26,7 +26,7 @@ static int tcMenuDummy = 0;
 void tcCameraMove()
 {
     TcWork* w = pTc;
-    Camera* cam = &w->cam;
+    CAMERA* cam = &w->cam;
 
     switch (CameraGetProjection()) {
     case 1:

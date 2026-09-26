@@ -48,7 +48,7 @@ cEmBarred* SetEmBarred(void* bin, void* tpl, Vec* pos, Vec* rot, int flagNo, int
     cEmBarred* em;
     EmBarredWork* w;
     u16* flg;
-    cModel* parts;
+    cParts* parts;
     u32 i;
 
     flg = GetEtcFlgPtr(flagNo, pG->room_id);
@@ -102,7 +102,7 @@ cEmBarred* SetEmBarred(void* bin, void* tpl, Vec* pos, Vec* rot, int flagNo, int
         AtariInit(&em->atari, 0.0f, 1750.0f, 0.0f, 1950.0f, 230.0f, 230.0f, 1750.0f, 0, 2, 0);
         break;
     }
-    em->atari.clrFlag100();
+    em->atari.offSca();
     em->atari.setPriority(PRI_LV3);
     em->setNoSuspend(1);
     em->setStatus(EM_STATUS_LOCKOFF);
@@ -256,7 +256,7 @@ void emBarredDmCk(cEmBarred* pEm)
 {
     EmBarredWork* w = EMBARRED_WK(pEm);
     YARARE_INFO* part;
-    cModel* parts;
+    cParts* parts;
     u16* flg;
     Vec v;
     f32 ang;
@@ -788,7 +788,7 @@ void emBarred_R1_Break(cEmBarred* pEm)
         pEm->hp = 0;
         pEm->be_flag &= ~2;
         pEm->clearStatus(EM_STATUS_ACTIVE);
-        pEm->atari.throughOn();
+        pEm->atari.off();
         flg = GetEtcFlgPtr(w->Etc_no, pG->room_id);
         if (flg) {
             *flg |= 1;
@@ -813,21 +813,21 @@ void emBarredEatSet(cEmBarred* pEm)
     int attr;
 
     if (pEm->hp <= 0) {
-        pEm->atari.throughOn();
+        pEm->atari.off();
         if (w->pEat) {
-            w->pEat->m_Flag &= ~4;
+            w->pEat->setDisable();
         }
         if (w->pEatFrame[0]) {
-            w->pEatFrame[0]->m_Flag &= ~4;
+            w->pEatFrame[0]->setDisable();
         }
         if (w->pEatFrame[1]) {
-            w->pEatFrame[1]->m_Flag &= ~4;
+            w->pEatFrame[1]->setDisable();
         }
         if (w->pEatFrame[2]) {
-            w->pEatFrame[2]->m_Flag &= ~4;
+            w->pEatFrame[2]->setDisable();
         }
         if (w->pEatFrame[3]) {
-            w->pEatFrame[3]->m_Flag &= ~4;
+            w->pEatFrame[3]->setDisable();
         }
     }
     attr = 0;
@@ -903,11 +903,11 @@ void emBarredEatSet(cEmBarred* pEm)
         poly[3].z = hy;
         w->pEat = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
     } else {
-        w->pEat->m_Flag |= 4;
+        w->pEat->setEnable();
         w->pEat->setCoord(&pEm->pos, &pEm->ang);
         flg = GetEtcFlgPtr(w->Etc_no, pG->room_id);
         if (flg && (*flg & 2)) {
-            w->pEat->m_Flag &= ~4;
+            w->pEat->setDisable();
         }
     }
     if (pEm->type == 6) {
@@ -927,7 +927,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[0] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
         } else {
-            w->pEatFrame[0]->m_Flag |= 4;
+            w->pEatFrame[0]->setEnable();
             w->pEatFrame[0]->setCoord(&pEm->pos, &pEm->ang);
         }
         if (w->pEatFrame[1] == 0) {
@@ -945,7 +945,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[1] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
         } else {
-            w->pEatFrame[1]->m_Flag |= 4;
+            w->pEatFrame[1]->setEnable();
             w->pEatFrame[1]->setCoord(&pEm->pos, &pEm->ang);
         }
         if (w->pEatFrame[2] == 0) {
@@ -963,7 +963,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[2] = EatMgr.create(&pEm->pos, &pEm->ang, poly, 260.0f, attr, 0);
         } else {
-            w->pEatFrame[2]->m_Flag |= 4;
+            w->pEatFrame[2]->setEnable();
             w->pEatFrame[2]->setCoord(&pEm->pos, &pEm->ang);
         }
         if (w->pEatFrame[3] == 0) {
@@ -981,7 +981,7 @@ void emBarredEatSet(cEmBarred* pEm)
             poly[3].z = hy;
             w->pEatFrame[3] = EatMgr.create(&pEm->pos, &pEm->ang, poly, 260.0f, attr, 0);
         } else {
-            w->pEatFrame[3]->m_Flag |= 4;
+            w->pEatFrame[3]->setEnable();
             w->pEatFrame[3]->setCoord(&pEm->pos, &pEm->ang);
         }
     }
@@ -1020,7 +1020,7 @@ int emBarredNearCk(cEmBarred* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id > 0x3F) {
@@ -1064,7 +1064,7 @@ void cEmBarred::setBreak(Vec* pPos)
         v.x = 0.0f;
         v.z = 0.0f;
         EstSet(0, -1, &pos, &v, w->Eff_id, 3, 0, ESP_CORE_KIND_NONE, 0, 0);
-        atari.throughOn();
+        atari.off();
         hp = 0;
         r_no_0 = 1;
         r_no_1 = 3;
@@ -1135,7 +1135,7 @@ int emBarredUnderCk(cEmBarred* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id > 0x3F) {

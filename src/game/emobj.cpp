@@ -72,7 +72,7 @@ void cEmObj::setSatMain()
     Vec poly[4];
 
     if (w->pSat) {
-        w->pSat->m_Flag &= ~4;
+        w->pSat->setDisable();
     }
     poly[0].x = w->satPos.x - w->satSize.x;
     poly[0].y = w->satPos.y;
@@ -89,7 +89,7 @@ void cEmObj::setSatMain()
     if (w->pSat == 0) {
         w->pSat = SatMgr.create(&pos, &ang, poly, w->satSize.y, w->satN, w->satFlag);
     } else {
-        w->pSat->m_Flag |= 4;
+        w->pSat->setEnable();
         w->pSat->setCoord(&pos, &ang);
     }
 }
@@ -100,7 +100,7 @@ void cEmObj::clrSat()
     EmObjWork* w = EMOBJ_WK(this);
 
     if (w->pSat) {
-        w->pSat->m_Flag &= ~4;
+        w->pSat->setDisable();
     }
     EMOBJ_WK(this)->flags &= ~2;
 }
@@ -130,7 +130,7 @@ void cEmObj::setEatMain()
     Vec poly[4];
 
     if (w->pEat) {
-        w->pEat->m_Flag &= ~4;
+        w->pEat->setDisable();
     }
     poly[0].x = w->eatPos.x - w->eatSize.x;
     poly[0].y = w->eatPos.y;
@@ -147,7 +147,7 @@ void cEmObj::setEatMain()
     if (w->pEat == 0) {
         w->pEat = EatMgr.create(&pos, &ang, poly, w->eatSize.y, w->eatN, w->eatFlag);
     } else {
-        w->pEat->m_Flag |= 4;
+        w->pEat->setEnable();
         w->pEat->setCoord(&pos, &ang);
     }
 }
@@ -158,7 +158,7 @@ void cEmObj::clrEat()
     EmObjWork* w = EMOBJ_WK(this);
 
     if (w->pEat) {
-        w->pEat->m_Flag &= ~4;
+        w->pEat->setDisable();
     }
     EMOBJ_WK(this)->flags &= ~4;
 }

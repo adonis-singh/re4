@@ -1,7 +1,7 @@
 // wep33 module: the pump shotgun (cObjShotgun, object id 0x2B; routines wep/pl_shotgun.cpp).
 //
 // The mercenaries' build of wep07 (weapon_no 0x21): the same cObjShotgun hanging on the player's
-// right hand (parts 10), driven by wep.mode / wep.step from the shotgun routines (mode 2 fire
+// right hand (parts 10), driven by r_no_0 / r_no_1 from the shotgun routines (mode 2 fire
 // with the pump shell ejection at frame 20, mode 4 shell-by-shell reload; both end themselves),
 // with a slightly different motion table. Wep33_init is the WeaponInitFunc, PlShotgunMove the
 // WeaponMoveFunc.
@@ -16,16 +16,6 @@
 #include "rnd.h"
 
 void PlShotgunMove(cPlayer* pl);   // wep/pl_shotgun.cpp
-
-class cObjShotgun : public cObjWep {
-public:
-    virtual void moveFire();
-    virtual void moveReload();
-    virtual void init(cModel* parent);
-    virtual void setMotion(cPlayer* pl);
-
-    void setCartridge();
-};
 
 void ObjShotgun_init(cObj* obj);
 
@@ -57,7 +47,7 @@ void ObjShotgun_init(cObj* obj)
 }
 
 // cObjWep::init override (parent = the player): model 0x5 / texture 0x6, atari bits 8/9 off,
-// hung on the right hand, light area, weapon list id 0x2C, idle motion 0x31, wep.shotFrame[0..2] = 0x2E,
+// hung on the right hand, light area, weapon list id 0x2C, idle motion 0x31, shotFrame[0..2] = 0x2E,
 // default lock spread.
 void cObjShotgun::init(cModel* parent)
 {
@@ -65,31 +55,31 @@ void cObjShotgun::init(cModel* parent)
         pLog->err(0, 0, "cObjShotgun::init() failed.");
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.itemId = 0x2C;
-    wep.motReset[0] = WEP_ARC_PTR(0x31);
+    m_pParent = parent;
+    itemId = 0x2C;
+    motReset[0] = WEP_ARC_PTR(0x31);
     resetMotion();
-    wep.shotFrame[0] = 0x2E;
-    wep.shotFrame[1] = 0x2E;
-    wep.shotFrame[2] = 0x2E;
+    shotFrame[0] = 0x2E;
+    shotFrame[1] = 0x2E;
+    shotFrame[2] = 0x2E;
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire, set by the shotgun fire00): step 0 starts the recoil + pump motion (0x30,
+// mode == 2 (fire, set by the shotgun fire00): step 0 starts the recoil + pump motion (0x30,
 // 0x32 on the last shell), the shot SE, Status_flg[0] bit23 (shot noise) and the muzzle flash
 // 0x3B; step 1 ejects the spent shell with the pump SE at frame 20 and returns to mode 0 at the
 // motion's end.
 void cObjShotgun::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -103,20 +93,20 @@ void cObjShotgun::moveFire()
         int type = 0;
         StaFlagOn(pG, STA_PL_FIRE);
         EstSet(this, -1, 0, 0, EFF_WEP07, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-        wep.step = 1;
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, 20.0f)) {
             setCartridge();
             SndCall(2, 2, &getPartsPtr(0)->world, 0, 0, 0);
         }
         if (MotionGetState(this)) {
-            wep.mode = 0;
-            wep.step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the tune level (0x2B/0x2D/0x2F) with
+// mode == 4 (reload): step 0 starts the reload motion of the tune level (0x2B/0x2D/0x2F) with
 // the shell SE 7; step 1 refills the shells at the level's frame (30/26/17), plays the pump SE at
 // 66/60/40 and returns to mode 0 at the motion's end.
 void cObjShotgun::moveReload()
@@ -125,7 +115,7 @@ void cObjShotgun::moveReload()
     static const f32 reloadSe[3] = { 66.0f, 60.0f, 40.0f };
     int lv = pG->weapon_lv_reload;
 
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         switch (lv) {
@@ -140,18 +130,18 @@ void cObjShotgun::moveReload()
             break;
         }
         motionSet(m, 0, 0, 0, 0);
-        wep.m_StopSeId = SndCall(2, 7, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, 7, &pList->world, 0, 0, 0);
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, reloadEnd[lv])) {
             ItemMgr.reload();
         }
         if (MotionCheckCrossFrame(&Motion, reloadSe[lv])) {
-            wep.m_StopSeId = SndCall(2, 2, &getPartsPtr(0)->world, 0, 0, 0);
+            m_StopSeId = SndCall(2, 2, &getPartsPtr(0)->world, 0, 0, 0);
         }
         if (MotionGetState(this)) {
-            wep.mode = 0;
-            wep.step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
@@ -160,7 +150,7 @@ void cObjShotgun::moveReload()
 // offset (-201, -6.9, 1.8) with a random +-15 spread, gravity 10, 40 frames, landing effect 0x13.
 void cObjShotgun::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

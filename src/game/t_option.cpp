@@ -373,7 +373,7 @@ void tp_pl_posmove()
     eprintf(32, 140, 0, 0, "Z-BTN:CALL SUB-CHAR");
     eprintf(32, 154, 0, 0, "Y-BTN:ROTATE Y");
     Draw_pos(&pPL->pos, 2000);
-    if ((Joy[0].on & JOY_Z) && pSUB != NULL && (pSUB->be_flag & 0x201) == 1) {
+    if ((Joy[0].on & JOY_Z) && pSUB != NULL && pSUB->isAlive()) {
         pSUB->setPos(&pPL->pos);
     }
     if (pT->joy[0].rep & JOY_B) {

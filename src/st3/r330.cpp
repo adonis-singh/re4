@@ -10,6 +10,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "em_set.h"
 #include "emBarred.h"
@@ -116,7 +117,7 @@ void R330EventS00Main()
 {
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         if (CheckDoorJumpWithAshley() == 0) {
-            cMes.MesSet(0x67, 100, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+            cMes.MesSet(0x67, 100, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         } else {
             cEm* a;
             cEm* b;
@@ -253,7 +254,7 @@ extern "C" void Evt_R330S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100a", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
@@ -262,7 +263,7 @@ extern "C" void Evt_R330S00_Func(Event* e)
                 void* mod;
 
                 if (e->GetMod(&mod, "pl0100a", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
             break;

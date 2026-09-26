@@ -249,7 +249,7 @@ u32 PlGetStatus()
         st |= 0x80000000;
         break;
     }
-    if (pl->stat & 2) {
+    if (pl->stat.check(cPlayer::F_EVENT)) {
         st |= 0x20000;
     }
     return st;
@@ -281,7 +281,7 @@ void PlSetHand(int mode, int flag)
 void SubCharSetHand(int type)
 {
     if (pSUB) {
-        pSUB->setHand(type);
+        SUB_CHAR()->setHand(type);
     }
 }
 
@@ -308,7 +308,7 @@ void EndPlDamage()
     pl->dmg.clear();
     PlSetRoutine(0, 0, 0, 0);
     pl->subArc = pl->subArc2;
-    at->throughOff();
+    at->on();
     at->setPriority(0);
     at->set(10, 400.0f, 200.0f);
     pl->endDamage();
@@ -317,7 +317,7 @@ void EndPlDamage()
 // Partner: aux routine 0/0xF with two parameters (scenario-specific behaviour).
 void SetSubAux(void (*ft)(cEm*), void (*ftdm)(cEm*))
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         pLog->err(0, 0, "ERROR: SetSubAux() ASHLEY NOT FOUND.");
@@ -334,7 +334,7 @@ void SetSubAux(void (*ft)(cEm*), void (*ftdm)(cEm*))
 // Partner: the bulldozer-ride routine (r_no_0 3) with two parameters.
 void SetSubBulldozer(void (*ft)(cEm*), void (*ftdm)(cEm*))
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         pLog->err(0, 0, "ERROR: SetSubAux() ASHLEY NOT FOUND.");
@@ -352,7 +352,7 @@ void SetSubBulldozer(void (*ft)(cEm*), void (*ftdm)(cEm*))
 // play `mot` (subFlags58C 0x40). pEmCatch = type.
 void SetSubDamage(cEm* em, void (*ft)())
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         return;
@@ -380,7 +380,7 @@ void SetSubDamage(cEm* em, void (*ft)())
 // Ends the partner damage routine: model reset for Luis (id 4), routine 0/0, collision on.
 void EndSubDamage()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cAtariInfo* at;
 
     if (sub == 0) {
@@ -388,7 +388,7 @@ void EndSubDamage()
     }
     sub->dmg.clear();
     if (sub->id == 4) {
-        pSUB->modelSet();
+        SUB_CHAR()->modelSet();
     } else {
         sub->endDamage();
     }
@@ -398,7 +398,7 @@ void EndSubDamage()
     sub->r_no_2 = 0;
     sub->r_no_3 = 0;
     at = &sub->atari;
-    at->throughOff();
+    at->on();
     at->setPriority(0);
     at->set(10, 400.0f, 200.0f);
 }
@@ -458,7 +458,7 @@ void SubCharInit(int type, Vec* pos, f32 ang_y)
 // 0x80). Aux parameters are cleared unless she is in the aux routine.
 void SubCharCtrl(int mode, int sccf)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         return;
@@ -511,9 +511,9 @@ void SubCharCtrl(int mode, int sccf)
         break;
     }
     if (sccf & 2) {
-        sub->flg |= 0x80;
+        sub->flg.on(cSubChar::F_CALL_ENABLE);
     } else {
-        BitOff16(sub->flg, 0x80);
+        sub->flg.off(cSubChar::F_CALL_ENABLE);
     }
     if (sub->r_no_0 != 0 || sub->r_no_1 != 0xF) {
         sub->pAux = 0;
@@ -525,18 +525,18 @@ void SubCharCtrl(int mode, int sccf)
 // (flg 0x40), not stopped / moving-to, and in one of the plain routine-0 states.
 int SubCharCheckCtrl()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
-    if (sub->flg & 0x80) {
+    if (sub->flg.check(cSubChar::F_CALL_ENABLE)) {
         return 1;
     }
-    if (!(sub->flg & 0x40)) {
+    if (!(sub->flg.check(cSubChar::F_PL_CTRL))) {
         return 0;
     }
-    if (sub->flg & 1) {
+    if (sub->flg.check(cSubChar::F_SLEEP)) {
         return 0;
     }
-    if (sub->flg & 8) {
+    if (sub->flg.check(cSubChar::F_MOVE_TO)) {
         return 0;
     }
     if (sub->r_no_0 != 0) {
@@ -571,7 +571,7 @@ int SubCharCheckCtrl()
 // 0/0x10, invulnerable).
 void SubCharCtrlHide(Vec* pos, int type)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     switch (type) {
     case 0:
@@ -593,9 +593,9 @@ void SubCharCtrlHide(Vec* pos, int type)
 // flag bit0 sets flg 0x10.
 void SubCharMoveTo(f32 x, f32 y, f32 z, f32 ry, int mode)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
-    if ((sub->flg & 8) && x == sub->m_TargetPos.x && y == sub->m_TargetPos.y && z == sub->m_TargetPos.z &&
+    if ((sub->flg.check(cSubChar::F_MOVE_TO)) && x == sub->m_TargetPos.x && y == sub->m_TargetPos.y && z == sub->m_TargetPos.z &&
         ry == sub->m_TargetDir) {
         return;
     }
@@ -606,9 +606,9 @@ void SubCharMoveTo(f32 x, f32 y, f32 z, f32 ry, int mode)
     sub->control(4);
     sub->analyze();
     sub->move();
-    BitOff16(sub->status, 0x40);
+    sub->status.off(cSubChar::S_ARRIVED);
     if (mode & 1) {
-        sub->flg |= 0x10;
+        sub->flg.on(cSubChar::F_DONT_RUN);
     }
 }
 
@@ -623,7 +623,7 @@ void PlSetLadder(Vec* pos, int level, f32 ang)
         return;
     }
     pl = pPL;
-    pl->atari.throughOn();
+    pl->atari.off();
     pl->dmg.set(0, 0x80);
     Vec v = {0.0f, 0.0f, 0.0f};
     Vec rot;
@@ -719,7 +719,7 @@ void PlRegistMotion(void* m0, void* m1, void* m2, void* m3, void* m4, void* m5, 
 // Partner: room-supplied motions m_MotTbl2[0] / m_MotTbl2[1] (non-zero ones only).
 void SubCharRegistMotion(void* m0, void* m1)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         pLog->err(0, 0, "SubCharRegistMotion() NO SUBCHAR");
@@ -835,7 +835,7 @@ int joyKamae()
             pLog->err(0, 0, "joyKamae() PTR ERR");
             return 0;
         }
-        if (pl->stat & 0x1000) {
+        if (pl->stat.check(cPlayer::F_KNIFE)) {
             return 0;
         }
         if (wep->m_pWep->keyKamae()) {
@@ -860,7 +860,7 @@ int joyLKamae()
         }
     } else {
         if (pG->pl_type == 0 || pG->pl_type == 4) {
-            if (pl->stat & 0x1000) {
+            if (pl->stat.check(cPlayer::F_KNIFE)) {
                 if (Key.on & 0x10) {
                     return 1;
                 }
@@ -950,7 +950,7 @@ int SubCharCheckHealing()
     if (GetDistance(pPL->pos, pSUB->pos) > limit) {
         return 0;
     }
-    sub = pSUB;
+    sub = SUB_CHAR();
     if (sub->r_no_0 != 0) {
         return -1;
     }
@@ -977,7 +977,7 @@ int SubCharCheckHealing()
 // Partner back to idle with a footwork (only from routine 0/0 or 0/1). Returns 1 when done.
 int SubCharMotionReset()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub == 0) {
         return 0;
@@ -998,13 +998,13 @@ int SubCharMotionReset()
 // Eye control mode (0 wander, 1 from the motion).
 void PlSetEyeMode(u8 mode)
 {
-    pPL->m_EyeMode = mode;
+    pPL->setEyeMode(mode);
 }
 
 // The player's facing yaw including the waist twist (aim direction).
 f32 PlGetDirY()
 {
-    return pPL->ang.y + pPL->Waist->m_Ang.y;
+    return pPL->ang.y + *pPL->Waist;
 }
 
 // Room registers the boss enemy and its room flag (the special rocket launcher's insta-kill).
@@ -1098,7 +1098,7 @@ void PlSetFace(int type)
 void SubCharSetFace(int type)
 {
     if (pSUB->id == 3) {
-        pSUB->setFace(type);
+        SUB_CHAR()->setFace(type);
     }
 }
 
@@ -1119,7 +1119,7 @@ void PlDataRelease()
     if (obj) {
         do {
             objCur = obj;
-            objNext = (cObj*) objCur->pNext;
+            objNext = ObjMgr.getNext(objCur);
             obj = objNext;
             switch (objCur->id) {
             case 0x1A:
@@ -1136,7 +1136,7 @@ void PlDataRelease()
     if (em) {
         do {
             emCur = em;
-            emNext = (cEm*) emCur->pNext;
+            emNext = EmMgr.getNext(emCur);
             em = emNext;
             if (emCur->id == 0x4F) {
                 EmMgr.destroy(emCur);

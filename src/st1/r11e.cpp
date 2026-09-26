@@ -478,7 +478,7 @@ static void r11e_str_check()
         for (i = 0; i < EmMgr.getArrayNum(); i++) {
             cEm* em = EmMgr.fastAt(i);
 
-            if (em->id == 0x2B && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && (em->be_flag & 0x201) == 1) {
+            if (em->id == 0x2B && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && em->isAlive()) {
                 find = 1;
             }
         }
@@ -505,7 +505,7 @@ static void r11e_checkDoor102KeyUse()
     }
     ItemMgr.dump(0x8B);
     SndCall(6, 5, 0, 0, 0, 0);
-    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     KyfFlagOn(pG, KYF_R11E_TO_R10F_DOOR);
     SceAtDataReset(1);
 }

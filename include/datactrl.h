@@ -47,13 +47,6 @@ public:
     cDataUnit() {}
     ~cDataUnit() {}
 
-    // 1 when any of `bit` is set in m_be_flag (bit0 in use, bit1 the unit allocated its memory).
-    int chk(u32 bit) {
-        if (m_be_flag & bit) {
-            return 1;
-        }
-        return 0;
-    }
     void setName(char* s);
 
     void setCommand(int cmd, u32 arg, u8 wait);
@@ -79,12 +72,51 @@ public:
     void checkMramToMram();
     void checkCommand();
     void checkCondition();
-    // Inline accessors: as call arguments they make GCC precompute the values before the
-    // stack argument stores (block.cpp dispDebugInfo).
+    int getErr() { return m_err; }
+    void setErr(int err) { m_err = err; }
+    char* getName() { return m_name; }
+    u8 getWait() { return m_wait; }
+    void setWait(u8 wait) { m_wait = wait; }
+    u8 getMode() { return m_mode; }
+    void setMode(u8 mode) { m_mode = mode; }
+    u32 getDestAddr() { return m_dest_addr; }
+    void setDestAddr(u32 addr) { m_dest_addr = addr; }
+    u32 getArgAddr() { return m_arg_addr; }
+    void setArgAddr(u32 addr) { m_arg_addr = addr; }
     void* getAddr() { return m_addr; }
-    u32 getArg() { return m_arg_addr; }
-    u32 getDest() { return m_dest_addr; }
+    void setAddr(void* addr) { m_addr = addr; }
     u32 getSize() { return m_size; }
+    void setSize(u32 size) { m_size = size; }
+    void setBeAlive(bool on)
+    {
+        if (on) {
+            m_be_flag |= 1;
+        } else {
+            m_be_flag &= ~1;
+        }
+    }
+    bool isBeAlive()
+    {
+        if (m_be_flag & 1) {
+            return true;
+        }
+        return false;
+    }
+    void setBeMalloc(bool on)
+    {
+        if (on) {
+            m_be_flag |= 2;
+        } else {
+            m_be_flag &= ~2;
+        }
+    }
+    bool isBeMalloc()
+    {
+        if (m_be_flag & 2) {
+            return true;
+        }
+        return false;
+    }
 };
 
 // Room data unit controller (game/datactrl.cpp, `DC`, 0xAA4 bytes).
@@ -92,15 +124,22 @@ class cDataCtrl {
 public:
     cDataUnit m_DataUnit[32];  // 0x000
     u32 m_aram_free;         // 0xA00  first free ARAM address above the loaded units
-    s32 aramSort;        // 0xA04  1 = repack the ARAM units (checkAramSort)
+    s32 m_aram_sort_flag;        // 0xA04  1 = repack the ARAM units (checkAramSort)
     s32 m_data_ctrl_flag;  // 0xA08  0 while the sub screen owns the ARAM area (sscrn), 1 otherwise (PS2 m_data_ctrl_flag)
     s32 m_nblock_read_stop;  // 0xA0C  1 = commands are not executed immediately (PS2 m_nblock_read_stop)
     void* dispBuf;       // 0xA10  dispDebug tiles
     u32 m_heap_start;        // 0xA14
     u32 m_heap_end;         // 0xA18
-    s32 dbgHeap;         // 0xA1C  1 = allocate from the debug heap
+    s32 m_UseDebugMemFlag;         // 0xA1C  1 = allocate from the debug heap
     s32 m_id_dummy[32];     // 0xA20  dummy.dat read requests (dev mode)
     void* m_DummyDataMem;      // 0xAA0
+
+    void setNBlkStop(int flag) { m_nblock_read_stop = flag; }
+    int checkNBlkStop() { return m_nblock_read_stop; }
+    void setDataCtrl(int flag) { m_data_ctrl_flag = flag; }
+    int checkDataCtrl() { return m_data_ctrl_flag; }
+    void setUseDebugMemFlag(int flag) { m_UseDebugMemFlag = flag; }
+    int checkUseDebugMemFlag() { return m_UseDebugMemFlag; }
 
     u32 getAramFree(u32 size);
     void init();

@@ -220,7 +220,7 @@ static void r108_initChurchBell()
 static void r108_checkDoor()
 {
     SndCall(6, 7, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (!ScfFlagChk(pG, SCF_R108_OPERATOR)) {
         ScfFlagOn(pG, SCF_R108_OPERATOR);
         OpeSetOpenTerm(7, 22600.0f, 11775.0f, -26200.0f, 1.6f);
@@ -317,7 +317,7 @@ extern "C" void r108_switchSymbol(int n)
         }
     turn:
         rot = -LIMIT_ANGLE(ang);
-        r108_dial->pParts->ang.y = rot;
+        r108_dial->pList->ang.y = rot;
         ang += 0.10471976f;
         if (ang >= next) {
             goto done;
@@ -325,7 +325,7 @@ extern "C" void r108_switchSymbol(int n)
         SceSleep(1);
         goto turn;
     done:
-        r108_dial->pParts->ang.y = -LIMIT_ANGLE(next);
+        r108_dial->pList->ang.y = -LIMIT_ANGLE(next);
         SceSleep(2);
     }
     FlagXorVar(&pG->Room_flg, (int) r108_symbol[r108_symIdx %= 7].flagNo);
@@ -383,10 +383,10 @@ static void r108_execPuzzle()
     CamCtrl.CutCall(5);
     quit = 0;
     SceSleep(1);
-    SceMesSet(r108_mesNo, 0x30, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(r108_mesNo, 0x30, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceMesWait();
     do {
-        SceMesSet(r108_mesNo + 1, 0x230, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(r108_mesNo + 1, 0x230, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SceMesWait();
         switch (SceMesGetSelection()) {
         case 1:
@@ -416,7 +416,7 @@ static void r108_execPuzzle()
         }
         SceSleep(1);
     } while (quit == 0);
-    r108_dial->pParts->ang.y = 0.0f;
+    r108_dial->pList->ang.y = 0.0f;
     r108_symIdx = 0;
     for (j = 0; j <= 6; j++) {
         EffectEspDelete(0, r108_symbol[j].eff, 0, 0);
@@ -440,7 +440,7 @@ static void r108_str_check()
         for (i = 0; i < EmMgr.getArrayNum(); i++) {
             cEm* em = EmMgr.fastAt(i);
 
-            if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && (em->be_flag & 0x201) == 1
+            if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && em->isAlive()
                 && ((cEmGanado*) em)->ckFindPL() == 1 && em->l_pl < near) {
                 found = 1;
             }

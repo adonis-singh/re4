@@ -295,23 +295,23 @@ extern "C" void r106_openShelf_main(int type, int opened)
             // put a no-op `mr r10,r10` (deleted by reload_cse) between the second `lis` and its
             // `lfs` in sched1, so the two highs' spans tie and the -1.92 high is allocated first.
             // The keep-alive reads b (not a) so the a/b global-alloc order is unchanged.
-            cModel* pa = *(cModel* volatile*) &a->pParts;
+            cModel* pa = *(cModel* volatile*) &a->pList;
             register cModel* pa2 asm("r10");
 
             pa2 = pa;
             pa2->ang.y = ra;
             asm("" : "=m"(b->be_flag) : "r"(pa2));
-            b->pParts->ang.y = rb;
+            b->pList->ang.y = rb;
         } else {
             int i;
 
             SndCall(6, 0x1A, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
                 if (a != 0) {
-                    a->pParts->ang.y += -0.063995406f;
+                    a->pList->ang.y += -0.063995406f;
                 }
                 if (b != 0) {
-                    b->pParts->ang.y += 0.063995406f;
+                    b->pList->ang.y += 0.063995406f;
                 }
                 SceSleep(1);
             }
@@ -368,7 +368,7 @@ static void r106_Event()
             ev->StatusFlag |= EvtStfBit(EvtStfFadeOut);
         }
         evt = &EvtMgr;
-        while (evt->IsAliveEvt(&evt->NowExeEvtKey, 0, 0) != 0) {
+        while (evt->IsAliveEvt(evt->GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
     }
@@ -463,16 +463,16 @@ static void r106_setCloset()
     Vec pos = {158202.0f, -9297.0f, -43582.0f};
     Vec rot = {0.0f, -1.5707964f, 0.0f};
     cObj* obj;
-    cModel* body;
-    cModel* doorR;
-    cModel* doorL;
+    cParts* body;
+    cParts* doorR;
+    cParts* doorL;
     int cnt = 0;
 
     obj = SetObjSmd(ROOM_ARC_PTR(pG->pRoom, 0x34), ROOM_ARC_PTR(pG->pRoom, 0x35), &pos, &rot, 0x10, 1);
     r106_work->closet = obj;
-    body = GetPartsAddr(obj->pParts, 0);
-    doorR = GetPartsAddr(obj->pParts, 2);
-    doorL = GetPartsAddr(obj->pParts, 1);
+    body = GetPartsAddr(obj->pList, 0);
+    doorR = GetPartsAddr(obj->pList, 2);
+    doorL = GetPartsAddr(obj->pList, 1);
     while (!ScfFlagChk(pG, SCF_R106_EVENT)) {
         if (cnt <= 0) {
             Vec sp = {157059.0f, -9245.0f, -43597.0f};

@@ -3,10 +3,10 @@
 // with the array base in a pointer local declared first (the target's `addi r28,sd,4` base + i*12
 // giv + a `mr` copy for the second loop), arm's `goto ok/ng` return layout, reload_main's two clamp
 // variables (n, m), weaponParts' `if (p == 0) return 0` + `if (cnt++ == no)` (loop.c moves the
-// found block behind the early-return barrier), reload's `goto done` + `int z = ATTR(p) == 0`
-// store-flag, combine's single-set `inv`. Open: use (COMPILER-DIFF #6, 11 call tails), get /
-// bulletNum (#6 single-insn tails), partsCombine, load (case 1/9 duplicated bodies need the switch
-// value in r11), trigger/init/set_stage2/debugNumDisp/combine (register ties).
+// found block behind the early-return barrier), reload's `goto done`, combine's single-set `inv`. Open:
+// use (COMPILER-DIFF #6, 11 call tails), get / bulletNum (#6 single-insn tails), partsCombine, load (case
+// 1/9 duplicated bodies need the switch value in r11), trigger/init/set_stage2/debugNumDisp/combine
+// (register ties).
 #include "types.h"
 #include "atari.h"
 #include "map_obj.h"
@@ -54,13 +54,7 @@ struct ItemSet {
     u16 num;
 };
 
-// ItemWork::lv tune level nibbles
-#define LV_FIRE_SET(p, v) ((p)->lv = ((p)->lv & 0x0FFF) | ((v) << 12))
-#define LV_MAG_SET(p, v) ((p)->lv = ((p)->lv & 0xF0FF) | ((v) << 8))
-#define LV_SPEED_SET(p, v) ((p)->lv = ((p)->lv & 0xFF0F) | ((v) << 4))
-#define LV_EX_SET(p, v) ((p)->lv = ((p)->lv & 0xFFF0) | (v))
 // ItemWork::bullet: 3-bit attribute and 13-bit bullet count
-#define ATTR(p) ((p)->bullet >> 13)
 #define BULLET(p) ((p)->bullet & 0x1FFF)
 
 // Sets the loaded bullet count (low 13 bits of ItemWork::bullet), keeping the attribute bits.
@@ -69,33 +63,6 @@ static inline void setBullet(ItemWork* p, u16 n)
     p->bullet = (p->bullet & 0xE000) | (n & 0x1FFF);
 }
 
-
-// 1 when the slot is in use and belongs to inventory set `type` (0 Leon, 1 Ashley/Ada).
-// slot in use and of inventory type `type`
-// (int parameter + cast: cItemMgr::num(int, u8) zero-extends its u8 argument before the loop in the
-// original build, which ours only does when the compare is written against a cast int)
-static inline int itemUse(ItemWork* p, int type)
-{
-    if (p->flags & 1) {
-        return p->type == (u8) type;
-    }
-    return 0;
-}
-
-// 1 when the slot is free.
-static inline int itemEmpty(ItemWork* p)
-{
-    int empty = !(p->flags & 1);
-
-    if (empty) {
-        return 1;
-    }
-    return 0;
-}
-
-#define ITEM_TYPE(id) (itemInfo((id), &info), info.type)
-#define ITEM_UNIT(id) (itemInfo((id), &info), info.x3)
-#define ITEM_MAX(id) (itemInfo((id), &info), info.maxNum)
 
 // display order of the item ids (gld_order)
 u16 g_item_order[] = {
@@ -194,7 +161,7 @@ cItemMgr ItemMgr;
 // clamped to the max); 0 when the target was already full.
 int healing(u16 life_add)
 {
-    if (ItemMgr.m_to_whom == 0) {
+    if (ItemMgr.getToWhom() == 0) {
         if ((s16) pG->pl_life < (s16) pG->pl_life_max) {
             pG->pl_life = life_add + pG->pl_life;
             if ((s16) pG->pl_life > (s16) pG->pl_life_max) {
@@ -202,7 +169,7 @@ int healing(u16 life_add)
             }
             return 1;
         }
-    } else if (ItemMgr.m_to_whom == 1) {
+    } else if (ItemMgr.getToWhom() == 1) {
         if ((s16) pG->ashley_life < (s16) pG->ashley_life_max) {
             pG->ashley_life = life_add + pG->ashley_life;
             if ((s16) pG->ashley_life > (s16) pG->ashley_life_max) {
@@ -224,10 +191,9 @@ int lifeLevel(int level_up_num, s16 curr_life_max, int init_life_max)
 // handgun's base (0x36 Mine Thrower: fixed 2/4/6); 0 for non-weapons.
 f32 getPowerRatio(ITEM_ID id, int level)
 {
-    ItemInfo info;
     f32 ret;
 
-    if (ITEM_TYPE(id) != 1) {
+    if (itemType(id) != 1) {
         return 0.0f;
     }
     if (id == 0x36) {
@@ -253,9 +219,7 @@ f32 getPowerRatio(ITEM_ID id, int level)
 // Merchant display: firing speed of the weapon at the level in seconds (shot frames / 30).
 f32 getSpeedRatio(ITEM_ID id, int level)
 {
-    ItemInfo info;
-
-    if (ITEM_TYPE(id) != 1) {
+    if (itemType(id) != 1) {
         return 0.0f;
     }
     return PlShotFrameTbl[WeaponId2WeaponNo(id)][level - 1] / 30.0f;
@@ -264,9 +228,7 @@ f32 getSpeedRatio(ITEM_ID id, int level)
 // Merchant display: reload time of the weapon at the level in seconds.
 f32 getReloadRatio(ITEM_ID id, int level)
 {
-    ItemInfo info;
-
-    if (ITEM_TYPE(id) != 1) {
+    if (itemType(id) != 1) {
         return 0.0f;
     }
     return PlReloadSpeedTbl[WeaponId2WeaponNo(id)][level - 1] / 30.0f;
@@ -275,9 +237,7 @@ f32 getReloadRatio(ITEM_ID id, int level)
 // Merchant display: magazine capacity of the weapon at the level.
 f32 getBulletRatio(ITEM_ID id, int level)
 {
-    ItemInfo info;
-
-    if (ITEM_TYPE(id) != 1) {
+    if (itemType(id) != 1) {
         return 0.0f;
     }
     return (u8) WeaponId2ChargeNum(id, level);
@@ -307,7 +267,7 @@ int cItemMgr::set_game(int trial_flag)
     get(0x7C, 0);
     get(0x23, 1);
     {
-        ItemWork* p = pLast;
+        ItemWork* p = newbie();
         p->x = 2;
         p->y = 1;
         p->orient = 0;
@@ -316,7 +276,7 @@ int cItemMgr::set_game(int trial_flag)
     }
     get(0x04, 20);
     {
-        ItemWork* p = pLast;
+        ItemWork* p = newbie();
         p->x = 7;
         p->y = 0;
         p->orient = 0;
@@ -324,7 +284,7 @@ int cItemMgr::set_game(int trial_flag)
     }
     get(0x05, 1);
     {
-        ItemWork* p = pLast;
+        ItemWork* p = newbie();
         p->x = 6;
         p->y = 3;
         p->orient = 0;
@@ -333,7 +293,7 @@ int cItemMgr::set_game(int trial_flag)
     if (trial_flag != 0) {
         get(0x30, 0);
         {
-            ItemWork* p = pLast;
+            ItemWork* p = newbie();
             p->x = 12;
             p->y = 1;
             p->orient = 0;
@@ -341,7 +301,7 @@ int cItemMgr::set_game(int trial_flag)
         }
         get(0x20, 0);
         {
-            ItemWork* p = pLast;
+            ItemWork* p = newbie();
             p->num = 100;
             p->x = 17;
             p->y = 0;
@@ -350,7 +310,7 @@ int cItemMgr::set_game(int trial_flag)
         }
         get(0x20, 0);
         {
-            ItemWork* p = pLast;
+            ItemWork* p = newbie();
             p->num = 100;
             p->x = 17;
             p->y = 2;
@@ -359,7 +319,7 @@ int cItemMgr::set_game(int trial_flag)
         }
         get(0x20, 0);
         {
-            ItemWork* p = pLast;
+            ItemWork* p = newbie();
             p->num = 100;
             p->x = 17;
             p->y = 4;
@@ -368,7 +328,7 @@ int cItemMgr::set_game(int trial_flag)
         }
         get(0x20, 0);
         {
-            ItemWork* p = pLast;
+            ItemWork* p = newbie();
             p->num = 100;
             p->x = 13;
             p->y = 4;
@@ -377,7 +337,7 @@ int cItemMgr::set_game(int trial_flag)
         }
         get(0x20, 0);
         {
-            ItemWork* p = pLast;
+            ItemWork* p = newbie();
             p->num = 100;
             p->x = 9;
             p->y = 4;
@@ -393,12 +353,7 @@ int cItemMgr::set_game(int trial_flag)
         PutInCase(tbl[i].id, tbl[i].num, flag);                           \
     }
 
-#define LV_SET(p, f, m, sp, e)                                                                             \
-    LV_EX_SET(p, e);                                                                                      \
-    LV_FIRE_SET(p, f);                                                                                    \
-    LV_MAG_SET(p, m);                                                                                     \
-    LV_SPEED_SET(p, sp)
-#define CHARGE(p) setBullet(p, WeaponId2ChargeNum((p)->id, LV_EX(p) + 1))
+#define CHARGE(p) setBullet(p, WeaponId2ChargeNum((p)->id, p->getBulletLevel() + 1))
 
 // Separate Ways start set (no == 2): Punisher, TMP, Rifle with tuned levels, TMP stock, ammo, sprays.
 int cItemMgr::set_ada(int no)
@@ -417,13 +372,22 @@ int cItemMgr::set_ada(int no)
         PUT_TABLE(tbl, 0);
         p = search(0x21);
         on = 1;
-        LV_SET(p, 5, 2, 1, 3);
+        p->setBulletLevel(3);
+        p->setPowerLevel(5);
+        p->setSpeedLevel(2);
+        p->setReloadLevel(1);
         CHARGE(p);
         p = search(0x30);
-        LV_SET(p, 5, 0, 1, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(5);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         CHARGE(p);
         p = search(0x2F);
-        LV_SET(p, 5, 0, 1, 1);
+        p->setBulletLevel(1);
+        p->setPowerLevel(5);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         CHARGE(p);
         search(0x45)->bullet = searchAt(p);
         search(0x45)->lv = on;
@@ -450,10 +414,16 @@ int cItemMgr::set_char(int no)
         ItemSet tbl[] = {{0x27, 1}, {0x94, 1}, {0x04, 30}, {0x18, 10}, {0x05, 1}};
         PUT_TABLE(tbl, 0);
         p = search(0x27);
-        LV_SET(p, 4, 1, 1, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(1);
+        p->setReloadLevel(1);
         CHARGE(p);
         p = search(0x94);
-        LV_SET(p, 4, 0, 2, 3);
+        p->setBulletLevel(3);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(2);
         CHARGE(p);
         arm(search(0x27));
         break;
@@ -472,13 +442,22 @@ int cItemMgr::set_char(int no)
         PUT_TABLE(tbl, 0);
         p = search(0x21);
         on = 1;
-        LV_SET(p, 6, 2, 1, 3);
+        p->setBulletLevel(3);
+        p->setPowerLevel(6);
+        p->setSpeedLevel(2);
+        p->setReloadLevel(1);
         CHARGE(p);
         p = search(0x30);
-        LV_SET(p, 4, 0, 1, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         CHARGE(p);
         p = search(0x2F);
-        LV_SET(p, 5, 1, 1, 1);
+        p->setBulletLevel(1);
+        p->setPowerLevel(5);
+        p->setSpeedLevel(1);
+        p->setReloadLevel(1);
         CHARGE(p);
         search(0x45)->bullet = searchAt(p);
         search(0x45)->lv = on;
@@ -496,7 +475,10 @@ int cItemMgr::set_char(int no)
         ItemSet tbl[] = {{0x3E, 1}, {0x20, 50}, {0x01, 1}, {0x01, 1}, {0x01, 1}, {0x05, 1}};
         PUT_TABLE(tbl, 0);
         p = search(0x3E);
-        LV_SET(p, 4, 0, 1, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         CHARGE(p);
         arm(search(0x3E));
         break;
@@ -526,16 +508,25 @@ int cItemMgr::set_char(int no)
                          {0x01, 1}, {0x0E, 1}, {0x0E, 1}, {0x0E, 1}, {0x02, 1}, {0x05, 1}};
         PUT_TABLE(tbl, 0);
         p = search(0x23);
-        LV_SET(p, 6, 2, 2, 5);
+        p->setBulletLevel(5);
+        p->setPowerLevel(6);
+        p->setSpeedLevel(2);
+        p->setReloadLevel(2);
         CHARGE(p);
         search(0x3F)->bullet = searchAt(p);
         search(0x3F)->lv = 1;
         p = search(0x2A);
-        LV_SET(p, 1, 0, 1, 1);
+        p->setBulletLevel(1);
+        p->setPowerLevel(1);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         CHARGE(p);
         p = search(0x2F);
-        LV_SET(p, 5, 1, 1, 5);
-        setBullet(p, WeaponId2ChargeNum(0x2F, LV_EX(p) + 1));
+        p->setBulletLevel(5);
+        p->setPowerLevel(5);
+        p->setSpeedLevel(1);
+        p->setReloadLevel(1);
+        setBullet(p, WeaponId2ChargeNum(0x2F, p->getBulletLevel() + 1));
         arm(search(0x23));
         break;
     }
@@ -584,11 +575,11 @@ int cItemMgr::set_stage1(int no)
         PUT_TABLE(tbl, 1);
         p = search(0x2C);
         on = 1;
-        LV_FIRE_SET(p, 2);
-        LV_EX_SET(p, 1);
+        p->setPowerLevel(2);
+        p->setBulletLevel(1);
         setBullet(p, WeaponId2ChargeNum(0x2C, 2));
         p = search(0x2E);
-        LV_EX_SET(p, 2);
+        p->setBulletLevel(2);
         setBullet(p, WeaponId2ChargeNum(0x2E, 3));
         search(0x44)->bullet = searchAt(p);
         search(0x44)->lv = on;
@@ -627,18 +618,30 @@ int cItemMgr::set_stage2(int no)
         PUT_TABLE(tbl, 1);
         p = search(0x25);
         on = 1;
-        LV_SET(p, 1, 1, 1, 1);
+        p->setBulletLevel(1);
+        p->setPowerLevel(1);
+        p->setSpeedLevel(1);
+        p->setReloadLevel(1);
         setBullet(p, WeaponId2ChargeNum(0x25, 2));
         p = search(0x30);
-        LV_SET(p, 2, 0, 2, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(2);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(2);
         setBullet(p, WeaponId2ChargeNum(0x30, 3));
         search(0x43)->bullet = searchAt(p);
         search(0x43)->lv = on;
         p = search(0x2C);
-        LV_SET(p, 2, 0, 1, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(2);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         setBullet(p, WeaponId2ChargeNum(0x2C, 3));
         p = search(0x2E);
-        LV_SET(p, 2, 0, 1, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(2);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         setBullet(p, WeaponId2ChargeNum(0x2E, 3));
         search(0x44)->bullet = searchAt(p);
         search(0x44)->lv = on;
@@ -660,17 +663,32 @@ int cItemMgr::set_stage2(int no)
                          {0x06, 1}, {0x15, 1}, {0x15, 1}, {0x15, 1}, {0x15, 1}, {0x15, 1}, {0x15, 1}};
         PUT_TABLE(tbl, 2);
         p = search(0x30);
-        LV_SET(p, 4, 0, 2, 3);
+        p->setBulletLevel(3);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(2);
         setBullet(p, WeaponId2ChargeNum(0x30, 4));
         p = search(0x27);
-        LV_SET(p, 3, 1, 1, 3);
+        p->setBulletLevel(3);
+        p->setPowerLevel(3);
+        p->setSpeedLevel(1);
+        p->setReloadLevel(1);
         p = search(0x2F);
-        LV_SET(p, 3, 0, 1, 3);
+        p->setBulletLevel(3);
+        p->setPowerLevel(3);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         p = search(0x94);
-        LV_SET(p, 3, 0, 1, 3);
+        p->setBulletLevel(3);
+        p->setPowerLevel(3);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         setBullet(p, WeaponId2ChargeNum(0x94, 4));
         p = search(0x29);
-        LV_SET(p, 2, 0, 1, 2);
+        p->setBulletLevel(2);
+        p->setPowerLevel(2);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
         search(0x01)->num = 2;
         search(0x02)->num = 2;
         search(0x0E)->num = 2;
@@ -690,9 +708,12 @@ int cItemMgr::set_stage2(int no)
         ItemSet tbl[] = {{0x2C, 1}, {0x30, 1}, {0x01, 1}, {0x20, 100}, {0x18, 10}, {0x18, 10}};
         PUT_TABLE(tbl, 1);
         p = search(0x30);
-        LV_EX_SET(p, 1);
+        p->setBulletLevel(1);
         p = search(0x2C);
-        LV_SET(p, 0, 0, 0, 4);
+        p->setBulletLevel(4);
+        p->setPowerLevel(0);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(0);
         CHARGE(p);
         arm(ItemMgr.search(0x2C));
         break;
@@ -709,7 +730,10 @@ int cItemMgr::set_stage2(int no)
         ItemSet tbl[] = {{0x23, 1}, {0x2E, 1}, {0x01, 1}, {0x04, 50}, {0x07, 10}};
         PUT_TABLE(tbl, 1);
         p = search(0x2E);
-        LV_SET(p, 0, 0, 0, 4);
+        p->setBulletLevel(4);
+        p->setPowerLevel(0);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(0);
         CHARGE(p);
         arm(ItemMgr.search(0x23));
         break;
@@ -740,22 +764,37 @@ int cItemMgr::set_stage3(int no)
         PUT_TABLE(tbl, 2);
         p = search(0x27);
         on = 1;
-        LV_SET(p, 3, 1, 2, 3);
-        setBullet(p, WeaponId2ChargeNum(0x27, LV_EX(p) + 1));
+        p->setBulletLevel(3);
+        p->setPowerLevel(3);
+        p->setSpeedLevel(1);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x27, p->getBulletLevel() + 1));
         p = search(0x30);
-        LV_SET(p, 5, 2, 2, 5);
-        setBullet(p, WeaponId2ChargeNum(0x30, LV_EX(p) + 1));
+        p->setBulletLevel(5);
+        p->setPowerLevel(5);
+        p->setSpeedLevel(2);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x30, p->getBulletLevel() + 1));
         search(0x43)->bullet = searchAt(p);
         search(0x43)->lv = on;
         p = search(0x2D);
-        LV_SET(p, 2, 0, 1, 2);
-        setBullet(p, WeaponId2ChargeNum(0x2D, LV_EX(p) + 1));
+        p->setBulletLevel(2);
+        p->setPowerLevel(2);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
+        setBullet(p, WeaponId2ChargeNum(0x2D, p->getBulletLevel() + 1));
         p = search(0x29);
-        LV_SET(p, 4, 0, 2, 2);
-        setBullet(p, WeaponId2ChargeNum(0x29, LV_EX(p) + 1));
+        p->setBulletLevel(2);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x29, p->getBulletLevel() + 1));
         p = search(0x2F);
-        LV_SET(p, 4, 0, 2, 4);
-        setBullet(p, WeaponId2ChargeNum(0x2F, LV_EX(p) + 1));
+        p->setBulletLevel(4);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x2F, p->getBulletLevel() + 1));
         search(0x45)->bullet = searchAt(p);
         search(0x45)->lv = on;
         arm(ItemMgr.search(0x27));
@@ -778,22 +817,37 @@ int cItemMgr::set_stage3(int no)
         PUT_TABLE(tbl, 2);
         p = search(0x27);
         on = 1;
-        LV_SET(p, 3, 1, 2, 3);
-        setBullet(p, WeaponId2ChargeNum(0x27, LV_EX(p) + 1));
+        p->setBulletLevel(3);
+        p->setPowerLevel(3);
+        p->setSpeedLevel(1);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x27, p->getBulletLevel() + 1));
         p = search(0x30);
-        LV_SET(p, 5, 2, 2, 5);
-        setBullet(p, WeaponId2ChargeNum(0x30, LV_EX(p) + 1));
+        p->setBulletLevel(5);
+        p->setPowerLevel(5);
+        p->setSpeedLevel(2);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x30, p->getBulletLevel() + 1));
         search(0x43)->bullet = searchAt(p);
         search(0x43)->lv = on;
         p = search(0x2D);
-        LV_SET(p, 2, 0, 1, 2);
-        setBullet(p, WeaponId2ChargeNum(0x2D, LV_EX(p) + 1));
+        p->setBulletLevel(2);
+        p->setPowerLevel(2);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
+        setBullet(p, WeaponId2ChargeNum(0x2D, p->getBulletLevel() + 1));
         p = search(0x29);
-        LV_SET(p, 4, 0, 2, 2);
-        setBullet(p, WeaponId2ChargeNum(0x29, LV_EX(p) + 1));
+        p->setBulletLevel(2);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x29, p->getBulletLevel() + 1));
         p = search(0x2F);
-        LV_SET(p, 4, 0, 2, 4);
-        setBullet(p, WeaponId2ChargeNum(0x2F, LV_EX(p) + 1));
+        p->setBulletLevel(4);
+        p->setPowerLevel(4);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x2F, p->getBulletLevel() + 1));
         search(0xC5)->bullet = searchAt(p);
         search(0xC5)->lv = on;
         arm(ItemMgr.search(0x27));
@@ -823,12 +877,12 @@ int cItemMgr::set_range(int no)
         ItemSet tbl[] = {{0x2C, 1}, {0x30, 1}, {0x01, 1}, {0x20, 100}, {0x18, 10}, {0x18, 10}};
         PUT_TABLE(tbl, 1);
         p = search(0x2C);
-        LV_SPEED_SET(p, 1);
-        LV_EX_SET(p, 3);
-        setBullet(p, WeaponId2ChargeNum(0x2C, LV_EX(p) + 1));
+        p->setReloadLevel(1);
+        p->setBulletLevel(3);
+        setBullet(p, WeaponId2ChargeNum(0x2C, p->getBulletLevel() + 1));
         p = search(0x30);
-        LV_EX_SET(p, 1);
-        setBullet(p, WeaponId2ChargeNum(0x30, LV_EX(p) + 1));
+        p->setBulletLevel(1);
+        setBullet(p, WeaponId2ChargeNum(0x30, p->getBulletLevel() + 1));
         arm(ItemMgr.search(0x2C));
         break;
     }
@@ -845,14 +899,14 @@ int cItemMgr::set_range(int no)
         ItemSet tbl[] = {{0x23, 1}, {0x2E, 1}, {0x01, 1}, {0x04, 50}, {0x07, 10}};
         PUT_TABLE(tbl, 1);
         p = search(0x23);
-        LV_MAG_SET(p, 2);
-        LV_SPEED_SET(p, 1);
-        LV_EX_SET(p, 2);
-        setBullet(p, WeaponId2ChargeNum(0x23, LV_EX(p) + 1));
+        p->setSpeedLevel(2);
+        p->setReloadLevel(1);
+        p->setBulletLevel(2);
+        setBullet(p, WeaponId2ChargeNum(0x23, p->getBulletLevel() + 1));
         p = search(0x2E);
-        LV_SPEED_SET(p, 1);
-        LV_EX_SET(p, 3);
-        setBullet(p, WeaponId2ChargeNum(0x2E, LV_EX(p) + 1));
+        p->setReloadLevel(1);
+        p->setBulletLevel(3);
+        setBullet(p, WeaponId2ChargeNum(0x2E, p->getBulletLevel() + 1));
         arm(ItemMgr.search(0x23));
         break;
     }
@@ -960,8 +1014,11 @@ int cItemMgr::set_debug(int no)
         PUT_TABLE(tbl, 3);
         p = search(0x36);
         on = 1;
-        LV_SET(p, 2, 0, 1, 2);
-        setBullet(p, WeaponId2ChargeNum(0x36, LV_EX(p) + 1));
+        p->setBulletLevel(2);
+        p->setPowerLevel(2);
+        p->setSpeedLevel(0);
+        p->setReloadLevel(1);
+        setBullet(p, WeaponId2ChargeNum(0x36, p->getBulletLevel() + 1));
         search(0xAA)->bullet = searchAt(p);
         search(0xAA)->lv = on;
         arm(ItemMgr.search(0x36));
@@ -1575,8 +1632,6 @@ void itemInfo(ITEM_ID id, ItemInfo* info)
 // files record the count of files owned.
 void cItemMgr::construct(ItemWork* p, ITEM_ID id)
 {
-    ItemInfo info;
-
     p->flags = 1;
     p->id = id;
     p->num = 0;
@@ -1585,35 +1640,41 @@ void cItemMgr::construct(ItemWork* p, ITEM_ID id)
     p->y = 0;
     p->orient = 0;
     p->type = m_char;
-    if (ITEM_TYPE(id) == 1) {
+    if (itemType(id) == 1) {
         switch (id) {
         case 0x40:
             p->id = 0x21;
             if (ScfFlagChk(pG, SCF_ST1_SUB_PERFECT)) {
-                LV_FIRE_SET(p, 1);
+                p->setPowerLevel(1);
             } else {
-                LV_FIRE_SET(p, 0);
+                p->setPowerLevel(0);
             }
-            LV_MAG_SET(p, 0);
-            LV_SPEED_SET(p, 0);
-            LV_EX_SET(p, 0);
+            p->setSpeedLevel(0);
+            p->setReloadLevel(0);
+            p->setBulletLevel(0);
             break;
         case 0x34:
-            LV_SET(p, 6, 0, 2, 5);
+            p->setBulletLevel(5);
+            p->setPowerLevel(6);
+            p->setSpeedLevel(0);
+            p->setReloadLevel(2);
             break;
         default:
-            LV_SET(p, 0, 0, 0, 0);
+            p->setBulletLevel(0);
+            p->setPowerLevel(0);
+            p->setSpeedLevel(0);
+            p->setReloadLevel(0);
             asm volatile("");
             break;
         }
         p->bullet = BULLET(p);
         setBullet(p, WeaponId2ChargeNum(id, 1));
     }
-    if (ITEM_TYPE(id) == 9) {
+    if (itemType(id) == 9) {
         p->lv = 0;
         p->bullet = 0xFFFF;
     }
-    if (ITEM_TYPE(id) == 10) {
+    if (itemType(id) == 10) {
         p->lv8[0] = countFiles();
     }
 }
@@ -1667,7 +1728,6 @@ int gld_cmp(const void* a, const void* b)
 // sorted by gld_order; all != 0 -> every slot index (0xFF for the other set). Returns the count.
 int cItemMgr::makeItemList(u8* p_list, int flag, s8* key_cnt, s8* gld_cnt)
 {
-    ItemInfo info;
     ItemWork* p = m_pItem;
     int cnt = 0;
     int i;
@@ -1676,8 +1736,8 @@ int cItemMgr::makeItemList(u8* p_list, int flag, s8* key_cnt, s8* gld_cnt)
     *key_cnt = 0;
     for (i = 0; i < m_array_num; i++, p++) {
         if (flag == 0) {
-            if (itemUse(p, m_char)) {
-                switch (ITEM_TYPE(p->id)) {
+            if (p->isAlive(m_char)) {
+                switch (itemType(p->id)) {
                 case 5:
                 case 12:
                     (*gld_cnt)++;
@@ -1698,7 +1758,7 @@ int cItemMgr::makeItemList(u8* p_list, int flag, s8* key_cnt, s8* gld_cnt)
                 }
             }
         } else {
-            if (itemUse(p, m_char) == 0) {
+            if (p->isAlive(m_char) == 0) {
                 p_list[i] = 0xFF;
             } else {
                 p_list[i] = i;
@@ -1712,8 +1772,10 @@ int cItemMgr::makeItemList(u8* p_list, int flag, s8* key_cnt, s8* gld_cnt)
         cnt = *key_cnt + *gld_cnt;
         p = m_pItem;
         for (i = 0; i < m_array_num; i++, p++) {
-            if (itemUse(p, m_char)) {
-                if (ITEM_TYPE(p->id) == 5 || info.type == 12) {
+            if (p->isAlive(m_char)) {
+                u8 type = itemType(p->id);
+
+                if (type == 5 || type == 12) {
                     p_list[*key_cnt + j] = i;
                     j++;
                 }
@@ -1731,7 +1793,7 @@ ItemWork* cItemMgr::search(u16 id)
     int i;
 
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, m_char) && p->id == id) {
+        if (p->isAlive(m_char) && p->id == id) {
             return p;
         }
     }
@@ -1747,7 +1809,7 @@ ItemWork* cItemMgr::minimumSearch(ITEM_ID id)
     int i;
 
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, m_char) && id == p->id && p->num < min) {
+        if (p->isAlive(m_char) && id == p->id && p->num < min) {
             min = p->num;
             best = p;
         }
@@ -1769,7 +1831,7 @@ void cItemMgr::ordering(ITEM_ID id)
     int i;
 
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, m_char) && id == p->id) {
+        if (p->isAlive(m_char) && id == p->id) {
             m_p_order_tbl[n].p_item = p;
             m_p_order_tbl[n].num = p->num;
             n++;
@@ -1789,21 +1851,12 @@ int addMoney(int n)
     return 1;
 }
 
-// Inline wrappers: the caller's `&inf` is substituted into the hard-register argument set (recomputed
-// `addi r4,r1,16` per call, not PRE'd into a callee-saved register).
-static inline void itemInfoIW(ITEM_ID id, ItemInfo* inf)
-{
-    itemInfo(id, inf);
-}
-
-
 // Picks up `num` of item `id` (0 = the item's default count): money ids 0x7C..0x7E become pesetas,
 // 0xF? bonus time/points go to the mercenaries timer, stackables top up an existing slot up to
-// maxNum (0 when full), otherwise a new slot is constructed (pLast). Returns 0 when nothing was taken.
+// maxNum (0 when full), otherwise a new slot is constructed (m_pNew). Returns 0 when nothing was taken.
 int cItemMgr::get(ITEM_ID id, int num)
 {
     ItemInfo info;
-    ItemInfo inf;
     ItemInfo* pInfo = &info;
     ItemWork* p;
     int max;
@@ -1838,23 +1891,20 @@ int cItemMgr::get(ITEM_ID id, int num)
         MercSysSetBonusTime(num * 30);
         return 1;
     }
-    itemInfoIW(id, &inf);
-    switch (inf.type) {
+    switch (itemType(id)) {
     case 5:
     case 12:
     case 13:
         p = m_pItem;
         for (i = 0; i < m_array_num; i++, p++) {
-            if (itemUse(p, m_char) && id == p->id) {
+            if (p->isAlive(m_char) && id == p->id) {
                 int total;
 
                 if (num == 0) {
-                    itemInfoIW(id, &inf);
-                    num = inf.defNum;
+                    num = itemDefNum(id);
                 }
                 total = p->num + num;
-                itemInfo(p->id, &inf);
-                if (total <= inf.maxNum) {
+                if (total <= itemMaxNum(p->id)) {
                     {
                         int t = num + p->num;
 
@@ -1881,17 +1931,17 @@ int cItemMgr::get(ITEM_ID id, int num)
         num = (u16) max;
         pLog->err(0, 0, "cItemMgr::get(): Volume of ITEM(0x%02x) is OOL.", id);
     }
-    pLast = 0;
+    m_pNew = 0;
     p = m_pItem;
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemEmpty(p)) {
-            pLast = p;
+        if (p->isEmpty()) {
+            m_pNew = p;
             construct(p, id);
             p->num = num;
             break;
         }
     }
-    if (pLast == 0) {
+    if (m_pNew == 0) {
         pLog->err(0, 0, "cItemMgr::get() Can't create item.");
         return 0;
     }
@@ -1901,7 +1951,7 @@ int cItemMgr::get(ITEM_ID id, int num)
 // 1 when the item is used on the partner (m_to_whom) or the player type is Ashley.
 static inline int useSubChar(cItemMgr* m)
 {
-    if (m->m_to_whom == 0) {
+    if (m->getToWhom() == 0) {
         return pG->pl_type == 1;
     }
     return 1;
@@ -1913,12 +1963,10 @@ static inline int useSubChar(cItemMgr* m)
 // when the item could not be used.
 int cItemMgr::use(ItemWork* p)
 {
-    ItemInfo info;
-
     if (p == 0) {
         return 0;
     }
-    if (ITEM_TYPE(p->id) == 1) {
+    if (itemType(p->id) == 1) {
     ng:
         return 0;
     }
@@ -2078,30 +2126,26 @@ chk:
 // Frees a slot; a weapon also detaches its parts and, if it was armed, re-arms the bare hand.
 void cItemMgr::erase(ItemWork* p)
 {
-    ItemInfo info;
-
     p->flags = 0;
-    if (ITEM_TYPE(p->id) == 1) {
+    if (itemType(p->id) == 1) {
         int idx = ItemMgr.searchAt(p);
         ItemWork* q = m_pItem;
         int i;
 
         for (i = 0; i < m_array_num; i++, q++) {
-            if (itemUse(q, m_char)) {
-                if (ITEM_TYPE(q->id) == 9 && q->lv == 1 && idx == q->bullet) {
+            if (q->isAlive(m_char)) {
+                if (itemType(q->id) == 9 && q->lv == 1 && idx == q->bullet) {
                     q->lv = 0;
                     q->bullet = 0xFFFF;
                 }
             }
         }
-        if (p == pArm) {
+        if (p == weapon()) {
             ItemMgr.arm(0);
         }
     } else {
-        cItemMgr* m = &ItemMgr;
-
-        if (ITEM_TYPE(m->m_wep_id) == 1) {
-            m->arm(m->pArm);
+        if (itemType(ItemMgr.weaponId()) == 1) {
+            ItemMgr.arm(ItemMgr.weapon());
         }
     }
 }
@@ -2141,13 +2185,12 @@ int cItemMgr::dumpAll(ItemWork* p)
 // Discards every item of ItemInfo type t (e.g. type 7 maps at a new round).
 int cItemMgr::dumpType(int type)
 {
-    ItemInfo info;
     ItemWork* p = m_pItem;
     int i;
 
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, m_char)) {
-            if (type == ITEM_TYPE(p->id)) {
+        if (p->isAlive(m_char)) {
+            if (type == itemType(p->id)) {
                 dumpAll(p);
             }
         }
@@ -2163,7 +2206,7 @@ u16 cItemMgr::num(int id, u8 type)
     int i;
 
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, type) && p->id == id) {
+        if (p->isAlive(type) && p->id == id) {
             n += p->num;
         }
     }
@@ -2178,7 +2221,7 @@ u16 cItemMgr::num(int id)
     int i;
 
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, m_char) && p->id == id) {
+        if (p->isAlive(m_char) && p->id == id) {
             n += p->num;
         }
     }
@@ -2233,7 +2276,6 @@ int itemCombine(ITEM_ID srcA, ITEM_ID srcB, u16* dst)
 // replaces a with the product. Returns 1 when something happened.
 int cItemMgr::combine(ItemWork* a, ItemWork* b, int flag)
 {
-    ItemInfo info;
     u16 newId;
     int ret = 0;
     u16 ida;
@@ -2252,10 +2294,10 @@ int cItemMgr::combine(ItemWork* a, ItemWork* b, int flag)
         ida = a->id;
         idb = b->id;
     }
-    if (ITEM_TYPE(a->id) == 1) {
-        int lv = LV_EX(a) + 1;
+    if (itemType(a->id) == 1) {
+        int lv = a->getBulletLevel() + 1;
 
-        if (ITEM_TYPE(b->id) == 2) {
+        if (itemType(b->id) == 2) {
             int attr;
             u8 attr8;
 
@@ -2263,7 +2305,7 @@ int cItemMgr::combine(ItemWork* a, ItemWork* b, int flag)
                 ret = 0;
                 goto end;
             }
-            attr = ATTR(a);
+            attr = a->getBulletType();
             attr8 = attr;
             if (idb == WeaponId2BulletId(ida, attr8)) {
                 ret = reload_main(a, b, WeaponId2ChargeNum(ida, lv));
@@ -2279,23 +2321,23 @@ int cItemMgr::combine(ItemWork* a, ItemWork* b, int flag)
                     }
                     a->bullet = (inv << 13) | (n & 0x1FFF);
                     {
-                        register ItemWork* arm asm("r0"); // COMPILER-DIFF: 17 (local-alloc fake-lifetime parity: the pArm load reuses r0 right after the x8 store's value dies)
+                        register ItemWork* arm asm("r0"); // COMPILER-DIFF: 17 (local-alloc fake-lifetime parity: the m_pWep load reuses r0 right after the x8 store's value dies)
 
-                        arm = pArm;
+                        arm = m_pWep;
                         if (a == arm) {
-                            pG->bullet_type = ATTR(a);
+                            pG->bullet_type = a->getBulletType();
                         }
                     }
                     ret = 1;
                 }
             }
-        } else if (ITEM_TYPE(b->id) == 9) {
+        } else if (itemType(b->id) == 9) {
             ret = partsCombine(a, b);
         }
-    } else if (ITEM_TYPE(b->id) == 1) {
-        int lv = LV_EX(b) + 1;
+    } else if (itemType(b->id) == 1) {
+        int lv = b->getBulletLevel() + 1;
 
-        if (ITEM_TYPE(a->id) == 2) {
+        if (itemType(a->id) == 2) {
             int attr;
             u8 attr8;
 
@@ -2303,7 +2345,7 @@ int cItemMgr::combine(ItemWork* a, ItemWork* b, int flag)
                 ret = 0;
                 goto end;
             }
-            attr = ATTR(b);
+            attr = b->getBulletType();
             attr8 = attr;
             if (ida == WeaponId2BulletId(idb, attr8)) {
                 ret = reload_main(b, a, WeaponId2ChargeNum(idb, lv));
@@ -2319,25 +2361,24 @@ int cItemMgr::combine(ItemWork* a, ItemWork* b, int flag)
                     }
                     b->bullet = (inv << 13) | (n & 0x1FFF);
                     {
-                        register ItemWork* arm asm("r0"); // COMPILER-DIFF: 17 (local-alloc fake-lifetime parity: the pArm load reuses r0 right after the x8 store's value dies)
+                        register ItemWork* arm asm("r0"); // COMPILER-DIFF: 17 (local-alloc fake-lifetime parity: the m_pWep load reuses r0 right after the x8 store's value dies)
 
-                        arm = pArm;
+                        arm = m_pWep;
                         if (b == arm) {
-                            pG->bullet_type = ATTR(b);
+                            pG->bullet_type = b->getBulletType();
                         }
                     }
                     ret = 1;
                 }
             }
-        } else if (ITEM_TYPE(a->id) == 9) {
+        } else if (itemType(a->id) == 9) {
             ret = partsCombine(b, a);
         }
-    } else if (ITEM_TYPE(a->id) == 2 || ITEM_TYPE(a->id) == 3) {
+    } else if (itemType(a->id) == 2 || itemType(a->id) == 3) {
         if (ida == idb) {
             int room;
 
-            itemInfo(a->id, &info);
-            room = info.maxNum - a->num;
+            room = itemMaxNum(a->id) - a->num;
             if (room == 0) {
                 ret = 0;
             } else {
@@ -2359,7 +2400,7 @@ int cItemMgr::combine(ItemWork* a, ItemWork* b, int flag)
             if (a->num != 0) {
                 get(newId, 1);
             } else {
-                itemInfo(newId, &info);
+                itemType(newId);
                 a->id = newId;
                 a->num = 1;
             }
@@ -2391,12 +2432,11 @@ int cItemMgr::partsCombine(ItemWork* pWeapon, ItemWork* pParts)
 
     ret = itemCombine(pWeapon->id, pParts->id, &newId);
     if (ret != 0) {
-        ItemInfo info;
 
         if (pParts->lv != 0) {
         pParts->lv = 0;
-        if (pArm != 0 && pArm == at(pParts->bullet)) {
-            m_wep_id = weaponId(pArm);
+        if (m_pWep != 0 && m_pWep == at(pParts->bullet)) {
+            m_wep_id = weaponId(m_pWep);
         }
         pParts->bullet = 0xFFFF;
     }
@@ -2409,8 +2449,8 @@ int cItemMgr::partsCombine(ItemWork* pWeapon, ItemWork* pParts)
     if (i < m_array_num) {
         lp = list;
         do {
-            if (itemUse(p, m_char)) {
-                if (ITEM_TYPE(p->id) == 9 && p->lv == 1 && idx == p->bullet) {
+            if (p->isAlive(m_char)) {
+                if (itemType(p->id) == 9 && p->lv == 1 && idx == p->bullet) {
                     *lp++ = p;
                     n++;
                 }
@@ -2434,7 +2474,7 @@ int cItemMgr::partsCombine(ItemWork* pWeapon, ItemWork* pParts)
     }
         pParts->bullet = searchAt(pWeapon);
         pParts->lv = 1;
-        if (pArm != 0 && pArm == pWeapon) {
+        if (m_pWep != 0 && m_pWep == pWeapon) {
             m_wep_id = weaponId(pWeapon);
         }
     }
@@ -2473,29 +2513,27 @@ u16 bareHand()
     return 0x800;
 }
 
-// Equips a weapon/knife/grenade slot (NULL = bare hands): sets pArm, m_wep_id (with parts) and
+// Equips a weapon/knife/grenade slot (NULL = bare hands): sets m_pWep, m_wep_id (with parts) and
 // the pG weapon level values. 0 when the item is not equippable.
 int cItemMgr::arm(ItemWork* p)
 {
-    ItemInfo info;
-
     if (p == 0) {
-        pArm = p;
+        m_pWep = p;
         m_wep_id = bareHand();
         goto ok;
     }
     if (p->num == 0) {
         goto ng;
     }
-    if (ITEM_TYPE(p->id) == 1 || ITEM_TYPE(p->id) == 3 || ITEM_TYPE(p->id) == 6) {
-        pArm = p;
+    if (itemType(p->id) == 1 || itemType(p->id) == 3 || itemType(p->id) == 6) {
+        m_pWep = p;
         m_wep_id = weaponId(p);
-        pArm->bullet = BULLET(pArm);
-        if (ITEM_TYPE(p->id) == 1) {
-            pG->weapon_lv_power = p->lv >> 12;
-            pG->weapon_lv_speed = (p->lv >> 8) & 0xF;
-            pG->weapon_lv_reload = (p->lv >> 4) & 0xF;
-            pG->weapon_lv_blt = LV_EX(p);
+        m_pWep->bullet = BULLET(m_pWep);
+        if (itemType(p->id) == 1) {
+            pG->weapon_lv_power = p->getPowerLevel();
+            pG->weapon_lv_speed = p->getSpeedLevel();
+            pG->weapon_lv_reload = p->getReloadLevel();
+            pG->weapon_lv_blt = p->getBulletLevel();
         }
         goto ok;
     }
@@ -2508,7 +2546,7 @@ ok:
 // 1 when the armed weapon can be reloaded.
 int cItemMgr::reloadable()
 {
-    return reloadable(pArm, 0);
+    return reloadable(m_pWep, 0);
 }
 
 // 1 when the weapon is not full and ammo of its current (or, for flag, the other) attribute is
@@ -2528,15 +2566,15 @@ int cItemMgr::reloadable(ItemWork* p, int flag)
     if (id == 0x52) {
         return 0;
     }
-    WeaponId2ChargeNum(id, LV_EX(p) + 1);
+    WeaponId2ChargeNum(id, p->getBulletLevel() + 1);
     have = BULLET(p);
-    chargeNum = WeaponId2ChargeNum(id, LV_EX(p) + 1);
+    chargeNum = WeaponId2ChargeNum(id, p->getBulletLevel() + 1);
     max = chargeNum;
     if (have < max) {
-        if (search(WeaponId2BulletId(id, ATTR(p))) != 0) {
+        if (search(WeaponId2BulletId(id, p->getBulletType())) != 0) {
             ret = 1;
         } else if (flag != 0 && (p->id == 0x36 || p->id == 0xAB)) {
-            if (search(WeaponId2BulletId(p->id, ATTR(p) == 0)) != 0) {
+            if (search(WeaponId2BulletId(p->id, p->getBulletType() == 0)) != 0) {
                 ret = 1;
             }
         }
@@ -2550,7 +2588,7 @@ int cItemMgr::reloadable(ItemWork* p, int flag)
 // Reloads the armed weapon.
 int cItemMgr::reload()
 {
-    return reload(pArm, 0);
+    return reload(m_pWep, 0);
 }
 
 // Reloads weapon p from the smallest ammo stacks until full; flag != 0 lets the mine thrower /
@@ -2558,7 +2596,6 @@ int cItemMgr::reload()
 // it directly. Returns 1 when any rounds were loaded.
 int cItemMgr::reload(ItemWork* p, int flag)
 {
-    ItemInfo info;
     int ret = 0;
     u16 id;
     u16 bid;
@@ -2567,23 +2604,20 @@ int cItemMgr::reload(ItemWork* p, int flag)
         return 0;
     }
     id = weaponId(p);
-    if (ITEM_TYPE(id) != 1) {
+    if (itemType(id) != 1) {
         goto done;
     }
     if (DbgFlagChk(pG, DBG_INF_BULLET2)) {
-        setBullet(p, WeaponId2ChargeNum(id, LV_EX(p) + 1));
+        setBullet(p, WeaponId2ChargeNum(id, p->getBulletLevel() + 1));
         return 0;
     }
-    bid = WeaponId2BulletId(id, ATTR(p));
+    bid = WeaponId2BulletId(id, p->getBulletType());
     if (flag != 0 && (p->id == 0x36 || p->id == 0xAB)) {
         if (ItemMgr.bulletNum() == 0 && ItemMgr.num(bid) == 0) {
-            {
-                int z = ATTR(p) == 0;
-                p->bullet = BULLET(p) | (z << 13);
-            }
-            bid = WeaponId2BulletId(p->id, ATTR(p));
-            if (p == pArm) {
-                pG->bullet_type = ATTR(p);
+            p->setBulletType(p->getBulletType() == 0);
+            bid = WeaponId2BulletId(p->id, p->getBulletType());
+            if (p == m_pWep) {
+                pG->bullet_type = p->getBulletType();
             }
         }
     }
@@ -2622,18 +2656,16 @@ int reload_main(ItemWork* pItem_A, ItemWork* pItem_B, int charge_num)
     return 1;
 }
 
-// Fires the armed item: weapons consume a loaded round (trigger(pArm)); thrown items consume one
+// Fires the armed item: weapons consume a loaded round (trigger(m_pWep)); thrown items consume one
 // of the smallest stack of m_wep_id.
 int cItemMgr::trigger()
 {
-    ItemInfo info;
-
-    switch (ITEM_TYPE(m_wep_id)) {
+    switch (itemType(m_wep_id)) {
     case 1:
-        return trigger(pArm);
+        return trigger(m_pWep);
     case 3:
     case 6: {
-        ItemWork* p = pArm;
+        ItemWork* p = m_pWep;
         register int id asm("r9"); // COMPILER-DIFF: #2 (the original masks the u16 member before the call)
         id = m_wep_id;
         asm("" : "+r"(id));
@@ -2651,8 +2683,6 @@ int cItemMgr::trigger()
 // unarmed) or one grenade; 0 when empty. Debug_flg[2] 0x00400000 = infinite.
 int cItemMgr::trigger(ItemWork* p)
 {
-    ItemInfo info;
-
     if (DbgFlagChk(pG, DBG_INF_BULLET)) {
         return 1;
     }
@@ -2662,8 +2692,8 @@ int cItemMgr::trigger(ItemWork* p)
     if (p->id == 0x6D) {
         return 1;
     }
-    WeaponId2ChargeNum(p->id, LV_EX(p) + 1);
-    switch (ITEM_TYPE(p->id)) {
+    WeaponId2ChargeNum(p->id, p->getBulletLevel() + 1);
+    switch (itemType(p->id)) {
     case 1: {
         int n;
 
@@ -2694,19 +2724,18 @@ int cItemMgr::trigger(ItemWork* p)
 // variants); non-weapons return their own id.
 u16 cItemMgr::weaponId(ItemWork* p)
 {
-    ItemInfo info;
     u16 id;
     ItemWork* q = m_pItem;
     int idx = searchAt(p);
     int i;
 
     id = p->id;
-    if (ITEM_TYPE(id) != 1) {
+    if (itemType(id) != 1) {
         return p->id;
     }
     for (i = 0; i < m_array_num; i++, q++) {
-        if (itemUse(q, m_char)) {
-            if (ITEM_TYPE(q->id) == 9 && q->lv == 1 && idx == q->bullet) {
+        if (q->isAlive(m_char)) {
+            if (itemType(q->id) == 9 && q->lv == 1 && idx == q->bullet) {
                 itemCombine(id, q->id, &id);
             }
         }
@@ -2717,7 +2746,6 @@ u16 cItemMgr::weaponId(ItemWork* p)
 // The no-th part attached to weapon slot p (0 when none).
 ItemWork* cItemMgr::weaponParts(ItemWork* p, int no)
 {
-    ItemInfo info;
     ItemWork* q = m_pItem;
     int idx = searchAt(p);
     int cnt = 0;
@@ -2727,8 +2755,8 @@ ItemWork* cItemMgr::weaponParts(ItemWork* p, int no)
         return 0;
     }
     for (i = 0; i < m_array_num; i++, q++) {
-        if (itemUse(q, m_char)) {
-            if (ITEM_TYPE(q->id) == 9 && q->lv == 1 && idx == q->bullet) {
+        if (q->isAlive(m_char)) {
+            if (itemType(q->id) == 9 && q->lv == 1 && idx == q->bullet) {
                 if (cnt++ == no) {
                     return q;
                 }
@@ -2762,11 +2790,9 @@ u16 cItemMgr::bulletNum()
 // Rounds of the armed item: loaded rounds for weapons, carried count for thrown items.
 u16 cItemMgr::bulletNumCurrent()
 {
-    ItemInfo info;
-
-    switch (ITEM_TYPE(m_wep_id)) {
+    switch (itemType(m_wep_id)) {
     case 1:
-        return bulletNum(pArm);
+        return bulletNum(m_pWep);
     case 3:
     case 6:
         return bulletNum(m_wep_id);
@@ -2785,7 +2811,7 @@ u16 cItemMgr::bulletNum(ITEM_ID id)
         return 1;
     }
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, m_char) && p->id == id) {
+        if (p->isAlive(m_char) && p->id == id) {
             total += bulletNum(p);
         }
     }
@@ -2796,7 +2822,6 @@ u16 cItemMgr::bulletNum(ITEM_ID id)
 // infinite ammo returns 100.
 u16 cItemMgr::bulletNum(ItemWork* p)
 {
-    ItemInfo info;
     int n;
 
     if (!DbgFlagChk(pG, DBG_INF_BULLET2) && (DbgFlagChk(pG, DBG_INF_BULLET))) {
@@ -2805,7 +2830,7 @@ u16 cItemMgr::bulletNum(ItemWork* p)
     if (p == 0) {
         return 0;
     }
-    switch (ITEM_TYPE(p->id)) {
+    switch (itemType(p->id)) {
     case 1:
         if (p->id == 0x52) {
             return num(0x72);
@@ -2840,7 +2865,6 @@ int cItemMgr::saveDataSize()
 // counts, case position) plus the armed slot index and weapon id.
 void cItemMgr::save(void* pData)
 {
-    ItemInfo info;
     ItemSaveData* sd = (ItemSaveData*) pData;
     ItemSaveWork* s = sd->item_list;
     ItemWork* p = m_pItem;
@@ -2853,7 +2877,7 @@ void cItemMgr::save(void* pData)
     }
     for (i = 0; i < m_array_num; i++, p++) {
         memclr_asm(&s[i], sizeof(ItemSaveWork));
-        if (itemEmpty(p)) {
+        if (p->isEmpty()) {
             register int m1 asm("r0"); // COMPILER-DIFF: #13 (the 0xFFFF re-materialised at the store)
             m1 = -1;
             s[i].id = m1;
@@ -2862,7 +2886,7 @@ void cItemMgr::save(void* pData)
             if (p->type == 1) {
                 s[i].id |= 0x8000;
             }
-            switch (ITEM_TYPE(p->id)) {
+            switch (itemType(p->id)) {
             case 1:
             case 9:
                 s[i].num = p->lv;
@@ -2881,7 +2905,7 @@ void cItemMgr::save(void* pData)
             s[i].orient = p->orient;
             s[i].board = p->board;
         }
-        if (p == pArm) {
+        if (p == m_pWep) {
             sd->arm_no = i;
         }
     }
@@ -2891,13 +2915,12 @@ void cItemMgr::save(void* pData)
 // Restores the slots from the save block and re-arms the saved slot.
 void cItemMgr::load(void* pData)
 {
-    ItemInfo info;
     ItemSaveData* sd = (ItemSaveData*) pData;
     ItemSaveWork* s = sd->item_list;
     ItemWork* p = m_pItem;
     int i;
 
-    pArm = 0;
+    m_pWep = 0;
     for (i = 0; i < m_array_num; i++, p++) {
         if (s[i].id != 0xFFFF) {
             int wep = 0;
@@ -2911,7 +2934,7 @@ void cItemMgr::load(void* pData)
             } else {
                 p->type = 0;
             }
-            switch (ITEM_TYPE(p->id)) {
+            switch (itemType(p->id)) {
             case 1:
                 p->lv = s[i].num;
                 p->bullet = s[i].bullet;
@@ -2938,7 +2961,7 @@ void cItemMgr::load(void* pData)
             p->flags = 0;
         }
         if (sd->arm_no != 0xFFFF && i == sd->arm_no) {
-            pArm = p;
+            m_pWep = p;
         }
     }
     m_wep_id = sd->wep_id;
@@ -2948,13 +2971,12 @@ void cItemMgr::load(void* pData)
 // attache case); unarms a discarded weapon.
 int cItemMgr::offboardDump(ItemWork* p_get_item)
 {
-    ItemInfo info;
     ItemWork* p = m_pItem;
     int i;
 
     for (i = 0; i < m_array_num; i++, p++) {
-        if (itemUse(p, m_char)) {
-            switch (ITEM_TYPE(p->id)) {
+        if (p->isAlive(m_char)) {
+            switch (itemType(p->id)) {
             case 1:
             case 2:
             case 3:
@@ -2964,8 +2986,8 @@ int cItemMgr::offboardDump(ItemWork* p_get_item)
                     if (p_get_item != p) {
                         erase(p);
                     }
-                    if (pArm == p) {
-                        pArm = 0;
+                    if (m_pWep == p) {
+                        m_pWep = 0;
                         m_wep_id = bareHand();
                     }
                 }
@@ -2980,7 +3002,6 @@ int cItemMgr::offboardDump(ItemWork* p_get_item)
 // degrees onto the spare board, merging stackables up to the max).
 void cItemMgr::takeOver()
 {
-    ItemInfo info;
     int i;
 
     if (m_char != 0) {
@@ -2990,8 +3011,8 @@ void cItemMgr::takeOver()
     for (i = 0; i < ItemMgr.m_array_num; i++) {
         ItemWork* p = ItemMgr.at(i);
 
-        if (itemUse(p, 1)) {
-            switch (ITEM_TYPE(p->id)) {
+        if (p->isAlive(1)) {
+            switch (itemType(p->id)) {
             case 1:
             case 2:
             case 3:
@@ -3025,9 +3046,9 @@ void cItemMgr::takeOver()
                     u16 max;
 
                     q->num += p->num;
-                    max = ITEM_MAX(q->id);
+                    max = itemMaxNum(q->id);
                     if (q->num > max) {
-                        q->num = ITEM_MAX(q->id);
+                        q->num = itemMaxNum(q->id);
                     }
                     p->flags = 0;
                 }
@@ -3042,15 +3063,14 @@ void cItemMgr::takeOver()
 // Number of files (type 10) owned.
 int cItemMgr::countFiles()
 {
-    ItemInfo info;
     int n = 0;
     int i;
 
     for (i = 0; i < ItemMgr.m_array_num; i++) {
         ItemWork* p = ItemMgr.at(i);
 
-        if (!itemUse(p, m_char)) {
-            if (ITEM_TYPE(p->id) == 10) {
+        if (!p->isAlive(m_char)) {
+            if (itemType(p->id) == 10) {
                 n++;
             }
         }
@@ -3151,7 +3171,6 @@ void cItemMgr::debugNumDisp(int print_page)
 {
     static int sX = 48;
     static int sY = 5;
-    ItemInfo info;
     int row = 0;
     int color = 0;
     int id = 0;
@@ -3160,13 +3179,13 @@ void cItemMgr::debugNumDisp(int print_page)
     for (; id <= 0xFE; id++) {
         int n;
 
-        if (ITEM_TYPE(id) == 2) {
+        if (itemType(id) == 2) {
             n = bulletNumTotal((u16) id);
         } else {
             n = num((u16) id);
         }
         if (n != 0) {
-            switch (ITEM_TYPE(id)) {
+            switch (itemType(id)) {
             case 0:
                 color = 1;
                 break;
@@ -3226,10 +3245,10 @@ void cItemMgr::debugWeapon(ITEM_ID id)
     ItemWork* p = search(id);
 
     if (p != 0) {
-        pArm = p;
+        m_pWep = p;
     } else {
         get(id, 0);
-        pArm = pLast;
+        m_pWep = newbie();
     }
     m_wep_id = id;
 }

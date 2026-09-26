@@ -98,14 +98,14 @@ void mahoKaiou4()
 // Cheat: the player passes through collision.
 void mahoThroughOn()
 {
-    pPL->atari.throughOn();
+    pPL->atari.off();
     pLog->mes(0, 0, "PL THROUGH ON");
 }
 
 // Cheat: collision back on.
 void mahoThroughOff()
 {
-    pPL->atari.throughOff();
+    pPL->atari.on();
     pLog->mes(0, 0, "PL THROUGH OFF");
 }
 
@@ -244,7 +244,7 @@ void cPlayer::emSearch()
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
-        if ((em->be_flag & 0x201) == 1 && em->hp > 0) {
+        if (em->isAlive() && em->hp > 0) {
             f32 d = GetDistance3(&pos, &em->pos);
             if (d > min) {
                 continue;

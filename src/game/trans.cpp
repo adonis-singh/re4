@@ -59,15 +59,6 @@ struct GxWork {
 };
 #define GXWORK() ((GxWork*) &pG->gxStage)
 
-// cModel fields past the 0x1D8 the header declares (KNOWN DEBT: cModel is 0x320 in the original).
-struct cModelExt {
-    u8 pad_0[0x308];
-    void* pFsdTbl;  // 0x308
-    EmLightArea litArea;   // 0x30C
-    cTexChg* pTexChg;      // 0x31C
-};
-#define MODEL_EXT(m) ((cModelExt*) (m))
-
 // Parts (cParts) fields past cCoord: the parts chain and the inverse bind matrix.
 struct cPartsWk {
     u8 pad_0[0xF4];
@@ -329,7 +320,7 @@ void org_LoadTexObj(u32 id, int map)
     if (id <= 0xF7) {
         GXLoadTexObj(&gx->texObj[id], map);
     } else {
-        GXLoadTexObj(&GetTexRenderMgrAddr(id - 0xF8)->m_Tex_obj, map);
+        GXLoadTexObj(GetTexRenderMgrAddr(id - 0xF8)->GetTexObj(), map);
     }
 }
 
@@ -370,13 +361,13 @@ void Trans()
     func = objTrans;
     for (u = ObjMgr.getActiveWork(); u != 0;) {
         cUnit* cur = u;
-        u = u->pNext;
+        u = u->getNext();
         func((cModel*) cur);
     }
     func = emTrans;
     for (u = EmMgr.getActiveWork(); u != 0;) {
         cUnit* cur = u;
-        u = u->pNext;
+        u = u->getNext();
         func((cModel*) cur);
     }
     ProcessTickGet(5, "objTrans");
@@ -483,7 +474,7 @@ void ModelTrans(cModel* m)
     int ot2;
     cLightInfo* li;
     f32 radius;
-    cModel* p;
+    cParts* p;
 
     if (StaFlagChk(pG, STA_SUSPEND) && !(m->be_flag & 0x800)) {
         return;
@@ -522,7 +513,7 @@ void ModelTrans(cModel* m)
     switch (m->ot_type) {
     case 7:
         m->be_flag &= ~0x08000000;
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret2 = AddOtWorldPosRadius(m, (void (*)(void*)) ModelRender, &m->pos, radius, 1, 1.0f);
             ot2 = 0x11;
         } else {
@@ -541,17 +532,17 @@ void ModelTrans(cModel* m)
         }
         break;
     case 0:
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret = AddOtModelPosRadius(m, (void (*)(void*)) ModelRender, &m->pos, radius, 1, 1.0f);
             ot = 0xD;
         } else {
-            cModel* p = m->getPartsPtr(0);
+            cParts* p = m->getPartsPtr(0);
             ot = 0xD;
             ret = AddOtModelPosRadius(m, (void (*)(void*)) ModelRender, &p->world, radius, 1, 1.0f);
         }
         break;
     case 1:
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret = AddOtWorldPosRadius(m, (void (*)(void*)) ModelRender, &m->pos, radius, 1, 1.0f);
             ot = 0x11;
         } else {
@@ -581,7 +572,7 @@ void ModelTrans(cModel* m)
         ret = AddOtDirect(0x10, m, (void (*)()) ModelRender, 0, 2, &pos, radius);
         break;
     case 6:
-        if (m->pParts == 0) {
+        if (m->pList == 0) {
             ret = AddOtDirect(0x14, m, (void (*)()) ModelRender, 1, 1, NULL, 0.0f);
             ot = 0x14;
         } else {
@@ -802,8 +793,8 @@ void calcWeightMat(cModel* m)
     u32 i = 0;
     cPartsWk* p;
 
-    PSMTXInverse(m->pParts->mat, inv);
-    for (p = (cPartsWk*) m->pParts; p != 0; p = p->next) {
+    PSMTXInverse(m->pList->mat, inv);
+    for (p = (cPartsWk*) m->pList; p != 0; p = p->next) {
         PSMTXConcat(inv, ((cModel*) p)->mat, tmp);
         if (i > 0xF7) {
             pLog->err(0, 0, "commonScreenMatSub() SMAT OVERFLOW %d", i);
@@ -919,7 +910,7 @@ int MakeWeightPalette(Weight* w0, int n)
 // filter 09 post-process and the draw-sync callback. Skipped output while System_flg 0x800.
 void Render()
 {
-    Camera save;
+    CAMERA save;
     GXColor fogCol;
     GXColor c;
 
@@ -1124,7 +1115,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
         } else if (d->weight_palette_num <= 1 && d->weight_ext_num <= 0xFF && !(info->be_flag & 2) && d->nParts == 1) {
             PSMTXConcat(m->getPartsPtr(d->pHead->partsNo)->mat, info->mat, pm);
         } else {
-            PSMTXConcat(m->pParts->mat, info->mat, pm);
+            PSMTXConcat(m->pList->mat, info->mat, pm);
         }
         mat0 = m->mat;
         PSMTXConcat(viewMat, pm, mv);
@@ -1221,8 +1212,8 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
                     GXInitTexObjLOD(&gx->texObj[i], filt, 1, (f32) min_lod, (f32) max_lod, lod_bias, 0, edge, aniso);
                 }
             }
-            if (MODEL_EXT(m)->pTexChg != 0) {
-                MODEL_EXT(m)->pTexChg->move(gx->texObj);
+            if (m->pTexChg != 0) {
+                m->pTexChg->move(gx->texObj);
             }
         }
         g_prev_tpl_addr = info->tpl_addr;
@@ -1274,7 +1265,7 @@ void commonModelTrans(cModel* m, cModelInfo* info, Mtx viewMat, int flag)
         info = info->pList;
     }
     if (!StaFlagChk(pG, STA_PROC_SHD_TEX)) {
-        if (MODEL_EXT(m)->pFsdTbl != 0 && (m->be_flag & 0x10)) {
+        if (m->pFsdTbl != 0 && (m->be_flag & 0x10)) {
             DrawFootShadow((cEm*) m);
         }
     }
@@ -2067,11 +2058,11 @@ void SetCastShadowLight(cModel* m, Vec* pos, Vec* dir, ShadowMng* mng)
     GXInitLightSpot(&lobj, 89.0f, 4);
     GXInitLightDistAttn(&lobj, 0.0f, 0.0f, 0);
     if (m != 0) {
-        EmLightArea* la = &MODEL_EXT(m)->litArea;
-        if (la->chk(1) == 1 && la->chk(2) == 1 && la->lightNo == mng->pLight->LitIndex) {
-            k.r = k.r * (u8) la->scale;
-            k.g = k.g * (u8) la->scale;
-            k.b = k.b * (u8) la->scale;
+        cModelState* la = &m->State;
+        if (la->IsLightIgnore() == 1 && la->IsLightIgnoreUse() == 1 && la->GetLightNo() == mng->pLight->LitIndex) {
+            k.r = k.r * (u8) la->GetLightPow();
+            k.g = k.g * (u8) la->GetLightPow();
+            k.b = k.b * (u8) la->GetLightPow();
         }
     }
     c = k;
@@ -2114,7 +2105,7 @@ void ShadowCastSetup(ModelPart* part, cModel* m)
     // Declared after the table-copying getters: the frame slot for tm is the merged, freed
     // getTexCoord/getTexMtx table slots at 0x8 (tm shares the base register with them).
     Mtx tm;
-    PSMTXConcat(mng->texMat, m->pParts->mat, tm);
+    PSMTXConcat(mng->texMat, m->pList->mat, tm);
     GXLoadTexMtxImm(tm, mtx, 0);
     GXSetTexCoordGen2(coord, 0, 0, mtx, 0, 0x7D);
     w = (ShadowLightWork*) mng->pLight->work;
@@ -2293,7 +2284,7 @@ void SelfShadowSetup(ModelPart* part, cModel* m, ShadowMng* mng)
     PSMTXIdentity(trans);
     trans[2][3] = shd_ofs + PSVECDistance(&mng->lightPos, &mng->target);
     C_MTXLookAt(tm, &mng->lightPos, &up, &mng->target);
-    PSMTXConcat(tm, mng->pModel[0]->pParts->mat, tm);
+    PSMTXConcat(tm, mng->pModel[0]->pList->mat, tm);
     PSMTXConcat(trans, tm, tm);
     PSMTXConcat(sm, tm, tm);
     GXLoadTexMtxImm(tm, mtx, 1);
@@ -2310,7 +2301,7 @@ void SelfShadowSetup(ModelPart* part, cModel* m, ShadowMng* mng)
     coord = getTexCoord();
     mtx = getTexMtx();
     map = getTexMap();
-    PSMTXConcat(mng->texMat, m->pParts->mat, tm);
+    PSMTXConcat(mng->texMat, m->pList->mat, tm);
     GXLoadTexMtxImm(tm, mtx, 0);
     GXSetTexCoordGen2(coord, 0, 0, mtx, 0, 0x7D);
     GXLoadTexObj(&mng->texObj, map);

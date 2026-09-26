@@ -65,8 +65,8 @@ public:
     u8 fireAll;        // 0x3D
     u8 pad_3E[2];
     f32 speed;         // 0x40
-    ScePrim* setRockTask;    // 0x44
-    ScePrim* throwRockTask;  // 0x48
+    SCE_TASK* setRockTask;    // 0x44
+    SCE_TASK* throwRockTask;  // 0x48
 
     void move();
     int checkHitArea();
@@ -96,7 +96,7 @@ struct R202Work {
     f32 idoY0;             // 0x148  wall positions when raised
     f32 idoY1;             // 0x14C
     f32 idoY2;             // 0x150
-    ScePrim* checkTask;    // 0x154
+    SCE_TASK* checkTask;    // 0x154
     u8 pad_158[0x180 - 0x158];
     cEmWrap em180;         // 0x180  the Ganado that opens the gate
     cPatrol pat[2];        // 0x18C
@@ -299,7 +299,7 @@ void r202_openBox_main(int no, int opened)
     if (obj != 0) {
         obj->be_flag |= 0x20;
         if (opened == 1) {
-            obj->pParts->ang = ang;
+            obj->pList->ang = ang;
         } else {
             Vec step;
             int i;
@@ -308,7 +308,7 @@ void r202_openBox_main(int no, int opened)
             SndCall(6, 0x5B, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
                 if (obj != 0) {
-                    PSVECAdd(&obj->pParts->ang, &step, &obj->pParts->ang);
+                    PSVECAdd(&obj->pList->ang, &step, &obj->pList->ang);
                 }
                 SceSleep(1);
             }
@@ -454,7 +454,7 @@ static void r202_operateCannon()
         int hit = SceAtHitCheck(0x10);
 
         if (hit == 1) {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub != 0) {
                 v = sub->pos;
@@ -499,7 +499,7 @@ static void r202_operateCannon()
     }
     SceEventEnd(0);
     {
-        cSubChar* sub = pSUB;
+        cSubChar* sub = SUB_CHAR();
 
         if (sub != 0) {
             if (pG->Room_flg[0] & 0x01000000) {
@@ -720,7 +720,7 @@ static void r202_CatapultGo_end()
     r202_work->em180.setNoSuspend(0);
     r202_work->cat[2].em.setNoSuspend(0);
     r202_work->cat[2].rock->setNoSuspend(0);
-    r202_work->checkTask->task->flag &= ~2;
+    r202_work->checkTask->setKind(r202_work->checkTask->getKind() & ~2);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     SceSleep(60);
@@ -742,7 +742,7 @@ static void r202_CatapultGo()
     r202_work->em180.setNoSuspend(1);
     r202_work->cat[2].em.setNoSuspend(1);
     r202_work->cat[2].rock->setNoSuspend(1);
-    r202_work->checkTask->task->flag |= 2;
+    r202_work->checkTask->setNoSuspend(1);
     r202_work->cat[2].targetPos.x = 21929.0f;
     r202_work->cat[2].targetPos.y = 5598.0f;
     r202_work->cat[2].targetPos.z = -37644.0f;
@@ -1026,17 +1026,17 @@ static void r202_setRock(cCatapult* c)
         c->setRock();
         {
             // COMPILER-DIFF: candidate #17 (local-alloc qty order): the original's sched1 issued the
-            // -0.024 high before the 0.0 high, so its local-alloc gave obj/pParts r10/r11 and the -0.024
+            // -0.024 high before the 0.0 high, so its local-alloc gave obj/pList r10/r11 and the -0.024
             // high r8; ours issues the highs the other way round (equal priority, LUID) and names them
             // r10/r9/r11. Value-carrying pins on the two pointers give the target's names.
             register cObj* o asm("r10");
-            register cModel* pp asm("r11");
+            register cParts* pp asm("r11");
             o = c->obj;
-            pp = o->pParts;
+            pp = o->pList;
             pp->ang.x = 0.0f;
         }
         for (i = 10; i != 0; i--) {
-            c->obj->pParts->ang.x += -0.024137001f;
+            c->obj->pList->ang.x += -0.024137001f;
             SceSleep(1);
         }
         c->rockSet = 1;
@@ -1065,9 +1065,9 @@ static void r202_throwRock(cCatapult* c)
     f32 v;
     f32 lim;
 
-    c->obj->pParts->ang.x = -0.24137f;
+    c->obj->pList->ang.x = -0.24137f;
     for (i = 10; i != 0; i--) {
-        c->obj->pParts->ang.x += 0.13986999f;
+        c->obj->pList->ang.x += 0.13986999f;
         SceSleep(1);
     }
     c->throwRock();
@@ -1082,10 +1082,10 @@ static void r202_throwRock(cCatapult* c)
     // loop.c hoisted the exit store's constant (`fmr f28,f30`); the bounce loop's exit code is never
     // peeled (> 20 insns, then gcse's preheader insertions).
     for (;;) {
-        c->obj->pParts->ang.x += v;
+        c->obj->pList->ang.x += v;
         v += -0.034906585f;
-        if (c->obj->pParts->ang.x < lim) {
-            c->obj->pParts->ang.x = -0.24137f;
+        if (c->obj->pList->ang.x < lim) {
+            c->obj->pList->ang.x = -0.24137f;
             break;
         }
         SceSleep(1);
@@ -1094,10 +1094,10 @@ static void r202_throwRock(cCatapult* c)
         lim *= 0.5f;
         v *= -0.5f;
         for (;;) {
-            c->obj->pParts->ang.x += v;
+            c->obj->pList->ang.x += v;
             v += -0.034906585f;
-            if (c->obj->pParts->ang.x < lim && v < 0.0f) {
-                c->obj->pParts->ang.x = lim;
+            if (c->obj->pList->ang.x < lim && v < 0.0f) {
+                c->obj->pList->ang.x = lim;
                 break;
             }
             SceSleep(1);
@@ -1113,9 +1113,9 @@ void cCatapult::throwRock()
     Vec to;
     Vec spd;
 
-    from.x = rock->pParts->mat[0][3];
-    from.y = rock->pParts->mat[1][3];
-    from.z = rock->pParts->mat[2][3];
+    from.x = rock->pList->mat[0][3];
+    from.y = rock->pList->mat[1][3];
+    from.z = rock->pList->mat[2][3];
     if (targetOn == 1) {
         to = targetPos;
     } else {

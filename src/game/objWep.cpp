@@ -7,6 +7,7 @@
 #include "snd.h"
 #include "item.h"
 #include "pl_wep.h"
+#include "wep_mod.h"
 #include "player.h"
 #include "cam_ctrl.h"
 #include "dbmodule.h"
@@ -22,44 +23,35 @@
 extern "C" {
 void Draw_line3d_local_222(Vec* p0, Vec* p1, Mtx mtx, u32 color, int blend);
 void Draw_line3d_222(Vec* p0, Vec* p1, u32 color, int blend);
-void drawPoint(Vec* lpos, Vec* lcross);
+void drawPoint(Vec& lpos, Vec& lcross);
 }
 
-static inline void DispOff(u8& f, u8 b) { f &= ~b; }
-static inline int DispChk(u8 f, u8 b) { return f & b; }
-
-// Weapon held in the hand: the stance key only counts while the hand weapon is allowed. Never
-// constructed in the DOL: the linker dropped its vtable (STRIP_UNUSED).
-class cObjHand : public cObjWep {
-public:
-    virtual int keyKamae();
-};
-
 // Common weapon object setup: no collision, a 500-unit light, no motions yet, all three display
-// types (wep.disp 0x1C) shown.
+// types shown.
 cObjWep::cObjWep()
 {
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
-    wep.disp = 0;
-    sub2B4.atari.throughOn();
+    flag.reset();
+    atari.off();
     LightInfo.init2(1, 1, &p0, &p1, 1);
     Motion.pMot = 0;
-    wep.motReset[1] = 0;
-    wep.motReset[0] = 0;
-    wep.parent = 0;
-    wep.m_StopSeId = 0;
-    wep.disp = 0x1C;
+    motReset[1] = 0;
+    motReset[0] = 0;
+    m_pParent = 0;
+    m_StopSeId = 0;
+    flag.reset();
+    flag.on(F_DISP_0).on(F_DISP_1).on(F_DISP_2);
 }
 
-// Per-frame: dispatches wep.mode (0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop) to the
+// Per-frame: dispatches mode (0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop) to the
 // module's move* virtuals, then moveAll(); hides the model unless all three display types are on
 // and the parent is drawn; follows the parent's transparency / ot_type; draws the laser sight if
-// disp bit0 was requested this frame (bit1 remembers it for the next).
+// flag bit0 was requested this frame (bit1 remembers it for the next).
 void cObjWep::move()
 {
-    switch (wep.mode) {
+    switch (r_no_0) {
     default:
         moveStay();
         break;
@@ -80,15 +72,15 @@ void cObjWep::move()
         break;
     }
     moveAll();
-    if (DispChk(wep.disp, 4) == 0 || DispChk(wep.disp, 8) == 0 || DispChk(wep.disp, 0x10) == 0 ||
-        (wep.parent && (wep.parent->isTrans() == 0 || (DpfFlagChk(pG, DPF_PL))))) {
-        be_flag &= ~2;
+    if (!flag.check(F_DISP_0) || !flag.check(F_DISP_1) || !flag.check(F_DISP_2) ||
+        (m_pParent && (m_pParent->isTrans() == 0 || (DpfFlagChk(pG, DPF_PL))))) {
+        setTrans(0);
     } else {
-        be_flag |= 2;
+        setTrans(1);
     }
-    if (wep.parent) {
-        invisible_factor = wep.parent->invisible_factor;
-        invisible_factor2 = wep.parent->invisible_factor2;
+    if (m_pParent) {
+        invisible_factor = m_pParent->invisible_factor;
+        invisible_factor2 = m_pParent->invisible_factor2;
     }
     ot_type = pPL->ot_type;
     if (Motion.pMot) {
@@ -96,42 +88,42 @@ void cObjWep::move()
     } else {
         matUpdate();
     }
-    if (wep.disp & 1) {
+    if (flag.check(F_ON_LASER_SIGHT)) {
         drawLaserSight(1, 0);
     }
-    DispOff(wep.disp, 2);
-    if (DispChk(wep.disp, 1)) {
-        wep.disp |= 2;
+    flag.off(F_ON_LASER_SIGHT_D);
+    if (flag.check(F_ON_LASER_SIGHT)) {
+        flag.on(F_ON_LASER_SIGHT_D);
     }
-    DispOff(wep.disp, 1);
+    flag.off(F_ON_LASER_SIGHT);
 }
 
-// Sets / clears one of the three display types (0 -> disp bit2, 1 -> bit3, 2 -> bit4); the model
+// Sets / clears one of the three display types (0 -> flag bit2, 1 -> bit3, 2 -> bit4); the model
 // is drawn only when all three are on.
 void cObjWep::setDisp(int level, int onoff)
 {
     if (onoff == 1) {
         switch (level) {
         case 0:
-            wep.disp |= 4;
+            flag.on(F_DISP_0);
             break;
         case 1:
-            wep.disp |= 8;
+            flag.on(F_DISP_1);
             break;
         case 2:
-            wep.disp |= 0x10;
+            flag.on(F_DISP_2);
             break;
         }
     } else {
         switch (level) {
         case 0:
-            DispOff(wep.disp, 4);
+            flag.off(F_DISP_0);
             break;
         case 1:
-            DispOff(wep.disp, 8);
+            flag.off(F_DISP_1);
             break;
         case 2:
-            DispOff(wep.disp, 0x10);
+            flag.off(F_DISP_2);
             break;
         }
     }
@@ -140,27 +132,27 @@ void cObjWep::setDisp(int level, int onoff)
 // Hangs the weapon on parts `partsNo` of `parent` with a local offset / rotation.
 void cObjWep::parentSet(cModel* pMod, int parts_no, Vec* pOffset, Vec* pAng)
 {
-    wep.parent = pMod;
-    pParts->pParent = pMod->getPartsPtr(parts_no);
-    pParts->pos = *pOffset;
-    pParts->ang = *pAng;
+    m_pParent = pMod;
+    pList->pParent = pMod->getPartsPtr(parts_no);
+    pList->pos = *pOffset;
+    pList->ang = *pAng;
 }
 
 // Detaches the weapon at its current world position (used before dropping it).
 void cObjWep::parentRelease()
 {
-    pos = pParts->pParent->world;
+    pos = pList->pParent->world;
     ang.x = 0.0f;
     ang.y = 0.0f;
     ang.z = 0.0f;
-    pParts->pParent = this;
-    pParts->pos.x = 0.0f;
-    pParts->pos.y = 0.0f;
-    pParts->pos.z = 0.0f;
-    pParts->ang.x = 0.0f;
-    pParts->ang.y = 0.0f;
-    pParts->ang.z = 0.0f;
-    wep.parent = 0;
+    pList->pParent = this;
+    pList->pos.x = 0.0f;
+    pList->pos.y = 0.0f;
+    pList->pos.z = 0.0f;
+    pList->ang.x = 0.0f;
+    pList->ang.y = 0.0f;
+    pList->ang.z = 0.0f;
+    m_pParent = 0;
 }
 
 // End of the reload motion: back to the idle motion and, unless noReload, moves ammo into the
@@ -178,10 +170,10 @@ void cObjWep::resetMotion()
 {
     void* mot;
 
-    if (ItemMgr.bulletNum() == 0 && wep.motReset[1]) {
-        mot = wep.motReset[1];
-    } else if (wep.motReset[0]) {
-        mot = wep.motReset[0];
+    if (ItemMgr.bulletNum() == 0 && motReset[1]) {
+        mot = motReset[1];
+    } else if (motReset[0]) {
+        mot = motReset[0];
     } else {
         mot = 0;
     }
@@ -189,12 +181,11 @@ void cObjWep::resetMotion()
         motionSet(mot, 0, 0, 1, 0);
         motionMove();
     }
-    if (wep.m_StopSeId) {
-        SndStop(wep.m_StopSeId, 0);
+    if (m_StopSeId) {
+        SndStop(m_StopSeId, 0);
     }
     Motion.Seq_speed = 1.0f;
-    wep.mode = 0;
-    wep.step = 0;
+    setStat(S_STAY);
 }
 
 // One shot: takes a round from the magazine (ItemMgr.trigger).
@@ -219,7 +210,7 @@ int cObjWep::reloadable()
 }
 
 // Laser sight: from the marker line (getMarkerPos) finds the target (GetWepTargetPos: 1 map, 2
-// enemy), sets wep.m_SightEm / wep.m_ShotPos, draws the laser line (thicker in rooms 22C/228; a plain
+// enemy), sets m_SightEm / m_ShotPos, draws the laser line (thicker in rooms 22C/228; a plain
 // line in shooting range mode) and the dot on an enemy; Status_flg[2] bit31 = "don't fire"
 // (target with EM_STATUS_DONT_FIRE, or a map hit with an AtEffInfo flag 2 surface within 20000).
 // In the debug collision display modes it shows satCheck() instead.
@@ -242,8 +233,8 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
         donfire = 0;
         partsWorldCalc();
         getMarkerPos(&lpos, &lcross);
-        res = GetWepTargetPos(&lpos, &lcross, 0, pG->weapon_no, &wep.m_SightEm, &attr);
-        if (wep.m_SightEm && wep.m_SightEm->checkStatus(EM_STATUS_DONT_FIRE)) {
+        res = GetWepTargetPos(&lpos, &lcross, 0, pG->weapon_no, &m_SightEm, &attr);
+        if (m_SightEm && m_SightEm->checkStatus(EM_STATUS_DONT_FIRE)) {
             donfire = 1;
         }
         dist = (lcross.x - lpos.x) * (lcross.x - lpos.x) + (lcross.y - lpos.y) * (lcross.y - lpos.y) +
@@ -257,11 +248,7 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
                     (lpos.z - lcross.z) * (lpos.z - lcross.z);
             info = EatMgr.getEffInfo(EatGetEffectType(attr));
             if (info) {
-                int on = 1;
-                if ((info->flag & 2) == 0) {
-                    on = 0;
-                }
-                if (on && dist2 < 400000000.0f) {
+                if (info->check() && dist2 < 400000000.0f) {
                     donfire = res;
                 }
             }
@@ -269,7 +256,7 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
         }
         case 2:
             if (draw && dist > 250000.0f) {
-                drawPoint(&lpos, &lcross);
+                drawPoint(lpos, lcross);
             }
             break;
         }
@@ -302,19 +289,20 @@ void cObjWep::drawLaserSight(int draw, int noCalc)
     if (donfire) {
         StaFlagOn(pG, STA_PL_DONT_FIRE);
     }
-    wep.m_ShotPos = lcross;
+    m_ShotPos = lcross;
 }
 
 // Laser dot (esp 0x50) at p1, scaled with the camera distance (bigger in the 22C/228 rooms / when
 // Status_flg[3] 0x02000000); red-tinted while Status_flg[1] bit0.
-void drawPoint(Vec* p0, Vec* p1)
+void drawPoint(Vec& lpos, Vec& lcross)
 {
     static f32 laset_max_dist = 8000.0f;
     static f32 laset_max_size = 3.0f;
     static f32 laset_base_size = 0.8f;
     Vec d;
     cEsp* esp;
-    f32 size;
+    f32 dist;
+    f32 mul;
 
     if (DbgFlagChk(pG, DBG_NO_LASER_LINE)) {
         return;
@@ -322,30 +310,25 @@ void drawPoint(Vec* p0, Vec* p1)
     if (EspEstSetSelect(EFF_CORE, 0x50, 0, &esp, 1) != 1) {
         return;
     }
-    PSVECSubtract(&pG->Camera.param.pos, p1, &d);
-    size = PSVECMag(&d);
+    PSVECSubtract(&pG->Camera.param.pos, &lcross, &d);
+    dist = PSVECMag(&d);
     if (StaFlagChk(pG, STA_BIG_MARKER) || pG->stage_no == 2 && pG->room_no == 0x2C ||
         pG->stage_no == 2 && pG->room_no == 0x28) {
-        size = size * 0.00033333333f + 1.0f;
-        if (size > 6.0f) {
-            size = 6.0f;
+        mul = dist * 0.00033333333f + 1.0f;
+        if (mul > 6.0f) {
+            mul = 6.0f;
         }
     } else {
-        size = size * (1.0f / laset_max_dist) + laset_base_size;
-        if (size > laset_max_size) {
-            size = laset_max_size;
+        mul = dist * (1.0f / laset_max_dist) + laset_base_size;
+        if (mul > laset_max_size) {
+            mul = laset_max_size;
         }
     }
-    esp->m_Pos = *p1;
-    esp->m_Size_base_x = esp->m_Size_base_x * size;
-    esp->m_Size_base_y = esp->m_Size_base_y * size;
+    esp->m_Pos = lcross;
+    esp->m_Size_base_x = esp->m_Size_base_x * mul;
+    esp->m_Size_base_y = esp->m_Size_base_y * mul;
     if (StaFlagChk(pG, STA_LASERSITE_NOADD)) {
-        // COMPILER-DIFF: #17. `esp` is address-taken, so each store reloads it; the original's first
-        // reload sits in r11 (r9 was still held by the previous reload at its sched1 position), ours
-        // in r9. Pinned, no code emitted.
-        register cEsp* e asm("r11");
-        e = esp;
-        e->m_Blend_mode = 1;
+        esp->m_Blend_mode = 1;
         esp->m_Src_factor = 4;
         esp->m_Dst_factor = 5;
         esp->m_Logic_op = 0;
@@ -376,7 +359,7 @@ void cObjWep::getMarkerPos(Vec* lpos, Vec* lcross)
         { 0.0f, 0.0f, 0.0f },
     };
     Vec v;
-    cModel* parts;
+    cParts* parts;
     f32 len;
 
     switch (pG->weapon_no) {
@@ -407,11 +390,11 @@ void cObjWep::interrupt()
 {
     setDisp(1, 1);
     setDisp(2, 1);
-    be_flag |= 2;
-    if (wep.mode == 4) {
+    setTrans(1);
+    if (getStat() == S_RELOAD) {
         endReload(0);
     }
-    sub2B4.atari.clrFlag200();
+    atari.offOba();
     resetMotion();
 }
 

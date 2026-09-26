@@ -8,15 +8,22 @@
 
 // game/mes.cpp: in-game message system (fonts, message queues, control codes).
 
-// Language table (MesData.lang): 0 JP, 1 EN, 2 DE, 3 FR, 4 ES, 5 IT.
+// Language table (MesData language): 0 JP, 1 EN, 2 DE, 3 FR, 4 ES, 5 IT.
 struct MessageData {
-    u32 lang;      // 0x00
-    u8* ptr[5];    // 0x04  message tables (type 0..4), each: u32 x0, u32 ofs[lang]
+private:
+    u32 m_language;  // 0x00
 
+public:
+    // 0x04  message tables (type 0..4), each: u32 x0, u32 ofs[lang]. Public only for
+    // cDvd::ErrCheck, which holds a pointer to the array across its wait loop.
+    u8* m_Data[5];
+
+    void setLanguage(u32 lang) { m_language = lang; }
+    u32 getLanguage() { return m_language; }
+    void registData(int type, u8* p) { m_Data[type] = p; }
     u16* getAddr(int no, int data_type);
     int getMesNum(int data_type);
     int getSpaceWidth();
-    void setPtr(int type, u8* p) { ptr[type] = p; }
 };
 
 // One queued glyph (MsgQueue entries, 0x10 bytes).
@@ -63,11 +70,13 @@ public:
 class Message {
 public:
     u32 stop_bak;       // 0x00  pG->flags_170 saved while the message stops the game
+private:
     u32 be_flag;          // 0x04  bit 0 = active, bit 1 = first frame
     u8 r_no_0;              // 0x08  code01 step
     u8 r_no_1;
     u8 r_no_2;
     u8 r_no_3;
+public:
     u32 m_state;         // 0x0C  bit 0 = active, bit 1 = finished, bit 3 = width check pass
     f32 m_scale_w;         // 0x10
     f32 m_scale_h;         // 0x14
@@ -76,6 +85,7 @@ public:
     u16 m_item_no;            // 0x1A  message number for code10 (type 3 table)
     u16 m_ot_type;             // 0x1C  ordering table
     u16 m_ot_no;           // 0x1E
+private:
     MessageFont* m_pFont;  // 0x20
     u16 m_pos_x;              // 0x24  cursor
     u16 m_pos_y;              // 0x26
@@ -90,6 +100,8 @@ public:
     s8 m_lines;            // 0x72
     u8 x73;
     u16 m_number_width;           // 0x74  width added by numbers/tables (code0a)
+public:
+    // PS2 has m_line_gap private; public here because r20e, r224 and r307 read the low byte (lineSpace) through getWork().
     union {
         u16 m_line_gap;      // 0x76
         struct {
@@ -97,6 +109,7 @@ public:
             s8 lineSpace;   // 0x77  (embox emBoxAction: prompt y = 336 - fontH - lineSpace - 1)
         };
     };
+private:
     u16 m_char_gap;      // 0x78
     u16 x7A;
     u32 m_col;          // 0x7C
@@ -119,9 +132,9 @@ public:
     u32 numberSave;     // 0xAC
     u16 digitSave;      // 0xB0
     u8 pad_B2[6];
-    MesQue* qbase;      // 0xB8
-    MesQue* qp;         // 0xBC
-    MesQue* selCur[8];  // 0xC0  glyphs of the selection cursors
+    MesQue* m_queue;    // 0xB8
+    MesQue* m_pMque;    // 0xBC
+    MesQue* m_selTbl[8];  // 0xC0  glyphs of the selection cursors
     s8 m_selTbl_size;          // 0xE0
     s8 m_sel;          // 0xE1  menu selection (0 = none yet)
     s8 m_cur;          // 0xE2
@@ -129,10 +142,28 @@ public:
     u8 m_who;             // 0xE4  code12
     u8 pad_E5[3];
 
+public:
     virtual ~Message() {}
 
-    int chkFlag(u32 b) { return (be_flag & b) ? 1 : 0; }
-    void clrActive() { be_flag &= ~1; }
+    int isAlive() { return be_flag & 1; }
+    void setBorn() { be_flag |= 3; }
+    void setDie() { be_flag &= ~1; }
+    u32 attrCk(u32 attr) { return m_attr & attr; }
+    s8 getSel() { return m_sel; }
+    s8 getCursor() { return m_cur; }
+    void setFontSize(s16 w, s16 h) {
+        m_font_w = w;
+        m_font_h = h;
+    }
+    void setLineGap(u16 gap) { m_line_gap = gap; }
+    void setFontGap(u16 gap) { m_char_gap = gap; }
+    s16 getLineGap() { return m_line_gap; }
+    s16 getFontHeight() { return m_font_h; }
+    u32 getColor() { return m_col; }
+    void setColor(u32 col) { m_col = col; }
+    void setCursor(int cur) { m_cur = cur; }
+    void setBttnWait(s16 wait) { m_bttn_wait = wait; }
+    void registQueue(MesQue* q) { m_queue = q; }
     void init(int no, int px, int py, u32 attr, int col, MessageFont* font);
     void move();
     void WidthCk();
@@ -183,19 +214,20 @@ enum LAYOUT_TYPE {
 
 // game/mes.cpp
 class MessageControl {
-public:
-    u32 x0;
+private:
+    u32 m_sel_sav;            // 0x00
     Message m_Msg[16];        // 0x04
-    void* m_font_addr[4];       // 0xEC4
+    void* m_font_addr[4];     // 0xEC4
     u32 m_state;              // 0xED4
-    u8 pad_ED8[0x11F8 - 0xED8];
-    u32 x11F8;              // 0x11F8
+public:
+    FONT_TEX m_mTex[4][2];    // 0xED8
+private:
+    u32 m_stop;               // 0x11F8
+public:
 
     virtual ~MessageControl() {}
 
     MesWork* getWork() { return &m_Msg[0]; }
-    // Slot address the way the original computes it (index scaled first, then the base).
-    Message* getMes(int no) { return (Message*) (no * sizeof(Message) + (u32) this + sizeof(u32)); }
 
     void setLayout(int no, int type);
     void setLanguage(int lang);
@@ -219,6 +251,31 @@ public:
     void MesSet(int no, int px, int py, u32 attr, int wk, int col, int font_no);
     void Delete(int no);
     void WaitEnd(int no);
+    void MesSetOt(int no, u16 type, u16 ot_no) {
+        m_Msg[no].m_ot_type = type;
+        m_Msg[no].m_ot_no = ot_no;
+    }
+    void MesSetJump(int no, u16 mes) { m_Msg[no].setJump(mes); }
+    void Clear() {
+        for (int i = 0; i < 16; i++) {
+            Delete(i);
+        }
+    }
+    void MesSetNumber(int no, u32 num, u16 digits) { m_Msg[no].setNumber(num, digits); }
+    s8 GetSelectMessage(int no) { return m_Msg[no].getSel(); }
+    s8 GetSelectCursor(int no) { return m_Msg[no].getCursor(); }
+    u32 GetMesStatus(int no) { return m_Msg[no].m_state; }
+    void setLineGap(int no, u16 gap) { m_Msg[no].setLineGap(gap); }
+    void setFontGap(int no, u16 gap) { m_Msg[no].setFontGap(gap); }
+    s8 getLineGap(int no) { return m_Msg[no].getLineGap(); }
+    s8 getFontHeight(int no) { return m_Msg[no].getFontHeight(); }
+    void SetColor(int no, u32 col) { m_Msg[no].setColor(col); }
+    u32 GetColor(int no) { return m_Msg[no].getColor(); }
+    void SetCursor(int no, s8 cur) { m_Msg[no].setCursor(cur); }
+    void SetItemName(int no, u16 id) { m_Msg[no].m_item_no = id; }
+    void SetBttnWait(int no, s16 wait) { m_Msg[no].setBttnWait(wait); }
+    void MesRegistQueue(int no, MesQue* q) { m_Msg[no].registQueue(q); }
+    void MesReleaseQueue(int no) { m_Msg[no].registQueue(0); }
 };
 
 // ROM font glyph renderer (game/mes.cpp), used by the dvd error screen before the message
@@ -233,8 +290,6 @@ public:
 };
 
 extern MessageControl cMes;
-// Scenario message y of MesWork `m`: below the bottom line of the message window (336 = 0x150).
-#define MES_Y(m) (336 - (m)->lineSpace - (m)->m_font_h - 1)
 extern MessageData MesData;
 extern u32 mes_col_tbl[10];
 

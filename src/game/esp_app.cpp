@@ -429,22 +429,21 @@ void EffEm2d_setTexRender(cModel* pMod)
         }
         StaFlagOn(pG, STA_EFFEM2D_TEXRND);
         mgr = pMgr;
-        mgr->m_W_size = 0x40;
-        mgr->m_H_size = 0x40;
+        mgr->SetWHSize(0x40, 0x40);
         pMgr->ReAllocBuf();
         tbl[0] = 4;
         tbl[1] = 0;
         tbl[4] = 0;
         mgr2 = pMgr;
-        tbl[5] = mgr2->m_Tex_no;
+        tbl[5] = mgr2->GetTexNo();
         tbl[6] = 2;
-        tbl[7] = mgr2->m_Tex_no;
+        tbl[7] = mgr2->GetTexNo();
         tbl[8] = 4;
-        tbl[9] = mgr2->m_Tex_no;
+        tbl[9] = mgr2->GetTexNo();
         tbl[0xA] = 6;
-        tbl[0xB] = mgr2->m_Tex_no;
-        mgr2->m_Rep_type = repType;
-        EstSet(0, -1, NULL, NULL, EFF_EM2D, 0x1F, pMgr->m_Core_flg | 0x801, ESP_CORE_KIND_NONE, 0, NULL);
+        tbl[0xB] = mgr2->GetTexNo();
+        mgr2->SetRepeatType(repType);
+        EstSet(0, -1, NULL, NULL, EFF_EM2D, 0x1F, pMgr->GetCoreFlg() | 0x801, ESP_CORE_KIND_NONE, 0, NULL);
     }
     pMod->pModelInfo->setTexBlendTbl(tbl);
     pMod->pModelInfo->setBlendRatio(0);
@@ -453,14 +452,6 @@ void EffEm2d_setTexRender(cModel* pMod)
 // Draws one frame of the laser sight line (est owner 0 id 3, effect 0x19) from `from` to `to`;
 // `width` scales the record's max_laser_dist. In the pG Status_flg[1] bit 0 mode (night vision /
 // scope) the blend is switched to additive-ish and alpha is reduced to 80%. Debug_flg[3] bit 0x40 hides it.
-// The five `esp` reloads and the 0.8f pool high are local-alloc qtys allocated by priority
-// refs*log2(refs)/life over the sched1 order with +-1-insn fake lifetimes: the high (refs 2,
-// life 2 = 10000) goes first and takes r9, flipping every reload (r9,r9,r11,r9,r11 ->
-// r11,r11,r9,r11,r9). The codeless asm below mentions reload 1 twice (refs 4, dies one insn
-// later: 80000/12 = 6666) and, being output-dependent on `stb a4`, is ready one cycle after
-// the `lis` in sched1 and lands between `lis` and `lfs` (the high's life 2 -> 4 = 5000).
-// Reload 1 is then allocated before the high (r9), the high falls to r11 and the walk gives
-// the target; in sched2 the asm fills the empty slot beside the `lfs` and emits nothing.
 void EspDrawLaserLine(Vec lpos, Vec lcross, f32 rate)
 {
     cEsp* esp;
@@ -479,9 +470,7 @@ void EspDrawLaserLine(Vec lpos, Vec lcross, f32 rate)
     w->Vec0 = lcross;
     w->max_laser_dist *= rate;
     if (StaFlagChk(pG, STA_LASERSITE_NOADD)) {
-        cEsp* e1 = esp;
-        e1->m_Blend_mode = 1;
-        asm("" : "=m"(esp) : "r"(e1), "r"(e1)); // COMPILER-DIFF: candidate (local-alloc qty order)
+        esp->m_Blend_mode = 1;
         esp->m_Src_factor = 4;
         esp->m_Dst_factor = 5;
         esp->m_Logic_op = 0;

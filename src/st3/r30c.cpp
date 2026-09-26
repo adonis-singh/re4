@@ -37,7 +37,7 @@ struct R30cWork {
     cEmWrap em[2];      // 0x04
     cSubChar* ashley;   // 0x1C  pSUB while she is locked away
     u32 strId;          // 0x20  SndStrReq handle of the plane stream
-    ScePrim* shout;     // 0x24  the AshleyShout task
+    SCE_TASK* shout;     // 0x24  the AshleyShout task
 };
 
 // The event model's status word at cModel+0x328 (pl_npc).
@@ -95,7 +95,7 @@ void R30cInit()
         if (ItemMgr.num(0x83) != 0 || KyfFlagChk(pG, KYF_R30C_DOOR)) {
             Vec pos = {0.0f, 0.0f, 0.0f};
             Vec ang;
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 rotY = 0.0f;
             Vec* pa = &ang;
 
@@ -104,13 +104,13 @@ void R30cInit()
             pa->y = rotY;
             ang.z = 0.0f;
             sub->setAng(pa);
-            AtariOffV(&pSUB->atari, ~0x100);
+            pSUB->atari.offSca();
             pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x1F), 0, 0, 9, 0);
             pSUB->dmg.m_Timer = 0x80;
         } else {
             Vec pos = {5250.0f, 0.0f, -7150.0f};
             Vec ang;
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 rotY = -1.6f;
             Vec* pa = &ang;
 
@@ -119,15 +119,15 @@ void R30cInit()
             pa->y = rotY;
             ang.z = 0.0f;
             sub->setAng(pa);
-            AtariOffV(&pSUB->atari, ~0x100);
-            AtariOffV(&pSUB->atari, ~0x200);
+            pSUB->atari.offSca();
+            pSUB->atari.offOba();
             pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x24), 0, 0, 4, 0);
             r30c_work->shout = SceExec(0x12, (TaskFunc) r30c_AshleyShout, 0, 0, 2, 0);
             if (RsfCheck(*(u16*) &pG->stage_no, 1) == 0) {
                 SceAtDataSet_exec(5, 0x12, 0, (TaskFunc) r30c_EventCut, 0, 1);
             }
         }
-        r30c_work->ashley = pSUB;
+        r30c_work->ashley = SUB_CHAR();
         pSUB = 0;
     } else {
         if (RsfCheck(G_ROOM_ID, 3) == 0) {
@@ -202,7 +202,7 @@ static void R30cEventS00()
         }
         StaFlagOn(pG, STA_SUB_ASHLEY);
         pSUB = r30c_work->ashley;
-        AtariOnV(&pSUB->atari, 0x100);
+        pSUB->atari.onSca();
         MotionClear(pSUB, 1);
         pSUB->be_flag |= 0x200000;
         SubCharCtrl(4, 0);
@@ -257,7 +257,7 @@ static void r30c_EventCut()
     r30c_work->ashley->setNoSuspend(1);
     r30c_work->em[0].setNoSuspend(1);
     r30c_work->em[1].setNoSuspend(1);
-    r30c_work->shout->task->flag |= 2;
+    r30c_work->shout->setNoSuspend(1);
     SceSetEventCancel(1, (TaskFunc) r30c_EventCutEndProc, 0, -1, 1);
     CamCtrl.CutCall(1);
     while (CamCtrl.IsMotionEnd() == 0) {
@@ -280,7 +280,7 @@ static void r30c_EventCutEndProc()
     r30c_work->em[0].setNoSuspend(0);
     r30c_work->em[1].setNoSuspend(0);
     SceEventEnd(0);
-    r30c_work->shout->task->flag &= ~2;
+    r30c_work->shout->setNoSuspend(0);
     ScfFlagOn(pG, SCF_R30C_ASHLEY_SCREAM);
 }
 

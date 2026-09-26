@@ -238,7 +238,7 @@ void mapModelInit(SUB_SCREEN* wk);
 void mapModelDisp(SUB_SCREEN* wk);
 void doorModelInit(SUB_SCREEN* wk);
 void doorModelDisp(SUB_SCREEN* wk);
-void mapCameraInit(SUB_SCREEN* wk, Camera* cam);
+void mapCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 void mapCameraMove(SUB_SCREEN* wk);
 f32 zoomOutLimit();
 void mapCameraEntire(SUB_SCREEN* wk, CameraParam* out);
@@ -591,11 +591,8 @@ void markGoalInit(SUB_SCREEN* wk)
         m->pGoal->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pGoal;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    mdl->matCalc();
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -634,7 +631,7 @@ int markGoalPosition(SUB_SCREEN* wk, Vec* pos)
     int n;
     int no;
     int i;
-    cModel* p;
+    cParts* p;
 
     switch (m->area) {
     case 1:
@@ -735,11 +732,8 @@ void markMerchantInit(SUB_SCREEN* wk)
         m->pMerchant->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pMerchant;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    mdl->matCalc();
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -765,7 +759,7 @@ int markMerchantPosition(SUB_SCREEN* wk, int no, Vec* pos)
     int st1c[6] = {0x22, 6, 0x1C, 4, 0x0B, 3};
     int st1d[2] = {0x0B, 7};
     SsMapWork* m = wk->map;
-    cModel* p;
+    cParts* p;
     int ret;
 
     if (m->area == 1) {
@@ -894,11 +888,8 @@ void markTreasureInit(SUB_SCREEN* wk)
         m->pTreasure->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pTreasure;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    mdl->matCalc();
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -919,7 +910,7 @@ void markTreasureQuit(SUB_SCREEN* wk)
 // Position of treasure mark `no` (parts `no` of the treasure model).
 int markTreasurePosition(SUB_SCREEN* wk, int no, Vec* pos)
 {
-    cModel* p = wk->map->pTreasure->getPartsPtr(no);
+    cParts* p = wk->map->pTreasure->getPartsPtr(no);
 
     *pos = p->pos;
     return 1;
@@ -1023,11 +1014,8 @@ void markCoinInit(SUB_SCREEN* wk)
         m->pCoin->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pCoin;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    mdl->matCalc();
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -1048,7 +1036,7 @@ void markCoinQuit(SUB_SCREEN* wk)
 // Position of medallion mark `no`.
 int markCoinPosition(SUB_SCREEN* wk, int no, Vec* pos)
 {
-    cModel* p = wk->map->pCoin->getPartsPtr(no);
+    cParts* p = wk->map->pCoin->getPartsPtr(no);
 
     *pos = p->pos;
     return 1;
@@ -1150,11 +1138,8 @@ void markSaveInit(SUB_SCREEN* wk)
         m->pSave->modelInit(SS_ARC_PTR(wk->pMapDat, 0xF), SS_ARC_PTR(wk->pMapDat, 0x10));
     }
     mdl = m->pSave;
-    RotMatrix(mdl->l_mat, &mdl->ang);
-    TransMatrix(mdl->l_mat, &mdl->pos);
-    ScaleMatrix(mdl->l_mat, &mdl->scale);
-    PSMTXCopy(mdl->l_mat, mdl->mat);
-    if (mdl->pParts) {
+    mdl->matCalc();
+    if (mdl->pList) {
         mdl->partsMatCalc();
         mdl->partsWorldCalc();
     }
@@ -1175,7 +1160,7 @@ void markSaveQuit(SUB_SCREEN* wk)
 // Position of typewriter mark `no`.
 int markSavePosition(SUB_SCREEN* wk, int no, Vec* pos)
 {
-    cModel* p = wk->map->pSave->getPartsPtr(no);
+    cParts* p = wk->map->pSave->getPartsPtr(no);
 
     *pos = p->pos;
     return 1;
@@ -1954,7 +1939,7 @@ void mapModelInit(SUB_SCREEN* wk)
     cModel* mdl;
     cSatHeader* hitA;
     cSatHeader* hitB;
-    cModel* parts;
+    cParts* parts;
     f32 y;
     SsMapWork* m;
 
@@ -2037,7 +2022,7 @@ void mapModelInit(SUB_SCREEN* wk)
             u = id[col];
             if (info->be_flag & 2) {
                 info->be_flag &= ~2;
-                pLog.p->warn(0, 0, "mapModelInit(): R%1x%02x flag SHAPE_MODEL clear", 1, i);
+                pLog->warn(0, 0, "mapModelInit(): R%1x%02x flag SHAPE_MODEL clear", 1, i);
             }
             for (; info; info = info->pList) {
                 info->color[0] = u->col0[0];
@@ -2062,7 +2047,7 @@ void mapModelDisp(SUB_SCREEN* wk)
     while (m) {
         cModel* p = m;
 
-        m = (cModel*) m->pNext;
+        m = (cModel*) m->getNext();
         func(p);
     }
 }
@@ -2169,7 +2154,7 @@ void doorModelDisp(SUB_SCREEN* wk)
 }
 
 // Map camera: top-down (up = -z) at the stage's whole-map position; re-enables Key input.
-void mapCameraInit(SUB_SCREEN* wk, Camera* cam)
+void mapCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     mapCameraEntire(wk, &cam->param);
     cam->Up.x = 0.0f;

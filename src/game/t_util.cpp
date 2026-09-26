@@ -15,7 +15,7 @@
 
 
 // Copies of the pG flag words the tools modify, restored by TutilQuitDefault.
-Camera globalCamera;
+CAMERA globalCamera;
 u32 debug_flg_bak[4];   // pG->flags_60 .. flags_6C
 u32 status_flg_bak[4];  // pG->flags_500C .. 0x5018
 u32 stop_flg_bak;       // pG->flags_170
@@ -61,7 +61,7 @@ void TutilQuitDefault()
     {
         u32* cam = (u32*) &pG->Camera;
 
-        memcpy(cam, &globalCamera, sizeof(Camera));
+        memcpy(cam, &globalCamera, sizeof(CAMERA));
     }
     pG->System_flg = system_flg_bak;
     pG->Stop_flg = stop_flg_bak;

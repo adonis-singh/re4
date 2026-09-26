@@ -241,7 +241,7 @@ static void r203_EventMeetAgain()
     if (r203_work->data->waitLoadOk() == 1) {
         MemorySwap(m->pArc, (u32) r203_work->data->m_addr, r203_work->data->m_size);
         EvtMgr.SetEvt(m->pArc, 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         MemorySwap(m->pArc, (u32) r203_work->data->m_addr, r203_work->data->m_size);
@@ -258,7 +258,7 @@ static void r203_EventMeetAgain()
         ang.z = 0.0f;
         pl->setAng(pa);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 sub->setPos(&pPL->pos);
@@ -319,7 +319,7 @@ static void r203_StreamCheck()
         for (i = 0; i < EmMgr.getArrayNum(); i++) {
             cEm* em = EmMgr.fastAt(i);
 
-            if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && (em->be_flag & 0x201) == 1
+            if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->hp > 0 && em->isAlive()
                 && ((cEmGanado*) em)->ckFindPL() == 1 && em->l_pl < lim) {
                 find = 1;
             }

@@ -226,7 +226,7 @@ CameraScope::CameraScope(Vec* pos, Vec* at)
         pos_ofs = *pos;
         PSVECSubtract(at, pos, &m_rad);
     } else {
-        cModel* p[2];
+        cParts* p[2];
         Vec* d;
 
         p[0] = pPL->getPartsPtr(0x20);
@@ -424,10 +424,7 @@ void CameraScope::move()
     PSVECAdd(&pos_ofs, &dir, &ofs);
     {
         cModel* pl = pPL; // held in r30 across the four calls, `&pl->worldMat` in r29
-        RotMatrix(pl->l_mat, &pl->ang);
-        TransMatrix(pl->l_mat, &pl->pos);
-        ScaleMatrix(pl->l_mat, &pl->scale);
-        PSMTXCopy(pl->l_mat, pl->mat);
+        pl->matCalc();
     }
     PSMTXMultVec(pPL->mat, &pos_ofs, &param.pos);
     PSMTXMultVec(pPL->mat, &ofs, &param.at);
@@ -552,7 +549,7 @@ CameraBinocular::CameraBinocular(Vec* pos, Vec* at, void* a, void* b)
         this->Up.z = 0.0f;
     } else {
         m_flag = 1;
-        cModel* p[2];
+        cParts* p[2];
         p[0] = pPL->getPartsPtr(0x20); // the load waits for the `mode` store: the two
                                               // param addresses go above the call
         p[1] = pPL->getPartsPtr(0x21);
@@ -703,7 +700,7 @@ void CameraBinocular::move()
 // IdBinocular
 // ---------------------------------------------------------------------------
 
-void IdBinocular::init(Camera* cam, void* a, void* b)
+void IdBinocular::init(CAMERA* cam, void* a, void* b)
 {
     IdUnit* u;
 
@@ -760,7 +757,7 @@ void IdBinocular::cutin(void* arg)
 // gauge height from the fov, and the distance readout.
 void IdBinocular::move(void* p)
 {
-    Camera* cam = (Camera*) p;
+    CAMERA* cam = (CAMERA*) p;
     static f32 ratio = 0.5f;
     static f32 m = 0.5f;
     static f32 n = 1.0f;
@@ -837,20 +834,18 @@ void IdBinocular::move(void* p)
     }
     if (!StaFlagChk(pG, STA_EVENT)) {
         IdUnit* u = IdSys.unitPtr(0x36, IDC_BINOCULAR);
-        MessageControl* mc;
-        Message* ms;
+        u32 col;
         s16 x = (s16) ((u->pos0.x + 320.0f) * 0.8f);
         s16 y = (s16) ((240.0f - u->pos0.y) * 0.8f);
         cMes.setLayout(1, LAYOUT_ACT_BTN);
-        mc = &cMes;
-        ms = &mc->m_Msg[1];
-        mc->MesSet(1, x, (s16) (y - ms->m_font_h / 2), 0x20081, 1, 0, 4);
+        cMes.MesSet(1, x, (s16) (y - cMes.getFontHeight(1) / 2), 0x20081, 1, 0, 4);
         u = IdSys.unitPtr(0x1B, IDC_BINOCULAR);
         rate = u->col[3] / 255.0f;
-        ms->m_col = ((u8) ((f32) (ms->m_col >> 24) * rate) << 24) |
-                    ((u8) ((f32) ((ms->m_col >> 16) & 0xFF) * rate) << 16) |
-                    ((u8) ((f32) ((ms->m_col >> 8) & 0xFF) * rate) << 8) |
-                    (u8) ((f32) (ms->m_col & 0xFF) * rate);
+        col = cMes.GetColor(1);
+        cMes.SetColor(1, ((u8) ((f32) (col >> 24) * rate) << 24) |
+                             ((u8) ((f32) ((col >> 16) & 0xFF) * rate) << 16) |
+                             ((u8) ((f32) ((col >> 8) & 0xFF) * rate) << 8) |
+                             (u8) ((f32) (col & 0xFF) * rate));
     }
     {
         f32 t0[2] = {1.0f, 16.0f};
@@ -911,12 +906,7 @@ void IdBinocular::quit(void*)
     if (StaFlagChk(pG, STA_EVENT)) {
         Cckpt.lifeMeterDisp(0);
     }
-    {
-        MessageControl* mes = &cMes;
-        for (i = 0; i <= 0xF; i++) {
-            mes->Delete(i);
-        }
-    }
+    cMes.Clear();
 }
 
 // ---------------------------------------------------------------------------
@@ -960,7 +950,7 @@ void CameraPushObject::move()
     plpos.x = inv[0][3]; plpos.y = inv[1][3]; plpos.z = inv[2][3];
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = (cModel*) EmMgr.fastAt(i);
-        if ((e->id == 0x41 || e->id == 0x44 || e->id == 0x46) && (e->be_flag & 0x201) == 1) {
+        if ((e->id == 0x41 || e->id == 0x44 || e->id == 0x46) && e->isAlive()) {
             PSMTXMultVec(m, &e->pos, &em_pos);
             // negated tests: `blt` / `cror so,eq,gt; bso` (a positive `>=`/`<=` gives cror + bns)
             if (!(em_pos.z < 0.0f) && !(PSVECMag(&em_pos) >= 4000.0f)) {
@@ -1025,7 +1015,7 @@ void CameraPushObject::move()
 // CameraLookAt: falling camera, looks at a random hand of the player.
 // ---------------------------------------------------------------------------
 
-CameraLookAt::CameraLookAt(Camera* cam)
+CameraLookAt::CameraLookAt(CAMERA* cam)
 {
     Vec hit;
     Vec nrm;

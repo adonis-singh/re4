@@ -584,6 +584,7 @@ public:
     void ApplyMatrix(Mtx pMat);
     void CommonStateSet();
     int ChannelSet();   // col.a != 0 (esp18 tests it)
+    int IsActive();
 };
 
 // game/esp3f.cpp: vector buffer owned by an effect (see esp3f.cpp for the class)

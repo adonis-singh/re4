@@ -4,7 +4,7 @@
 //
 // Entry: PlBowMove is the wep28 module's WeaponMoveFunc (pl_R1_Weapon, r_no_1 == 6). r_no_2 is
 // the weapon state (0 ready, 1 set, 2 fire, 3 down; no reload: the arrow count is the ammo),
-// r_no_3 the step; wep.mode / wep.step of the bow object follow. The arrow shown on the bow
+// r_no_3 the step; r_no_0 / r_no_1 of the bow object follow. The arrow shown on the bow
 // (cObjBow::setDispAllow) and the arrow held in the right hand (pObj2 display type 1 plus
 // setRightHand(1)) are swapped as the draw / shoot motions play. Weapon archive slots: 0x1F draw,
 // 0x20 holster, 0x21/0x24/0x27 aim idle down/level/up (mot3 pitch on m3r), 0x22/0x25/0x28 shoot.
@@ -67,21 +67,10 @@ static void wep28_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            pl->setRno(0, 0x11, 0, 0);
         } else {
-            // 0xD and 6 share one register (`li r9,0xd; stb ff; li r9,6; stb fd`): one int local
-            // assigned twice, not two constants.
-            int no = 0xD;
-
-            pl->r_no_3 = no;
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 3;
-            no = 6;
-            pl->r_no_1 = no;
+            pl->setRno(0, 6, 3, 0xD);
         }
     } else {
         Vec aim = {0.0f, 1000.0f, 10000.0f};
@@ -111,22 +100,21 @@ static void wep28_r3_ready00(cPlayer* pl)
     }
     pl->Wep->pitch = pitch;
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
-    m3r[2] = 0.0f;
+    m3r.reset(pitch);
+    m3r.setDelay(0.0f);
     pl->m_Fwork0 = 0.0f;
     pl->Neck->init(0, 0, 0);
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 1;
-    obj->wep.step = 0;
+    obj->r_no_0 = 1;
+    obj->r_no_1 = 0;
     hokan = 4;
-    if (!(pl->stat & 0x40)) {
+    if (!(pl->stat.check(cPlayer::F_CROUCH))) {
         hokan = 5;
     }
     mot = WEP_ARC_PTR(0x1F);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, hokan, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->r_no_3 = 1;
 }
 
@@ -149,10 +137,10 @@ static void wep28_r3_ready10(cPlayer* pl)
         BOW(pl)->setDispAllow(1);
     }
     if (pl->motionMove()) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -160,10 +148,10 @@ static void wep28_r3_ready10(cPlayer* pl)
 static void wep28_r3_ready20(cPlayer* pl)
 {
     if (MotionMove(pl, 0)) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -183,7 +171,7 @@ static void wep28_r2_set(cPlayer* pl)
     pl->setLaserSight(1, 0);
     PlWepLockCtrl(pl);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -193,20 +181,20 @@ static void wep28_r2_set(cPlayer* pl)
         }
     } else if (joyFireTrg()) {
         if (pl->Wep->m_pWep->bulletNum()) {
-            EmRoutineSet(pl, 0, 6, 2, 0);
+            pl->setRno(0, 6, 2, 0);
         }
     } else if (joyFireOn() && pl->Wep->m_pWep->bulletNum()) {
-        EmRoutineSet(pl, 0, 6, 2, 0);
+        pl->setRno(0, 6, 2, 0);
     }
 }
 
-// set step 0: start the three-way aim idle (0x21 down / 0x24 level / 0x27 up on m3r[0]), step 1.
+// set step 0: start the three-way aim idle (0x21 down / 0x24 level / 0x27 up on m3r), step 1.
 static void wep28_r3_set00(cPlayer* pl)
 {
     PlArc* arc = pG->pWep;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0x21), PL_ARC_PTR(arc, 0x24), PL_ARC_PTR(arc, 0x27), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
 }
@@ -281,20 +269,17 @@ static void wep28_r3_fire00(cPlayer* pl)
     pl->Wep->m_pWep->trigger();
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x22), PL_ARC_PTR(arc, 0x25), PL_ARC_PTR(arc, 0x28), 0, 0, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     MotionMove(pl, 0);
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pl->setRightHand(0);
-    pitch = m3r[0];
+    pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r[1] = pitch;
-    if (m3r[2] == 0.0f) {
-        m3r[0] = pitch;
-    }
+    m3r = pitch;
     pl->r_no_3 = 1;
 }
 
@@ -314,7 +299,7 @@ static void wep28_r3_fire10(cPlayer* pl)
         BOW(pl)->setDispAllow(1);
     }
     if (pl->motionMove()) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     } else if (pl->Motion.Seq_frame >= (f32) endFrame && joyKamae() == 0) {
         pl->r_no_0 = 0;
         pl->r_no_1 = 6;
@@ -333,11 +318,11 @@ static void wepDown(cPlayer* pl)
     pl->setRightHand(0);
     pl->Wep->m_pWepHand->setDisp(1, 0);
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 3;
-    obj->wep.step = 0;
+    obj->r_no_0 = 3;
+    obj->r_no_1 = 0;
     if (dmMotCk()) {
         pl->motionSet(WEP_ARC_PTR(0x20), 3, pl->r_no_3, 1, 0);
-        EmRoutineSet(pl, 0, 0, 2, 0);
+        pl->setRno(0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
         pl->m_Hokan = 0xF;

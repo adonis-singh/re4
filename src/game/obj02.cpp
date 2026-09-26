@@ -3,6 +3,7 @@
 // by `type`, an optional motion and a room callback.
 #include "atari.h"
 #include "obj.h"
+#include "obj02.h"
 #include "math_sub.h"
 #include "motion.h"
 
@@ -26,24 +27,11 @@ struct ObjScrRotWork {
     u8 flag;      // 0x0C bit0: rotate the first parts instead of the object
 };
 
-// Scripted map object: per-type mover selected by `type`, optional motion and callback.
-class cObjScr : public cObj {
-public:
-    cObjScr();
-    virtual void move();
-
-    void moveNormal();
-    void moveRotate();
-    void moveSwingRot();
-    void SetCallBack(void (*func)(cObj*));
-    void SetSwingRot(f32 amp, f32 period, f32 phase);
-};
-
 // New scroll object: no callback.
 cObjScr::cObjScr()
 {
-    attr = 0;
-    callBack = 0;
+    Attribute = 0;
+    CallBackFunc = 0;
 }
 
 // Per-frame: type mover, motion, matrix update, callback, light volume.
@@ -62,8 +50,8 @@ void cObjScr::move()
     } else {
         matUpdate();
     }
-    if (callBack) {
-        callBack(this);
+    if (CallBackFunc) {
+        CallBackFunc(this);
     }
     LightInfo.updateMatrix(this);
 }
@@ -76,10 +64,10 @@ void cObjScr::moveNormal()
 // Type 1: adds rotSpd to the object angle (flag bit 0: to parts 0 instead).
 void cObjScr::moveRotate()
 {
-    ObjScrRotWork* w = (ObjScrRotWork*)work;
+    ObjScrRotWork* w = (ObjScrRotWork*)free;
 
     if (w->flag & 1) {
-        PSVECAdd(&pParts->ang, &w->rotSpd, &pParts->ang);
+        PSVECAdd(&pList->ang, &w->rotSpd, &pList->ang);
     } else {
         PSVECAdd(&ang, &w->rotSpd, &ang);
     }
@@ -88,7 +76,7 @@ void cObjScr::moveRotate()
 // Type 2: sinusoidal swing of the three angles around the start angles (amp * sin(freq * t + phase)).
 void cObjScr::moveSwingRot()
 {
-    ObjScrSwingWork* w = (ObjScrSwingWork*)work;
+    ObjScrSwingWork* w = (ObjScrSwingWork*)free;
 
     if (r_no_0 == 0) {
         w->baseRot.x = ang.x;
@@ -107,7 +95,7 @@ void cObjScr::moveSwingRot()
 // pool [1.0, 10000.0, 2pi] right after moveSwingRot's; the body is a guess with that pool.
 void cObjScr::SetSwingRot(f32 amp, f32 period, f32 phase)
 {
-    ObjScrSwingWork* w = (ObjScrSwingWork*)work;
+    ObjScrSwingWork* w = (ObjScrSwingWork*)free;
     f32 f = 1.0f / period;
 
     f *= 10000.0f;
@@ -119,5 +107,5 @@ void cObjScr::SetSwingRot(f32 amp, f32 period, f32 phase)
 // Installs the room's per-frame callback.
 void cObjScr::SetCallBack(void (*func)(cObj*))
 {
-    callBack = func;
+    CallBackFunc = func;
 }

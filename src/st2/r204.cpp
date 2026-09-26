@@ -286,9 +286,9 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r204_work->tex->m_Tex_no;
-        r204_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r204_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r204_work->tex->GetTexNo();
+        r204_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r204_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }
@@ -532,7 +532,7 @@ static void r204_nige_check()
             if (r204_work->cnt == 1) {
                 cEm* em = r204_work->em[7].getPtr();
 
-                if (em != 0 && EmDeadCk(em)) {
+                if (em != 0 && em->dmg.isDamage()) {
                     started = 1;
                     SndStrReq(r204_work->str, 4, 200, 0);
                     r204_work->cnt = 0x23;
@@ -968,8 +968,8 @@ static void r204_EventExec()
         SndRoomStrVolSet(1, 200);
         EvtMgr.EvtReadExec("event/evd/r204s00.evd", 0x14, EvtReadFlagFadeOut);
         SndRoomStrVolReset(500);
-        if (pSubEm != 0) {
-            EmMgr.destroy(pSubEm);
+        if (pSUB != 0) {
+            EmMgr.destroy(pSUB);
             StaFlagOff(pG, STA_SUB_ASHLEY);
         }
         SceSetChapterEnd(CHAPTER_3_1, -1);

@@ -1068,10 +1068,10 @@ static void tSceItemDataInput_item_main()
         break;
     case 0x14: {
         int m;
-        n = pCur->langDisable;
+        n = pCur->country.get();
         STEP(rep2, n);
         CLAMP_SET(n, m, 2);
-        pCur->langDisable = m;
+        pCur->country.set(m);
         break;
     }
     }
@@ -1124,7 +1124,7 @@ static void tSceItemDataInput_item_main()
     {
         // defined here: its strings follow the ones above in .rodata
         static const char* countryName[3] = {"JPN USA", "JPN", "    USA"};
-        eprintf(x, y, 0, 0, "%s", NAME(countryName, pCur->langDisable, 2));
+        eprintf(x, y, 0, 0, "%s", NAME(countryName, pCur->country.get(), 2));
     }
     y += 0x10;
     pW->y = y;
@@ -1697,10 +1697,9 @@ void loadItemIdName(const char* path, char* names, char* names2)
     int sys;
     {
         // The original allocates `e`/`no` to r30 and `p` to r31 although e outranks p in global-alloc
-        // priority: r30 was ever-live before global-alloc there.  Two codeless asms make r30
+        // priority: r30 was ever-live before global-alloc there.  A codeless asm reading r30 makes it
         // used-so-far, so e/no take it in pass 0 and p falls to r31 in pass 1.
         register int pin asm("r30"); // COMPILER-DIFF: candidate #17
-        asm("" : "=r"(pin));
         asm("" : : "r"(pin));
     }
 

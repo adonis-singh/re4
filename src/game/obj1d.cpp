@@ -4,22 +4,10 @@
 // released. Used for the El Gigante / trolley chains.
 #include "atari.h"
 #include "obj.h"
+#include "obj1d.h"
 #include "global.h"
 #include "math_sub.h"
 #include "motion.h"
-
-// Chain link: a model hung between two parts of a parent (the interpolated orientation and
-// position of the two parts), with an optional pendulum cloth. Fades out when the parent is lost.
-class cObjChain : public cObj {
-public:
-    virtual void move();
-    virtual ~cObjChain() {}
-
-    void setParent(cModel* parent, int parts, Vec* ofs, int flag);
-    void setParent2(cModel* parent, int parts1, Vec* ofs1, int parts2, Vec* ofs2, int flag);
-    void setChain(PenCloth* cloth);
-    void chainMove();
-};
 
 extern "C" {
 void obj1d_R1_Set(cObjChain* obj);
@@ -32,16 +20,16 @@ static void (*Obj1d_R1_move_tbl[4])(cObjChain*) = { obj1d_R1_Set, obj1d_R1_LostW
                                                      obj1d_R1_Parent };
 
 // Creates the chain link (back of the pool) at pos/rot with no parent or cloth.
-cObj* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot)
+cObjChain* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot)
 {
-    cObj* obj;
+    cObjChain* obj;
     ChainWork* w;
 
-    obj = ObjMgr.createBack(cObjMgr::ID_CHAIN);
+    obj = (cObjChain*) ObjMgr.createBack(cObjMgr::ID_CHAIN);
     if (obj == 0) {
         return 0;
     }
-    w = &obj->chain;
+    w = CHAIN_WK(obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetChain() modelInit() failed.");
         ObjMgr.destroy(obj);
@@ -50,15 +38,15 @@ cObj* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 10000.0f, 10000.0f, 100000.0f };
 
-    obj->sub2B4.atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 2);
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
-    w->parent = 0;
-    w->parts1 = 0;
-    w->parts2 = 0;
-    w->cloth = 0;
+    w->pEm_oya = 0;
+    w->Parts1 = 0;
+    w->Parts2 = 0;
+    w->pCloth = 0;
     obj->r_no_0 = 1;
     obj->r_no_1 = 0;
     obj->r_no_2 = 0;
@@ -70,10 +58,10 @@ cObj* SetChain(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Per-frame: dies with the parent, motion, R1 routine, pendulum step.
 void cObjChain::move()
 {
-    ChainWork* w = &chain;
+    ChainWork* w = CHAIN_WK(this);
 
-    if (w->parent) {
-        if ((w->parent->be_flag & 0x201) != 1) {
+    if (w->pEm_oya) {
+        if (!w->pEm_oya->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }
@@ -82,7 +70,7 @@ void cObjChain::move()
         MotionMove(this, 0);
     }
     Obj1d_R1_move_tbl[r_no_1](this);
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         chainMove();
     }
 }
@@ -104,14 +92,14 @@ void obj1d_R1_Set(cObjChain* pObj)
 // Rno1 == 1: waits 90 frames then fades out (or vanishes off screen) -> Lost.
 void obj1d_R1_LostWait(cObjChain* pObj)
 {
-    ChainWork* w = &pObj->chain;
+    ChainWork* w = CHAIN_WK(pObj);
 
     switch (pObj->r_no_2) {
     case 0:
-        w->timer = 90;
+        w->Timer = 90;
         pObj->r_no_2++;
     case 1:
-        if (w->timer == 0) {
+        if (w->Timer == 0) {
             pObj->invisible_factor -= 0.1f;
             if (pObj->invisible_factor <= 0.0f) {
                 pObj->invisible_factor = 0.0f;
@@ -122,7 +110,7 @@ void obj1d_R1_LostWait(cObjChain* pObj)
                 break;
             }
         } else {
-            w->timer--;
+            w->Timer--;
         }
         {
             Vec scr;
@@ -161,7 +149,7 @@ void obj1d_R1_Lost(cObjChain* pObj)
 // matrices (axes normalised unless flags bit 1), position = midpoint of the two offsets.
 void obj1d_R1_Parent(cObjChain* pObj)
 {
-    ChainWork* w = &pObj->chain;
+    ChainWork* w = CHAIN_WK(pObj);
     Mtx ma;
     Mtx mb;
     Vec v0;
@@ -173,19 +161,19 @@ void obj1d_R1_Parent(cObjChain* pObj)
     Vec pa;
     Vec pb;
     Vec p;
-    cModel* parent = w->parent;
-    cModel* partsA;
-    cModel* partsB;
+    cModel* parent = w->pEm_oya;
+    cParts* partsA;
+    cParts* partsB;
 
     RotMatrix(pObj->mat, &pObj->ang);
     TransMatrix(pObj->mat, &pObj->pos);
     ScaleMatrix(pObj->mat, &pObj->scale);
-    if (parent && parent->pParts) {
-        partsA = parent->getPartsPtr(w->parts1);
+    if (parent && parent->pList) {
+        partsA = parent->getPartsPtr(w->Parts1);
         PSMTXConcat(partsA->mat, pObj->mat, ma);
-        partsB = parent->getPartsPtr(w->parts2);
+        partsB = parent->getPartsPtr(w->Parts2);
         PSMTXConcat(partsB->mat, pObj->mat, mb);
-        if (!(w->flags & 2)) {
+        if (!(w->Be_flg & 2)) {
             v0.x = ma[0][0];
             v0.y = ma[1][0];
             v0.z = ma[2][0];
@@ -257,8 +245,8 @@ void obj1d_R1_Parent(cObjChain* pObj)
         C_QUATMtx(&qb, mb);
         C_QUATSlerp(&qa, &qb, &q, 0.5f);
         PSMTXQuat(pObj->mat, &q);
-        PSMTXMultVec(partsA->mat, &w->ofs1, &pa);
-        PSMTXMultVec(partsB->mat, &w->ofs2, &pb);
+        PSMTXMultVec(partsA->mat, &w->Offset1, &pa);
+        PSMTXMultVec(partsB->mat, &w->Offset2, &pb);
         PosToPos(&pa, &pb, &p, 0.5f);
         TransMatrix(pObj->mat, &p);
     }
@@ -274,17 +262,17 @@ void obj1d_R1_Parent(cObjChain* pObj)
 // Hangs the link on one parts (both ends the same); flag = keep the parts scale.
 void cObjChain::setParent(cModel* parent, int parts, Vec* ofs, int flag)
 {
-    ChainWork* w = &chain;
+    ChainWork* w = CHAIN_WK(this);
 
-    w->parent = parent;
-    w->parts1 = parts;
-    w->parts2 = parts;
-    w->ofs1 = *ofs;
-    w->ofs2 = *ofs;
+    w->pEm_oya = parent;
+    w->Parts1 = parts;
+    w->Parts2 = parts;
+    w->Offset1 = *ofs;
+    w->Offset2 = *ofs;
     if (flag) {
-        w->flags |= 2;
+        w->Be_flg |= 2;
     } else {
-        w->flags &= ~2;
+        w->Be_flg &= ~2;
     }
     r_no_0 = 1;
     r_no_1 = 3;
@@ -295,17 +283,17 @@ void cObjChain::setParent(cModel* parent, int parts, Vec* ofs, int flag)
 // Hangs the link between two parts with their offsets.
 void cObjChain::setParent2(cModel* pEm, int parts1, Vec* pPos1, int parts2, Vec* pPos2, int mode)
 {
-    ChainWork* w = &chain;
+    ChainWork* w = CHAIN_WK(this);
 
-    w->parent = pEm;
-    w->parts1 = parts1;
-    w->parts2 = parts2;
-    w->ofs1 = *pPos1;
-    w->ofs2 = *pPos2;
+    w->pEm_oya = pEm;
+    w->Parts1 = parts1;
+    w->Parts2 = parts2;
+    w->Offset1 = *pPos1;
+    w->Offset2 = *pPos2;
     if (mode) {
-        w->flags |= 2;
+        w->Be_flg |= 2;
     } else {
-        w->flags &= ~2;
+        w->Be_flg &= ~2;
     }
     r_no_0 = 1;
     r_no_1 = 3;
@@ -316,7 +304,7 @@ void cObjChain::setParent2(cModel* pEm, int parts1, Vec* pPos1, int parts2, Vec*
 // Attaches a pendulum cloth to the link.
 void cObjChain::setChain(PenCloth* pCloth)
 {
-    chain.cloth = pCloth;
+    CHAIN_WK(this)->pCloth = pCloth;
     if (pCloth) {
         PenClothSet(this, pCloth, 100.0f);
     }
@@ -325,8 +313,8 @@ void cObjChain::setChain(PenCloth* pCloth)
 // Steps the pendulum cloth; clears the shadow/cull flags 0x00E00000.
 void cObjChain::chainMove()
 {
-    if (chain.cloth) {
-        PenClothMove(this, chain.cloth);
+    if (CHAIN_WK(this)->pCloth) {
+        PenClothMove(this, CHAIN_WK(this)->pCloth);
         be_flag &= ~0x00E00000;
     }
 }

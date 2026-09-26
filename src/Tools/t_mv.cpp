@@ -94,7 +94,7 @@ static int mvInit()
     bg.a = zero;
     bio4_GXSetCopyClear(bg, 0xFFFFFF);
     {
-        Camera* cam = &pG->Camera;
+        CAMERA* cam = &pG->Camera;
 
         cam->param.at.x = 0.0f;
         cam->param.at.y = 1000.0f;

@@ -398,7 +398,7 @@ static void r327_SwitchOperate(int no)
         SceExec(0x12, (TaskFunc) r327_SetSwitchDisable, 0, 0, 2, 0);
     } else {
         SceEventStart(1);
-        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() == 1) {
             RoomSeCall(0, 0, 0, 0, 0);
             SceSleep(5);

@@ -14,6 +14,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "em_set.h"
 #include "em_wrap.h"
@@ -148,9 +149,9 @@ void setTexRender()
         tbl0[0] = 1;
         tbl0[1] = 0;
         tbl0[4] = 0xF7;
-        tbl0[5] = r405_work->tex[0]->m_Tex_no;
-        r405_work->tex[0]->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r405_work->tex[0]->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl0[5] = r405_work->tex[0]->GetTexNo();
+        r405_work->tex[0]->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r405_work->tex[0]->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "R300Init() : Manager alloc failed!!");
     }
@@ -161,9 +162,9 @@ void setTexRender()
         tbl1[0] = 1;
         tbl1[1] = 0;
         tbl1[4] = 0xF7;
-        tbl1[5] = r405_work->tex[1]->m_Tex_no;
-        r405_work->tex[1]->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 4, r405_work->tex[1]->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl1[5] = r405_work->tex[1]->GetTexNo();
+        r405_work->tex[1]->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 4, r405_work->tex[1]->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "R300Init() : Manager alloc failed!!");
     }
@@ -189,7 +190,7 @@ static void R405ExecEventS00()
         SndRoomBgmStart(0, 0);
         SndRoomBgmStart(1, 0);
         SceSleep(2);
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
 }
 
@@ -205,11 +206,11 @@ extern "C" void Evt_R405S00_Func(Event* e)
                     ((cModel*) mod)->LightInfo.EnableMask = 1;
                 }
                 if (e->GetMod(&mod, "pl0c00", 0, 0) == 1) {
-                    Obj18Work* w = &((cObj*) mod)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
-                    if (w && w->child) {
-                        ((cObj*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
-                        w->child->be_flag &= ~2;
+                    if (w && w->pObjChain) {
+                        OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;
+                        w->pObjChain->be_flag &= ~2;
                     }
                 }
             }

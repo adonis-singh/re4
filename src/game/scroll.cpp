@@ -13,6 +13,7 @@
 #include "main_mem.h"
 #include "model.h"
 #include "obj.h"
+#include "obj02.h"
 #include "scroll.h"
 #include <string.h>
 #include "motion.h"
@@ -171,7 +172,7 @@ int SmdSetParam(cObj* pObj, SmdWork* pSw)
 
     pObj->be_flag |= 4;
     pObj->be_flag &= ~0x20;
-    pObj->attr = pSw->b.attr;
+    ((cObjScr*) pObj)->Attribute = pSw->b.attr;
     if (pSmd->Version <= 0x1F && pSw->motNo == 0) {
         pSw->motNo = 0xFF;
     }
@@ -248,7 +249,7 @@ void SmxSetFlag(cObj* pObj, u32 flag)
         pObj->be_flag |= 0x8000;
     }
     if (flag & 0x20) {
-        pObj->attr |= 1;
+        ((cObjScr*) pObj)->Attribute |= 1;
     }
 }
 
@@ -273,7 +274,7 @@ int SmxGetFlag(cObj* pObj)
     if (be & 0x8000) {
         flags |= 0x10;
     }
-    if (pObj->attr & 1) {
+    if (((cObjScr*) pObj)->Attribute & 1) {
         flags |= 0x20;
     }
     return flags;
@@ -306,7 +307,7 @@ void smxInit(cObj* obj, SmxWork* w)
         pLog->err(0, 0, "SmdInit() SMX WORK NUM ERR %d", w->id);
         return;
     }
-    if ((u32) obj < 0x80000000 || (u32) obj > 0x82FFFFFF || (obj->be_flag & 0x201) != 1) {
+    if ((u32) obj < 0x80000000 || (u32) obj > 0x82FFFFFF || !obj->isAlive()) {
         pLog->err(0, 0, "SmdInit() SMX UNUSED cObj SELECT %d", w->id);
         return;
     }
@@ -339,7 +340,7 @@ void smxInit(cObj* obj, SmxWork* w)
             mi->flagsDC |= 1;
         }
     }
-    memcpy(obj->work, w->work, 0x78);
+    memcpy(((cObjScr*) obj)->free, w->work, 0x78);
     if (obj->type == 0xF) {
         pLog->err(0, 0, "smxInit() : mirror model used.");
     }
@@ -389,7 +390,7 @@ cObj* SmdGetObjPtr(u32 idx)
         }
         return NULL;
     }
-    if (obj->attr & 4) {
+    if (((cObjScr*) obj)->Attribute & 4) {
         pLog->err(0, 0, "SmdGetObjPtr(%d) GROUP -> SmdGetGroupObjPtr()", idx);
     }
     return scrObjTbl[idx];
@@ -435,7 +436,7 @@ void BlockDestroy(int blkNo)
     if (p != NULL) {
         do {
             cur = p;
-            next = (cObj*) cur->pNext;
+            next = ObjMgr.getNext(cur);
             p = next;
             if (cur->kindid == 2 && cur->blk == blkNo) {
                 ObjMgr.destroy(cur);
@@ -601,7 +602,7 @@ cObj* SmdGetGroupObjPtr2(u32 idx)
 // Next member of a scroll group (attr bit2), NULL at the end.
 cObj* SmdGetGroupNext(cObj* pObj00)
 {
-    if (!(pObj00->attr & 4)) {
+    if (!(((cObjScr*) pObj00)->Attribute & 4)) {
         return NULL;
     }
     return ObjMgr.getPrevWork(pObj00);
@@ -618,9 +619,9 @@ void SmdSetTrans(u32 idx, int onoff)
     }
     do {
         if (onoff == 1) {
-            obj->be_flag |= 2;
+            obj->setTrans(1);
         } else {
-            obj->be_flag &= ~2;
+            obj->setTrans(0);
         }
         obj = SmdGetGroupNext(obj);
     } while (obj != NULL);
@@ -658,7 +659,7 @@ cObj* SetObjSmd(void* bin, void* tpl, Vec* pos, Vec* rot, int lightFlag, int fro
     size.x = b->size.x;
     size.y = b->size.y;
     size.z = b->size.z;
-    PSVECSubtract(&mi->bound.center, &obj->pParts->pos, &d);
+    PSVECSubtract(&mi->bound.center, &obj->pList->pos, &d);
     obj->LightInfo.init2(2, 1, &d, &size, lightFlag);
     return obj;
 }

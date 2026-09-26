@@ -46,16 +46,6 @@ static void em27_R1_Die_Normal(cEm27* em);
 
 
 
-// math_sub.h's VECNormalize with the log pointer read as a plain struct member: the inline
-// `cLogPtr::operator->` puts two block notes between `high(pLog)` and the load, which raises the
-// loop.c lifetime of the high pseudo from 1 to 3 and gets it hoisted out of the em27ObaHitCk loop
-// (the original keeps `lis pLog@ha` inside the loop).
-#define VECNormalizeP(src, dst)                                                         \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 
 // Module entry (SN loader): registers Em27Init as the DOL's enemy constructor (EmInitFunc).
@@ -161,11 +151,11 @@ void em27DmCk(cEm27* em)
     if (em->hp <= 0) {
         EmSetDie(em);
         if (em->pos.y > w->Water_h) {
-            EmRoutineSet(em, 2, 2, 0, 0);
+            em->setRno(2, 2, 0, 0);
         } else if (Rnd() & 1) {
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
         }
     } else {
         // Two identical arms behind a dmWep == 0x21 test: jump2 cross-jumps the whole first arm
@@ -174,15 +164,15 @@ void em27DmCk(cEm27* em)
         // sub-arms are merged it reads `ble E2; b T2`, identical to the second arm's head.
         if (em->dmg.m_Wep == 0x21) {
             if (!(em->pos.y > w->Water_h)) {
-                EmRoutineSet(em, 2, 0, 0, 0);
+                em->setRno(2, 0, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 2, 0, 0);
+                em->setRno(2, 2, 0, 0);
             }
         } else {
             if (em->pos.y > w->Water_h) {
-                EmRoutineSet(em, 2, 2, 0, 0);
+                em->setRno(2, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 2, 0, 0, 0);
+                em->setRno(2, 0, 0, 0);
             }
         }
     }
@@ -321,10 +311,7 @@ static void em27_R0_Init(cEm27* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     scale = fRand0_1() * 0.5f + 1.0f;
     if (em->type == 1) {
         scale = 3.0f;
@@ -362,8 +349,8 @@ static void em27_R0_Init(cEm27* em)
     w->pCtrlPlAvoid = GetCtrlCtrl11();
     w->pCtrlGroup = GetCtrlCtrl12();
     em->setStatus(EM_STATUS_LOCKOFF);
-    AtariOff(at, 0xFDFF);
-    EmRoutineSet(em, 1, zero, zero, zero);
+    at->offOba();
+    em->setRno(1, zero, zero, zero);
     em->ang.y = fRand1_1() * PI;
     MotionSetCore(em, MOTION(em), ARC(7), 0, 0, 1, 0);
     MotionMove(em, 0);
@@ -402,13 +389,13 @@ static void em27_R1_Wait(cEm27* em)
         if (w->Timer) {
             w->Timer--;
         } else if ((Rnd() & 7) == 0 && em27JumpCk(em)) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (w->Dash_wait == 0) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         }
         break;
     }
@@ -439,16 +426,16 @@ static void em27_R1_Walk(cEm27* em)
         em27SetSPeed(em, 0.1f);
         if (MotionMove(em, 0) && (Rnd() & 3) == 0) {
             if (w->L_go > 9000000.0f && (Rnd() & 3) == 0 && em27JumpCk(em)) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
         } else if (w->Dash_wait == 0) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         } else if (w->Timer) {
             w->Timer--;
         } else {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -477,7 +464,7 @@ static void em27_R1_Dash(cEm27* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             w->Dash_wait = Rnd() % 150 + 210;
         }
         break;
@@ -508,7 +495,7 @@ static void em27_R1_Bank(cEm27* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         em27SetSPeed(em, 0.1f);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -540,9 +527,9 @@ static void em27_R1_Turn180(cEm27* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->Dash_wait == 0) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -583,9 +570,9 @@ static void em27_R1_Jump(cEm27* em)
     case 1:
         if (em27MotionMoveScale(em)) {
             if (w->Dash_wait == 0) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -622,7 +609,7 @@ static void em27_R1_Dm_Normal(cEm27* em)
     }
     case 1:
         if (em27MotionMoveScale(em)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         if ((em->Motion.Seq_old.Free & 4) && em->hp <= 0) {
             em->r_no_0 = 3;
@@ -738,7 +725,7 @@ static void em27_R1_Dm_Air(cEm27* em)
         em->r_no_2++;
     case 7:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -826,7 +813,7 @@ static void em27_R1_Die_Normal(cEm27* em)
         if (w->Timer2) {
             w->Timer2--;
         } else {
-            cModel* p = em->getPartsPtr(4);
+            cParts* p = em->getPartsPtr(4);
             Vec v;
 
             flag = 1;
@@ -875,7 +862,7 @@ void em27SetSPeed(cEm27* em, f32 rate)
 void em27ScaleReset(cEm27* em)
 {
     Em27Work* w = EM27_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (w->Be_flg & 0x10) {
         return;
@@ -925,7 +912,7 @@ void em27ObaHitCk(cEm27* em)
         if (e->hp <= 0) {
             continue;
         }
-        if (e->pParts == 0) {
+        if (e->pList == 0) {
             continue;
         }
         PSVECSubtract(&em->pos, &e->pos, &d);
@@ -938,7 +925,7 @@ void em27ObaHitCk(cEm27* em)
         }
         dist = SQRTF(dist) * 0.9f + 20.0f;
 #line 1315 "D:/Bio4/Prog/em27.cpp"
-        VECNormalizeP(&d, &d);
+        VECNormalize(&d, &d);
         PSVECScale(&d, &d, dist);
         PSVECAdd(&e->pos, &d, &em->pos);
     }
@@ -968,7 +955,7 @@ int em27MotionMoveScale(cEm27* em)
     Vec rot;
     Vec inv;
     int ret;
-    cModel* p;
+    cParts* p;
 
     inv.x = 1.0f / em->scale.x;
     inv.y = 1.0f / em->scale.y;
@@ -993,7 +980,7 @@ void em27WaterEffSet(cEm27* em)
     Em27Work* w = EM27_WK(em);
     Vec v;
     f32 h;
-    cModel* p;
+    cParts* p;
 
     if (w->Be_flg & 0x80) {
         return;

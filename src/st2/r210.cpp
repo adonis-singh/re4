@@ -104,7 +104,7 @@ void R210Init()
                 v.z = -14875.0f;
                 pSUB->setPos(&v);
                 {
-                    cSubChar* sub = pSUB;
+                    cSubChar* sub = SUB_CHAR();
 
                     v.x = 0.0f;
                     v.y = 3.14f;
@@ -179,7 +179,7 @@ static void funcAshley2(cEm* p)
     if (p->r_no_2 == 0) {
         cAtariInfo* at = &pSUB->atari;
 
-        at->throughOn();
+        at->off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x27), 0x2D, 0x2D, 1, 0);
         p->r_no_2 = 1;
         p->Motion.Seq_speed = 0.2f;
@@ -190,9 +190,9 @@ static void funcAshley2(cEm* p)
         // Reference store: the `lwz pSUB` (fixed scalar) below depends on an unflagged MEM store but
         // not on an in-struct one, which is what ranks the 1.0 chain above the routine bytes.
         (p->Motion.Seq_speed = 1.0f);
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         at = &pSUB->atari;
-        at->throughOff();
+        at->on();
         SubCharCtrl(SCC_CHASE, 0);
     }
 }
@@ -211,7 +211,7 @@ static void r222_dai_go()
 
         pSUB->setNoSuspend(1);
         at = &pSUB->atari;
-        at->throughOff();
+        at->on();
         SubCharCtrl(SCC_STOP, 0);
         ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     }
@@ -267,7 +267,7 @@ static void r222_dai_go()
     {
         cAtariInfo* at = &pPL->atari;
 
-        at->throughOn();
+        at->off();
     }
     SceAtSetEnable(5, 0);
     SceAtSetEnable(6, 0);
@@ -294,7 +294,7 @@ static void r222_dai_go()
     {
         cAtariInfo* at = &pPL->atari;
 
-        AtariOnRaw(at, 0x300);
+        at->on();
     }
     pPL->setNoSuspend(0);
     if (pSUB) {
@@ -319,7 +319,7 @@ static void r222_dai_ret()
 
         pSUB->setNoSuspend(1);
         at = &pSUB->atari;
-        at->throughOff();
+        at->on();
         SubCharCtrl(SCC_STOP, 0);
         ScfFlagOn(pG, SCF_NO_ASHLEY_DIST_CK);
     }
@@ -364,7 +364,7 @@ static void toroko_go(int dir)
     Vec pos;
 
     if (CheckDoorJumpWithAshley() == 0) {
-        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         return;
     }
     obj = SetObjSmd(ROOM_ARC_PTR(pG->pRoom, 0x22), ROOM_ARC_PTR(pG->pRoom, 0x23), (Vec*) &vecZero, (Vec*) &vecZero, 0x10, 1);
@@ -394,7 +394,7 @@ static void toroko_go(int dir)
         p->setPos(pp);
         p->setAng(zero);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 sub->setPos(pp);
@@ -445,7 +445,7 @@ static void toroko_ret(int dir)
     Vec pos;
 
     if (CheckDoorJumpWithAshley() == 0) {
-        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         return;
     }
     obj = SetObjSmd(ROOM_ARC_PTR(pG->pRoom, 0x22), ROOM_ARC_PTR(pG->pRoom, 0x23), (Vec*) &vecZero, (Vec*) &vecZero, 0x10, 1);
@@ -472,7 +472,7 @@ static void toroko_ret(int dir)
         p->setPos(pp);
         SetAngV(p, &ang);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 sub->setPos(pp);
@@ -535,7 +535,7 @@ static void toroko_ret(int dir)
             pp->z = -7950.0f;
             pSUB->setPos(pp);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 p.x = 0.0f;
                 pp->y = 1.75f;
@@ -571,7 +571,7 @@ static void toroko_ret(int dir)
             pp->z = 247150.0f;
             pSUB->setPos(pp);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 p.x = 0.0f;
                 pp->y = 1.83f;

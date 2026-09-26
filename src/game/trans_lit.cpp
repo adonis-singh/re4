@@ -85,9 +85,9 @@ void LightSetModel(cModel* pMod)
         LightDisable();
         return;
     }
-    obj_pos = pMod->pParts->world;
+    obj_pos = pMod->pList->world;
     obj_size = pMod->LightInfo.Size.x > pMod->LightInfo.Size.y ? pMod->LightInfo.Size.x : pMod->LightInfo.Size.y;
-    if ((pMod->LightInfo.Flag & 3) == 2) {
+    if (pMod->LightInfo.getType() == 2) {
         obj_flag = 0;
     } else {
         obj_flag = 1;
@@ -517,12 +517,12 @@ void lightSetColor(GXLightObj* lobj, cLight* pLi, cEm* pMod)
     col[1] = g * a * 0.0078125f;
     col[2] = b * a * 0.0078125f;
     if (pMod != NULL) {
-        EmLightArea* la = &pMod->litArea;
+        cModelState* la = &pMod->State;
 
-        if (la->chk(1) == 1 && la->chk(2) == 1 && la->lightNo == pLi->LitIndex) {
-            col[0] *= la->scale;
-            col[1] *= la->scale;
-            col[2] *= la->scale;
+        if (la->IsLightIgnore() == 1 && la->IsLightIgnoreUse() == 1 && la->GetLightNo() == pLi->LitIndex) {
+            col[0] *= la->GetLightPow();
+            col[1] *= la->GetLightPow();
+            col[2] *= la->GetLightPow();
         }
     }
     col[0] = col[0] < 0.0f ? 0.0f : (col[0] > 255.0f ? 255.0f : col[0]);

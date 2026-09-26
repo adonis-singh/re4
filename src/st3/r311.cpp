@@ -47,9 +47,9 @@ struct R311Work {
     cObj* crane;          // 0x004  the crane arm (0x23/0x24)
     u32 throwCnt;         // 0x008  throws so far
     int throwing;         // 0x00C  1 while r311_throwIronBall runs
-    ScePrim* terminal;    // 0x010  r311_execAshleyOperateTerminal task
-    ScePrim* appear;      // 0x014  r311_execEmAppear task
-    ScePrim* doorTask;    // 0x018  r311_moveEmDoor task
+    SCE_TASK* terminal;    // 0x010  r311_execAshleyOperateTerminal task
+    SCE_TASK* appear;      // 0x014  r311_execEmAppear task
+    SCE_TASK* doorTask;    // 0x018  r311_moveEmDoor task
     int eff;              // 0x01C  terminal effect kind (EspPullCoreKind)
     u32 resetCnt;         // 0x020  enemies reset so far
     cSceObj door;         // 0x024  the sliding door going up
@@ -141,7 +141,7 @@ static void r311_checkEmMoveCtrl()
         for (i = 0; i < EmMgr.getArrayNum(); i++) {
             cEm* p = EmMgr.fastAt(i);
 
-            if (p->id >= 0x10 && p->id <= 0x20 && (p->be_flag & 0x201) == 1) {
+            if (p->id >= 0x10 && p->id <= 0x20 && p->isAlive()) {
                 em.setPtr(p, 1);
                 if (n & 1) {
                     SceAtGetCenterPos(&pos, 0xC);
@@ -211,7 +211,7 @@ int r311_execAshleyEvent()
         SceSleep(1);
         se = SndCall(6, 5, 0, 0, 0, 0);
         pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x2C), 10, 0, 1, 0);
-        SceMesSet(4, 0xF0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(4, 0xF0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         while (CamCtrl.IsMotionEnd() == 0) {
             if (Key.trg & 0x20000000) {
                 if (se) {
@@ -222,10 +222,7 @@ int r311_execAshleyEvent()
             }
             SceSleep(1);
         }
-        MessageControl* m = &cMes;
-        for (int k = 0; k < 16; k++) {
-            m->Delete(k);
-        }
+        cMes.Clear();
         SubCharCtrl(1, 0);
         pSUB->setNoSuspend(0);
         pSUB->setPos(&save);
@@ -542,7 +539,7 @@ static void r311_throwIronBall_HitCk()
 
     if (r311_work->ball) {
         for (i = 0; i < 80; i++) {
-            cModel* part = r311_work->ball->getPartsPtr(10);
+            cParts* part = r311_work->ball->getPartsPtr(10);
             Vec p = {0.0f, -1100.0f, 0.0f};
 
             PSMTXMultVec(part->mat, &p, &p);
@@ -654,7 +651,7 @@ static void r311_execAshleyOperateTerminal()
 
         PSMTXMultVec(r311_work->crane->mat, &p, &p);
         pSUB->ang.y = r311_work->crane->ang.y + PI;
-        sub = pSUB;
+        sub = SUB_CHAR();
         rot = &sub->ang;
         sub->setPos(&p);
         sub->setAng(rot);
@@ -665,7 +662,7 @@ static void r311_execAshleyOperateTerminal()
     wait = 0;
     pSUB->atari.setPriority(3);
     pSUB->atari.set(0, 100.0f, 200.0f);
-    AtariOnV(&pSUB->atari, 0x300);
+    pSUB->atari.on();
     pSUB->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x2B), 10, 0, 1, 0);
     if (r311_work->throwing == 1) {
         step = 3;
@@ -710,7 +707,7 @@ static void r311_execAshleyOperateTerminal()
     }
     SubCharCtrl(1, 0);
     pSUB->atari.setPriority(0);
-    AtariOnV(&pSUB->atari, 0x300);
+    pSUB->atari.on();
     r311_work->terminal = 0;
 }
 
@@ -718,7 +715,7 @@ static void r311_execAshleyOperateTerminal()
 static void r311_checkIronBallTerminal()
 {
     if (R311_SAVE_FLAGS & 0x40000000) {
-        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         return;
     }
     if (pSUB != NULL && RouteCkPosToPosDis(&pPL->pos, &pSUB->pos) < 4000.0f && !StaFlagChk(pG, STA_SUB_CATCHED)) {

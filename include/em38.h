@@ -88,7 +88,7 @@ struct Em38Work {
     int blendKind;        // 0x664 (0xA44)  MotionSetCore flags of the blend
     MotionWorkSub blendMot;  // 0x668 (0xA48)  the blend motion work (cModel::Motion.blend)
     MotionWorkSub shellMot;  // 0x738 (0xB18)  the shell motion work (em38ShellControl)
-    Camera cam;           // 0x808 (0xBE8)  event camera of the escape scenes (em38EscapeCamMove)
+    CAMERA cam;           // 0x808 (0xBE8)  event camera of the escape scenes (em38EscapeCamMove)
 };
 
 #define EM38_WK(em) ((Em38Work*) (((cEm38*) (em))->free))

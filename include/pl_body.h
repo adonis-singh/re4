@@ -5,6 +5,7 @@
 #include "vec.h"
 #include "model.h"
 #include "math_sub.h"
+#include "main_mem.h"
 
 // Face shape motion data built by cPlBody::makeSpaeData (PS2 PL_SHAPE_DATA, 0x58 bytes): a header,
 // two key tables and four keys.
@@ -29,14 +30,6 @@ struct SpaeData {
     SHAPE_MOT mot[4];       // 0x18
 };
 
-// Model part as seen by pl_body (cModel::getPartsPtr result): the waist twist writes its rotation.
-struct PlBodyParts {
-    u8 pad_0[0x128];
-    Vec rot;        // 0x128
-    u8 pad_134[0x1C0 - 0x134];
-    u32 flags;      // 0x1C0  bit30: rotation override
-};
-
 // Player body helper (game/pl_body.cpp, `new`ed by cPlayer::init0 into cEm::pBody at 0x794, 0xF0
 // bytes): the extra model infos hung off the player (hands, head, face, hair) and the data pointers
 // they were built from (pl_leon setModel/setRightHand/...), the waist twist and the weapon hand.
@@ -51,9 +44,9 @@ public:
     cModelInfo* m_pArmL;         // 0x18  (PS2 m_pArmL; only cleared on GC)
     cModelInfo* m_pHandR;          // 0x1C  right hand model info
     cModelInfo* m_pHandL;           // 0x20  left hand model info
-    cModelInfo* pHair;           // 0x24
-    cModelInfo* pEye;            // 0x28  (flags |= 0x40)
-    cModelInfo* pFace;           // 0x2C  face model info (pl_knife zeroes/ones its 0x5C/0x70/0x84)
+    cModelInfo* m_pHead;         // 0x24
+    cModelInfo* m_pHair;         // 0x28  (flags |= 0x40)
+    cModelInfo* m_pKnife;        // 0x2C  the knife model info (setKnife scales its matrix to 0 / 1)
     u32 nowLhandNo;                  // 0x30  current left hand item no
     u32 oldLhandNo;              // 0x34  previous one (setLeftHand(0x63) restores it)
     cModel* m_pMod;              // 0x38
@@ -63,6 +56,23 @@ public:
     cPlBody(cModel* model);
     void move();
     void waistSet(f32 y);
+    void setKnife(bool on)
+    {
+        // Stores through knife would make the compiler reload m_pKnife after each one.
+        cModelInfo* knife = m_pKnife;
+
+        if (VALID_PTR(knife)) {
+            if (on) {
+                knife->mat[2][2] = 1.0f;
+                knife->mat[1][1] = 1.0f;
+                knife->mat[0][0] = 1.0f;
+            } else {
+                knife->mat[2][2] = 0.0f;
+                knife->mat[1][1] = 0.0f;
+                knife->mat[0][0] = 0.0f;
+            }
+        }
+    }
     void waistMove();
     void makeSpaeData();
     void initWepHand(u32 addr);

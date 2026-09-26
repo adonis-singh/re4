@@ -67,7 +67,7 @@ public:
 
 extern "C" {
 void itemNameDisp(SUB_SCREEN* wk);
-void itemCameraInit(SUB_SCREEN* wk, Camera* cam);
+void itemCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 void sscrn_item_out_init(SUB_SCREEN* wk);
 ItemWork* ITEM_PTR(int idx, int col);
 int ITEM_AT(ItemWork* p, int col);
@@ -123,9 +123,8 @@ void itemNameDisp(SUB_SCREEN* wk)
     x = (int) ((u->pos.x + 320.0f) * 0.8f);
     y = (int) ((240.0f - u->pos.y) * 0.8f);
     MessageControl* pm = &cMes;
-    Message* m = pm->getMes(0);
 
-    y -= m->m_font_h / 2;
+    y -= cMes.getFontHeight(0) / 2;
     if (!(item->flags & 1)) {
         del = 1;
     }
@@ -133,14 +132,14 @@ void itemNameDisp(SUB_SCREEN* wk)
         pm->Delete(0);
     } else {
         cMes.setFontSize(0, item_name_w[1], item_name_h[1]);
-        m->m_line_gap = 0;
-        m->m_char_gap = item_name_space[3];
+        cMes.setLineGap(0, 0);
+        cMes.setFontGap(0, item_name_space[3]);
         pm->MesSet(item->id, x, y, 0x20088, 0, 0, 4);
     }
 }
 
 // The item screen uses the common sub screen camera.
-void itemCameraInit(SUB_SCREEN* wk, Camera* cam)
+void itemCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     sscrnCameraInit(wk, cam);
 }
@@ -204,8 +203,8 @@ void SsItemInit::move(SUB_SCREEN* wk)
             sscrnLightClear(wk);
             {
                 Cockpit* ck = &Cckpt;
-                ck->m_LifeMeter.fix(1);
-                ck->m_LifeMeter.frameIn();
+                ck->lifeMeterFix(1);
+                ck->lifeMeterFrameIn();
             }
         } else {
             sscrnModelClear(wk);
@@ -290,7 +289,7 @@ void SsItemMain::init(SUB_SCREEN* wk)
         wk->alpha_flag = 0;
         wk->alpha_cnt = 10;
     }
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pItemDat, 4));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pItemDat, 4));
     {
 #line 368 "D:/Bio4/Prog/ss_item.cpp"
         ItemScreenWork* p = (ItemScreenWork*) MEM_ALLOC(sizeof(ItemScreenWork), 1, 13);
@@ -482,7 +481,7 @@ void sscrn_item_out_init(SUB_SCREEN* wk)
     u = IdSub.unitPtr(1, IDC_SSCRN_CKPT_2);
     u->rev_flag |= 1;
     if (wk->menu_next == 2) {
-        Cckpt.m_LifeMeter.frameOut();
+        Cckpt.lifeMeterFrameOut();
         wk->alpha_flag = 1;
     }
 }
@@ -639,16 +638,16 @@ void itemFrameSet(SUB_SCREEN* wk, int col)
             m->be_flag &= ~8;
             numDisp(no, 0, 0, 0);
         } else {
-            ItemInfo info;
             m->be_flag |= 8;
             m->tex_flag |= 2;
             // do {} while (0): the loop notes weight `item`'s refs one depth deeper, so global-alloc
             // ranks it above `col` (item r30, col r29).
+            u16 maxNum;
             do {
                 m->texNo = itemTexNo(item->id);
-                itemInfo(item->id, &info);
+                maxNum = itemMaxNum(item->id);
             } while (0);
-            if (info.maxNum != 1) {
+            if (maxNum != 1) {
                 Vec pos;
                 pos.x = (f32) item_num_x;
                 pos.y = (f32) item_num_y;
@@ -1333,7 +1332,7 @@ void itemMakeMove(SUB_SCREEN* wk)
         }
         if (joy->trg & 0x100) {
             ItemMgr.get((u16) mk->id[n], 0);
-            got = ItemMgr.pLast;
+            got = ItemMgr.newbie();
         } else {
             if (joy->rep & 0x00010001) {
                 if (joy->on & 0x100) {

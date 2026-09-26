@@ -10,21 +10,40 @@ class cModel;
 
 // Render-to-texture manager (game/TexRender.cpp): up to 8 EFB copies per frame.
 class TexRenderMng {
-public:
-    int used;        // 0x00
+private:
+    int m_Be_flg;       // 0x00
     GXTexObj m_Tex_obj; // 0x04
     void* m_Texture_buffer;       // 0x24  sx * sy * 4 bytes
     u8 m_Tex_no;        // 0x28  0xF8 + slot
-    u8 x29;
+    u8 pad;
     u16 m_Core_flg;        // 0x2A  8 << slot
     u32 m_W_size;          // 0x2C  texture size (EFB copy is 2x)
     u32 m_H_size;          // 0x30
     int m_Rep_type;     // 0x34  0 mirror, 1 repeat, 2 clamp
 
+public:
     TexRenderMng();
     void Init();
     int AllocBuf();
     void ReAllocBuf();
+    int IsAlive() { return m_Be_flg; }
+    void SetAlive(int alive) { m_Be_flg = alive; }
+    void* GetBufAddr() { return m_Texture_buffer; }
+    GXTexObj* GetTexObj() { return &m_Tex_obj; }
+    void SetTexNo(u8 no) { m_Tex_no = no; }
+    u8 GetTexNo() { return m_Tex_no; }
+    void SetCoreFlg(u16 flg) { m_Core_flg = flg; }
+    u16 GetCoreFlg() { return m_Core_flg; }
+    void SetWHSize(u32 w, u32 h)
+    {
+        m_W_size = w;
+        m_H_size = h;
+    }
+    u32 GetWSize() { return m_W_size; }
+    u32 GetHSize() { return m_H_size; }
+    u32 GetTexBufSize() { return m_W_size * m_H_size * 4; }
+    void SetRepeatType(int type) { m_Rep_type = type; }
+    int GetRepeatType() { return m_Rep_type; }
 };                   // 0x38
 
 // Event data block TexRenderCamAddOt is handed (only the fields CamRenderPrev reads).
@@ -43,7 +62,7 @@ struct TexRenderCam {
     CameraMotion cam;    // 0x000
     u8 pad_1D4[0x200 - 0x1D4];
     cCamera* pCam;       // 0x200  &cam
-    Camera save;         // 0x204  pG->Camera while the render camera is active
+    CAMERA save;         // 0x204  pG->Camera while the render camera is active
     TexRenderEvt* pEvt;  // 0x2FC
     void* data;          // 0x300  motion data for CameraMotion
 };

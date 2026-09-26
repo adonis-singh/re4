@@ -14,6 +14,10 @@
 #include "objBull.h"
 #include "obj12.h"
 #include "obj16.h"
+#include "obj14.h"
+#include "obj15.h"
+#include "objGondola.h"
+#include "obj13.h"
 
 // Shared Ganado enemy library (em10.cpp, D:/Bio4/Prog/em10.cpp): the same object is linked into the
 // 16 Ganado modules em10..em17, em19..em1f, em20 (config/G4BE08/modules.py). The per-enemy files of
@@ -50,7 +54,7 @@ struct Em10Work {
     cModel* pWhood;         // 0x1A4 (0x584)  second hood variant (em10SetAccesory mot[23]) (PS2 pWhood)
     cModel* pAccesory[7]; // 0x1A8 (0x588)  accessory parts by flags_3C8 bits (em10SetAccesory) (PS2 pAccesory[7])
     YARARE_INFO hit[10];    // 0x1C4 (0x5A4)  extra hit boxes (YarareAdd in em10_R0_Init)
-    Camera Cam;           // 0x3CC (0x7AC)  takeaway camera (em10CamMoveTakeaway installs it as CamCtrl.x250)
+    CAMERA Cam;           // 0x3CC (0x7AC)  takeaway camera (em10CamMoveTakeaway installs it as CamCtrl.x250)
     u8 St_set;              // 0x4C4 (0x8A4)  chgSet value (cEm::x38D copy)  (PS2 St_set)
     u8 pad_4C5[3];
     Vec St_pos;           // 0x4C8 (0x8A8)  pos at init (PS2 St_pos)
@@ -272,48 +276,6 @@ typedef void (*PlEm10Func)(cPlayer*);
 // .data+0: the per-enemy set function _prolog stores (EmXXSet), run by em10_R0_Init.
 extern Em10Func Em10SetFunc;
 
-// Object enemies the Ganados interact with (DOL units without a header of their own).
-class cObjGatling : public cObj {
-public:
-    void stopFire();
-    void setRide(cEm* pEm);
-    void setReload();
-    void setFire();
-    int ckReload();
-    int ckBreak();
-};
-
-class cObjGondola : public cObj {
-public:
-    void setVib();
-    void setGetOffEm(cEm* em);
-    void setDamage();
-    void setBreak();
-    int ckRide();
-};
-
-class cObjLadder : public cObj {
-public:
-    void setDown2();
-    void setResetReserve();
-    void setReset(int a);
-    void setClimb();
-    int getType();
-    int getStatus();
-    int getLadderNum();
-    int ckReset();
-    int ckClimb();
-};
-
-class cObjBell : public cObj {
-public:
-    void setBreak();
-    int ckBreakEnable();
-    int ckBreak();
-};
-
-// game/obj14.cpp: creates the bell object (st2 r218).
-cObj* SetObjBell(void* bin, void* tpl, Vec* pos, Vec* rot);
 
 cObj* SetObj01(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* v, f32 a, f32 b, int c, int d);
 // game/obj08.cpp: the thrown projectile object (em2d poison; em10 declares them locally).

@@ -233,11 +233,8 @@ void AddWaterPowerSub(EspgenWork* w)
 // (Status_flg[0] 0x200).
 void AddWaterPower(Vec& pos, f32 pow)
 {
-    // A local for the zero, declared before the flag check: without it pos loses its register tie
-    // with g_pWater and gets copied to a second register.
-    u32 n = 0;
     if (StaFlagChk(pG, STA_WATER_ALIVE)) {
-        Height_find = n;
+        Height_find = 0;
         Add_power = pow * 5.0f;
         Chk_pos = pos;
         if (g_pWater != NULL) {

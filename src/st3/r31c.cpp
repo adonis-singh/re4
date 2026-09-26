@@ -125,7 +125,7 @@ struct R31cWork {
     cEmWrap krauser2;       // 0x2BC  Krauser of the second battle (list 0x13)
     cEmDoor* door8;             // 0x2C8  etc door 8 (the battle arena door)
     cEm* rack;              // 0x2CC  etc rack 0x10
-    ScePrim* talkTask;      // 0x2D0  the running r31c_TalktoKrauser task
+    SCE_TASK* talkTask;      // 0x2D0  the running r31c_TalktoKrauser task
     cR31CDoor door[9];      // 0x2D4  ids 0x78 0x79 0x7C 0x7B 0x7D 0x7E 0x7F 0x80 0x6D
     cR31CCountDown countDown;  // 0x4CC
     cEm* sw[2];             // 0x4D4  etc switches 0x11 / 0x12
@@ -941,7 +941,7 @@ static void r31c_TimerDoorCountDown()
     EstSet(r31c_work->door8, -1, 0, 0, EFF_ROOM, 0x18, 1, ESP_CORE_KIND_NONE, 0, 0);
     KyfFlagOn(pG, KYF_ST1_23);
     RoomSeCall(0x12, 0, 0, 0, 0);
-    SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     while (CamCtrl.IsMotionEnd() == 0) {
         SceSleep(1);
     }
@@ -1245,7 +1245,7 @@ static void r31c_CountDownEnd()
 // explodes and Status_flg[2] 0x00020000 clears.
 static void r31c_CountDownThread()
 {
-    SceCTask()->task->flag &= ~2;
+    SceCTask()->setNoSuspend(0);
     r31c_work->countDown.countStart();
     do {
         if (r31c_work->countDown.isTimeOut() == 1) {
@@ -1660,7 +1660,7 @@ static void Evt_R31CS01_Func(Event* e)
         r31c_mesNo = (Rnd() & 1) ? 3 : 4;
         cut = 0xB;
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = cut;
+        e->SetEvtCancelCut(cut);
         break;
     case 1:
         switch (e->NowCut) {
@@ -1709,8 +1709,8 @@ static void Evt_R31CS01_Func(Event* e)
         SmdGetObjPtr(0x97)->be_flag |= 2;
         break;
     case 3:
-        if (EvtStatusCk(e, 0x4000) == 0) {
-            EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x8B, 1, 0.0f);
+        if (e->FlgCkStatus(EvtStfEvtCancelSet) == 0) {
+            EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x8B, 1, 0.0f);
         }
         break;
     }
@@ -1748,7 +1748,7 @@ static void r31c_KrauserCorpseMes()
     CamCtrl.StartLookDownEm(r31c_work->krauser2.getPtr());
     SceEventStart(1);
     r31c_work->krauser2.setNoSuspend(1);
-    SceMesSet(4, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(4, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceEventEnd(0);
     CamCtrl.EndLookDownEm();
 }
@@ -1899,7 +1899,7 @@ void cR31CPost::die()
 {
     if (step == 0) {
         obj->be_flag &= ~2;
-        eat->m_Flag &= ~4;
+        eat->setDisable();
         switch (type) {
         case 1:
             if (dmgType == 4) {
@@ -2048,7 +2048,7 @@ void cR31CDoor::open()
             if (obj->pos.y > pos.y + dist) {
                 obj->pos.y = pos.y + dist;
                 se = 6;
-                sat->m_Flag &= ~4;
+                sat->setDisable();
                 step++;
             }
             break;
@@ -2072,8 +2072,8 @@ void cR31CDoor::open()
             if (obj->pos.z > pos.z + dist) {
                 obj->pos.z = pos.z + dist;
                 se = 0xE;
-                sat->m_Flag &= ~4;
-                eat->m_Flag &= ~4;
+                sat->setDisable();
+                eat->setDisable();
                 step++;
             }
             break;
@@ -2082,7 +2082,7 @@ void cR31CDoor::open()
             if (obj->pos.y < pos.y + dist) {
                 obj->pos.y = pos.y + dist;
                 if (sat) {
-                    sat->m_Flag &= ~4;
+                    sat->setDisable();
                 }
                 se = 6;
                 step++;
@@ -2095,7 +2095,7 @@ void cR31CDoor::open()
             if (obj->pos.y < pos.y + dist) {
                 obj->pos.y = pos.y + dist;
                 if (sat) {
-                    sat->m_Flag &= ~4;
+                    sat->setDisable();
                 }
                 step++;
             }
@@ -2129,15 +2129,15 @@ void cR31CDoor::close()
         case 0x80:
             spd = -40.0f;
             se = 7;
-            sat->m_Flag |= 4;
+            sat->setEnable();
             break;
         case 0x78:
             spd = 30.0f;
             break;
         case 0x7B:
             se = 0xD;
-            sat->m_Flag |= 4;
-            eat->m_Flag |= 4;
+            sat->setEnable();
+            eat->setEnable();
             spd = -60.0f;
             break;
         case 0x7C:
@@ -2145,13 +2145,13 @@ void cR31CDoor::close()
         case 0x7D:
         case 0x7E:
             if (sat) {
-                sat->m_Flag |= 4;
+                sat->setEnable();
             }
             spd = 30.0f;
             break;
         case 0x7F:
             se = 5;
-            sat->m_Flag |= 4;
+            sat->setEnable();
             spd = 40.0f;
             break;
         }
@@ -2288,10 +2288,10 @@ void cR31CDoor::setOpened()
     if (init_) {
         status = 1;
         if (sat) {
-            sat->m_Flag &= ~4;
+            sat->setDisable();
         }
         if (eat) {
-            eat->m_Flag &= ~4;
+            eat->setDisable();
         }
         mode = 0;
         step = 0;
@@ -2333,10 +2333,10 @@ void cR31CDoor::setClosed()
     if (init_) {
         status = 0;
         if (sat) {
-            sat->m_Flag |= 4;
+            sat->setEnable();
         }
         if (eat) {
-            eat->m_Flag |= 4;
+            eat->setEnable();
         }
         mode = 0;
         step = 0;
@@ -2361,9 +2361,8 @@ void cR31CDoor::setClosed()
 
 void cR31CCountDown::countStart()
 {
-    Cckpt.m_CountDown.m_state |= TIMER_STA_ALIVE;
-    Cckpt.getCountDown()->initTime(3, 0, 0);
-    Cckpt.getCountDown()->warnTime(0, 0, 0);
+    Cckpt.startCountDownTimer(3, 0, 0);
+    Cckpt.setWarningTime(0, 0, 0);
     setDisp(1);
     state = 1;
     running = 1;
@@ -2372,8 +2371,7 @@ void cR31CCountDown::countStart()
 // Stop the cockpit count-down (state bit 0 off, the display slides out); state 0.
 void cR31CCountDown::countEnd()
 {
-    Cckpt.m_CountDown.m_state &= ~1;
-    Cckpt.getCountDown()->frameOut();
+    Cckpt.endCountDownTimer();
     setDisp(0);
     state = 0;
     running = 0;
@@ -2383,10 +2381,10 @@ void cR31CCountDown::countEnd()
 void cR31CCountDown::setPause(int on)
 {
     if (on == 1) {
-        Cckpt.m_CountDown.m_state |= TIMER_STA_PAUSE;
+        Cckpt.pauseCountDownTimer();
         state = 2;
     } else {
-        Cckpt.m_CountDown.m_state &= ~8;
+        Cckpt.playCountDownTimer();
         state = 1;
     }
 }
@@ -2394,25 +2392,15 @@ void cR31CCountDown::setPause(int on)
 // Show (frameIn) or hide (frameOut) the count-down display.
 void cR31CCountDown::setDisp(int on)
 {
-    Cockpit* ck = &Cckpt;
-
-    if (on) {
-        ck->getCountDown()->frameIn();
-    } else {
-        ck->getCountDown()->frameOut();
-    }
+    Cckpt.transCountDownTimer(on);
 }
 
 // 1 when the count-down runs and its frame count reached 0.
 int cR31CCountDown::isTimeOut()
 {
     if (running == 1) {
-        CountDown* cd = Cckpt.getCountDown();
-        int over = 0;
+        int over = Cckpt.isZeroCountDownTimer();
 
-        if (cd->checkState(TIMER_STA_ALIVE)) {
-            over = cd->m_frame == 0;
-        }
         return over;
     }
     return 0;

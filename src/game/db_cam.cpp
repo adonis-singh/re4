@@ -56,9 +56,9 @@ static inline void Dec(int& v) { v--; }
 // type (EM / OBJ / PL / ORG) with A snaps the look-at to the selected work (Left / Right pick it,
 // R + A steps its motion), the layout's control routine runs, and the camera info / target cross
 // are drawn.
-void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
+void debugCamera::move(CAMERA* pCam, JOY* pJoy, int attr)
 {
-    static void (debugCamera::*camera_type_tbl[4])(Camera*, JOY*) = {
+    static void (debugCamera::*camera_type_tbl[4])(CAMERA*, JOY*) = {
         &debugCamera::camera_type_00,
         &debugCamera::camera_type_01,
         &debugCamera::camera_type_00,
@@ -139,7 +139,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
         }
         if (pJoy->on & JOY_A) {
             if (EmMgr.at(numEm)->be_flag & 1) {
-                cModel* parts = EmMgr.at(numEm)->getPartsPtr(0);
+                cParts* parts = EmMgr.at(numEm)->getPartsPtr(0);
                 if (parts == NULL) {
                     pCam->param.at = EmMgr.at(numEm)->pos;
                 } else {
@@ -188,7 +188,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
                 numObj = 0;
             }
             for (;;) {
-                obj = ObjMgrWork(numObj);
+                obj = ObjMgr.at(numObj);
                 if (!(obj->be_flag & 1)) {
                     if (--i == 0) {
                         break;
@@ -203,10 +203,10 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
             }
         }
         if (pJoy->on & JOY_A) {
-            if (ObjMgrWork(numObj)->be_flag & 1) {
-                cModel* parts = ObjMgrWork(numObj)->getPartsPtr(0);
+            if (ObjMgr.at(numObj)->be_flag & 1) {
+                cParts* parts = ObjMgr.at(numObj)->getPartsPtr(0);
                 if (parts == NULL) {
-                    pCam->param.at = ObjMgrWork(numObj)->pos;
+                    pCam->param.at = ObjMgr.at(numObj)->pos;
                 } else {
                     pCam->param.at = parts->world;
                 }
@@ -222,7 +222,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
     case 2:
         if (pJoy->on & JOY_A) {
             if (pPL->be_flag & 1) {
-                cModel* parts = pPL->getPartsPtr(0);
+                cParts* parts = pPL->getPartsPtr(0);
                 if (parts == NULL) {
                     pCam->param.at = pPL->pos;
                 } else {
@@ -268,7 +268,7 @@ void debugCamera::move(Camera* pCam, JOY* pJoy, int attr)
 // Layout 0: L / R zoom (distance, or the ortho extents), main stick orbits the target, D-pad
 // (+X) dollies forward / back / up / down along the camera or world axes, C-stick turns the
 // camera in place. All scaled by m_move_gain.
-void debugCamera::camera_type_00(Camera* pCam, JOY* pJoy)
+void debugCamera::camera_type_00(CAMERA* pCam, JOY* pJoy)
 {
     Vec mv = {0.0f, 0.0f, 0.0f};
     f32 spd = 100.0f;
@@ -347,7 +347,7 @@ void debugCamera::camera_type_00(Camera* pCam, JOY* pJoy)
 #line 452 "D:/Bio4/Prog/db_cam.cpp"
             VECNormalize(&dir, &dir);
             PSVECCrossProduct(&up, &dir, &axis);
-            MTX_SET_COLUMNS(m, &axis, &up, &dir, &trans);
+            MTXSetColumns(m, axis, up, dir, trans);
         } else {
             PSMTXIdentity(m);
         }
@@ -364,7 +364,7 @@ void debugCamera::camera_type_00(Camera* pCam, JOY* pJoy)
 }
 
 // Layout 1: L / R zoom, C-stick dollies sideways / up, main stick orbits the target.
-void debugCamera::camera_type_01(Camera* pCam, JOY* pJoy)
+void debugCamera::camera_type_01(CAMERA* pCam, JOY* pJoy)
 {
     Vec mv = {0.0f, 0.0f, 0.0f};
     f32 dist_min = 1500.0f;
@@ -424,7 +424,7 @@ void debugCamera::camera_type_01(Camera* pCam, JOY* pJoy)
 // The Z menu: runs the current page (0 flags, 1 camera cuts, 2 hit display, 3 shoulder adjust),
 // L / R change pages, and applies the CAMERA MODE selection (0 area cameras .. 5 bird's eye) to
 // the camera controller when it changes.
-void debugCamera::menu(Camera* pCam, JOY* pJoy)
+void debugCamera::menu(CAMERA* pCam, JOY* pJoy)
 {
     static int (debugCamera::*sel0_menu_tbl[4])(JOY*) = {
         &debugCamera::menuFlag,
@@ -543,7 +543,7 @@ int debugCamera::menuCamera(JOY* pJoy)
 {
     static const char* str[4] = {"Roll", "FOVy", "Gain", "Play"};
     static int pos[2] = {240, 294};
-    Camera* pCam = &pG->Camera;
+    CAMERA* pCam = &pG->Camera;
     int d;
     int i;
 
@@ -910,7 +910,7 @@ int debugCamera::menuHitDisp(JOY* pJoy)
 // Page 3: the shoulder camera offset editor (adjust_qFPS at 240 / 294).
 int debugCamera::menuAdjust(JOY* pJoy)
 {
-    static void (debugCamera::*camera_type_tbl[4])(Camera*, JOY*) = {
+    static void (debugCamera::*camera_type_tbl[4])(CAMERA*, JOY*) = {
         &debugCamera::camera_type_00,
         &debugCamera::camera_type_01,
         &debugCamera::camera_type_00,
@@ -918,7 +918,7 @@ int debugCamera::menuAdjust(JOY* pJoy)
     };
     static Vec target_bak;
     static int old_ret = 0;
-    Camera* cam = &CamCtrl.camera;
+    CAMERA* cam = &CamCtrl.camera;
     int ret;
 
     ret = adjust_qFPS(pJoy, 240, 294, 0, NULL);
@@ -950,7 +950,7 @@ int debugCamera::menuAdjust(JOY* pJoy)
 
 // Draws the target cross at the camera's look-at point (red, green up) while the draw timer
 // runs.
-void CameraDrawTarget(Camera* pCam, int attr)
+void CameraDrawTarget(CAMERA* pCam, int attr)
 {
     Vec v[2];
 #define a v[0]
@@ -1038,7 +1038,7 @@ void CameraDrawTarget(Camera* pCam, int attr)
 void CameraDebugInformation()
 {
     CameraControl* cc = &CamCtrl;
-    Camera* cam = &cc->camera;
+    CAMERA* cam = &cc->camera;
     eprintf(56, 266, 0, 15, "----- GAME CAMERA -----");
     eprintf(56, 280, 0, 15, "Cpos : (%.2f, %.2f, %.2f)", cam->param.pos.x, cam->param.pos.y, cam->param.pos.z);
     eprintf(56, 294, 0, 15, "Trgt : (%.2f, %.2f, %.2f)", cam->param.at.x, cam->param.at.y, cam->param.at.z);
@@ -1056,7 +1056,7 @@ void CameraDebugInformation()
 // horizontal part of forward) with the y kept.
 void moveOnPlaneXZ(Vec* src, Vec* dst)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec vx;
     Vec vy;
     Vec vz;
@@ -1093,7 +1093,7 @@ void moveOnPlaneXZ(Vec* src, Vec* dst)
         PSVECSubtract(&r, &s, &dz);
 #line 1434 "D:/Bio4/Prog/db_cam.cpp"
         VECNormalize(&dz, &dz);
-        MTX_SET_COLUMNS(m, &dx, &dz, &zero0, &zero1);
+        MTXSetColumns(m, dx, dz, zero0, zero1);
         PSMTXMultVecSR(m, src, dst);
     } else {
         Vec v;
@@ -1181,7 +1181,7 @@ int adjust_qFPS(JOY* pJoy, int x, int y, int flag, int* out)
     static int yes_no = 0;
     static int near_far = 0;
     GlobalWork* g = pG;
-    Camera* cam = &g->Camera;
+    CAMERA* cam = &g->Camera;
     CameraQuasiFPS* q = &CamCtrl.m_QuasiFPS;
     Mtx inv;
     Vec target;

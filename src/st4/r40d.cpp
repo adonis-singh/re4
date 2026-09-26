@@ -28,7 +28,7 @@
 struct R40dWork {
     cEmBarred* door[2];   // 0x00
     int eff[3];           // 0x08  EspPullCoreKind ids: the two door effects and the terminal one
-    ScePrim* se;          // 0x14  the terminal sound task
+    SCE_TASK* se;          // 0x14  the terminal sound task
 };
 
 
@@ -231,10 +231,10 @@ static void r40d_operateTerminal_end()
 static void r40d_operateTerminal()
 {
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
-        SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SceExit();
     }
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case 1:
     default:

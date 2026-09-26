@@ -6,6 +6,7 @@
 #include "atari.h"
 #include "light.h"
 #include "obj.h"
+#include "obj09.h"
 #include "esp.h"
 #include "global.h"
 #include "math_sub.h"
@@ -18,15 +19,6 @@ void Calc(cObj* obj, f32 dt);
 f32 lu(f32 a[][3], int* ip);
 f32 LinerEquation3(f32 a[][3], f32* b, f32* x);
 }
-
-// Rigid body effect model (Efm09): a box with mass and moments of inertia, integrated with a
-// second order Runge-Kutta step (CalcVel / Calc), colliding with the scenario at its eight
-// corners (calcPointHit), with the other rigid bodies (Obj09HitCheck), the water, the sand and
-// the player.
-class cObj09 : public cObj {
-public:
-    virtual void move();
-};
 
 f32 grav = 400.0f;
 f32 sprg = 100.0f;
@@ -59,14 +51,14 @@ static cObj* pObj_ck;
 // Apply `force` at world point `point`: the force and the torque about the centre accumulate.
 void AddForce(cObj* pObj, Vec* pos, Vec* f)
 {
-    Efm09Work* w = &pObj->efm09;
+    Efm09Work* w = EFM09_WK((cObj09*) pObj);
     Vec t;
     Vec r;
 
-    PSVECSubtract(pos, &w->basePos, &r);
+    PSVECSubtract(pos, &w->X, &r);
     PSVECCrossProduct(&r, f, &t);
-    PSVECAdd(&w->force, f, &w->force);
-    PSVECAdd(&w->torque, &t, &w->torque);
+    PSVECAdd(&w->F, f, &w->F);
+    PSVECAdd(&w->Tq, &t, &w->Tq);
 }
 
 // Euler's equations: angular acceleration from the angular velocity `w`, the torque `t` and the
@@ -84,7 +76,7 @@ void dwdt(Vec* w, Vec* tq, Vec* I, Vec* pRet)
 // Integrate the linear and angular velocities over `dt` and clear the accumulators.
 static void CalcVel(cObj* pObj, f32 dt)
 {
-    Efm09Work* w = &pObj->efm09;
+    Efm09Work* w = EFM09_WK((cObj09*) pObj);
     Vec a;
     Vec lt;
     Mtx inv;
@@ -92,32 +84,32 @@ static void CalcVel(cObj* pObj, f32 dt)
     Vec k2;
     Vec half;
 
-    PSVECScale(&w->force, &a, dt / w->mass);
-    PSVECAdd(&w->spd, &a, &w->spd);
-    PSMTXInverse(w->mat, inv);
-    PSMTXMultVec(inv, &w->torque, &lt);
-    dwdt(&w->rotSpd, &lt, &w->moment, &k1);
+    PSVECScale(&w->F, &a, dt / w->m);
+    PSVECAdd(&w->V, &a, &w->V);
+    PSMTXInverse(w->R, inv);
+    PSMTXMultVec(inv, &w->Tq, &lt);
+    dwdt(&w->wg, &lt, &w->Ig, &k1);
     PSVECScale(&k1, &k1, dt);
     PSVECScale(&k1, &half, 0.5f);
-    PSVECAdd(&w->rotSpd, &half, &half);
-    dwdt(&half, &lt, &w->moment, &k2);
+    PSVECAdd(&w->wg, &half, &half);
+    dwdt(&half, &lt, &w->Ig, &k2);
     PSVECScale(&k2, &k2, dt);
-    PSVECAdd(&w->rotSpd, &k2, &w->rotSpd);
-    if (PSVECMag(&w->rotSpd) > 16.0f) {
+    PSVECAdd(&w->wg, &k2, &w->wg);
+    if (PSVECMag(&w->wg) > 16.0f) {
 #line 196 "D:/Bio4/Prog/obj09.cpp"
-        VECNormalize(&w->rotSpd, &w->rotSpd);
-        PSVECScale(&w->rotSpd, &w->rotSpd, 16.0f);
+        VECNormalize(&w->wg, &w->wg);
+        PSVECScale(&w->wg, &w->wg, 16.0f);
     }
-    PSMTXMultVec(w->mat, &w->rotSpd, &w->w);
-    w->force.x = w->force.y = w->force.z = 0.0f;
-    w->torque.x = w->torque.y = w->torque.z = 0.0f;
+    PSMTXMultVec(w->R, &w->wg, &w->w);
+    w->F.x = w->F.y = w->F.z = 0.0f;
+    w->Tq.x = w->Tq.y = w->Tq.z = 0.0f;
 }
 
 // One time step: velocities, position, then the rotation matrix (R += dt * omega x R), which
 // is re-orthonormalised from its z axis.
 void Calc(cObj* pObj, f32 dt)
 {
-    Efm09Work* w = &pObj->efm09;
+    Efm09Work* w = EFM09_WK((cObj09*) pObj);
     Vec v;
     Vec av;
     Mtx n;
@@ -126,8 +118,8 @@ void Calc(cObj* pObj, f32 dt)
     Vec tmp2;
 
     CalcVel(pObj, dt);
-    PSVECScale(&w->spd, &v, dt);
-    PSVECAdd(&w->basePos, &v, &w->basePos);
+    PSVECScale(&w->V, &v, dt);
+    PSVECAdd(&w->X, &v, &w->X);
     PSVECScale(&w->w, &av, dt);
     skew[0][0] = 0.0f;
     skew[0][1] = -av.z;
@@ -141,19 +133,19 @@ void Calc(cObj* pObj, f32 dt)
     skew[2][1] = av.x;
     skew[2][2] = 0.0f;
     skew[2][3] = 0.0f;
-    PSMTXConcat(skew, w->mat, skew);
-    n[0][0] = w->mat[0][0] + skew[0][0];
-    n[0][1] = w->mat[0][1] + skew[0][1];
-    n[0][2] = w->mat[0][2] + skew[0][2];
-    n[0][3] = w->mat[0][3] + skew[0][3];
-    n[1][0] = w->mat[1][0] + skew[1][0];
-    n[1][1] = w->mat[1][1] + skew[1][1];
-    n[1][2] = w->mat[1][2] + skew[1][2];
-    n[1][3] = w->mat[1][3] + skew[1][3];
-    n[2][0] = w->mat[2][0] + skew[2][0];
-    n[2][1] = w->mat[2][1] + skew[2][1];
-    n[2][2] = w->mat[2][2] + skew[2][2];
-    n[2][3] = w->mat[2][3] + skew[2][3];
+    PSMTXConcat(skew, w->R, skew);
+    n[0][0] = w->R[0][0] + skew[0][0];
+    n[0][1] = w->R[0][1] + skew[0][1];
+    n[0][2] = w->R[0][2] + skew[0][2];
+    n[0][3] = w->R[0][3] + skew[0][3];
+    n[1][0] = w->R[1][0] + skew[1][0];
+    n[1][1] = w->R[1][1] + skew[1][1];
+    n[1][2] = w->R[1][2] + skew[1][2];
+    n[1][3] = w->R[1][3] + skew[1][3];
+    n[2][0] = w->R[2][0] + skew[2][0];
+    n[2][1] = w->R[2][1] + skew[2][1];
+    n[2][2] = w->R[2][2] + skew[2][2];
+    n[2][3] = w->R[2][3] + skew[2][3];
 
     tmp.x = n[2][0];
     tmp.y = n[2][1];
@@ -187,7 +179,7 @@ void Calc(cObj* pObj, f32 dt)
     n[1][2] = tmp.z;
     {
         int i_ = 2;
-        MtxPtr d_ = w->mat;
+        MtxPtr d_ = w->R;
         MtxPtr s_ = n;
         int j_;
         f32* sp_;
@@ -239,13 +231,13 @@ static void Obj09HitCheck(cObj* pObj)
     if (pObj == ck) {
         return;
     }
-    PSMTXCopy(pObj->efm09.mat, m2);
-    TransMatrix(m2, &pObj->efm09.basePos);
-    w2 = &pObj->efm09;
+    PSMTXCopy(EFM09_WK((cObj09*) pObj)->R, m2);
+    TransMatrix(m2, &EFM09_WK((cObj09*) pObj)->X);
+    w2 = EFM09_WK((cObj09*) pObj);
     PSMTXInverse(m2, inv);
-    PSMTXCopy(ck->efm09.mat, m1);
-    TransMatrix(m1, &ck->efm09.basePos);
-    w1 = &ck->efm09;
+    PSMTXCopy(EFM09_WK((cObj09*) ck)->R, m1);
+    TransMatrix(m1, &EFM09_WK((cObj09*) ck)->X);
+    w1 = EFM09_WK((cObj09*) ck);
     maxDepth = 0.0f;
     n.x = n.y = n.z = 0.0f;
     for (i = 0; i < 8; i++) {
@@ -332,57 +324,57 @@ static void Obj09HitCheck(cObj* pObj)
             if (d > obj_max_ratio * ms) {
                 f32 m;
 
-                PSVECSubtract(&w1->basePos, &w2->basePos, &nrm);
+                PSVECSubtract(&w1->X, &w2->X, &nrm);
                 if (nrm.x == 0.0f && nrm.y == 0.0f && nrm.z == 0.0f) {
                     nrm.y = 1.0f;
                 }
 #line 464 "D:/Bio4/Prog/obj09.cpp"
                 VECNormalize(&nrm, &nrm);
-                if (w2->mass > w1->mass * 2.0f) {
-                    m = w1->mass * 2.0f;
-                } else if (w1->mass > w2->mass * 2.0f) {
-                    m = w2->mass * 2.0f;
+                if (w2->m > w1->m * 2.0f) {
+                    m = w1->m * 2.0f;
+                } else if (w1->m > w2->m * 2.0f) {
+                    m = w2->m * 2.0f;
                 } else {
-                    m = w2->mass + w1->mass;
+                    m = w2->m + w1->m;
                 }
                 PSVECScale(&nrm, &tmp, obj_move_pow * m);
-                AddForce(pObj_ck, &w1->basePos, &tmp);
+                AddForce(pObj_ck, &w1->X, &tmp);
                 PSVECScale(&tmp, &tmp, -1.0f);
-                AddForce(pObj, &w2->basePos, &tmp);
+                AddForce(pObj, &w2->X, &tmp);
             }
             if (depth > obj_max_dist) {
                 d = obj_max_dist;
             }
-            if (w2->mass > w1->mass * 2.0f) {
-                mm = w1->mass * 2.0f;
-            } else if (w1->mass > w2->mass * 2.0f) {
-                mm = w2->mass * 2.0f;
+            if (w2->m > w1->m * 2.0f) {
+                mm = w1->m * 2.0f;
+            } else if (w1->m > w2->m * 2.0f) {
+                mm = w2->m * 2.0f;
             } else {
-                mm = w2->mass + w1->mass;
+                mm = w2->m + w1->m;
             }
             PSVECScale(&nrm, &tmp, d * (sprg * mm));
             AddForce(pObj_ck, &wp, &tmp);
             PSVECScale(&tmp, &tmp, -1.0f);
             AddForce(pObj, &wp, &tmp);
             PSVECCrossProduct(&w1->w, &lp, &vel);
-            PSVECAdd(&w1->spd, &vel, &vel);
+            PSVECAdd(&w1->V, &vel, &vel);
             dot = PSVECDotProduct(&nrm, &vel);
             PSVECScale(&nrm, &vn, dot);
             PSVECScale(&nrm, &tmp, dot * (dmp_ratio * mm));
             AddForce(pObj_ck, &wp, &tmp);
             PSVECScale(&tmp, &tmp, -1.0f);
             AddForce(pObj, &wp, &tmp);
-            PSVECScale(&w2->spd, &w2->spd, hit_v_dmp_rate);
-            PSVECScale(&w1->spd, &w1->spd, hit_v_dmp_rate);
-            PSVECScale(&w2->rotSpd, &w2->rotSpd, hit_w_dmp_rate);
-            PSVECScale(&w1->rotSpd, &w1->rotSpd, hit_w_dmp_rate);
+            PSVECScale(&w2->V, &w2->V, hit_v_dmp_rate);
+            PSVECScale(&w1->V, &w1->V, hit_v_dmp_rate);
+            PSVECScale(&w2->wg, &w2->wg, hit_w_dmp_rate);
+            PSVECScale(&w1->wg, &w1->wg, hit_w_dmp_rate);
         }
     }
     if (maxDepth != 0.0f) {
         PSVECScale(&nrm, &vel, maxDepth * obj_hosei_ratio);
-        PSVECAdd(&w1->basePos, &vel, &w1->basePos);
+        PSVECAdd(&w1->X, &vel, &w1->X);
         PSVECScale(&nrm, &vel, maxDepth * -obj_hosei_ratio);
-        PSVECAdd(&w2->basePos, &vel, &w2->basePos);
+        PSVECAdd(&w2->X, &vel, &w2->X);
     }
 }
 
@@ -510,20 +502,20 @@ static void calcPointHit(cObj* pObj, Efm09Work* pFree, Vec* pos1, Vec* pos2, Vec
     PSVECScale(&d, &d, dot);
     len = PSVECMag(&d);
     PSVECScale(pNorm, &t, len);
-    PSVECAdd(&pFree->basePos, &t, &pFree->basePos);
+    PSVECAdd(&pFree->X, &t, &pFree->X);
     if (len > max_in_dist) {
         len = max_in_dist;
     }
-    PSVECScale(pNorm, &d, len * (sprg * pFree->mass));
+    PSVECScale(pNorm, &d, len * (sprg * pFree->m));
     AddForce(pObj, cross, &d);
     PSVECCrossProduct(&pFree->w, pos2, &t);
-    PSVECAdd(&pFree->spd, &t, &t);
+    PSVECAdd(&pFree->V, &t, &t);
     dot = PSVECDotProduct(pNorm, &t);
     PSVECScale(pNorm, &v, dot);
-    PSVECScale(pNorm, &d, dot * (dmp_ratio * pFree->mass));
+    PSVECScale(pNorm, &d, dot * (dmp_ratio * pFree->m));
     AddForce(pObj, cross, &d);
     PSVECSubtract(&t, &v, &vt);
-    frc = PSVECMag(&v) * (frc_ratio * pFree->mass);
+    frc = PSVECMag(&v) * (frc_ratio * pFree->m);
     if (vt.x == 0.0f && vt.y == 0.0f && vt.z == 0.0f) {
         d.x = d.y = d.z = 0.0f;
     } else {
@@ -531,12 +523,12 @@ static void calcPointHit(cObj* pObj, Efm09Work* pFree, Vec* pos1, Vec* pos2, Vec
         VECNormalize(&vt, &d);
     }
     PSVECScale(&d, &d, frc);
-    PSVECSubtract(cross, &pFree->basePos, &r);
+    PSVECSubtract(cross, &pFree->X, &r);
     rr = r;
-    ix = 1.0f / pFree->moment.x;
-    iy = 1.0f / pFree->moment.y;
-    iz = 1.0f / pFree->moment.z;
-    im = 1.0f / pFree->mass;
+    ix = 1.0f / pFree->Ig.x;
+    iy = 1.0f / pFree->Ig.y;
+    iz = 1.0f / pFree->Ig.z;
+    im = 1.0f / pFree->m;
     A[0][0] = iy * rr.z * rr.z + iz * rr.y * rr.y + im;
     A[0][1] = -iz * rr.x * rr.y;
     A[0][2] = -iy * rr.x * rr.z;
@@ -554,7 +546,7 @@ static void calcPointHit(cObj* pObj, Efm09Work* pFree, Vec* pos1, Vec* pos2, Vec
         d.y = x.y;
         d.z = x.z;
         mag = PSVECMag(&d);
-        lim = MUE * PSVECMag(&v) * pFree->mass;
+        lim = MUE * PSVECMag(&v) * pFree->m;
         if (mag > lim) {
             if (mag > 0.0f) {
                 PSVECScale(&d, &d, SQRTF(lim / mag));
@@ -579,7 +571,7 @@ void cObj09::move()
     static f32 pl_spd_dist = 1500.0f;
     static f32 pl_spd_mul = -0.015f;
     static f32 pl_spd_mul2 = -0.25f;
-    Efm09Work* w = &efm09;
+    Efm09Work* w = EFM09_WK(this);
     f32 dt = 1.0f / 30.0f;
     Vec old;
     Vec lp;
@@ -592,34 +584,25 @@ void cObj09::move()
     Vec n2;
     f32 h;
     f32 dist;
-    cObj* p;
-    cObj* q;
-    void (*func)(cObj*);
     u32 cnt;
     int i;
 
-    if (w->basePos.y < -10000.0f) {
-        w->basePos.x = 8000.0f;
-        w->basePos.y = 10000.0f;
-        w->basePos.z = 8000.0f;
+    if (w->X.y < -10000.0f) {
+        w->X.x = 8000.0f;
+        w->X.y = 10000.0f;
+        w->X.z = 8000.0f;
     }
     pObj_ck = this;
-    func = Obj09HitCheck;
-    p = (cObj*) ObjMgr.getActiveWork();
-    while (p) {
-        q = p;
-        p = (cObj*) p->pNext;
-        func(q);
-    }
+    ObjMgr.applyFuncAll(Obj09HitCheck);
 
-    old = w->basePos;
+    old = w->X;
     cnt = 0;
     for (i = 0; i < 8; i++) {
         lp.x = pos_tbl[i].x * w->size.x;
         lp.y = pos_tbl[i].y * w->size.y;
         lp.z = pos_tbl[i].z * w->size.z;
-        PSMTXMultVecSR(w->mat, &lp, &lp);
-        PSVECAdd(&lp, &w->basePos, &wp);
+        PSMTXMultVecSR(w->R, &lp, &lp);
+        PSVECAdd(&lp, &w->X, &wp);
         if (SatMgr.hitCheck(&old, &wp, &hit, &nrm, 0, 0)) {
             cnt++;
             calcPointHit(this, w, &old, &lp, &wp, &hit, &nrm);
@@ -628,64 +611,64 @@ void cObj09::move()
             }
         }
     }
-    w->spd.y -= grav;
-    if (GetWaterHeight(&w->basePos, &h) && w->basePos.y < h) {
-        w->spd.y += grav * 1.2f;
-        AddWaterPower(w->basePos, -w->spd.y * 2.0e-6f);
-        AddWaterPower(w->basePos, PSVECMag(&w->spd) * 1.0e-5f);
-        w->spd.y *= 0.5f;
-        PSVECScale(&w->rotSpd, &w->rotSpd, 0.92f);
-        d = w->basePos;
-        PSVECScale(&w->spd, &v, water_regist * w->mass);
+    w->V.y -= grav;
+    if (GetWaterHeight(&w->X, &h) && w->X.y < h) {
+        w->V.y += grav * 1.2f;
+        AddWaterPower(w->X, -w->V.y * 2.0e-6f);
+        AddWaterPower(w->X, PSVECMag(&w->V) * 1.0e-5f);
+        w->V.y *= 0.5f;
+        PSVECScale(&w->wg, &w->wg, 0.92f);
+        d = w->X;
+        PSVECScale(&w->V, &v, water_regist * w->m);
         d.x += PSVECMag(&w->size);
         AddForce(this, &d, &v);
     }
     d = pPL->pos;
     d.y += 1000.0f;
-    PSVECSubtract(&w->basePos, &d, &d);
+    PSVECSubtract(&w->X, &d, &d);
     dist = PSVECMag(&d);
     if (dist < 500.0f) {
 #line 979 "D:/Bio4/Prog/obj09.cpp"
         VECNormalize(&d, &n);
-        PSVECScale(&n, &n, (dist - 500.0f) * pl_pow_mul * w->mass);
-        AddForce(this, &w->basePos, &n);
+        PSVECScale(&n, &n, (dist - 500.0f) * pl_pow_mul * w->m);
+        AddForce(this, &w->X, &n);
     }
     if (dist < pl_spd_dist) {
 #line 990 "D:/Bio4/Prog/obj09.cpp"
         VECNormalize(&d, &n2);
-        PSVECSubtract(&pPL->pParts->world, &pPL->pParts->world_old2, &v);
-        PSVECScale(&v, &v, (dist - pl_spd_dist) * pl_spd_mul * w->mass);
-        PSVECScale(&n2, &n2, (dist - pl_spd_dist) * pl_spd_mul2 * w->mass);
+        PSVECSubtract(&pPL->pList->world, &pPL->pList->world_old2, &v);
+        PSVECScale(&v, &v, (dist - pl_spd_dist) * pl_spd_mul * w->m);
+        PSVECScale(&n2, &n2, (dist - pl_spd_dist) * pl_spd_mul2 * w->m);
         PSVECAdd(&v, &n2, &v);
-        AddForce(this, &w->basePos, &v);
+        AddForce(this, &w->X, &v);
     }
-    if (GetSandHeight(&w->basePos, &h) && w->basePos.y < h) {
-        v = w->basePos;
+    if (GetSandHeight(&w->X, &h) && w->X.y < h) {
+        v = w->X;
         v.x += 150.0f;
         AddSandPower(v, -2.0f);
-        v = w->basePos;
+        v = w->X;
         v.x -= 150.0f;
         AddSandPower(v, -2.0f);
-        v = w->basePos;
+        v = w->X;
         v.z += 150.0f;
         AddSandPower(v, -2.0f);
-        v = w->basePos;
+        v = w->X;
         v.z -= 150.0f;
         AddSandPower(v, -2.0f);
-        v = w->basePos;
+        v = w->X;
         AddSandPower(v, -2.0f);
     }
     Calc(this, dt);
-    PSVECScale(&w->spd, &w->spd, spd_reg);
-    PSVECScale(&w->rotSpd, &w->rotSpd, rot_reg);
-    if (SatMgr.hitCheck(&w->pos, &w->basePos, 0, 0, 0, 0)) {
-        w->basePos = w->pos;
-        PSVECScale(&w->spd, &w->spd, 0.6f);
-        PSVECScale(&w->rotSpd, &w->rotSpd, 0.6f);
+    PSVECScale(&w->V, &w->V, spd_reg);
+    PSVECScale(&w->wg, &w->wg, rot_reg);
+    if (SatMgr.hitCheck(&w->prev_X, &w->X, 0, 0, 0, 0)) {
+        w->X = w->prev_X;
+        PSVECScale(&w->V, &w->V, 0.6f);
+        PSVECScale(&w->wg, &w->wg, 0.6f);
     }
-    w->pos = w->basePos;
-    PSMTXCopy(w->mat, mat);
-    TransMatrix(mat, &w->basePos);
+    w->prev_X = w->X;
+    PSMTXCopy(w->R, mat);
+    TransMatrix(mat, &w->X);
     ScaleMatrix(mat, &scale);
     partsMatCalc();
     partsWorldCalc();

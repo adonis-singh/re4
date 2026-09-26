@@ -18,19 +18,7 @@ public:
 
 // MotionParts (cParts::motParts, 0x174) is defined in model.h.
 
-// Parts-side IK state (game/ik.cpp), between the bind matrix (0xF8) and MotionParts (0x174).
-struct IkParts {
-    Mtx bindMat;     // 0xF8  bind pose matrix (PARTS_BIND_MAT)
-    f32 len;         // 0x128 bone length to the child parts
-    Mtx mat;         // 0x12C orientation of the IK plane (SetOrientationZY transposed)
-    Vec axis;        // 0x15C bend axis in parts space
-    Vec dir;         // 0x168 bind pose direction from the effector to the root
-};
-
 #define MOTION(m) (&((cMotModel*)(m))->Motion)
-#define MOTION_PARTS(p) ((MotionParts*)((u8*)(p) + 0x174))
-#define IK_PARTS(p) ((IkParts*)((u8*)(p) + 0xF8))
-#define PARTS_BIND_MAT(p) (*(Mtx*)((u8*)(p) + 0xF8))
 
 // HermiteInterpolation parameter block.
 struct HermitePrm {
@@ -47,9 +35,9 @@ void PartsWorldPosCalc(cModel* pMod);
 void MotionBlendOff(cModel* pEm);
 void MotionPause(cModel* pEm);
 void MotionClear(cModel* pEm, int flag);
-u32 MotionMove(cModel* pEm, Camera* pCamera);
+u32 MotionMove(cModel* pEm, CAMERA* pCamera);
 u16 MotionMoveSub(cModel* pEm, MotionWorkSub* w);
-void MotionMoveCore(cModel* pEm, MotionWorkSub* w, Camera* pCamera);
+void MotionMoveCore(cModel* pEm, MotionWorkSub* w, CAMERA* pCamera);
 void MotionHokan(cModel* m, MotionWorkSub* w);
 void MotionGetSpeed(cModel* pEm, MotionWorkSub* w, int flg, Vec* Pos_move, Vec* Ang_move);
 void MotionAddSpeed(cModel* pEm, MotionWorkSub* w, Vec* Pos_move, Vec* Ang_move);

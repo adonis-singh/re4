@@ -88,10 +88,7 @@ cEmItem* SetEmItem(void* bin, void* tpl, Vec* pos, Vec* rot, int type, int etcNo
         em->LightInfo.init2(0, 1, &ofs, &size, 0x20);
     }
     int rotType = 0;
-    em->lockParts = 0;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->be_flag &= ~0x01000000;
     em->be_flag &= ~0x10;
@@ -300,7 +297,7 @@ void emItem_R1_Parent(cEmItem* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (w->noNormalize == 0) {
             v0.x = m[0][0];
@@ -468,7 +465,7 @@ void emItemRotMove(cEmItem* pEm)
 {
     EmItemWork* w = EMITEM_WK(pEm);
     Mtx tmp;
-    cModel* p;
+    cParts* p;
 
     switch (w->Rot_type) {
     case 1:

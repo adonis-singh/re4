@@ -60,7 +60,7 @@ void cCtrlMgr::move()
     dieCheck();
     for (i = 0; i < nArray; i++) {
         cCtrl* p = fastAt(i);
-        if ((p->be_flag & 0x201) == 1) {
+        if (p->isAlive()) {
             p->move();
         }
     }
@@ -73,7 +73,7 @@ int cCtrlMgr::trans()
 
     for (i = 0; i < nArray; i++) {
         cCtrl* p = fastAt(i);
-        if ((p->be_flag & 0x201) == 1) {
+        if (p->isAlive()) {
             p->trans();
         }
     }

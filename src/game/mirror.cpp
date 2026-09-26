@@ -51,7 +51,7 @@ static void mirrorModelTrans2(cModel* m, cModelInfo* info, Mtx viewMat)
     Mtx nrm;
     Mtx tex;
     Mtx proj;
-    PSMTXConcat(viewMat, m->pParts->mat, mv);
+    PSMTXConcat(viewMat, m->pList->mat, mv);
     PSMTXInverse(mv, inv);
     PSMTXTranspose(inv, nrm);
     GXLoadPosMtxImm(mv, 0);
@@ -84,7 +84,7 @@ static void mirrorModelTrans2(cModel* m, cModelInfo* info, Mtx viewMat)
             GXSetArray(10, d->nrmOrig, 8);
         }
         GXSetCullMode(1);
-        GXLoadTexObj(&GetTexRenderMgrAddr(0)->m_Tex_obj, st->texMap);
+        GXLoadTexObj(GetTexRenderMgrAddr(0)->GetTexObj(), st->texMap);
         C_MTXLightPerspective(proj, pG->Camera.param.fovy, 1.3333334f, 0.5f, -0.5f, 0.5f, 0.5f);
         PSMTXConcat(proj, mv, tex);
         GXLoadTexMtxImm(tex, 0x1E, 0);

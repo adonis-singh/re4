@@ -144,7 +144,7 @@ extern "C" void Evt_R331S00_Func(Event* e)
             break;
         case 4:
             if (e->NowFrame == e->MaxFrame - 40) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 40, 0, 0);
@@ -191,7 +191,7 @@ extern "C" void Evt_R331S10_Func(Event* e)
                     obj->be_flag |= 0x20;
                     e->EspSetModelPtr(obj);
                 }
-                skip = EvtSkipCk(e);
+                skip = e->FlgCkStatus(EvtStfToolFrontExec);
                 if (skip == 0) {
                     FadeSetW(0x80000002, 40, 0, 0);
                 }
@@ -199,7 +199,7 @@ extern "C" void Evt_R331S10_Func(Event* e)
             break;
         case 2:
             if (e->NowFrame == e->MaxFrame - 40) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 40, 0, 0);

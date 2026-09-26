@@ -70,20 +70,6 @@ struct Pl0fWork {
 
 #define PL0F_WK(em) ((Pl0fWork*) (((cPl0f*) (em))->free))
 
-// game/obj1b.cpp `cObjSpear` (SetSpear in obj1c.cpp): the thrown harpoon.
-class cObjSpear : public cObj {
-public:
-    void setParent(cModel* pCoord, int oya_parts, int mode);
-    void setThrow(Vec* pSpd);
-    void setLost();
-};
-
-// game/obj1c.cpp `cObj1c`: the floating islands the boat crashes into.
-class cObj1c : public cObj {
-public:
-    void setCrash();
-};
-
 cObj* SetSpear(void* bin, void* tpl, Vec* pos, Vec* rot);   // game/obj1c.cpp
 
 class cPl0f : public cEm {

@@ -18,6 +18,8 @@
 #include "item.h"
 #include "sce_at.h"
 #include "obj.h"
+#include "objBull.h"
+#include "objTrolley.h"
 #include "game.h"
 #include "pad.h"
 #include "dbmodule.h"
@@ -28,19 +30,6 @@
 #include "db_log.h"
 #include "motion.h"
 #include "em.h"
-
-// The vehicle objects (objTrolley.cpp / objBull.cpp) as seen from here: the ride checks only.
-class cObjTrolley : public cObj {
-public:
-    int ckTrolleyRide(Vec* pos, u8* partsNo, Vec* out);
-    int ckTrolleyRideAdjust(Vec* pos, Vec* out);
-};
-
-class cObjBull : public cObj {
-public:
-    int ckBullRide(Vec* pos, u8* partsNo, Vec* out);
-    int ckBullRideAdjust(Vec* pos, Vec* out);
-};
 
 // Entry `n` of a target list written index first: the sum is formed with the index as the base
 // register (`add r9, r9, r31` / `stwx r29, r9, r31`) instead of the pointer.
@@ -65,7 +54,7 @@ static inline int PlLifeOver(int lim)
 
 
 // The parts a hit box belongs to (partsNo is 1-based, 0 = the model itself).
-static inline cModel* HitParts(cEm* em, YARARE_INFO* p)
+static inline cCoord* HitParts(cEm* em, YARARE_INFO* p)
 {
     if (p->parts_no != 0) {
         return em->getPartsPtr(p->parts_no - 1);
@@ -87,7 +76,7 @@ int EmGetDmPos(cEm* pEm, Vec* pPos, Vec* pAng)
 {
     YARARE_INFO* p = pEm->dmg.m_pDamageYarare;
     u32 type;
-    cModel* parts;
+    cCoord* parts;
     Mtx m;
     Mtx inv;
     Vec d;
@@ -318,7 +307,7 @@ void EmPlBloodSet(cEm* pEm, Vec* pPos, u32 type, u8 eff_id, u8 est_id)
     Vec q;
     Vec rot;
     Vec s;
-    cModel* parts;
+    cParts* parts;
     f32 h;
     f32 mag;
 
@@ -383,13 +372,13 @@ void EmPlBloodSet2(cModel* pEm, Vec* pPos, u32 type, u8 eff_id, u8 est_id)
 // EmPlBloodSet for the partner.
 void EmSubBloodSet(cEm* pEm, Vec* pPos, u32 type, u8 eff_id, u8 est_id)
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     YARARE_INFO* hit;
     Mtx m;
     Vec p;
     Vec q;
     Vec rot;
-    cModel* parts;
+    cParts* parts;
     f32 h;
 
     if (sub == 0) {
@@ -440,7 +429,7 @@ YARARE_INFO* emBoxAtCk(cEm* pEm, Vec* pBox, Vec* pPos, int wep_no)
     Vec up;
     YARARE_INFO* p;
     YARARE_INFO* ret;
-    cModel* parts;
+    cCoord* parts;
     f32 best;
     f32 ang;
     f32 d2;
@@ -539,7 +528,7 @@ YARARE_INFO* emLineAtCk(cEm* pEm, Vec* pPos, Vec* pPos2, f32 hit_len, int wep_no
     Vec s;
     YARARE_INFO* p;
     YARARE_INFO* ret = 0;
-    cModel* parts;
+    cCoord* parts;
     f32 best = hit_len;
     f32 d2;
     f32 r;
@@ -606,7 +595,7 @@ YARARE_INFO* emLineAtCk2(cEm* pEm, Vec* pPos, Vec* pPos2, f32 hit_len, Vec* pCro
     Vec s;
     YARARE_INFO* p;
     YARARE_INFO* ret = 0;
-    cModel* parts;
+    cCoord* parts;
     f32 best = hit_len;
     f32 d2;
     f32 r;
@@ -950,7 +939,7 @@ YARARE_INFO* emSphereAtCk(cEm* em, Vec* pos, Vec* pos2, f32 r, int flag, f32 r2)
     Vec s;
     YARARE_INFO* p;
     YARARE_INFO* ret;
-    cModel* parts;
+    cCoord* parts;
     f32 dist;
     f32 bestRad;
     f32 bestDot;
@@ -1107,7 +1096,7 @@ u32 GetWepTargetList(Vec* box, Vec* pos, WepTarget* list, u32 max, int flag)
         if (em->hp <= 0) {
             continue;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             continue;
         }
         if (flag == 0xE && em->id == 0x4F) {
@@ -1192,7 +1181,7 @@ u32 GetWepTargetList2(Vec* p0, Vec* p1, WepTarget* list, u32 max, Vec* hit, Vec*
     cEm* bestEm;
     YARARE_INFO* bestPart;
     YARARE_INFO* part;
-    cModel* parts;
+    cParts* parts;
     cEm* em;  // one variable for both scans and the sort swap (r31 throughout); `i` is the sort's outer counter too
     YARARE_INFO* part2;
 
@@ -1231,7 +1220,7 @@ u32 GetWepTargetList2(Vec* p0, Vec* p1, WepTarget* list, u32 max, Vec* hit, Vec*
         do {
         em = EmMgr.at(i);
 
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->id != 0x41 && em->id != 0x4E) {
@@ -1320,7 +1309,7 @@ u32 GetWepTargetList2(Vec* p0, Vec* p1, WepTarget* list, u32 max, Vec* hit, Vec*
             continue;
         }
         if (em->id != 0x50) {
-            if (EmDeadCk(em)) {
+            if (em->dmg.isDamage()) {
                 continue;
             }
         }
@@ -1422,7 +1411,7 @@ int GetWepTargetListBomb(Vec* pPos, f32 radius, WepTarget* list, int num, int we
     f32 rr;
     f32 r2;
     YARARE_INFO* part;
-    cModel* parts;
+    cCoord* parts;
     cEm* em;  // one variable for the scan and the sort swap (r24 in both loops)
     YARARE_INFO* part2;
 
@@ -1454,7 +1443,7 @@ int GetWepTargetListBomb(Vec* pPos, f32 radius, WepTarget* list, int num, int we
         if (em->hp <= 0) {
             continue;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             continue;
         }
         if (wep_no == 0xE && em->id == 0x4F) {
@@ -1581,14 +1570,14 @@ int GetWepTargetListBomb(Vec* pPos, f32 radius, WepTarget* list, int num, int we
 // loss inside it. 1 when the player was hit.
 int PlBombHitCk(Vec* pPos, f32 radius)
 {
-    cModel* parts;
+    cParts* parts;
     f32 d2;
     f32 lim;
 
     if ((s16) pG->pl_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     parts = pPL->getPartsPtr(0);
@@ -1631,7 +1620,7 @@ int GetWepTargetPos(Vec* pPos, Vec* pPos2, int mode, int wep_no, cEm** ppEm, u32
     int attr;
     u32 i;
     cEm* em;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     f32 dist;
     f32 len;
@@ -1664,7 +1653,7 @@ int GetWepTargetPos(Vec* pPos, Vec* pPos2, int mode, int wep_no, cEm** ppEm, u32
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         em = EmMgr.fastAt(i);
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->be_flag & 0x10000000) {
@@ -1742,7 +1731,7 @@ YARARE_INFO* EmYarareContactCk(cEm* em, Vec* pos, f32 r, Vec* out)
     Vec s;
     Vec q;
     YARARE_INFO* p;
-    cModel* parts;
+    cCoord* parts;
     f32 rr;
     f32 len;  // the axis length, then the step (one variable: it lives across the VECNormalize call)
     u32 n;
@@ -1823,7 +1812,7 @@ void EmYarareDisp(cEm* pEm)
     Vec bottom;
     Vec s;
     YARARE_INFO* p;
-    cModel* parts;
+    cCoord* parts;
     u32 color;
 
     if (!DbgFlagChk(pG, DBG_YARARE_DISP)) {
@@ -1836,7 +1825,7 @@ void EmYarareDisp(cEm* pEm)
             continue;
         }
         color = 0x60606060;
-        if (EmDeadCk(pEm) && p == pEm->dmg.m_pDamageYarare) {
+        if (pEm->dmg.isDamage() && p == pEm->dmg.m_pDamageYarare) {
             color = 0xFF000000;
         }
         if (pEm->hp <= 0) {
@@ -2117,7 +2106,7 @@ int EmAtkHitCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
 {
     Vec d;
     Vec fwd;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     int ret;
     f32 dy;
@@ -2128,7 +2117,7 @@ int EmAtkHitCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
     if ((s16) pG->pl_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     parts = pPL->getPartsPtr(0);
@@ -2167,7 +2156,7 @@ cEm* EmAtkLineHitCk(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm, u32* pAttr)
     Mtx m;
     Vec d;
     cPlayer* pl;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     int at;
     f32 len;
@@ -2195,7 +2184,7 @@ cEm* EmAtkLineHitCk(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm, u32* pAttr)
     if ((s16) pG->pl_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(pl)) {
+    if (pl->dmg.isDamage()) {
         return 0;
     }
     PSVECSubtract(pPos2, pPos, &d);
@@ -2233,7 +2222,7 @@ YARARE_INFO* EmAtkLineHitCkSub(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm)
     Mtx m;
     Vec d;
     cSubChar* sub;
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
     f32 len;
 
@@ -2249,7 +2238,7 @@ YARARE_INFO* EmAtkLineHitCkSub(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm)
         pNorm->y = 0.0f;
         pNorm->z = 0.0f;
     }
-    sub = pSUB;
+    sub = SUB_CHAR();
     if (!(sub->be_flag & 1)) {
         return 0;
     }
@@ -2259,7 +2248,7 @@ YARARE_INFO* EmAtkLineHitCkSub(Vec* pPos, Vec* pPos2, Vec* pCross, Vec* pNorm)
     if ((s16) pG->ashley_life <= 0) {
         return 0;
     }
-    if (EmDeadCk(sub)) {
+    if (sub->dmg.isDamage()) {
         return 0;
     }
     PSVECSubtract(pPos2, pPos, &d);
@@ -2339,7 +2328,7 @@ void EmAtkSetDamageSub(YARARE_INFO* pAt, EmAtkInfo* pAtk, Vec* pPos, Vec* pPos2)
 // Attack sphere against the partner: the hit box or NULL.
 YARARE_INFO* EmAtkHitSubCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
 {
-    cModel* parts;
+    cParts* parts;
     YARARE_INFO* part;
 
     if (DbgFlagChk(pG, DBG_YARARE_DISP)) {
@@ -2351,7 +2340,7 @@ YARARE_INFO* EmAtkHitSubCk2(EmAtkInfo* pAtk, Vec* pPos, Vec* pPosOld)
     if (pSUB->hp <= 0) {
         return 0;
     }
-    if (EmDeadCk(pSUB)) {
+    if (pSUB->dmg.isDamage()) {
         return 0;
     }
     parts = pSUB->getPartsPtr(0);
@@ -2523,11 +2512,6 @@ static void EmSubDead2(f32* p)
 
 // Rack (id 0x45) in the way of `em` moving to `pos` heading `ang`: 0 when one of the rack's
 // corner / edge points falls into the box in front of the position.
-// The seven compare constants are hoisted by loop.c; 400.0 only in the second loop pass (it is the
-// last preheader load and so the highest-priority FPR, f27). Its corner-1 `lis` has savings 2 x life 2,
-// which is desirable only while at most three earlier movables were moved in that pass (threshold 71,
-// -3 per move, 243 insns): the element address is therefore computed as `off = size * i` first, so
-// `lis EmMgr@ha` lives long enough (5 insns) to be hoisted in pass 1 instead of pass 2.
 int EmRackCk(cEm* pEm, Vec* pPos, f32 dir)
 {
     Vec v;
@@ -2537,7 +2521,6 @@ int EmRackCk(cEm* pEm, Vec* pPos, f32 dir)
     FREE_EMRACK* w;
     f32 hx;
     f32 hz;
-    u32 off;
 
     PSMTXRotRad(m, 'y', dir);
     TransMatrix(m, pPos);
@@ -2545,9 +2528,8 @@ int EmRackCk(cEm* pEm, Vec* pPos, f32 dir)
         PSMTXIdentity(m);
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
-        off = EmMgr.size * i;
-        e = (cEm*) ((u8*) EmMgr.pArray + off);
-        if ((e->be_flag & 0x201) != 1) {
+        e = EmMgr.fastAt(i);
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x45) {
@@ -3364,7 +3346,7 @@ int HandgunCk(int wep_no)
 void GetPlPos(Vec* pPos, f32 frame, cEm* pEm)
 {
     Vec d;
-    cModel* parts;
+    cParts* parts;
 
     if (pEm == 0) {
         pEm = pPL;
@@ -3388,7 +3370,7 @@ int TrolleyItemSetCk(Vec* pPos, ITEM_ID item_id, int item_num)
     }
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         obj = ObjMgr.fastAt(i);
-        if ((obj->be_flag & 0x201) != 1) {
+        if (!obj->isAlive()) {
             continue;
         }
         if (obj->id != 0x3B) {
@@ -3415,7 +3397,7 @@ int BullItemSetCk(Vec* pPos, ITEM_ID item_id, int item_num)
     }
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         obj = ObjMgr.fastAt(i);
-        if ((obj->be_flag & 0x201) != 1) {
+        if (!obj->isAlive()) {
             continue;
         }
         if (obj->id != 0x3E) {

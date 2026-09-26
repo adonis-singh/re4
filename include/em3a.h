@@ -5,16 +5,9 @@
 #include "vec.h"
 #include "em.h"
 #include "obj.h"
+#include "objMissile.h"
 
 struct EmiEntry;   // embarrel.h
-
-// Helicopter missile (game/objMissile.cpp): the class is local to that unit; the helicopter
-// enemy only calls these two members through SetHeliMissile's result.
-class cObjMissile : public cObj {
-public:
-    void setParent(cModel* pCoord, int oya_parts, int mode);
-    void setFire(Vec* pTarget);
-};
 
 cObjMissile* SetHeliMissile(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type);
 

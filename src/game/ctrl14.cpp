@@ -56,10 +56,10 @@ cCtrl* GetCtrlDragon(u32 type)
     if (obj[0] == NULL || obj[1] == NULL || obj[3] == NULL || obj[4] == NULL) {
         return NULL;
     }
-    obj[0]->be_flag |= 0x20;
-    obj[1]->be_flag |= 0x20;
-    obj[3]->be_flag |= 0x20;
-    obj[4]->be_flag |= 0x20;
+    obj[0]->setMove(1);
+    obj[1]->setMove(1);
+    obj[3]->setMove(1);
+    obj[4]->setMove(1);
 create:
     c = CtrlMgr.createBack(0x14);
     if (c == NULL) {

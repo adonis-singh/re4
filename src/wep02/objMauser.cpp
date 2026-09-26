@@ -2,7 +2,7 @@
 // type, ready / fire / down motions, cartridge ejection, the two-step reload (magazine then pin).
 //
 // cObjMauser is the cObjWep (game/objWep.cpp) of the Red9 (weapon_no 3), hanging on the player's
-// right hand (parts 10) and driven by wep.mode / wep.step from the handgun routines
+// right hand (parts 10) and driven by r_no_0 / r_no_1 from the handgun routines
 // (wep/pl_handgun.cpp): mode 1 -> moveReady (the gun's own draw motion), 2 -> moveFire, 3 ->
 // moveDown, 4 -> moveReload (magazine at reloadFrame, the stripper pin ejected at pinFrame).
 // weapon_type 2 is the model with the stock (0x7, weapon list id 0x26, much smaller lock random).
@@ -33,7 +33,7 @@ public:
 static f32 reloadFrame;
 static f32 pinFrame;
 
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
 extern const u8 mauser_tbl[3];
 const u8 mauser_tbl[3] = { 0xE, 0xC, 0xA };
 
@@ -52,54 +52,54 @@ void cObjMauser::init(cModel* parent)
 
     if (pG->weapon_type != 2) {
         bin = WEP_ARC_PTR(0x6);
-        wep.itemId = 0x25;
+        itemId = 0x25;
         setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
     } else {
         bin = WEP_ARC_PTR(0x7);
-        wep.itemId = 0x26;
+        itemId = 0x26;
         setAbility(1.146f, 0.57199997f, 0.1432f, 0.1432f);
     }
     if (modelInit(bin, WEP_ARC_PTR(0x5)) == 0) {
         pLog->err(0, 0, "cObjMauser::init() failed.");
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.shotFrame[0] = mauser_tbl[0];
-    wep.shotFrame[1] = mauser_tbl[1];
-    wep.shotFrame[2] = mauser_tbl[2];
-    wep.motReset[0] = WEP_ARC_PTR(0x34);
-    wep.motReset[1] = WEP_ARC_PTR(0x38);
+    m_pParent = parent;
+    shotFrame[0] = mauser_tbl[0];
+    shotFrame[1] = mauser_tbl[1];
+    shotFrame[2] = mauser_tbl[2];
+    motReset[0] = WEP_ARC_PTR(0x34);
+    motReset[1] = WEP_ARC_PTR(0x38);
     resetMotion();
 }
 
-// wep.mode == 1 (ready, set by the handgun ready00): plays the gun's draw motion 0x3B once, then
+// mode == 1 (ready, set by the handgun ready00): plays the gun's draw motion 0x3B once, then
 // back to mode 0.
 void cObjMauser::moveReady()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x3B), 0, 0, 0, 0);
-        wep.step = 1;
+        r_no_1 = 1;
     } else if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
-// wep.mode == 2 (fire): step 0 starts the bolt motion (0x32, 0x37 on the last round), plays the
+// mode == 2 (fire): step 0 starts the bolt motion (0x32, 0x37 on the last round), plays the
 // shot SEs, sets Status_flg[0] bit23 (shot noise), muzzle flash 0x36, a cartridge and the pad
 // vibration; the motion's end returns to mode 0.
 void cObjMauser::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -114,23 +114,23 @@ void cObjMauser::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP02, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
-// wep.mode == 3 (down, set by wepDown): plays the gun's holster motion 0x3C once, then mode 0.
+// mode == 3 (down, set by wepDown): plays the gun's holster motion 0x3C once, then mode 0.
 void cObjMauser::moveDown()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &Motion, WEP_ARC_PTR(0x3C), 0, 0, 0, 0);
-        wep.step = 1;
+        r_no_1 = 1;
     } else if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -138,7 +138,7 @@ void cObjMauser::moveDown()
 // offset (-109, -22, 90) with a random +-15 spread, gravity 10, 30 frames, landing effect 0x13.
 void cObjMauser::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;
@@ -206,13 +206,13 @@ void cObjMauser::setCartridge()
         }                                          \
     }
 
-// wep.mode == 4 (reload): step 0 picks the reload motion by ammunition state and tune level
+// mode == 4 (reload): step 0 picks the reload motion by ammunition state and tune level
 // (MAUSER_RELOAD_MOTION, the same table for both models) with the level's SE (0x16/0x20/0x21);
 // ItemMgr.reload refills at reloadFrame (44/34/24) and the empty stripper clip is thrown away at
 // pinFrame (55/51/39). The player routine ends the mode.
 void cObjMauser::moveReload()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -233,8 +233,8 @@ void cObjMauser::moveReload()
             break;
         }
         motionSet(m, 0, 0, 1, 0);
-        wep.m_StopSeId = SndCall(2, se, &getPartsPtr(0)->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &getPartsPtr(0)->world, 0, 0, 0);
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, reloadFrame)) {
         ItemMgr.reload();
@@ -258,7 +258,7 @@ void cObjMauser::setPin()
     pos.x = -270.0f;
     pos.y = 0.0f;
     pos.z = 100.0f;
-    PSMTXMultVec(pParts->mat, &pos, &pos);
+    PSMTXMultVec(pList->mat, &pos, &pos);
     rot.x = 0.0f;
     rot.y = 0.0f;
     rot.z = 0.0f;
@@ -268,7 +268,7 @@ void cObjMauser::setPin()
     spd.x += fRand1_1() * 5.0f;
     spd.y += fRand1_1() * 5.0f;
     spd.z += fRand1_1() * 5.0f;
-    PSMTXMultVecSR(pParts->mat, &spd, &spd);
+    PSMTXMultVecSR(pList->mat, &spd, &spd);
     obj = SetObj10(WEP_ARC_PTR(0x43), WEP_ARC_PTR(0x44), &pos, &rot, &spd, grav, rad, 0x1E, 3);
     if (obj) {
         Obj10SetEst(obj, 0, 0, 0, 0, 0, 0, 0x13, 0, 0);

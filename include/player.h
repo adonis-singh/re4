@@ -6,9 +6,11 @@
 #include "model.h"
 #include "em.h"
 #include "global.h"
-#include "pl_body.h"
+// pl_body.h is left to its users: a unit that includes it parses setKnife and takes two extra pool labels.
+#include "math_sub.h"
 #include "pl_wep.h"
 #include "pl_cloth.h"
+#include "cFlag.h"
 
 // 0x98-byte work at cEm::p2A4 (player.cpp init1 mem_alloc); only the byte cam_ctrl reads is named.
 class cPlayer;
@@ -33,6 +35,7 @@ public:
     void motSet(void* data, int frame);
     cEm* getTarget();
     void setMode(int mode);   // stores byte 0xE (pl_sub PlSetNeck)
+    void clear() { m_MotR = 0; }
 };
 
 // Waist control (game/pl_class.cpp), 0xC bytes at cEm::pWaist.
@@ -43,6 +46,8 @@ public:
     cPlWaist();
     // cur = cur * (1 - rate) + target * rate; returns the delta applied
     f32 set(f32 dir, f32 rate);
+    void reset() { m_Ang.y = 0.0f; }
+    operator f32() { return m_Ang.y; }
 
     static const f32 ROT_LIMIT;   // pl_class.cpp (.sdata2), unused there
 };
@@ -67,28 +72,73 @@ public:
 };
 
 extern cMot3 mot3;      // game/player.cpp
-extern f32 m3r[3];      // game/player.cpp  mot3 blend rates ([0] current, [1] target, [2] mix)
-// m3r is an object with a constructor in the original (player.o's static initializer stores 0.0
-// into the three rates); player.cpp defines it under this type, everyone else reads the f32[3].
-class cMot3Rate {
+// A value that follows a target: m_Val0 is the current value, m_Val1 the target and m_Delay the share
+// of the current value kept by each move() (0 = the current value follows the target at once).
+template <class T> class cDelay {
+    T m_Val0;
+    T m_Val1;
+    T m_Delay;
+
 public:
-    f32 r[3];
-    cMot3Rate() { r[0] = r[1] = r[2] = 0.0f; }
+    cDelay() { m_Val0 = m_Val1 = m_Delay = 0.0f; }
+    void setDelay(T delay) { m_Delay = delay; }
+    void reset(T v) { m_Val1 = v; m_Val0 = v; }
+    void limit(T lo, T hi)
+    {
+        if (m_Val1 < lo) m_Val1 = lo;
+        else if (m_Val1 > hi) m_Val1 = hi;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+    }
+    cDelay& operator=(T v)
+    {
+        m_Val1 = v;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+        return *this;
+    }
+    cDelay& operator+=(T v)
+    {
+        m_Val1 += v;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+        return *this;
+    }
+    cDelay& operator-=(T v)
+    {
+        m_Val1 -= v;
+        if (m_Delay == 0.0f) m_Val0 = m_Val1;
+        return *this;
+    }
+    void move() { m_Val0 = m_Val0 * m_Delay + m_Val1 * (1.0f - m_Delay); }
+    operator T() { return m_Val0; }
 };
-extern cMot3Rate m3rObj asm("m3r");
+typedef cDelay<f32> cDelayF;
+
+extern cDelayF m3r;     // game/player.cpp  mot3 blend rate
 
 // Player (game/player.cpp, pl_*.cpp): a cEm with the player virtuals. Its fields are the cEm ones
 // (all below 0xDE0, see em.h). Vtable order (pl_class.cpp): cUnit/cCoord/cModel/cEm virtuals, then
 // the player ones below.
-// pl_npc.h's `pSUB` under a second name: pl_leon.cpp declares its own `cModel* pSUB`, so player.h
-// cannot declare the real one (cPlayer::subCharLiveCheck reads it).
-extern cEm* pSubEm asm("pSUB");
 
 // In-class bodies below are the ones the original emits after ~cPlayer at the end of pl_class.o
 // (in-class inline members of the class whose vtable the unit owns); other units drop their
 // linkonce copies (fold_linkonce). Add none that pl_class's target lacks.
 class cPlayer : public cEm {
 public:
+    enum FLAG {
+        F_NO_WEP_EFF = 0,
+        F_EVENT = 1,
+        F_BINOCULAR = 2,
+        F_OBJPUSH = 3,
+        F_SCOPE = 4,
+        F_SP_L_HAND = 5,
+        F_CROUCH = 6,
+        F_LANDING = 7,
+        F_FALLING = 8,
+        F_THERMO = 9,
+        F_NO_LAUNCHER = 10,
+        F_SHADOW = 11,
+        F_KNIFE = 12,
+    };
+
     u32 m_Work0;          // 0x3E0  event walk flag / damage timer  (PS2 cPlayer::m_Work0)
     int m_Work1;          // 0x3E4  damage: 1 = turning towards m_Fwork0  (PS2 cPlayer::m_Work1)
     u32 m_Work2;          // 0x3E8  damage (blow): water splash done  (PS2 cPlayer::m_Work2)
@@ -101,7 +151,7 @@ public:
     Vec m_VecWork0;         // 0x404  event: walk-to position
     Vec m_VecWork1;        // 0x410  position setPos'd while stat bit7 is set (objRobo R0WaitGondola)
     u32 m_Flag;           // 0x41C  bit8 (0x100) event motion done -> reset routine  (PS2 cPlayer::m_Flag)
-    u32 stat;        // 0x420  bit6 (0x40) knife routine ends into routine 0x11
+    cFlag<u32, FLAG> stat;   // 0x420
     void** m_MotTbl;       // 0x424  motion data table ([0] walk, [2] turn, [0x5F..0x6C] set by setMotion)
     void** m_MotTbl2;    // 0x428  registered motion table (pl_sub PlRegistMotion fills [0..11])
     MotionWorkSub m_SubMot;   // 0x42C .. 0x4FC  neck turn motion (pl_class cPlNeck::motSet), blended via blendMot
@@ -181,6 +231,7 @@ public:
     virtual void moveMatCalcBefore() {}
     virtual void initCloth() {}
     virtual void moveCloth() {}
+    void setEyeMode(u8 mode) { m_EyeMode = mode; }
     // Partner (id 3) dead while the player is in routine 0: routine 6 (die), damage info 0x80.
     // Inline, but defined in pl_class.cpp: player.cpp's move() calls it out of line.
     void subCharLiveCheck();
@@ -317,22 +368,6 @@ void Pl_R0_Event(cPlayer* pEm);
 void pl_R1_Event_Normal(cPlayer* pEm);
 void pl_R1_Event_ToWalk(cPlayer* pEm);
 void pl_R1_Event_Smooth(cPlayer* pEm);
-
-extern cPlayer* pPL;
-
-// Face model info of `pl`: the diagonal of its matrix (the face scale) set to `v` (pl_knife, pl_rocket).
-// A plain block: a do/while(0) body's loop notes lengthen the live ranges around it and flip the
-// callee-saved order of pl_rocket down30's pl / joyLKamae result. Needs main_mem.h (VALID_PTR) and
-// pl_body.h at the use site.
-#define FACE_SET(pl, v)                                 \
-    {                                                   \
-        cModelInfo* face = (pl)->Body->pFace;          \
-        if (VALID_PTR(face)) {                          \
-            face->mat[2][2] = v;                              \
-            face->mat[1][1] = v;                              \
-            face->mat[0][0] = v;                              \
-        }                                               \
-    }
 
 // game/player.cpp
 extern Vec PlFancePos;    // point behind the fence / window the player climbs to (pl_class windowCheck)

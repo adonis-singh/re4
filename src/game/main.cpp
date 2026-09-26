@@ -332,10 +332,7 @@ void systemRestartInit()
     CinescoInit();
     IdSys.roomInit();
     {
-        MessageControl* mes = &cMes;
-        for (i = 0; i < 16; i++) {
-            mes->Delete(i);
-        }
+        cMes.Clear();
     }
     DC.init();
     AllocDrawTmpBuf();

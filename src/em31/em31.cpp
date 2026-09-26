@@ -1,3 +1,4 @@
+#include "objPillar.h"
 // em31 module (D:/Bio4/Prog/em31.cpp): the giant. cModel::type 0 is the body (Wait / Walk / Dash /
 // Turn / Jump / Stamp / Kick / Catch / HeadAtk / BackAtk, the bridge fight em31_R1_BridgeVs with the
 // pillar throws and the em31JumpCk / em31BridgeJumpCk bridge jumps, the Dm_* damage reactions with the
@@ -50,16 +51,6 @@ asm(".comm common_em31,52,4");
 
 
 
-// Falling pillar object (game/objPillar.cpp; the class is local to that unit).
-class cObjPillar : public cObj {
-public:
-    virtual void move();
-
-    int ckSet();
-    void setBreak(Vec* pos, void* mot, void* pl_seq);
-    void setThrow(void* mot0, void* mot1, void* motEscape, void* plMot, void* pl_seq);
-    void setFall(void* mot0, void* mot1);
-};
 cObj* SetPillar(void* bin, void* tpl, Vec* pos, Vec* rot);
 
 static void em31_R0_Init(cEm31* em);
@@ -283,7 +274,7 @@ static inline void em31BridgeVsSet(cEm31* em, Em31Work* w)
 #define EM31_SET_DOWN(timer, type)                                                                  \
     w->Wake_timer = timer;                                                                           \
     if (w->Be_flg & 0x1000) {                                                                        \
-        EmRoutineSet(em, 2, 1, 0, type);                                                            \
+        em->setRno(2, 1, 0, type);                                                            \
     }                                                                                               \
     w->Down_type = type;                                                                             \
     w->Be_flg |= 0x4000
@@ -320,7 +311,7 @@ void em31DmCk(cEm31* em)
                 w->Berserk_wait = 450;
                 w->Berserk_timer = 0;
                 if (total >= (s16) (em->hp_max / 20)) {
-                    EmRoutineSet(em, 2, 0, 0, 0);
+                    em->setRno(2, 0, 0, 0);
                     return;
                 }
                 EM31_SET_DOWN(210, 0);
@@ -328,7 +319,7 @@ void em31DmCk(cEm31* em)
             }
         }
     }
-    if (em->hp > 0 && EmDeadCk(em) == 0) {
+    if (em->hp > 0 && em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -527,7 +518,7 @@ void cEm31::move()
     if (!(w->Be_flg & 0x40) && w->Berserk_wait) {
         w->Berserk_wait--;
     }
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         w->Atk_wait = 60;
     }
     if (w->Flash_timer) {
@@ -613,10 +604,10 @@ static void em31_R0_Init(cEm31* em)
     em->Motion.pAttachCam = (AttachCamera*) MEM_ALLOC(0x98, 1, 0xD);
     em->LightInfo.init2(0, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 10000.0f, 10000.0f, 10000.0f }), 2);
     em->atari.init(0.0f, 0.0f, 0.0f, 2000.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     em->atari.setPriority(PRI_LV1);
     if (em->type == 1) {
-        em->atari.throughOn();
+        em->atari.off();
     }
     switch (em->type) {
     case 0:
@@ -683,10 +674,7 @@ static void em31_R0_Init(cEm31* em)
         break;
     }
     one = 1;
-    em->lockParts = one;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(one, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(9), EFF_EM31, 0);
     zero = 0;
     w->EffKindId = EspPullCoreKind();
@@ -765,7 +753,7 @@ static void em31_R1_Appear(cEm31* em)
             em31SetTail(em);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -806,7 +794,7 @@ static void em31_R1_Wait(cEm31* em)
         } else {
             MotionSetCore(em, MOTION(em), ARC(0xA), 0, 30, 5, 0);
         }
-        em->atari.throughOff();
+        em->atari.on();
         w->Timer = Rnd() % 60 + 90;
         if (pG->Game_level <= 3) {
             w->Timer = Rnd() % 60 + 120;
@@ -845,14 +833,14 @@ static void em31_R1_Wait(cEm31* em)
 
             if (w->Berserk_wait == 0 && w->Go_rot < 0.5235988f && dy < 100.0f && !(w->Be_flg & 0x40) &&
                 pG->Game_level > 1) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
                 break;
             }
         }
         if (w->Pl_rot > 0.7853982f) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -890,7 +878,7 @@ static void em31_R1_Walk(cEm31* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
             if (w->Timer == 0) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             w->Timer--;
@@ -899,7 +887,7 @@ static void em31_R1_Walk(cEm31* em)
 
                 if (w->Berserk_wait == 0 && w->Go_rot < 0.5235988f && dy < 100.0f && !(w->Be_flg & 0x40) &&
                     pG->Game_level > 1) {
-                    EmRoutineSet(em, 1, 5, 0, 0);
+                    em->setRno(1, 5, 0, 0);
                     break;
                 }
             }
@@ -908,7 +896,7 @@ static void em31_R1_Walk(cEm31* em)
             break;
         }
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p = em->getPartsPtr(7);
+            cParts* p = em->getPartsPtr(7);
 
             ep = em->pos;
             v = p->world;
@@ -917,7 +905,7 @@ static void em31_R1_Walk(cEm31* em)
             EstSet(0, -1, &p->world, 0, EFF_EM31, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         if (em->Motion.Seq_old.Free & 2) {
-            cModel* p = em->getPartsPtr(0xD);
+            cParts* p = em->getPartsPtr(0xD);
 
             ep = em->pos;
             v = p->world;
@@ -926,10 +914,10 @@ static void em31_R1_Walk(cEm31* em)
             EstSet(0, -1, &p->world, 0, EFF_EM31, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         if (w->Go_rot > 0.7853982f) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         } else {
             if (em->l_pl < 12250000.0f) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             if (w->pTen == 0) {
@@ -939,7 +927,7 @@ static void em31_R1_Walk(cEm31* em)
                 break;
             }
             em31SetAtkWait(w);
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -978,23 +966,23 @@ static void em31_R1_Dash(cEm31* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
             if (w->Timer == 0) {
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
                 break;
             }
             w->Timer--;
             if (w->Go_rot > 2.3561945f) {
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
                 break;
             }
         }
         if (w->Go_rot > 2.3561945f) {
             if ((u8) (Rnd() % 10) > 4) {
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
             } else {
                 if (w->pTen) {
                     w->pTen->setWait();
                 }
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             }
             break;
         }
@@ -1002,7 +990,7 @@ static void em31_R1_Dash(cEm31* em)
             w->Timer = 1;
         }
         if (em->Motion.Seq_old.Free & 1) {
-            cModel* p = em->getPartsPtr(7);
+            cParts* p = em->getPartsPtr(7);
 
             ep = em->pos;
             v = p->world;
@@ -1011,7 +999,7 @@ static void em31_R1_Dash(cEm31* em)
             EstSet(0, -1, &p->world, 0, EFF_EM31, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
         }
         if (em->Motion.Seq_old.Free & 2) {
-            cModel* p = em->getPartsPtr(0xD);
+            cParts* p = em->getPartsPtr(0xD);
 
             ep = em->pos;
             v = p->world;
@@ -1061,15 +1049,15 @@ static void em31_R1_Turn(cEm31* em)
             if (em31BridgeVsCk(em, 0)) {
                 em31BridgeVsSet(em, w);
             } else if (w->Go_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else if (w->Be_flg & 0x40) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else if (em->l_pl > 64000000.0f &&
                        (dy = fabsf(em->pos.y - pPL->pos.y), w->Berserk_wait == 0 && w->Go_rot < 0.5235988f &&
                                                              dy < 100.0f && pG->Game_level > 1)) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -1088,7 +1076,7 @@ static void em31_R1_Turn(cEm31* em)
         w->Target_pos.x = -52600.0f;                                                                 \
         w->Target_pos.y = 17361.0f;                                                                  \
     }                                                                                               \
-    EmRoutineSet(em, 1, 8, 0, 0)
+    em->setRno(1, 8, 0, 0)
 
 // Body routine 1/7: the stand-off across the bridge (berserk cancelled). `side` is which bank the
 // giant is on (x -44 m), `ang` the yaw facing across. Steps: 0/1 turn to face across, 2/3 side-step
@@ -1210,7 +1198,7 @@ static void em31_R1_BridgeVs(cEm31* em)
             w->pTen->r_no_3 = ret;
             em->r_no_2 = 8;
         } else {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     case 4:
@@ -1221,7 +1209,7 @@ static void em31_R1_BridgeVs(cEm31* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         MotionMove(em, 0);
         if (em31BridgeVsCk(em, 1) == 0) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             break;
         }
         if (w->Atk_wait == 0 && w->pTen && w->pTen->ckAtkEnable()) {
@@ -1287,7 +1275,7 @@ static void em31_R1_Jump(cEm31* em)
     Em31Work* w = EM31_WK(em);
     Vec v;
     Vec ep;
-    cModel* p;
+    cParts* p;
 
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
@@ -1305,9 +1293,9 @@ static void em31_R1_Jump(cEm31* em)
             PSVECScale(&w->TmpV, &v, 0.1f);
             PSVECAdd(&em->pos, &v, &em->pos);
             PSVECSubtract(&w->TmpV, &v, &w->TmpV);
-            em->atari.throughOn();
+            em->atari.off();
         } else {
-            em->atari.throughOff();
+            em->atari.on();
         }
         if (em->Motion.Seq_old.Free & 1) {
             v = em->pos;
@@ -1321,9 +1309,9 @@ static void em31_R1_Jump(cEm31* em)
         }
         if (MotionMove(em, 0)) {
             if (w->Go_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -1350,9 +1338,9 @@ static void em31_R1_BerserkStart(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->Pl_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             }
         }
         break;
@@ -1377,9 +1365,9 @@ static void em31_R1_BerserkEnd(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->Pl_rot > 0.7853982f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -1393,12 +1381,12 @@ static inline void em31StampEnd(cEm31* em, Em31Work* w)
         GameAddPoint(LVADD_ESCAPEATTACK);
     }
     if (w->Atk_ck && (w->Be_flg & 0x40)) {
-        EmRoutineSet(em, 1, 6, 0, 0);
+        em->setRno(1, 6, 0, 0);
     } else if (w->Atk_ck) {
         em31SetAtkWait(w);
-        EmRoutineSet(em, 1, 1, 0, 0);
+        em->setRno(1, 1, 0, 0);
     } else {
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
     }
 }
 
@@ -1419,7 +1407,7 @@ static void em31_R1_Stamp(cEm31* em)
     void* m0;
     void* m1;
     int flag;
-    cModel* p;
+    cParts* p;
 
     PSMTXInverse(em->mat, inv);
     PSMTXMultVec(inv, &pPL->pos, &lp);
@@ -1591,7 +1579,7 @@ void em31EscapeCamMove(cEm31* em)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Kick hit: the foot's matrix origin shifted by `x`, raised by 250.
@@ -1616,7 +1604,7 @@ static void em31_R1_Kick(cEm31* em)
     void* m0;
     void* m1;
     int flag;
-    cModel* p;
+    cParts* p;
 
     switch (em->r_no_2) {
     case 0:
@@ -1675,7 +1663,7 @@ static void em31_R1_Kick(cEm31* em)
     if (!(w->pTen->Motion.Seq_old.Free & 2)) {                                                                 \
         return;                                                                                     \
     }                                                                                               \
-    if (EmDeadCk(pPL)) {                                                                          \
+    if (pPL->dmg.isDamage()) {                                                                          \
         return;                                                                                     \
     }                                                                                               \
     if ((s16) pG->pl_life <= 0) {                                                                   \
@@ -1688,7 +1676,7 @@ static void em31_R1_Kick(cEm31* em)
         pPL->dmg.m_Timer = 2;                                                                            \
         em->dmg.m_Timer = 2;                                                                             \
         w->pTen->dmg.m_Timer = 2;                                                                        \
-        EmRoutineSet(em, 1, rtn, 0, 0);                                                             \
+        em->setRno(1, rtn, 0, 0);                                                             \
         VibSetData(VIB_TBL, 0xB, 1);                                                                \
     }
 
@@ -1697,7 +1685,7 @@ static void em31_R1_Kick(cEm31* em)
 static void em31_R1_br_Catch(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     EM31_CATCH_BR_CK(0xD, 2250000.0f, 0xC);
 }
@@ -1720,7 +1708,7 @@ static void em31_R1_Catch(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -1729,7 +1717,7 @@ static void em31_R1_Catch(cEm31* em)
 // End of a catch: collision back on, the berserk over, the attack wait by difficulty.
 static inline void em31CatchEnd(cEm31* em, Em31Work* w)
 {
-    em->atari.throughOff();
+    em->atari.on();
     w->Berserk_timer = 0;
     w->Berserk_wait = 450;
     w->Atk_wait = 60;
@@ -1746,7 +1734,7 @@ static inline void em31CatchEnd(cEm31* em, Em31Work* w)
     if (pG->Game_level > 9) {
         w->Atk_wait = 0;
     }
-    EmRoutineSet(em, 1, 1, 0, 0);
+    em->setRno(1, 1, 0, 0);
 }
 
 // Body routine 1/0xC: the grab connected (Be_flg 0x80, dmType 2). Snapped to the grab spot
@@ -1761,7 +1749,7 @@ static void em31_R1_CatchHit(cEm31* em)
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em31CatchPosSet(em, 0);
         MotionSetCore(em, MOTION(em), ARC(0x1A), ARC(0x1B), 0, 1, 0);
         SetPlDamage(em, plem31_CatchHit);
@@ -1774,7 +1762,7 @@ static void em31_R1_CatchHit(cEm31* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            em->atari.throughOff();
+            em->atari.on();
         }
         if (MotionMove(em, 0)) {
             em31CatchEnd(em, w);
@@ -1802,7 +1790,7 @@ static void em31_R1_CatchHit(cEm31* em)
         PlSetFace(1);                                                                               \
         EstSet(pl, -1, 0, 0, EFF_EM31, est, 0, ESP_CORE_KIND_NONE, pl, 0);                                   \
         SndCall(1, 0xC, &pl->getPartsPtr(4)->world, 0, 0, pl);                                   \
-        pl->atari.throughOn();                                                                      \
+        pl->atari.off();                                                                      \
         pl->r_no_2++;                                                                                  \
     case 1:                                                                                         \
         if (MotionMove(pl, 0) && (s16) pG->pl_life > 0) {                                          \
@@ -1852,7 +1840,7 @@ static void plem31_CatchHit(cPlayer* pl)
 static void em31_R1_br_StepCatch(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     EM31_CATCH_BR_CK(0xB, 4000000.0f, 0xE);
 }
@@ -1877,7 +1865,7 @@ static void em31_R1_StepCatch(cEm31* em)
             w->Berserk_wait = 450;
             w->Berserk_timer = 0;
             w->Be_flg &= ~0x40;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -1893,7 +1881,7 @@ static void em31_R1_StepCatchHit(cEm31* em)
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em31CatchPosSet(em, 0);
         MotionSetCore(em, MOTION(em), ARC(0x1A), ARC(0x1B), 0, 1, 0);
         SetPlDamage(em, plem31_StepCatchHit);
@@ -1906,7 +1894,7 @@ static void em31_R1_StepCatchHit(cEm31* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            em->atari.throughOff();
+            em->atari.on();
         }
         if (MotionMove(em, 0)) {
             em31CatchEnd(em, w);
@@ -1929,11 +1917,11 @@ static inline void em31AtkEnd(cEm31* em, Em31Work* w)
     }
     if (MotionMove(em, 0)) {
         if (w->Go_rot > 0.7853982f) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         } else if (w->Atk_wait) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
     }
 }
@@ -2055,7 +2043,7 @@ static void em31_R1_T_Appear(cEm31* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2150,9 +2138,9 @@ static void em31_R1_T_Stamp(cEm31* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->r_no_3 == 2) {
-                EmRoutineSet(em, 1, 0x12, 0, 1);
+                em->setRno(1, 0x12, 0, 1);
             } else {
-                EmRoutineSet(em, 1, 0x12, 0, 0);
+                em->setRno(1, 0x12, 0, 0);
             }
         }
         break;
@@ -2164,7 +2152,7 @@ static void em31_R1_T_Stamp(cEm31* em)
 // The tentacle attack: every parts of the whip against the player, from the root's world position.
 static inline void em31TenAtkCk(cEm31* em, int no)
 {
-    cModel* p0;
+    cParts* p0;
 
     em31TenMatCalc(em);
     p0 = em->getPartsPtr(0);
@@ -2239,9 +2227,9 @@ static void em31_R1_T_Atk(cEm31* em)
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
             if (em->r_no_3) {
-                EmRoutineSet(em, 1, 0x12, 0, 0);
+                em->setRno(1, 0x12, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x12, 0, 1);
+                em->setRno(1, 0x12, 0, 1);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             no = 5;
@@ -2300,7 +2288,7 @@ static void em31_R1_T_BerserkStart(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2318,7 +2306,7 @@ static void em31_R1_T_BerserkEnd(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2335,7 +2323,7 @@ static void em31_R1_T_Jump(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         } else if (em->Motion.Seq_frame > 18.7f && em->Motion.Seq_frame < 19.3f) {
             em->setVoice(0x19, 2);
         }
@@ -2373,7 +2361,7 @@ static void em31_R1_T_Catch(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2393,7 +2381,7 @@ static void em31_R1_T_CatchHit(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 1);
+            em->setRno(1, 0x12, 0, 1);
         }
         break;
     }
@@ -2412,7 +2400,7 @@ static void em31_R1_T_StepCatch(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2432,7 +2420,7 @@ static void em31_R1_T_StepCatchHit(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 1);
+            em->setRno(1, 0x12, 0, 1);
         }
         break;
     }
@@ -2456,7 +2444,7 @@ static void em31_R1_T_PillarThrow(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
             break;
         }
         if ((em->Motion.Seq_old.Free & 2) && w->pBody) {
@@ -2508,7 +2496,7 @@ static void em31_R1_T_Dm_Normal(cEm31* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2581,7 +2569,7 @@ static void em31_R1_T_Down(cEm31* em)
         em->r_no_2++;
     case 5:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     case 6:
@@ -2688,7 +2676,7 @@ static void em31_R1_T_Dm_Climb(cEm31* em)
     case 5:
         if (MotionMove(em, 0)) {
             LifeDownSet(em, (s16) (em->hp_max / 20), 0);
-            EmRoutineSet(em, 1, 0x12, 0, 0);
+            em->setRno(1, 0x12, 0, 0);
         }
         break;
     }
@@ -2743,7 +2731,7 @@ static inline void em31DmEnd(cEm31* em, Em31Work* w)
     if (em31BridgeVsCk(em, 0)) {
         em31BridgeVsSet(em, w);
     } else {
-        EmRoutineSet(em, 1, 2, 0, 0xA);
+        em->setRno(1, 2, 0, 0xA);
     }
 }
 
@@ -2933,7 +2921,7 @@ static void em31_R1_Dm_Crane(cEm31* em)
             }
         }
         w->Be_flg &= ~0x40;
-        em->atari.throughOff();
+        em->atari.on();
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
@@ -2958,7 +2946,7 @@ static void em31_R1_Dm_Climb(cEm31* em)
     w->Be_flg |= 0x80;
     switch (em->r_no_2) {
     case 0:
-        em->atari.throughOn();
+        em->atari.off();
         em31CatchPosSet(em, 1);
         MotionSetCore(em, MOTION(em), ARC(0x2F), 0, 0, 1, 0);
         SetPlDamage(em, plem31_Climb);
@@ -2973,7 +2961,7 @@ static void em31_R1_Dm_Climb(cEm31* em)
         break;
     case 2:
         MotionSetCore(em, MOTION(em), ARC(0x80), 0, 0, 1, 0);
-        em->atari.throughOff();
+        em->atari.on();
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
@@ -2994,7 +2982,7 @@ static void em31_R1_Dm_Climb(cEm31* em)
 // The player on the giant's back: climbs up (case 0/1), stabs the parasite (2/3), jumps off (4/5).
 static void plem31_Climb(cPlayer* pl)
 {
-    cModel* p = pl->getPartsPtr(4);
+    cParts* p = pl->getPartsPtr(4);
 
     pl->dmg.set(0, 10);
     pl->subArc = pl->pEmCatch->subArc;
@@ -3007,7 +2995,7 @@ static void plem31_Climb(cPlayer* pl)
         pl->ang.y = pl->pEmCatch->ang.y;
         MotionSetCore(pl, MOTION(pl), EM_ARC(pl, 0x82), 0, 0, 0x201, 0);
         EstSet(pl, -1, 0, 0, EFF_EM31, 0x34, 0, ESP_CORE_KIND_NONE, pl, 0);
-        pl->atari.throughOn();
+        pl->atari.off();
         pl->r_no_2++;
     case 1:
         if (MotionMove(pl, 0)) {
@@ -3029,9 +3017,9 @@ static void plem31_Climb(cPlayer* pl)
         if (em31CatchObj.p) {
             em31CatchObj.p->modelInit(EM_ARC(pl, 0x86), EM_ARC(pl, 0x85));
             em31CatchObj.p->atari.m_flag &= 0xFCFF;
-            em31CatchObj.p->pParts->pParent = pPL->getPartsPtr(0xA);
+            em31CatchObj.p->pList->pParent = pPL->getPartsPtr(0xA);
             em31CatchObj.p->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            em31CatchObj.p->wep.parent = pPL;
+            ((cObjWep*) em31CatchObj.p)->m_pParent = pPL;
             em31CatchObj.p->be_flag &= ~2;
             EstSet(pl, -1, 0, 0, EFF_EM31, 0x31, 0, ESP_CORE_KIND_NONE, pl, 0);
         }
@@ -3070,7 +3058,7 @@ static void plem31_Climb(cPlayer* pl)
         pl->r_no_2++;
     case 5:
         if (MotionMove(pl, 0)) {
-            pl->atari.throughOff();
+            pl->atari.on();
             EndPlDamage();
             pl->dmg.set(0, 30);
             break;
@@ -3089,7 +3077,7 @@ static void plem31_Climb(cPlayer* pl)
 // Action button of the down loop: starts the back climb (routine 2/3), both sides invulnerable.
 static void em31SetActClimb(cEm31* em)
 {
-    EmRoutineSet(em, 2, 3, 0, 0);
+    em->setRno(2, 3, 0, 0);
     em->dmg.set(0, 30);
     pPL->dmg.set(0, 30);
 }
@@ -3145,7 +3133,7 @@ static void em31_R1_Die_Normal(cEm31* em)
     }
     switch (em->r_no_2) {
     case 0:
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->pos.x = -52850.0f;
         em->pos.y = 17500.0f;
         em->pos.z = 67000.0f;
@@ -3165,7 +3153,7 @@ static void em31_R1_Die_Normal(cEm31* em)
         }
         break;
     case 2:
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->pos.x = -53000.0f;
         em->pos.y = 17500.0f;
         em->pos.z = 68000.0f;
@@ -3212,7 +3200,7 @@ static void em31_R1_Die_Normal(cEm31* em)
         }
         break;
     case 4:
-        em->atari.clrFlag100();
+        em->atari.offSca();
         em->pos.x = -53000.0f;
         em->pos.y = 17500.0f;
         em->pos.z = 68000.0f;
@@ -3500,7 +3488,7 @@ static void plem31_dm_Stamp(cPlayer* pl)
     case 0:
         MotionSetCore(pl, MOTION(pl), EM_ARC(pl, 0x6B), 0, 3, 1, 0);
         PlSetFace(1);
-        pl->atari.clrFlag200();
+        pl->atari.offOba();
         if ((s16) pG->pl_life > 0) {
             PlSetDamageSe(0);
         } else {
@@ -3522,8 +3510,8 @@ static void plem31_dm_Stamp(cPlayer* pl)
         em31StampCamMove((cEm31*)pl->pEmCatch);
         if (MotionMove(pl, 0) || (pl->Motion.Seq_frame > 49.7f && pl->Motion.Seq_frame < 50.3f)) {
             if ((s16) pG->pl_life > 0) {
-                pl->atari.throughOff();
-                EmRoutineSet(pPL, 1, 0, 0xA, 0);
+                pl->atari.on();
+                pPL->setRno(1, 0, 0xA, 0);
             }
         }
         break;
@@ -3537,9 +3525,9 @@ void em31StampCamMove(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
     GlobalWork* g = pG;
-    Camera* cam = &w->Cam;
+    CAMERA* cam = &w->Cam;
     Vec a;
-    cModel* p;
+    cParts* p;
 
     w->Cam.param.fovy = g->Camera.param.fovy;
     a.x = 0.0f;
@@ -3554,7 +3542,7 @@ void em31StampCamMove(cEm31* em)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = VEC_DIST(&w->Cam.param.pos, &w->Cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Tentacle only: finds the live body (id 0x31, type 0) among the enemies once and links the two
@@ -3570,7 +3558,7 @@ void em31SearchBody(cEm31* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm31* p = (cEm31*) EmMgr.fastAt(i);
 
-        if ((p->be_flag & 0x201) == 1 && p->id == 0x31 && p != em && p->type == 0) {
+        if (p->isAlive() && p->id == 0x31 && p != em && p->type == 0) {
             w->pBody = p;
             EM31_WK(p)->pTen = em;
             return;
@@ -3583,7 +3571,7 @@ void em31SearchBody(cEm31* em)
 void em31TenMatCalc(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (em->type != 1) {
         return;
@@ -3613,7 +3601,7 @@ void cEm31::setDamageCrane(int flip)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x20, 0, flip);
+    setRno(1, 0x20, 0, flip);
 }
 
 // Body, for the level script: teleports the giant to crane spot `no` (0 the west bank facing
@@ -3652,7 +3640,7 @@ void cEm31::setCranePos(int no)
     if (pG->Game_level <= 1) {
         w->Atk_wait = 120;
     }
-    EmRoutineSet(this, 1, 1, 0, 0);
+    setRno(1, 1, 0, 0);
     if (w->pTen) {
         w->pTen->setWait();
     }
@@ -3678,7 +3666,7 @@ void cEm31::setAtk(int no)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x17, 0, no);
+    setRno(1, 0x17, 0, no);
 }
 
 // Tentacle: the whipping loop of the body's charge (1/0x18).
@@ -3687,7 +3675,7 @@ void cEm31::setDashAtk()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x18, 0, 0);
+    setRno(1, 0x18, 0, 0);
 }
 
 // Tentacle: back to idle (1/0x12).
@@ -3696,7 +3684,7 @@ void cEm31::setWait()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x12, 0, 0);
+    setRno(1, 0x12, 0, 0);
 }
 
 // Tentacle: the player is climbing the back and slashing it (1/0x21).
@@ -3705,7 +3693,7 @@ void cEm31::setClimb()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x21, 0, 0);
+    setRno(1, 0x21, 0, 0);
 }
 
 // Tentacle: the pillar throw of the bridge fight (1/0x1D).
@@ -3714,7 +3702,7 @@ void cEm31::setPillarThrow()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1D, 0, 0);
+    setRno(1, 0x1D, 0, 0);
 }
 
 // Tentacle: rise with the body's berserk roar (1/0x13).
@@ -3723,7 +3711,7 @@ void cEm31::setBerserkStart()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x13, 0, 0);
+    setRno(1, 0x13, 0, 0);
 }
 
 // Tentacle: settle as the berserk ends (1/0x14).
@@ -3732,7 +3720,7 @@ void cEm31::setBerserkEnd()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x14, 0, 0);
+    setRno(1, 0x14, 0, 0);
 }
 
 // Tentacle: the jump pose (1/0x15).
@@ -3741,7 +3729,7 @@ void cEm31::setJump()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x15, 0, 0);
+    setRno(1, 0x15, 0, 0);
 }
 
 // Tentacle: follow the body's stamp variant `no` (1/0x16).
@@ -3750,7 +3738,7 @@ void cEm31::setStamp(u8 no)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x16, 0, no);
+    setRno(1, 0x16, 0, no);
 }
 
 // Tentacle: the grab reach (1/0x19).
@@ -3759,7 +3747,7 @@ void cEm31::setCatch()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x19, 0, 0);
+    setRno(1, 0x19, 0, 0);
 }
 
 // Tentacle: the crush of a caught player (1/0x1A).
@@ -3768,7 +3756,7 @@ void cEm31::setCatchHit()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1A, 0, 0);
+    setRno(1, 0x1A, 0, 0);
 }
 
 // Tentacle: the stepping grab reach (1/0x1B).
@@ -3777,7 +3765,7 @@ void cEm31::setStepCatch()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1B, 0, 0);
+    setRno(1, 0x1B, 0, 0);
 }
 
 // Tentacle: the crush of the stepping grab (1/0x1C).
@@ -3786,7 +3774,7 @@ void cEm31::setStepCatchHit()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1C, 0, 0);
+    setRno(1, 0x1C, 0, 0);
 }
 
 // Tentacle: the flinch after weak-point damage (1/0x1E).
@@ -3795,7 +3783,7 @@ void cEm31::setDmNormal()
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1E, 0, 0);
+    setRno(1, 0x1E, 0, 0);
 }
 
 // Tentacle: collapse with the body's knock-down (1/0x1F, `flip` = mirrored).
@@ -3804,7 +3792,7 @@ void cEm31::setDown(int flip)
     if (type != 1) {
         return;
     }
-    EmRoutineSet(this, 1, 0x1F, 0, flip);
+    setRno(1, 0x1F, 0, flip);
 }
 
 // Tentacle: the flinch while down (T_Down step 6).
@@ -3848,7 +3836,7 @@ void cEm31::setDownBody()
     if (type != 0) {
         return;
     }
-    EmRoutineSet(this, 2, 1, 0, 0);
+    setRno(2, 1, 0, 0);
 }
 
 // Body, for the level script (the climb was interrupted): back to the down loop (2/1 step 2), the
@@ -3924,7 +3912,7 @@ void em31TailAtkCk(cEm31* em)
 void em31EyelidInit(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
 
     if (em->type != 0) {
         return;
@@ -4142,8 +4130,8 @@ int em31EyelidDmcK(cEm31* em, int dmg)
 void em31TentacleConnect(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
-    cModel* q;
+    cParts* p;
+    cParts* q;
 
     if (em->type != 1) {
         return;
@@ -4171,7 +4159,7 @@ void cEm31::setHitCrane(Vec* target)
             back = 1;
         }
     }
-    EmRoutineSet(this, 2, 2, 0, back);
+    setRno(2, 2, 0, back);
 }
 
 // Switches the four small tails between the calm loop (player beyond 7 m) and the agitated loop
@@ -4275,7 +4263,7 @@ void cEm31::setDie()
         return;
     }
     EM31_WK(this)->Be_flg |= 0x800;
-    EmRoutineSet(this, 3, 0, 0, 0);
+    setRno(3, 0, 0, 0);
 }
 
 // Body, for the level script: the plain death, straight into the second motion (3/0 step 2).
@@ -4284,7 +4272,7 @@ void cEm31::setDieNormal()
     if (type != 0) {
         return;
     }
-    EmRoutineSet(this, 3, 0, 2, 0);
+    setRno(3, 0, 2, 0);
 }
 
 // Body, for the level script: skip to the final death pose (3/0 step 4).
@@ -4293,7 +4281,7 @@ void cEm31::setDieCancel()
     if (type != 0) {
         return;
     }
-    EmRoutineSet(this, 3, 0, 4, 0);
+    setRno(3, 0, 4, 0);
 }
 
 // A standing pillar (obj 0x1F) within a 7 m wide, 4 m deep box in front: starts the whip attack at
@@ -4308,7 +4296,7 @@ int em31PillarCk(cEm31* em)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             PSMTXMultVec(inv, &o->pos, &lp);
             if (lp.x > -3500.0f && lp.x < 3500.0f && lp.y > -500.0f && lp.y < 500.0f && lp.z > 0.0f &&
                 lp.z < 4000.0f) {
@@ -4344,7 +4332,7 @@ int em31PillarCk2(cEm31* em)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             PSMTXMultVec(inv, &o->pos, &lp);
             if (lp.x > 0.0f && lp.x < 2500.0f && lp.y > -500.0f && lp.y < 500.0f && lp.z > -1500.0f &&
                 lp.z < 3500.0f) {
@@ -4369,7 +4357,7 @@ void em31PillarAtkCk(cEm31* em, Vec* pos)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             if ((pos->x - o->pos.x) * (pos->x - o->pos.x) + (pos->z - o->pos.z) * (pos->z - o->pos.z) <
                 1000000.0f) {
                 if (w->pBody) {
@@ -4420,7 +4408,7 @@ int em31JumpCk(cEm31* em)
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* o = ObjMgr.fastAt(i);
 
-        if ((o->be_flag & 0x201) == 1 && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
+        if (o->isAlive() && o->id == 0x1F && ((cObjPillar*) o)->ckSet()) {
             PSMTXMultVec(m, &o->pos, &lp);
             if (lp.x > -3500.0f && lp.x < 3500.0f && lp.z > 0.0f && lp.z * lp.z < em->l_pl) {
                 return 0;
@@ -4429,7 +4417,7 @@ int em31JumpCk(cEm31* em)
     }
     w->Target_pos = pPL->pos;
     w->Be_flg &= ~0x40;
-    EmRoutineSet(em, 1, 8, 0, 0);
+    em->setRno(1, 8, 0, 0);
     return 1;
 }
 
@@ -4613,7 +4601,7 @@ void em31TBloodSet(cEm31* em)
 void em31SetTail(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
     Vec pos;
     Vec rot;
     u16 step;
@@ -4697,7 +4685,7 @@ void cEm31::setAppearCancel()
         EffectEspDelete(1, w->EffKindId, this, 0);
         EffectEspgenDelete(1, w->EffKindId, this);
         EffectEfmDelete(1, w->EffKindId, this);
-        EmRoutineSet(this, 1, 2, 0, 0);
+        setRno(1, 2, 0, 0);
         break;
     case 1:
         em31ScaleReset(this);
@@ -4707,7 +4695,7 @@ void cEm31::setAppearCancel()
         EffectEspDelete(1, w->EffKindId, this, 0);
         EffectEspgenDelete(1, w->EffKindId, this);
         EffectEfmDelete(1, w->EffKindId, this);
-        EmRoutineSet(this, 1, 0x12, 0, 0);
+        setRno(1, 0x12, 0, 0);
         break;
     }
 }
@@ -4732,7 +4720,7 @@ void cEm31::setAppearCancel()
 void em31FootSe(cEm31* em)
 {
     Em31Work* w = EM31_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
     u8 ev = em->Motion.Seq_old.Free & 0xF0;
 
@@ -4889,7 +4877,7 @@ int em31BridgeJumpCk(cEm31* em)
             }
             if (!(fabsf(Muku(&em->pos, &f->pos, em->ang.y, PI)) > 0.2617994f)) {
                 w->Target_pos = f->pos;
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
                 return 1;
             }
         }
@@ -4946,9 +4934,9 @@ int em31AtkRtnCk(cEm31* em)
     if (pPL->pos.y < em->pos.y + 1000.0f && !(w->Be_flg & 0x40) && lp.x > -2500.0f && lp.x < 2500.0f &&
         lp.z > 3000.0f && lp.z < 4000.0f) {
         if ((u8) (Rnd() % 10) > 4) {
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 0xA, 0, 0);
+            em->setRno(1, 0xA, 0, 0);
         }
         return 1;
     }
@@ -4959,7 +4947,7 @@ int em31AtkRtnCk(cEm31* em)
         return 0;
     }
     if (lp.x > -1000.0f && lp.x < 1000.0f && lp.y > 1000.0f && lp.z < 6000.0f) {
-        EmRoutineSet(em, 1, 0xD, 0, 0);
+        em->setRno(1, 0xD, 0, 0);
         return 1;
     }
     if (w->Atk_wait2 != 0) {
@@ -4974,9 +4962,9 @@ int em31AtkRtnCk(cEm31* em)
     }
     if (lp.x > -500.0f && lp.x < 500.0f && lp.y > -100.0f && lp.y < 100.0f && lp.z > 3000.0f && lp.z < 5000.0f) {
         if ((u8) (Rnd() % 10) > 4) {
-            EmRoutineSet(em, 1, 0xF, 0, 0);
+            em->setRno(1, 0xF, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 0xB, 0, 0);
+            em->setRno(1, 0xB, 0, 0);
         }
         return 1;
     }
@@ -4985,21 +4973,21 @@ int em31AtkRtnCk(cEm31* em)
         case 0:
         case 1:
         default:
-            EmRoutineSet(em, 1, 0xB, 0, 0);
+            em->setRno(1, 0xB, 0, 0);
             return 1;
         case 2:
-            EmRoutineSet(em, 1, 0x10, 0, 0);
+            em->setRno(1, 0x10, 0, 0);
             return 1;
         case 3:
             w->Target_pos = pPL->pos;
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
             return 1;
         }
     }
     if (!((em->pos.x - pp.x) * (em->pos.x - pp.x) + (em->pos.z - pp.z) * (em->pos.z - pp.z) < 25000000.0f)) {
         return 0;
     }
-    EmRoutineSet(em, 1, 0xF, 0, 0);
+    em->setRno(1, 0xF, 0, 0);
     return 1;
 }
 
@@ -5080,7 +5068,7 @@ void em31PlHeadLost()
 {
     Vec ofs;
     Vec spd;
-    cModel* p;
+    cParts* p;
     cObj* obj;
 
     if (pSys->eff_country == 0) {
@@ -5142,7 +5130,7 @@ void em31WeakInit(cEm31* em)
                 e->pObj->scale.z = 1.1f;
                 e->pObj->LightInfo.EnableMask = 0x80;
                 OyaSetObj00(e->pObj, em, e->Parts2);
-                e->pObj->atari.throughOn();
+                e->pObj->atari.off();
             }
         }
         break;
@@ -5154,7 +5142,7 @@ void em31WeakInit(cEm31* em)
             w->pWeak->scale.z = 1.3f;
             w->pWeak->LightInfo.EnableMask = 0x80;
             OyaSetObj00(w->pWeak, em, 0xB);
-            w->pWeak->atari.throughOn();
+            w->pWeak->atari.off();
         }
         break;
     }
@@ -5199,7 +5187,7 @@ void em31WeakMove(cEm31* em)
 void cEm31::setVoice(int no, int timer)
 {
     Em31Work* w = EM31_WK(this);
-    cModel* p;
+    cParts* p;
 
     if (type != 1) {
         return;

@@ -48,7 +48,6 @@
 #define OARC(no) PL_ARC_PTR(owner->subArc, no)
 #define EM ((cEm*) this)
 #define OEM ((cEm*) owner)
-#define LITEM ((LuisItemWork*) work)
 
 static inline void RoutineSet(cSubLuis* o, int r0)
 {
@@ -102,7 +101,7 @@ void (cRoutine::*cRoutine_move_tbl[18])() = {
 static int luisBlink = 0;        // frames to the next eye shift
 static int luisUnused = 0;       // never read (the second .data word)
 
-static cMot3Rate luisEye;        // [0] current eye yaw, [1] target, [2] mix
+static cDelayF luisEye;          // eye yaw: current, target, delay
 
 // Constructor: the three machines start (routine 0 footwork, action mode 2 chase the player), the
 // players' foot shadow table, registers himself as pSUB, and the eye yaw blend (luisEye) is reset
@@ -110,22 +109,22 @@ static cMot3Rate luisEye;        // [0] current eye yaw, [1] target, [2] mix
 cSubLuis::cSubLuis()
 {
     routine.init(this);
-    action.flags = 0;
+    action.status.reset();
     action.init(this);
-    analysis.flags = 0;
+    analysis.status.reset();
     analysis.init(this);
-    flags = 0;
+    status.reset();
     pFsdTbl = pl_fs_tbl;
     pEm = this;
     pSUB = (cSubChar*) this;
-    luisEye.r[0] = luisEye.r[1] = 0.0f;   // chain: r[1] first in RTL, the 0.0 dies at r[0] (issued first)
-    luisEye.r[2] = 0.4f;
+    luisEye.reset(0.0f);
+    luisEye.setDelay(0.4f);
 }
 
 // Destructor (killEm / room change): destroys the gun object and clears pSUB.
 cSubLuis::~cSubLuis()
 {
-    ObjMgr.destroy(pItem);
+    ObjMgr.destroy(pWep);
     pSUB = 0;   // the inlined ~cUnit's be_flag load stays below the store
 }
 
@@ -152,10 +151,7 @@ void cSubLuis::init()
     atari.init(0.0f, -200.0f, 0.0f, 300.0f, 200.0f, 400.0f, 900.0f, 1, 0x1000, 10);
     {
         cSubLuis* s = pEm;
-        s->lockParts = 4;
-        s->lockOfs.x = 0.0f;
-        s->lockOfs.y = 0.0f;
-        s->lockOfs.z = 0.0f;
+        s->setTarget(4, 0.0f, 0.0f, 0.0f);
     }
     setStatus(EM_STATUS_LOCKOFF);
     hp = hp_max = 0x4B0;
@@ -231,11 +227,6 @@ void cSubLuis::move()
     seqSeCtrl();
 }
 
-// Flag tests through a u8-parameter inline: integrate copies the byte into a QImode pseudo
-// (`lbz r0; mr r11, r0` PRE copies, one shared `clrlwi` per extended block); a promoted u8/int local
-// or a direct `flags & bit` read gives SImode pseudos and no copies.
-static inline int Chk8(u8 f, int b) { return f & b; }
-
 // Picks the action mode of the frame (nothing while in damage / die). flags bit0 (hit) -> damage
 // (5) or die (6, when the event routine was running); else in priority order: a grenade aimed at
 // him (analysis bit4) -> avoid (0xA); down and no longer aimed at -> get up (9); flags bit1 (5
@@ -254,32 +245,32 @@ void cSubLuis::think()
         if (a->type == 6) return;
     }
 
-    if (Chk8(flags, 1)) {
+    if (status.check(F_DAMAGED)) {
         if (r_no_0 == 4) action.set(6);
         else action.set(5);
-        flags &= ~1;
-        analysis.flags &= ~4;
+        status.off(F_DAMAGED);
+        analysis.status.off(cAnalysis::S_PL_DOWN);
     } else {
-        if (Chk8(analysis.flags, 0x10)) {
+        if (analysis.status.check(cAnalysis::S_GRENADE)) {
             action.set(0xA);
-        } else if (!Chk8(analysis.flags, 2) && Chk8(analysis.flags, 4)) {
+        } else if (!analysis.status.check(cAnalysis::S_PL_AIM) && analysis.status.check(cAnalysis::S_PL_DOWN)) {
             action.set(9);
-        } else if (Chk8(flags, 2)) {
+        } else if (status.check(F_PL_ATTACKED)) {
             action.set(4);
-        } else if (Chk8(analysis.flags, 2)) {
+        } else if (analysis.status.check(cAnalysis::S_PL_AIM)) {
             action.set(8);
-        } else if (set == 2 && !Chk8(flags, 4)) {
+        } else if (set == 2 && !status.check(F_2F)) {
             action.set(3);
-            if (GetDistance(*(Vec*) &upPos, pos) < 1000000.0f) flags |= 4;
-        } else if (set == 1 && (rackCheck() || Chk8(analysis.flags, 0x80))) {
+            if (GetDistance(*(Vec*) &upPos, pos) < 1000000.0f) status.on(F_2F);
+        } else if (set == 1 && (rackCheck() || analysis.status.check(cAnalysis::S_ESC_RACK))) {
             action.set(0xC);
-        } else if (set == 1 && !(action.flags & 2)) {
+        } else if (set == 1 && !action.status.check(cAction::S_11C_BEGIN)) {
             action.set(0xB);
         } else if (analysis.pEmNear) {
-            if (Chk8(analysis.flags, 8) && !stairCheck(pPL) && !stairCheck(this) && sameFloorCheck(this, pPL) &&
+            if (analysis.status.check(cAnalysis::S_GIVE_ITEM) && !stairCheck(pPL) && !stairCheck(this) && sameFloorCheck(this, pPL) &&
                 (s16) pG->pl_life > 0) {
                 action.set(7);
-                analysis.flags &= ~8;
+                analysis.status.off(cAnalysis::S_GIVE_ITEM);
             } else {
                 action.set(1);
             }
@@ -318,7 +309,7 @@ int cSubLuis::rackCheck()
     if (pRackWk[0]->hp <= 0) return 0;
     if (pRackWk[0]->pos.z < zlim) return 0;
     if (GetDistance(&pos, (Vec*) &rackPos) > dist) return 0;
-    analysis.flags |= (u8) 0x80;
+    analysis.status.on(cAnalysis::S_ESC_RACK);
     return 1;
 }
 
@@ -381,7 +372,7 @@ void cRoutine::moveDamage()
         case 8: mot = OARC(0xDC / 4); owner->r_no_1 = 0x14; break;
         }
         MotionSetCore(owner, &owner->Motion, mot, 0, 3, 1, 0);
-        SndCall(8, 9, &owner->pParts->world, owner->id, 0, 0);
+        SndCall(8, 9, &owner->pList->world, owner->id, 0, 0);
         owner->thankCtr = 0;
     case 1:
         if (MotionCheckCrossFrame(&owner->Motion, 20.0f) && work[1] && sameFloorCheck(owner, pPL)) {
@@ -509,8 +500,8 @@ void cRoutine::moveWepSet()
     switch (owner->r_no_1) {
     case 0:
         mot3.set(owner, OARC(0x7C / 4), OARC(0x94 / 4), OARC(0x98 / 4), 0, 3, 0, 4, 0);
-        if (VALID_PTR(pTarget) && VALID_PTR(pTarget->pParts)) {
-            PSVECSubtract(&pTarget->pParts->world, &owner->pParts->world, &d);
+        if (VALID_PTR(pTarget) && VALID_PTR(pTarget->pList)) {
+            PSVECSubtract(&pTarget->pList->world, &owner->pList->world, &d);
             rate = VecElevation(&d);
         } else {
             owner->motionMove();
@@ -544,7 +535,7 @@ void cRoutine::moveWepFire()
             end();
             break;
         }
-        PSVECSubtract(&pTarget->pParts->world, &owner->pParts->world, &d);
+        PSVECSubtract(&pTarget->pList->world, &owner->pList->world, &d);
         rate = VecElevation(&d);
         mot3.set(owner, OARC(0x7C / 4), OARC(0x94 / 4), OARC(0x98 / 4), 0, 3, 0, 4, 0);
         owner->r_no_1 = 1;
@@ -585,7 +576,7 @@ void cRoutine::moveWepFire()
     case 3:
         if (shotCnt) mot3.move(rate);
         if (owner->motionMove()) {
-            if (SatMgr.hitCheck(&owner->pParts->world, &pTarget->pParts->world, 0, 0, 0, 0)) {
+            if (SatMgr.hitCheck(&owner->pList->world, &pTarget->pList->world, 0, 0, 0, 0)) {
                 RoutineSet(owner, 0xB);
             } else if (pTarget->hp > 0) {
                 RoutineSet(owner, 0xB);
@@ -895,7 +886,7 @@ void cAction::moveAttack(cAnalysis* an, cRoutine* rt)
         if (rt->eor()) {
             if (an->pEmNear) {
                 if (an->pEmNear != rt->pTarget && an->pEmNearDist < 2000.0f) rt->pTarget = an->pEmNear;
-                if (!(rt->pTarget && (rt->pTarget->be_flag & 0x201) == 1 && rt->pTarget->hp > 0)) {
+                if (!(rt->pTarget && rt->pTarget->isAlive() && rt->pTarget->hp > 0)) {
                     rt->pTarget = an->pEmNear;
                 }
                 rno1 = 3;
@@ -926,8 +917,8 @@ void cAction::moveGo2F(cAnalysis* an, cRoutine* rt)
         if (rt->set(6)) {
             rt->pos = stairPos;
             rt->dist = 1000.0f;
-            if (!(an->flags & 0x20)) {
-                an->flags |= 0x20;
+            if (!an->status.check(cAnalysis::S_SAY_2F)) {
+                an->status.on(cAnalysis::S_SAY_2F);
                 if (pPL->pos.y < lowY) rt->voice.set(0x58, 2, 60);
             }
             rno1 = 1;
@@ -980,7 +971,7 @@ void cAction::moveDown(cAnalysis* an, cRoutine* rt)
         rno1 = 1;
     case 1:
         if (rt->eor()) {
-            an->flags |= 4;
+            an->status.on(cAnalysis::S_PL_DOWN);
             rno1 = 2;
         }
         break;
@@ -998,7 +989,7 @@ void cAction::moveUp(cAnalysis* an, cRoutine* rt)
         rno1 = 1;
     case 1:
         if (rt->eor()) {
-            an->flags &= ~4;
+            an->status.off(cAnalysis::S_PL_DOWN);
             rno1 = 2;
         }
         break;
@@ -1015,7 +1006,7 @@ void cAction::moveAvoid(cAnalysis* an, cRoutine* rt)
         rt->set(0xF);
         rno1 = 1;
     case 1:
-        if (rt->eor()) an->flags &= ~0x10;
+        if (rt->eor()) an->status.off(cAnalysis::S_GRENADE);
         break;
     }
 }
@@ -1028,11 +1019,11 @@ void cAction::move11cBegin(cAnalysis* an, cRoutine* rt)
 
     switch (rno1) {
     case 0:
-        if (flags & 1) {
-            flags |= 2;
+        if (status.check(S_11C_INIT)) {
+            status.on(S_11C_BEGIN);
             break;
         }
-        flags |= 1;
+        status.on(S_11C_INIT);
         rt->set(0);
         rno2 = 0;
         rno1 = 1;
@@ -1049,7 +1040,7 @@ void cAction::move11cBegin(cAnalysis* an, cRoutine* rt)
         case 0xF7: o->neckSet(-0.017453292f, PI); break;
         case 0xF8:
             rno1 = 2;
-            flags |= 2;
+            status.on(S_11C_BEGIN);
             break;
         }
         rno2++;
@@ -1073,7 +1064,7 @@ void cAction::moveEscRack(cAnalysis* an, cRoutine* rt)
             rno1 = 1;
         }
     case 1:
-        if (rt->eor()) an->flags &= ~0x80;
+        if (rt->eor()) an->status.off(cAnalysis::S_ESC_RACK);
         break;
     }
 }
@@ -1191,7 +1182,7 @@ void cAnalysis::init(cSubLuis* o)
     iem = 0;
     time = 0;
     plDist = 1000000.0f;
-    flags &= ~8;
+    status.off(S_GIVE_ITEM);
 }
 
 // A door enemy between the two points.
@@ -1201,7 +1192,7 @@ int doorHitCheck(Vec* a, Vec* b)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
-        if (em && (em->be_flag & 0x201) == 1 && em->hp > 0 && (em->id == 0x41 || em->id == 0x4E) &&
+        if (em && em->isAlive() && em->hp > 0 && (em->id == 0x41 || em->id == 0x4E) &&
             emLineAtCk(em, a, b, 1e16f, 0)) {
             return 1;
         }
@@ -1252,7 +1243,7 @@ scanned:
 
     plDist = RouteCkPosToPosDis(&owner->pos, &pPL->pos);
     aimCheck();
-    if (time % 1800 == 0) flags |= 8;
+    if (time % 1800 == 0) status.on(S_GIVE_ITEM);
 
     switch ((u32) greThrowCheck()) {   // unsigned range tests (cmplwi), the EQ tests stay cmpwi
     case 0x13:
@@ -1260,7 +1251,7 @@ scanned:
             grenadeTimer = 0;
         } else {
             grenadeTimer++;
-            if (grenadeTimer > 30) flags |= 0x10;
+            if (grenadeTimer > 30) status.on(S_GRENADE);
         }
         break;
     case 0x16:
@@ -1269,7 +1260,7 @@ scanned:
             grenadeTimer = 0;
         } else {
             grenadeTimer++;
-            if (grenadeTimer > 5) flags |= 0x10;
+            if (grenadeTimer > 5) status.on(S_GRENADE);
         }
         break;
     case 0xD:
@@ -1277,12 +1268,12 @@ scanned:
             grenadeTimer = 0;
         } else {
             grenadeTimer++;
-            if (grenadeTimer > 1) flags |= 0x10;
+            if (grenadeTimer > 1) status.on(S_GRENADE);
         }
         break;
     default:
         if (grenadeTimer < -5) {
-            if (flags & 0x10) flags &= ~0x10;
+            if (status.check(S_GRENADE)) status.off(S_GRENADE);
         } else {
             grenadeTimer--;
         }
@@ -1297,27 +1288,27 @@ int cAnalysis::aimCheck()
 {
     switch (pG->weapon_no) {
     case 0x10:
-        flags &= ~2;
+        status.off(S_PL_AIM);
         if ((PlGetStatus() & 0x10) && GetDistance(pPL->pos, pSUB->pos) < 4000000.0f &&
             Front_check(pPL, pSUB, pPL->ang.y)) {
-            flags |= 2;
+            status.on(S_PL_AIM);
             return 1;
         }
         break;
     default:
         if (PlGetStatus() & 0x10) {
-            if (pPL->Wep->m_pWep->wep.m_SightEm == (cEm*) owner) {
-                flags |= 2;
+            if (pPL->Wep->m_pWep->m_SightEm == (cEm*) owner) {
+                status.on(S_PL_AIM);
             } else {
                 f32 dir = PlGetDirY();
-                if (fabsf(GetXZAngleLocal(&pPL->pos, &owner->pos, dir)) > 0.17453292f) flags &= ~2;
+                if (fabsf(GetXZAngleLocal(&pPL->pos, &owner->pos, dir)) > 0.17453292f) status.off(S_PL_AIM);
             }
             return 1;
         }
     case 0x13:
     case 0x16:
     case 0x17:
-        flags &= ~2;
+        status.off(S_PL_AIM);
         break;
     }
     return 0;
@@ -1343,8 +1334,8 @@ void cRoutine::shot()
     owner->hp = 0;
     PlWepHitCheck2(0, &p, &t, 3, 0, 6000.0f);
     owner->hp = hp;
-    EstSet(owner->pItem, -1, 0, 0, EFF_PL04, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
-    SndCall(8, 0, &owner->pParts->world, owner->id, 0, 0);
+    EstSet(owner->pWep, -1, 0, 0, EFF_PL04, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
+    SndCall(8, 0, &owner->pList->world, owner->id, 0, 0);
 }
 
 // Plays the motion key sound (seNo) at its parts.
@@ -1403,28 +1394,28 @@ int cSubLuis::damageCheck()
         routine.work[0] = 3;
         dmg.m_Flag = dead;
         dmg.m_Timer = 0x80;
-        flags |= 1;
+        status.on(F_DAMAGED);
         return 1;
     }
     if (dmg.m_Flag == 0) return 0;
 
-    analysis.flags &= ~0x40;
+    analysis.status.off(cAnalysis::S_PL_DMG);
     routine.work[1] = 0;
     switch (dmg.m_Wep) {
     default:
         m_PlAtack--;
         if (m_PlAtack == 0) {
-            flags |= 2;
+            status.on(F_PL_ATTACKED);
         } else {
             if (m_PlAtack == 1) setStatus(EM_STATUS_DONT_FIRE);
-            analysis.flags |= 0x40;
+            analysis.status.on(cAnalysis::S_PL_DMG);
             routine.work[1] = m_PlAtack;
         }
         routine.pTarget = pPL;
         dmg.m_Timer = 1;
         if (Front_check(this, &dmg.m_PosFrom, PI / 2)) routine.work[0] = 2;
         else routine.work[0] = 3;
-        SndCall(8, 0x13, &pEm->pParts->world, pEm->id, 0, 0);
+        SndCall(8, 0x13, &pEm->pList->world, pEm->id, 0, 0);
         break;
     case 0x13:
         dmg.m_Timer = 1;
@@ -1438,7 +1429,7 @@ int cSubLuis::damageCheck()
         routine.work[0] = 2;
         break;
     }
-    flags |= 1;
+    status.on(F_DAMAGED);
     dmg.m_Flag = 0;
     dmg.m_Timer = 0x80;
     return 1;
@@ -1448,16 +1439,16 @@ int cSubLuis::damageCheck()
 // (parts 10) with a light area and himself as the weapon parent.
 void cSubLuis::equipWeapon()
 {
-    pItem = (cObjLuisItem*) ObjMgr.createBack(cObjMgr::ID_PL_WEAPON);
-    if (pItem == 0) {
+    pWep = ObjMgr.createBack(cObjMgr::ID_PL_WEAPON);
+    if (pWep == 0) {
         pLog->err(0, 0, "Luis.equipWeapon() CREATE FAILED");
     } else {
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
-        pItem->modelInit(SUB_ARC(this, 0x38 / 4), SUB_ARC(this, 0x3C / 4));
-        pItem->atari.m_flag &= 0xFCFF;
-        pItem->pParts->pParent = getPartsPtr(10);
-        pItem->LightInfo.init2(1, 1, LuisLightZero(), &p1, 1);
-        pItem->wep.parent = this;
+        pWep->modelInit(SUB_ARC(this, 0x38 / 4), SUB_ARC(this, 0x3C / 4));
+        pWep->atari.m_flag &= 0xFCFF;
+        pWep->pList->pParent = getPartsPtr(10);
+        pWep->LightInfo.init2(1, 1, LuisLightZero(), &p1, 1);
+        ((cObjWep*) pWep)->m_pParent = this;
     }
 }
 
@@ -1465,27 +1456,12 @@ void cSubLuis::equipWeapon()
 // frames when the attacker is still marked, back to action mode 0 and the routine ended.
 void cSubLuis::endDamage()
 {
-    if ((flags & 0x40) && pEmCatch && ((cEm*) pEmCatch)->dmg.m_Timer) thankCtr = 30;
-    flags &= ~0x40;
+    if (status.check(F_KARAMI) && pEmCatch && ((cEm*) pEmCatch)->dmg.m_Timer) thankCtr = 30;
+    status.off(F_KARAMI);
     action.set(0);
     routine.end();
 }
 
-// The eye rates are handled through inlines taking the object pointer (cMot3Rate methods in the original):
-// each inlined call copies `&luisEye` into its own pseudo, so r[1]/r[2] go through `4(rP)`/`8(rP)` while
-// cse rewrites the offset-0 `r[0]` access to the `luisEye@l(rHigh)` form inside the same extended block
-// and leaves the pointer form after a join label (EyeLimit's snap store `stfs f0, 0(r10)`); the tail's
-// EyeGet/EyeMove then get a fresh high/pointer pair after the getPartsPtr call instead of reusing the
-// clamp's. The clamp bounds are inline arguments: both constants are loaded before the first compare.
-static inline void EyeSet(cMot3Rate* e, f32 v) { e->r[1] = v; if (e->r[2] == 0.0f) e->r[0] = e->r[1]; }
-static inline void EyeLimit(cMot3Rate* e, f32 lo, f32 hi)
-{
-    if (e->r[1] < lo) e->r[1] = lo;
-    else if (e->r[1] > hi) e->r[1] = hi;
-    if (e->r[2] == 0.0f) e->r[0] = e->r[1];
-}
-static inline f32 EyeGet(cMot3Rate* e) { return e->r[0]; }
-static inline void EyeMove(cMot3Rate* e) { e->r[0] = e->r[0] * e->r[2] + e->r[1] * (1.0f - e->r[2]); }
 
 // Eyes: the eyelid (parts 0x1C) blink animation on luisEyeTimer (a blink at 0..6, a double blink
 // from 0x5A, random pause), the eye yaw target (luisEye) picked randomly at each blink and
@@ -1493,7 +1469,7 @@ static inline void EyeMove(cMot3Rate* e) { e->r[0] = e->r[0] * e->r[2] + e->r[1]
 void cSubLuis::moveEye()
 {
     static int luisEyeTimer;   // eyelid animation frame; a function-local static so it precedes the ctor'd luisEye in .bss
-    cModel* p = getPartsPtr(0x1C);
+    cParts* p = getPartsPtr(0x1C);
     // `u8 r` is block-scoped in both Rnd blocks: one function-scope `r` is a two-set global pseudo (r0)
     // where the target ties the masked remainder to the Rnd result (`clrlwi r3, r3, 24`).
 
@@ -1501,7 +1477,7 @@ void cSubLuis::moveEye()
     default: p->ang.x = 0.0f; break;
     case 0: {
         u8 r = Rnd() % 200;
-        EyeSet(&luisEye, (r * 0.01f - 1.0f) * PI * 0.1f);
+        luisEye = (r * 0.01f - 1.0f) * PI * 0.1f;
         p->ang.x = 0.17453292f;
         break;
     }
@@ -1512,7 +1488,7 @@ void cSubLuis::moveEye()
     case 5: p->ang.x = 0.34906584f; break;
     case 6: p->ang.x = 0.17453292f; break;
     case 0x1E:
-        EyeSet(&luisEye, 0.0f);
+        luisEye = 0.0f;
         break;
     case 0x58:
         luisEyeTimer = (Rnd() & 3) ? 0 : 0x5A;
@@ -1534,34 +1510,34 @@ void cSubLuis::moveEye()
 
     if (--luisBlink < 0) {
         u8 r = Rnd() % 200;
-        EyeSet(&luisEye, (r * 0.01f - 1.0f) * 0.03141593f + luisEye.r[1]);
+        luisEye += (r * 0.01f - 1.0f) * 0.03141593f;
         luisBlink = (u8) (Rnd() % 3) + 2;
     }
-    EyeLimit(&luisEye, -0.31415927f, 0.31415927f);
+    luisEye.limit(-0.31415927f, 0.31415927f);
 
-    getPartsPtr(0x20)->ang.y = EyeGet(&luisEye);
+    getPartsPtr(0x20)->ang.y = luisEye;
     getPartsPtr(0x20)->cCoord::matUpdate();
-    getPartsPtr(0x21)->ang.y = EyeGet(&luisEye);
+    getPartsPtr(0x21)->ang.y = luisEye;
     getPartsPtr(0x21)->cCoord::matUpdate();
-    EyeMove(&luisEye);
+    luisEye.move();
 }
 
 // Turns the head yaw neckY towards `ang` by at most `limit` this frame and marks it set (flags bit3).
 void cSubLuis::neckSet(f32 ang, f32 limit)
 {
     neckY += Muku2(neckY, ang, limit);
-    flags |= 8;
+    status.on(F_NECK_SET);
 }
 
 // Applies the head yaw: without a neckSet this frame it returns to 0 (0.628 rad per frame); the
 // neck parts (3) gets the additional rotation.
 void cSubLuis::neckMove()
 {
-    cModel* p;
+    cParts* p;
     const f32 spd = 0.62831855f;   // pool order: the turn speed precedes the 0.0
 
-    if (flags & 8) {
-        flags &= ~8;
+    if (status.check(F_NECK_SET)) {
+        status.off(F_NECK_SET);
     } else {
         neckY += Muku2(neckY, 0.0f, spd);
     }
@@ -1590,11 +1566,11 @@ void cVoice::set(int mesNo, u16 seNo, int time)
         MessageControl* mes = &cMes;
         this->time = 0;
         on = 0;
-        for (i = 0; i < 16; i++) mes->Delete(i);
+        cMes.Clear();
     }
     if ((s16) pG->pl_life > 0) {
-        seId = SndCall(8, seNo, &pSUB->pParts->world, pSUB->id, 0, 0);
-        cMes.MesSet(mesNo, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x1000051, 0, 0, 4);   // fold swaps the two subtrahends
+        seId = SndCall(8, seNo, &pSUB->pList->world, pSUB->id, 0, 0);
+        cMes.MesSet(mesNo, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x1000051, 0, 0, 4);   // fold swaps the two subtrahends
     }
     this->time = time;
     on = 1;
@@ -1609,7 +1585,7 @@ void cVoice::move()
         if (time-- < 0) {
             MessageControl* mes = &cMes;
             on = 0;
-            for (i = 0; i < 16; i++) mes->Delete(i);
+            cMes.Clear();
         }
     }
 }
@@ -1646,12 +1622,12 @@ void cObjLuisItem::init(Vec* p, f32 rotY)
     ang.x = 0.0f;
     ang.z = 0.0f;
     EstSet(this, -1, 0, 0, EFF_CORE, 0x2D, 0, ESP_CORE_KIND_LUIS_ITEM, this, 0);
-    PSVECSubtract(&pPL->pos, &pos, &LITEM->spd);
-    PSVECScale(&LITEM->spd, &LITEM->spd, 0.07f);
-    LITEM->acc.x = 0.0f;
-    LITEM->acc.y = -fabsf(LITEM->spd.y) * 0.03f;
-    LITEM->acc.z = 0.0f;
-    LITEM->timer = 0;
+    PSVECSubtract(&pPL->pos, &pos, &v);
+    PSVECScale(&v, &v, 0.07f);
+    a.x = 0.0f;
+    a.y = -fabsf(v.y) * 0.03f;
+    a.z = 0.0f;
+    timer = 0;
 }
 
 // Thrown item update: r_no_0 0 flies (pushed off walls, dropped to the floor on a hit; gone after
@@ -1667,8 +1643,8 @@ void cObjLuisItem::move()
 
     switch (r_no_0) {
     case 0:
-        PSVECAdd(&pos, &LITEM->spd, &pos);
-        PSVECAdd(&LITEM->spd, &LITEM->acc, &LITEM->spd);
+        PSVECAdd(&pos, &v, &pos);
+        PSVECAdd(&v, &a, &v);
         if (SatMgr.hitCheck(&pos_old, &pos, &hit, &nrm, 0, 0)) {
             if (nrm.y < 0.5f && nrm.y > -0.5f) {
                 PSVECScale(&nrm, &nrm, 200.0f);
@@ -1677,8 +1653,8 @@ void cObjLuisItem::move()
             pos.y = SatMgr.getFloor(&pos, 0, 600.0f, 100000.0f, 0);
             r_no_0 = 1;
         }
-        LITEM->timer++;
-        if (LITEM->timer > 150) {
+        timer++;
+        if (timer > 150) {
             EffectEspDelete(0, ESP_CORE_KIND_LUIS_ITEM, this, 0);
             EffectEspgenDelete(0, ESP_CORE_KIND_LUIS_ITEM, this);
             EffectEfmDelete(0, ESP_CORE_KIND_LUIS_ITEM, this);
@@ -1747,12 +1723,12 @@ int isTarget(cSubLuis* luis, cEm* em)
         pLog->err(0, 0, "LUIS isTarget() INVALIED PTR 0x%08x", em);
         return 0;
     }
-    if (!VALID_PTR(em) || (em->be_flag & 0x201) != 1 || em->hp <= 0 || em->id <= 0xF || em->checkStatus(EM_STATUS_LOCKOFF) ||
-        EatMgr.hitCheck(&luis->pParts->world, &em->pParts->world, 0, 0, 0, 0x400000) ||
-        doorHitCheck(&luis->pParts->world, &em->pParts->world)) {
+    if (!VALID_PTR(em) || !em->isAlive() || em->hp <= 0 || em->id <= 0xF || em->checkStatus(EM_STATUS_LOCKOFF) ||
+        EatMgr.hitCheck(&luis->pList->world, &em->pList->world, 0, 0, 0, 0x400000) ||
+        doorHitCheck(&luis->pList->world, &em->pList->world)) {
         return 0;
     }
-    if (GetWepTargetList2(&luis->pParts->world, &em->pParts->world, list, 2, &hit, &nrm, &attr, 2, 0) > 1 &&
+    if (GetWepTargetList2(&luis->pList->world, &em->pList->world, list, 2, &hit, &nrm, &attr, 2, 0) > 1 &&
         list[1].em != em) {
         return 0;
     }

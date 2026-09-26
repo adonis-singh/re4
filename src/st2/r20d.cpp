@@ -240,16 +240,16 @@ void r20d_openShelf_main(int no, int opened)
         a->be_flag |= 0x20;
         b->be_flag |= 0x20;
         if (opened == 1) {
-            a->pParts->ang.y = ang;
-            b->pParts->ang.y = -ang;
+            a->pList->ang.y = ang;
+            b->pList->ang.y = -ang;
         } else {
             int i;
 
             ang /= 30.0f;
             SndCall(6, 0x1A, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
-                a->pParts->ang.y += ang;
-                b->pParts->ang.y -= ang;
+                a->pList->ang.y += ang;
+                b->pList->ang.y -= ang;
                 SceSleep(1);
             }
         }
@@ -789,7 +789,7 @@ static void r20d_checkSalazarCrestUse()
     SceSleep(20);
     SndCall(6, 4, 0, 0, 0, 0);
     SceAtSetEnable(0x85, 1);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceEventEnd(0);
 }
 
@@ -805,7 +805,7 @@ static void r20d_execRoundSwitch()
         }
         SceExit();
     }
-    SceMesSet(0, 0x200, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x200, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case -1:
     case 0:
@@ -915,7 +915,7 @@ static void r20d_execThrough(int no)
     pl->beginAction();
     // pPL (struct view) on both sides of the `sth atari.flags` store: cse1 then invalidates the first
     // pPL load and setPriority reloads pPL (target: `lwz r3,pPL@l; addi r3,r3,0x2b4`).
-    AtariOff(&pPL->atari, 0xFEFF);
+    pPL->atari.offSca();
     pPL->atari.setPriority(PRI_LV1);
     pPL->dmg.set(0, 0x80);
     d = &r20d_throughData[no];
@@ -986,7 +986,7 @@ static void r20d_execThrough(int no)
     CamCtrl.Comeback(0);
     pl->endAction(8);
     pPL->dmg.clear();
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     pPL->atari.setPriority(0);
 }
 
@@ -1139,7 +1139,7 @@ void cLanternUnit::throwLantern(cLanternUnit* u)
     pPL->beginEvent(0);
     // pPL (struct view) for the pPL read that precedes the `sth atari.flags` store: the store then
     // invalidates it in cse1 and `dmg.set` reloads pPL (target: two `lwz pPL@l`).
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     pPL->dmg.set(0, 0x80);
     u->target = u->getTargetPos(&pos);
     // `u + st + 0x18` (not `u->mot + st + 4`): the target adds `u` first (`add r29,u,st`).
@@ -1212,10 +1212,10 @@ void cLanternUnit::setThrowLantern(Vec* target)
     void* zero = NULL;
     const f32 spd0 = 20.0f;   // pool order (20 first) and `lis r25` at the top
 
-    from.x = em->pParts->mat[0][3];
-    from.y = em->pParts->mat[1][3];
-    from.z = em->pParts->mat[2][3];
-    Matrix2AxisAngle(em->pParts->mat, &rot);
+    from.x = em->pList->mat[0][3];
+    from.y = em->pList->mat[1][3];
+    from.z = em->pList->mat[2][3];
+    Matrix2AxisAngle(em->pList->mat, &rot);
     bin = GetEtcAddr(mot[0], "et1000.bin");
     EspGetEfmTplAddr(0xF, &tpl);
     CalcParabolaVector(&spd, &from, target, PSVECDistance(&from, target) / 10.0f + 1.0f);

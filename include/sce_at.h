@@ -6,6 +6,7 @@
 #include "area.h"
 #include "scheduler.h"
 #include "item.h"
+#include "cFlag.h"
 
 class cObj;
 class cModel;
@@ -91,7 +92,7 @@ struct SceAtScrAt {
 
 // Field info payload (type 0xD, SceAtCreateFieldAt; emwindow reads it through SceAtCheckFieldInfo).
 struct SceAtField {
-    int value;        // 0x00 (0x5C)  0 = the model inside gets litArea.x0 bit0
+    int value;        // 0x00 (0x5C)  0 = the model inside gets State.SetInRoom(1)
     cModel* pModel;   // 0x04 (0x60)  creator
 };
 
@@ -176,6 +177,12 @@ enum SCEAT_ID {
     SCEAT_ID_MAX = 22
 };
 
+// Countries an area is disabled in (SceAtWork::country, applied at room start).
+enum SCEAT_COUNTRY {
+    SCEAT_COUNTRY_USA = 0,
+    SCEAT_COUNTRY_JPN = 1
+};
+
 // One area work (0x9C bytes; the AEV/ITA records have the same layout).
 struct SceAtWork {
     u32 next;         // 0x00  OTag link
@@ -200,7 +207,7 @@ struct SceAtWork {
     u8 pad_4B;
     cModel* pParent;  // 0x4C
     s16 parentParts;  // 0x50  -1 = the model itself
-    u8 langDisable;   // 0x52  bit0 / bit1: disabled at room start depending on pG->language
+    cFlag<u8, SCEAT_COUNTRY> country;  // 0x52
     u8 actBtnColor;   // 0x53  action button colour (1 = alternate)
     u8 pad_54[8];
     union {

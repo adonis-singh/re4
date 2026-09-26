@@ -195,8 +195,8 @@ static void r227_checkBox0Fall()
     }
     RsfSet(G_ROOM_ID, 1);
     while (1) {
-        r227_work->rack[0]->pParts->ang.x += -0.034906585f;
-        if (r227_work->rack[0]->pParts->ang.x < -0.5235988f) {
+        r227_work->rack[0]->pList->ang.x += -0.034906585f;
+        if (r227_work->rack[0]->pList->ang.x < -0.5235988f) {
             break;
         }
         SceSleep(1);
@@ -207,8 +207,8 @@ static void r227_checkBox0Fall()
     f32 baseY = r227_work->rack[0]->pos.y;
     f32 spd = 0.0f;
     while (1) {   // `for (;;)` here rotates the SceSleep to the loop top
-        if (r227_work->rack[0]->pParts->ang.x > rotLim) {
-            r227_work->rack[0]->pParts->ang.x += -0.034906585f;
+        if (r227_work->rack[0]->pList->ang.x > rotLim) {
+            r227_work->rack[0]->pList->ang.x += -0.034906585f;
         }
         r227_work->rack[0]->pos.y -= spd;
         spd += acc;
@@ -229,8 +229,8 @@ static void r227_checkBox1Fall()
     }
     RsfSet(G_ROOM_ID, 2);
     while (1) {
-        r227_work->rack[1]->pParts->ang.z += 0.034906585f;
-        if (r227_work->rack[1]->pParts->ang.z > 0.5235988f) {
+        r227_work->rack[1]->pList->ang.z += 0.034906585f;
+        if (r227_work->rack[1]->pList->ang.z > 0.5235988f) {
             break;
         }
         SceSleep(1);
@@ -241,8 +241,8 @@ static void r227_checkBox1Fall()
     f32 baseY = r227_work->rack[1]->pos.y;
     f32 spd = 0.0f;
     while (1) {   // `for (;;)` here rotates the SceSleep to the loop top
-        if (r227_work->rack[1]->pParts->ang.z < rotLim) {
-            r227_work->rack[1]->pParts->ang.z += 0.034906585f;
+        if (r227_work->rack[1]->pList->ang.z < rotLim) {
+            r227_work->rack[1]->pList->ang.z += 0.034906585f;
         }
         r227_work->rack[1]->pos.y -= spd;
         spd += acc;
@@ -460,17 +460,14 @@ static void r227_operateElv()
     f32 lim;
 
     SceAtSetEnable(3, 0);
-    // Two sets of one pointer variable (the r40e idiom): `addi r31,r9,cMes@l; addi r31,r31,4`.
-    MesWork* w = (MesWork*) &cMes;
-    w = (MesWork*) ((u8*) w + 4);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case 1:
         SndCall(6, 0xB, 0, 0, 0, 0);
         if (r227_checkElvMovePermit() == 1) {
             break;
         }
-        SceMesSet(1, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     case -1:
     case 0:
     case 2:
@@ -816,7 +813,7 @@ static inline void r227_waitEvt()
 {
     for (;;) {
         EventMgr* em = &EvtMgr;
-        u32* key = &em->NowExeEvtKey;
+        char* key = em->GetNowExeEvtNamePtr();
 
         if (em->IsAliveEvt(key, 0, 0) == 0) {
             break;
@@ -902,7 +899,7 @@ static void Evt_R227S00_Func(Event* e)
     switch (e->FuncType) {
     case 0:
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 10;
+        e->SetEvtCancelCut(10);
         break;
     case 1:
         switch (e->NowCut) {
@@ -988,7 +985,7 @@ static void Evt_R227S00_Func(Event* e)
             v = 0;
         }
         if (v == 0) {
-            EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x88, 1, 0.0f);
+            EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x88, 1, 0.0f);
         }
         break;
     }

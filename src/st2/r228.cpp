@@ -39,7 +39,7 @@ struct R228Work {
     cObj* obj79;            // 0x108
     cObj* obj76;            // 0x10C
     cObj* obj78;            // 0x110
-    ScePrim* se;            // 0x114  the neck-down camera task
+    SCE_TASK* se;            // 0x114  the neck-down camera task
     int eff2;               // 0x118  EspPullCoreKind of the event effect
     cSat* sat;              // 0x11C
     cSat* eat;              // 0x120
@@ -75,7 +75,7 @@ void R228Init()
     r228_work->eff2 = EspPullCoreKind();
     r228_initEvent00();
     TexRenderInit(&r228_work->texEvt, 0xE0, 2);
-    EstSet(0, -1, 0, 0, EFF_ROOM, 3, r228_work->texEvt->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+    EstSet(0, -1, 0, 0, EFF_ROOM, 3, r228_work->texEvt->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
 }
 
 // Per-frame room main: nothing.
@@ -116,7 +116,7 @@ static void r228_checkSalazarBattle()
     GamePointBossReset();
     cEmWrap boss;
     boss.setPtr(0x2C, -1, 1);
-    Cckpt.m_LifeMeter.flags = (u32) boss.getPtr();
+    Cckpt.lifeMeterBoss(boss.getPtr());
     cEmWrap em0;
     cEmWrap em1;
     cEmWrap em2;
@@ -356,7 +356,7 @@ extern "C" void Evt_R228S00_Func(Event* e)
             break;
         case 2:
             if (e->NowFrame == e->MaxFrame - 10) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 10, 0, 0);
@@ -365,35 +365,35 @@ extern "C" void Evt_R228S00_Func(Event* e)
             break;
         case 3:
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOn(pG, SYS_SCREEN_STOP);
                 }
             }
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 10, 0, 0);
                 }
             }
             if (e->NowFrame == 1) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOff(pG, SYS_SCREEN_STOP);
                 }
             }
             if (e->NowFrame == e->MaxFrame - 30) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 30, 0, 0);
                 }
             }
             if (e->NowFrame == e->MaxFrame - 1) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOn(pG, SYS_SCREEN_STOP);
@@ -437,14 +437,14 @@ extern "C" void Evt_R228S01_Func(Event* e)
             if (e->NowFrame == 0) {
                 EvtMgr.EvtReadAram("event/evd/r228s02.evd", 0, 0, 0, 0);
                 pG->Room_flg[0] |= 0x00100000;
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 20, 0, 0);
                 }
             }
             if (e->NowFrame == 1) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     SysFlagOff(pG, SYS_SCREEN_STOP);
@@ -581,9 +581,9 @@ void setTexRender()
         tbl0[0] = 1;
         tbl0[1] = 0;
         tbl0[4] = 0xF7;
-        tbl0[5] = r228_work->tex[0]->m_Tex_no;
-        r228_work->tex[0]->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r228_work->tex[0]->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl0[5] = r228_work->tex[0]->GetTexNo();
+        r228_work->tex[0]->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r228_work->tex[0]->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }
@@ -591,9 +591,9 @@ void setTexRender()
         tbl1[0] = 1;
         tbl1[1] = 0;
         tbl1[4] = 0xF7;
-        tbl1[5] = r228_work->tex[1]->m_Tex_no;
-        r228_work->tex[1]->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 1, r228_work->tex[1]->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl1[5] = r228_work->tex[1]->GetTexNo();
+        r228_work->tex[1]->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 1, r228_work->tex[1]->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }

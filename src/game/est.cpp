@@ -19,7 +19,7 @@
 #include "snd.h"
 #include "db_log.h"
 
-cModel* EspEvModList[0x80];
+cEspEventModelList EspEvModList;
 
 // The common entry: starts est table (owner c, id d) with parts b (-1 = the table's default) on the
 // model a (0 = none), at pos/rot (NULL = the table's own), core flags e, kind f, Core_pEm g and an

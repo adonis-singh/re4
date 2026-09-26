@@ -203,7 +203,7 @@ int MercSysInitRoom(MercInit* pMInit)
         pLog->err(0, 0, "St4ResultInitRoom : DummyModel no create");
     } else {
         smd->setNoSuspend(1);
-        smd->be_flag |= 0x20;
+        smd->setMove(1);
         if (smd->Motion.pAttachCam == NULL) {
 #line 274 "D:/Bio4/Prog/mercenaries.cpp"
             smd->Motion.pAttachCam = (AttachCamera*) MEM_CALLOC(0x98, 1, 13);
@@ -243,14 +243,8 @@ int MercSysMoveStart(MercSysWork* wk)
     SceEventStart(1);
     pPL->beginEvent(0);
     pPL->setNoSuspend(1);
-    Cckpt.getCountDown()->m_state |= TIMER_STA_ALIVE;
-    Cckpt.getCountDown()->initTime(MercMin, MercSec, MercCes);
-    // Codeless fake store surviving to global alloc: one more real insn in the range of the
-    // hoisted `mercId.idsys` high (r24) but not in `&cMes`'s (r25), so their equal-priority
-    // buckets (int(10000 * floor(log2 refs) * refs / len): 290/289) tie and the lower pseudo
-    // (&cMes) is allocated first, as in the original.
-    asm("" : "=m"(*(u16*) st)); // COMPILER-DIFF: tie (global-alloc live length)
-    Cckpt.getCountDown()->frameOut();
+    Cckpt.startCountDownTimer(MercMin, MercSec, MercCes);
+    Cckpt.transCountDownTimer(0);
     st[0] = 1;
     do {
         switch (st[1]) {
@@ -261,21 +255,19 @@ int MercSysMoveStart(MercSysWork* wk)
             st[1]++;
             break;
         case 1: {
-            MesWork* m = cMes.getWork();
-
-            SceMesSet(wk->mesStart, 0x20, 1, 100, MES_Y(m));
+            SceMesSet(wk->mesStart, 0x20, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             if (!FlagChkVar(EXT_FLAG_TBL, extFlagTbl[wk->stage])) {
-                SceMesSet(wk->mesA8, 0x20, 1, 100, MES_Y(m));
+                SceMesSet(wk->mesA8, 0x20, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             } else {
                 MercSaveWork save;
 
                 MercSysGetSaveWork(&save);
                 if (save.rank[wk->mode][wk->stage] <= 4) {
-                    SceMesSet(wk->mesAC, 0x20, 1, 100, MES_Y(m));
+                    SceMesSet(wk->mesAC, 0x20, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
                 }
             }
             if (pG->pl_type == 4) {
-                SceMesSet(wk->mes[4], 0, 1, 100, MES_Y(cMes.getWork()));
+                SceMesSet(wk->mes[4], 0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             }
             st[1]++;
             break;
@@ -423,7 +415,7 @@ int MercSysMoveScore(MercSysWork* pWk)
         IdSetNum(MID, 0x11, IDC_GAUGE, cs, 99, 2, 1);
     }
     // remaining time
-    Cckpt.getCountDown()->getTime(&min, &sec, &cs);
+    Cckpt.getRemainTime(&min, &sec, &cs);
     IdSetTrans(MID, 0, IDC_GAUGE, 1);
     IdSetNum(MID, 5, IDC_GAUGE, min, 99, 2, 1);
     IdSetNum(MID, 3, IDC_GAUGE, sec, 99, 2, 1);
@@ -474,18 +466,14 @@ int MercSysMoveMain(MercSysWork* pWk)
     do {
         MercSysMoveScore(pWk);
         if (!StaFlagChk(pG, STA_DIEDEMO)) {
-            CountDown* cd = Cckpt.getCountDown();
-            int end = 0;
+            int end = Cckpt.isZeroCountDownTimer();
 
-            if (cd->checkState(TIMER_STA_ALIVE)) {
-                end = cd->m_frame == 0;
-            }
             if (end == 1) {
                 st[0] = 0;
                 break;
             }
         }
-        if (Cckpt.getCountDown()->getFrame() <= 899) {
+        if (Cckpt.getRemainFrame() <= 899) {
             if (pWk->sndId == 0) {
                 pWk->sndId = SndCall(6, 0x78, 0, 0, 0, 0);
             }
@@ -527,7 +515,7 @@ int MercSysResultInit(MercSysWork* pWk)
         pLog->err(0, 0, "St4ResultInitStage : pWk is NULL");
         return 0;
     }
-    Cckpt.getCountDown()->getTime(&min, &sec, &cs);
+    Cckpt.getRemainTime(&min, &sec, &cs);
     pWk->rslt.time = min * 6000 + sec * 100 + cs;
     pWk->rslt.maxCombo = pWk->maxCombo;
     pWk->rslt.kill = pWk->kill;
@@ -1146,17 +1134,13 @@ int MercResult::move(MercSysWork* pWk)
         }
         _rno1++;
         if (_rno1 > 29) {
-            SceMesSet(mes[pWk->stage], 0xF0, 1, 100, MES_Y(cMes.getWork()));
+            SceMesSet(mes[pWk->stage], 0xF0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             _rno0++;
         }
         break;
     case 0xC:
         if (Key.trg & KEY_A) {
-            MessageControl* m = &cMes;
-
-            for (int i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
             FadeSetW(2, 10, 0, 0);
             if (pWk->flags & MF_ALL_RANK) {
                 _rno0 = 0x14;
@@ -1181,17 +1165,13 @@ int MercResult::move(MercSysWork* pWk)
         }
         _rno1++;
         if (_rno1 > 29) {
-            SceMesSet(pWk->mes[9], 0xF0, 1, 100, MES_Y(cMes.getWork()));
+            SceMesSet(pWk->mes[9], 0xF0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             _rno0++;
         }
         break;
     case 0x16:
         if (Key.trg & KEY_A) {
-            MessageControl* m = &cMes;
-
-            for (int i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
             FadeSetW(2, 10, 0, 0);
             return 0;
         }
@@ -1247,17 +1227,13 @@ int AdaResult::move(int messNo)
         }
         _rno1++;
         if (_rno1 > 29) {
-            SceMesSet(messNo, 0xF0, 1, 100, MES_Y(cMes.getWork()));
+            SceMesSet(messNo, 0xF0, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             _rno0++;
         }
         break;
     case 2:
         if (Key.trg & KEY_A) {
-            MessageControl* m = &cMes;
-
-            for (i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
             FadeSetW(2, 10, 0, 0);
             return 0;
         }
@@ -1276,5 +1252,5 @@ void AdaResult::quit()
 // Countdown state bit test (bit 0 = running).
 int CountDown::checkState(u32 state)
 {
-    return (m_state & state) ? 1 : 0;
+    return getState(state) ? 1 : 0;
 }

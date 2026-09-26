@@ -111,7 +111,7 @@ void SsCapMain::init(SUB_SCREEN* wk)
     IdTexDataLoad(SS_ARC_PTR(wk->pExam, 5), TEX_OWNER_ID_SSCRN);
     IdSub.set(SS_ARC_PTR(wk->pExam, 6), 0xFF, IDC_SSCRN_0, 0xC, 6, 0);
     sscrnLightCreate(wk, (cLit*) SS_ARC_PTR(wk->pCmmn, 0x14));
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pExam, 4));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pExam, 4));
     sscrnMainMenuInit(wk, 0);
     state = 0;
 #line 191 "D:/Bio4/Prog/ss_cap.cpp"
@@ -189,7 +189,7 @@ static int sscrn_cap_out(SUB_SCREEN* wk)
         IdSub.dispSw(IDC_SSCRN_MAIN_MENU, 1);
         wk->alpha_flag = 0;
         wk->alpha_cnt = 0;
-        Cckpt.m_LifeMeter.fix(0);
+        Cckpt.lifeMeterFix(0);
         FadeSetW(0x80000000, 7, 0, 0);
         ret = 1;
     }

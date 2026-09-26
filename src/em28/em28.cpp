@@ -86,9 +86,9 @@ void em28DmCk(cEm28* em)
             EmSetDie(em);
             w->flags |= 0x40;
             if (w->flags & 0x10) {
-                EmRoutineSet(em, 3, 1, 0, 0);
+                em->setRno(3, 1, 0, 0);
             } else {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             }
             return;
         }
@@ -102,9 +102,9 @@ void em28DmCk(cEm28* em)
         case 0x2A:
             if (!(w->flags & 0x10)) {
                 if (Rnd() & 1) {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 2, 0, 0);
+                    em->setRno(1, 2, 0, 0);
                 }
             }
             return;
@@ -162,22 +162,22 @@ void em28DmCk(cEm28* em)
             if (!(w->flags & 0x10)) {
                 // Allocation lever (loop notes, no code): the doubled routine refs rank the HI `1`
                 // (hp = 1 / xFC) above the HI zero in global-alloc (one r30, zero r29).
-                do { EmRoutineSet(em, 1, (Rnd() & 1) ? 3 : 2, 0, 0); } while (0);
+                do { em->setRno(1, (Rnd() & 1) ? 3 : 2, 0, 0); } while (0);
             }
             return;
         }
         if (em->hp <= 0) {
             EmSetDie(em);
             if (w->flags & 0x10) {
-                EmRoutineSet(em, 3, 1, 0, 0);
+                em->setRno(3, 1, 0, 0);
             } else {
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
             }
         } else if (!(w->flags & 0x10)) {
             if (Rnd() & 1) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
     }
@@ -284,10 +284,7 @@ static void em28_R0_Init(cEm28* em)
 
         em->LightInfo.init2(0, 3, &ofs, &size, 2);
     }
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->atari.init(0.0f, 0.0f, 0.0f, 300.0f, 200.0f, 200.0f, 500.0f, 3, 0x2000, 10);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     YarareInit(em, 0.0f, 0.0f, -130.0f, 200.0f, 100.0f, 3, YAT_FLAG_ON | YAT_FLAG_Z_AXIS);
@@ -298,7 +295,7 @@ static void em28_R0_Init(cEm28* em)
     w->pCtrl12 = GetCtrlCtrl12();
     w->x17C = zero;
     em->setStatus(EM_STATUS_ACTIVE);
-    EmRoutineSet(em, 1, zero, zero, zero);
+    em->setRno(1, zero, zero, zero);
     MotionSetCore(em, MOTION(em), ARC(0xC), 0, 0, 5, 0);
     MotionMove(em, 0);
     em28_R0_Move(em);
@@ -315,7 +312,7 @@ static inline void em28FloorCk(cEm28* em)
 {
     if ((pG->Frame_cnt & 3) == (em->emset_no & 3)) {
         if (SatMgr.getFloor(&em->pos, 0, 600.0f, 100000.0f, 0) < em->pos.y - 250.0f) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
     }
 }
@@ -364,7 +361,7 @@ static void em28_R1_Wait(cEm28* em)
             if (Rnd() & 1) {
                 em->r_no_2 = 0;
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -376,7 +373,7 @@ static void em28_R1_Wait(cEm28* em)
             if (Rnd() & 1) {
                 em->r_no_2 = 0;
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -430,7 +427,7 @@ static void em28_R1_Wait(cEm28* em)
             }
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -464,7 +461,7 @@ static void em28_R1_Walk(cEm28* em)
             if (w->timer) {
                 w->timer--;
             } else {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             }
         }
         break;
@@ -515,7 +512,7 @@ static void em28_R1_Dash(cEm28* em)
             if (w->timer) {
                 w->timer--;
             } else {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             }
         }
         break;
@@ -598,7 +595,7 @@ static void em28_R1_Jump(cEm28* em)
         em->r_no_2++;
     case 5:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -623,7 +620,7 @@ static void em28_R1_Dm_Small(cEm28* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -795,9 +792,9 @@ int em28EscapeCk(cEm28* em)
         return 0;
     }
     if (Rnd() & 3) {
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
     } else {
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
     }
     w->escapeWait = (u8) (Rnd() % 15) + 15;
     return 1;

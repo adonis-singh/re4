@@ -477,7 +477,7 @@ static void em_destroy()
             hi = 0x10;
         }
         id = em->id;
-        if (id >= lo && id <= hi && (em->be_flag & 0x201) == 1) {
+        if (id >= lo && id <= hi && em->isAlive()) {
             if (((cEmGanado*) em)->ckResetEnable()) {
                 EmMgr.destroy(em);
             }
@@ -639,8 +639,8 @@ static void slide_move()
     u32 i;
 
     pl->beginAction();
-    pPL->atari.clrFlag100();
-    pPL->atari.clrFlag200();
+    pPL->atari.offSca();
+    pPL->atari.offOba();
     pPL->atari.setPriority(PRI_LV1);
     pPL->dmg.set(0, 0x80);
     pl->be_flag &= ~0x10;
@@ -691,8 +691,8 @@ static void slide_move()
     pl->Wep->setTrans(1, 0);
     pl->endAction(5);
     pPL->dmg.clear();
-    pPL->atari.setFlag100();
-    pPL->atari.setFlag200();
+    pPL->atari.onSca();
+    pPL->atari.onOba();
     pPL->atari.setPriority(0);
     pl->be_flag |= 0x10;
 }
@@ -707,9 +707,9 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r403_work->tex->m_Tex_no;
-        r403_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r403_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r403_work->tex->GetTexNo();
+        r403_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r403_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "SetTexRender() : Manager alloc failed!!");
     }

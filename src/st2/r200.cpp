@@ -87,9 +87,9 @@ void R200Init()
         }
     } else {
         SmdGetObjPtr(8)->be_flag |= 0x20;
-        SmdGetObjPtr(8)->pParts->ang.x = -0.87266463f;
+        SmdGetObjPtr(8)->pList->ang.x = -0.87266463f;
         SmdGetObjPtr(9)->be_flag |= 0x20;
-        SmdGetObjPtr(9)->pParts->ang.x = 0.87266463f;
+        SmdGetObjPtr(9)->pList->ang.x = 0.87266463f;
     }
     EvtMgr.SetFunc("evt_r200s00_func", (void*) Evt_R200S00_Func);
     SceSetItemEvent(8, 0x84, 5, 6, r200_openBox, r200_openedBox, 0, 0);
@@ -130,7 +130,7 @@ void r200_openBox_main(int id, int mode)
     if (obj) {
         obj->be_flag |= 0x20;
         if (mode == 1) {
-            obj->pParts->ang.x = spd;
+            obj->pList->ang.x = spd;
         } else {
             int i;
 
@@ -138,7 +138,7 @@ void r200_openBox_main(int id, int mode)
             SndCall(6, 0x5B, 0, 0, 0, 0);
             for (i = 0; i < 30; i++) {
                 if (obj) {
-                    obj->pParts->ang.x += spd;
+                    obj->pList->ang.x += spd;
                 }
                 SceSleep(1);
             }
@@ -446,14 +446,14 @@ extern "C" void Evt_R200S00_Func(Event* e)
         break;
     case 2:
         SmdGetObjPtr(8)->be_flag |= 0x20;
-        SmdGetObjPtr(8)->pParts->ang.x = -0.87266463f;
+        SmdGetObjPtr(8)->pList->ang.x = -0.87266463f;
         SmdGetObjPtr(9)->be_flag |= 0x20;
-        SmdGetObjPtr(9)->pParts->ang.x = 0.87266463f;
+        SmdGetObjPtr(9)->pList->ang.x = 0.87266463f;
         SmdGetObjPtr(0x18)->setNoSuspend(1);
         SmdGetObjPtr(0x33)->setNoSuspend(1);
         SmdGetObjPtr(0x34)->setNoSuspend(1);
         {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
 
             if (sub) {
                 cPlayer* pl = pPL;

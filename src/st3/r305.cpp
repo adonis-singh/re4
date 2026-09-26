@@ -317,8 +317,8 @@ void cR305Shutter::open()
         obj->pos.y += 200.0f;
         if (obj->pos.y > basePos.y + height) {
             obj->pos.y = basePos.y + height;
-            sat->m_Flag &= ~4;
-            eat->m_Flag &= ~4;
+            sat->setDisable();
+            eat->setDisable();
             SceAtSetEnable(4, 0);
             shakeCnt = 5;
             step++;
@@ -346,8 +346,8 @@ void cR305Shutter::close()
 {
     switch (step) {
     case 0:
-        sat->m_Flag |= 4;
-        eat->m_Flag |= 4;
+        sat->setEnable();
+        eat->setEnable();
         SceAtSetEnable(4, 1);
         spd = -40.0f;
         SndStop(se, 0);
@@ -447,8 +447,8 @@ void cR305Shutter::setOpened()
     if (enable) {
         status = 1;
         obj->pos.y = basePos.y + height;
-        sat->m_Flag &= ~4;
-        eat->m_Flag &= ~4;
+        sat->setDisable();
+        eat->setDisable();
         SceAtSetEnable(4, 0);
         mode = 0;
         step = 0;

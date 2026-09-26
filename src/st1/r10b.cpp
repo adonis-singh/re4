@@ -74,7 +74,7 @@ static inline void r10b_waitEvt()
 {
     // `&EvtMgr` inside the loop (no pointer local before it): loop.c hoists the `addi` into the
     // inner preheader from its own `lis` (the target's second EvtMgr high, r26).
-    while (EvtMgr.IsAliveEvt(evtKey(&EvtMgr), 0, 0)) {
+    while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
         SceSleep(1);
     }
 }
@@ -271,7 +271,7 @@ static void R10b_chkEmDie()
     SceSleep(1);
     r10b_work->em0 = GetEmPtrFromList(0xA0);
     boss = r10b_work->boss;
-    Cckpt.m_LifeMeter.flags = (u32) boss;
+    Cckpt.lifeMeterBoss(boss);
     for (;;) {
         if (DebugTrg(1)) {
             boss->hp = 1;
@@ -345,7 +345,7 @@ static void R10b_chkWater()
             SceSleep(2);
             if (readEvent(4, 1, &evt)) {
                 EvtMgr.SetEvt(evt, 0);
-                while (EvtMgr.IsAliveEvt(evtKey(&EvtMgr), 0, 0)) {
+                while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
                     SceSleep(1);
                 }
                 freeEvent(4);
@@ -419,7 +419,7 @@ static void r10b_GakeEvent()
         SceSleep(2);
         if (readEvent(3, 1, &evt)) {
             EvtMgr.SetEvt(evt, 0);
-            while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+            while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
                 SceSleep(1);
             }
             freeEvent(3);
@@ -685,7 +685,7 @@ extern "C" void Evt_R10BS20_Func(Event* e)
             EstSet(0, -1, 0, 0, EFF_ROOM, 2, 1, ESP_CORE_KIND_ROOM00, 0, 0);
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 9;
+        e->SetEvtCancelCut(9);
         break;
     case 1:
         SetSstAddAreaFlag(0);
@@ -717,7 +717,7 @@ extern "C" void Evt_R10BS20_Func(Event* e)
         }
         break;
     case 3:
-        EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x1D, 1, 0.0f);
+        EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x1D, 1, 0.0f);
         break;
     }
 }
@@ -814,7 +814,7 @@ extern "C" void Evt_R10BSXX_Func_Pl0f(Event* e)
     void* mod;
 
     if (e->GetMod(&mod, "pl0f00", 0, 0) == 1) {
-        cModel* p;
+        cParts* p;
 
         ((cModel*) mod)->be_flag |= 0x80;
         ((cModel*) mod)->LightInfo.EnableMask = 4;

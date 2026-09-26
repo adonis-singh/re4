@@ -11,6 +11,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj1d.h"
 #include "em.h"
 #include "emhit.h"
 #include "emdoor.h"
@@ -206,8 +207,8 @@ void R213SuInit()
             tbl[0] = 1;
             tbl[1] = 0;
             tbl[4] = 0xF7;
-            tbl[5] = r213_work->tex->m_Tex_no;
-            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+            tbl[5] = r213_work->tex->GetTexNo();
+            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
         } else {
             pLog->err(0, 0, "R213Init() : Manager alloc failed!!");
         }
@@ -331,10 +332,10 @@ void R213SuBreakModel()
     SceAtSetEnable(0x8D, 1);
     SceAtSetEnable(0x8E, 1);
     if (r213_work->sat[0]) {
-        r213_work->sat[0]->m_Flag &= ~4;
+        r213_work->sat[0]->setDisable();
     }
     if (r213_work->eat[0]) {
-        r213_work->eat[0]->m_Flag &= ~4;
+        r213_work->eat[0]->setDisable();
     }
     r213_work->em[0].setFlag(0x20000000);
     r213_work->em[1].setFlag(0x20000000);
@@ -487,17 +488,17 @@ void R213StatusSetBridge(int mode)
     if (mode == 2) {
         RsfSet(G_ROOM_ID, 4);
         if (r213_work->sat[1]) {
-            r213_work->sat[1]->m_Flag &= ~4;
+            r213_work->sat[1]->setDisable();
         }
         if (r213_work->sat[2]) {
-            r213_work->sat[2]->m_Flag |= 4;
+            r213_work->sat[2]->setEnable();
         }
     } else {
         if (r213_work->sat[1]) {
-            r213_work->sat[1]->m_Flag |= 4;
+            r213_work->sat[1]->setEnable();
         }
         if (r213_work->sat[2]) {
-            r213_work->sat[2]->m_Flag &= ~4;
+            r213_work->sat[2]->setDisable();
         }
     }
     if (mode == 0) {
@@ -741,7 +742,7 @@ void R213ChainAngSet(int no, u32 objId, int hitNo, f32 ang, int flag)
                 cObj* obj = SmdGetObjPtr(objId);
 
                 if (obj) {
-                    cModel* parts = ((cModel*) chain)->getPartsPtr(0x11);
+                    cParts* parts = ((cModel*) chain)->getPartsPtr(0x11);
 
                     if (parts->world.x > obj->pos.x || flag != 0) {
                         Vec t;
@@ -824,7 +825,7 @@ static void R213EventSwitchMain()
         SceEventStart(1);
         CamCtrl.CutCall(3);
         SceSleep(10);
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() != 1) {
             CamCtrl.Comeback(0);
             SceEventEnd(0);
@@ -1058,9 +1059,9 @@ extern "C" void Evt_R213S00_Func(Event* e)
                 EffectEspgenDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 EffectEfmDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 if (r213_work->tex) {
-                    EffectEspDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
-                    EffectEspgenDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
-                    EffectEfmDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEspDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+                    EffectEspgenDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEfmDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
                 }
                 SpfFlagOn(pG, SPF_ESP_AREA);
             }
@@ -1074,14 +1075,14 @@ extern "C" void Evt_R213S00_Func(Event* e)
                 EffectEspgenDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 EffectEfmDelete(0x4001, ESP_CORE_KIND_SST, 0);
                 if (r213_work->tex) {
-                    EffectEspDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
-                    EffectEspgenDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
-                    EffectEfmDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEspDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+                    EffectEspgenDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
+                    EffectEfmDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
                 }
                 StaFlagOff(pG, STA_EVENT);
                 SstSet(EFF_ROOM, 0xFFFF, ESP_CORE_KIND_SST, 0, 0x2F, 0);
                 if (r213_work->tex) {
-                    EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
+                    EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
                 }
                 StaFlagOn(pG, STA_EVENT);
                 SpfFlagOff(pG, SPF_ESP_AREA);
@@ -1103,15 +1104,15 @@ extern "C" void Evt_R213S00_Func(Event* e)
         EffectEspgenDelete(0x4001, ESP_CORE_KIND_SST, 0);
         EffectEfmDelete(0x4001, ESP_CORE_KIND_SST, 0);
         if (r213_work->tex) {
-            EffectEspDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0, 0);
-            EffectEspgenDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
-            EffectEfmDelete(r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, 0);
+            EffectEspDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0, 0);
+            EffectEspgenDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
+            EffectEfmDelete(r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, 0);
         }
         frame = 0;
         StaFlagOff(pG, STA_EVENT);
         SstSet(EFF_ROOM, 0xFFFF, ESP_CORE_KIND_SST, 0, 0x2F, 0);
         if (r213_work->tex) {
-            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->m_Core_flg | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
+            EstSet(0, -1, 0, 0, EFF_ROOM, 0, r213_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_ROOM00, (void*) frame, (void*) frame);
         }
         StaFlagOn(pG, STA_EVENT);
         SpfFlagOff(pG, SPF_ESP_AREA);

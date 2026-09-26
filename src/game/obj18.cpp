@@ -6,20 +6,13 @@
 #include "atari.h"
 #include "event.h"
 #include "obj.h"
+#include "obj18.h"
 #include "global.h"
 #include "math_sub.h"
 #include "pl_cloth.h"
 #include "motion.h"
 #include <string.h>
 #include "em_cloth.h"
-
-// Event costume / cloth model: follows a parts of its parent with a slerp blend and runs the
-// cloth simulation selected by `type` (player costumes, enemy cloth sets, the ribbon / rope).
-class cObj18 : public cObj {
-public:
-    virtual void move();
-    virtual ~cObj18() {}
-};
 
 extern "C" {
 void obj18SetOya(cObj18* obj);
@@ -68,13 +61,13 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->o18;
+    w = OBJ18_WK((cObj18*) obj);
     memset(w, 0, sizeof(Obj18Work));
     if (obj->modelInit(bin, tpl) == 0) {
         ObjMgr.destroy(obj);
         return 0;
     }
-    obj->sub2B4.atari.throughOn();
+    obj->atari.off();
     lightFlag = 4;
     if (type == 1) {
         lightFlag = 0x40;
@@ -169,7 +162,7 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
     sz.x = b->size.x;
     sz.y = b->size.y;
     sz.z = b->size.z;
-    PSVECSubtract(&info->bound.center, &obj->pParts->pos, &ofs);
+    PSVECSubtract(&info->bound.center, &obj->pList->pos, &ofs);
     obj->LightInfo.init2(2, 1, &ofs, &sz, lightFlag);
     if (pos) {
         obj->pos = *pos;
@@ -205,10 +198,10 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
         if (pG->game_costume == 0) {
             if (EvtMgr.GetBin(&cbin, "em/pl02/pl020f.bin", 0)) {
                 if (EvtMgr.GetBin(&ctpl, "em/pl02/pl020a.tpl", 0)) {
-                    w->child = (cObj*) AdaRibbonSet(obj, &Evt_adaRibbon, cbin, ctpl);
-                    if (w->child) {
-                        w->child->setNoSuspend(1);
-                        w->child->LightInfo.EnableMask = obj->LightInfo.EnableMask;
+                    w->pObjChain = (cObj*) AdaRibbonSet(obj, &Evt_adaRibbon, cbin, ctpl);
+                    if (w->pObjChain) {
+                        w->pObjChain->setNoSuspend(1);
+                        w->pObjChain->LightInfo.EnableMask = obj->LightInfo.EnableMask;
                     }
                 }
             }
@@ -256,9 +249,9 @@ cObj* SetObj18(void* bin, void* tpl, Vec* pos, Vec* rot, int type)
             pLog->err(0, 0, "Event::ExePacket_Mot : dat failed");
             return 0;
         }
-        w->child = (cObj*) Em2bShortRopeSet(obj, &Obj18Cloth1, cbin, ctpl);
-        if (w->child) {
-            w->child->setNoSuspend(1);
+        w->pObjChain = (cObj*) Em2bShortRopeSet(obj, &Obj18Cloth1, cbin, ctpl);
+        if (w->pObjChain) {
+            w->pObjChain->setNoSuspend(1);
         }
         break;
     }
@@ -272,8 +265,8 @@ int DelObj18(cObj* pObj)
         pLog->err(0, 0, "Evt_SetElgiganteRope : pointer failed");
         return 0;
     }
-    if (pObj->o18.child) {
-        ObjMgr.destroy(pObj->o18.child);
+    if (OBJ18_WK((cObj18*) pObj)->pObjChain) {
+        ObjMgr.destroy(OBJ18_WK((cObj18*) pObj)->pObjChain);
     }
     return 1;
 }
@@ -283,7 +276,7 @@ int DelObj18(cObj* pObj)
 // always off in the armour costume).
 void cObj18::move()
 {
-    Obj18Work* w = &o18;
+    Obj18Work* w = OBJ18_WK(this);
 
     if (w->DebugFlag) {
         pLog->mes(0, 0, "cObj18:move DebugFlag");
@@ -292,13 +285,10 @@ void cObj18::move()
         MotionMove(this, 0);
         partsWorldCalc();
     } else {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
     }
     if (w->pEm_oya) {
-        if ((w->pEm_oya->be_flag & 0x201) != 1) {
+        if (!w->pEm_oya->isAlive()) {
             w->pEm_oya = 0;
         }
     }
@@ -385,7 +375,7 @@ void OyaSetObj18(cObj* obj, cModel* oya, int partsNo)
     if (obj->id != 0x18) {
         return;
     }
-    w = &obj->o18;
+    w = OBJ18_WK((cObj18*) obj);
     w->pEm_oya = oya;
     w->oya_parts = partsNo;
     w->be_flag &= ~8;
@@ -396,13 +386,13 @@ void OyaSetObj18(cObj* obj, cModel* oya, int partsNo)
 int obj18GetOya(cModel** pOya, cObj* pObj)
 {
     *pOya = 0;
-    if (pObj->o18.pEm_oya == 0) {
+    if (OBJ18_WK((cObj18*) pObj)->pEm_oya == 0) {
         return 0;
     }
-    if (pObj->o18.pEm_oya->pParts == 0) {
+    if (OBJ18_WK((cObj18*) pObj)->pEm_oya->pList == 0) {
         return 0;
     }
-    *pOya = pObj->o18.pEm_oya;
+    *pOya = OBJ18_WK((cObj18*) pObj)->pEm_oya;
     return 1;
 }
 
@@ -410,7 +400,7 @@ int obj18GetOya(cModel** pOya, cObj* pObj)
 // (be_flag bit 3) from the saved matrix; copies the parent's light class 2.
 void obj18SetOya(cObj18* pObj)
 {
-    Obj18Work* w = &pObj->o18;
+    Obj18Work* w = OBJ18_WK(pObj);
     Mtx m;
     Vec v0;
     Vec v1;
@@ -423,7 +413,7 @@ void obj18SetOya(cObj18* pObj)
     if (w->pEm_oya == 0) {
         return;
     }
-    if (w->pEm_oya->pParts == 0) {
+    if (w->pEm_oya->pList == 0) {
         return;
     }
     PSMTXConcat(w->pEm_oya->getPartsPtr(w->oya_parts)->mat, pObj->mat, m);
@@ -492,7 +482,7 @@ void Obj18CmfSet(cObj* pObj, u32 commonFlag)
     if (pObj->id != 0x18) {
         return;
     }
-    pObj->o18.CommonFlag = commonFlag;
+    OBJ18_WK((cObj18*) pObj)->CommonFlag = commonFlag;
 }
 
 // Event control flags of an obj18 (0 for other objects).
@@ -504,7 +494,7 @@ u32 Obj18CmfGet(cObj* pObj)
     if (pObj->kindid != 1 || pObj->id != 0x18) {
         return 0;
     }
-    return pObj->o18.CommonFlag;
+    return OBJ18_WK((cObj18*) pObj)->CommonFlag;
 }
 
 // Sets one event control flag bit.

@@ -6,6 +6,7 @@
 #include "camera.h"
 
 class cModel;
+class cParts;
 
 // Placement new used to construct camera objects inside CameraControl::extra_buf.
 #ifndef PLACEMENT_NEW_DEFINED
@@ -17,7 +18,7 @@ inline void* operator new(unsigned int, void* p) { return p; }
 // GNU v2 layout: Camera data first, then the vtable pointer at 0xF8 (size 0xFC).
 //   vtable slot 0 (0x08): virtual destructor
 //   vtable slot 1 (0x10): move()
-class cCamera : public Camera {
+class cCamera : public CAMERA {
 public:
     virtual ~cCamera() {}
     virtual void move() = 0;
@@ -96,6 +97,11 @@ public:
     virtual void move();
     void setParam(f32 zoom_ratio, f32 x_radian);
     void getParam(f32* zoom_ratio, f32* x_radian);
+    void getTrajectory(Vec* p_pos0, Vec* p_pos1)
+    {
+        *p_pos0 = param.pos;
+        *p_pos1 = param.at;
+    }
 };
 
 // Binocular ids (IdSys unit 0x27).
@@ -109,7 +115,7 @@ public:
     f32 m_meter_h0;   // 0x38
     f32 m_meter_w0;   // 0x3C
 
-    void init(Camera* cam, void* tex, void* data);
+    void init(CAMERA* cam, void* tex, void* data);
     virtual void move(void* cam);
     virtual void quit(void* cam);
     void cutin(void* arg);
@@ -134,6 +140,8 @@ public:
     virtual ~CameraBinocular();
     virtual void move();
     void setRange(f32 x_low, f32 x_up, f32 y_low, f32 y_up);
+    void* getEffAddr() { return id_a; }
+    void* getUwfAddr() { return id_b; }
 };
 
 class CameraPushObject : public cCamera {
@@ -146,16 +154,16 @@ public:
 class CameraLookAt : public cCamera {
 public:
     u8 pad_FC[4];
-    cModel* m_target_parts;  // 0x100  hand parts looked at
+    cParts* m_target_parts;  // 0x100  hand parts looked at
 
-    CameraLookAt(Camera* cam);
+    CameraLookAt(CAMERA* cam);
     virtual ~CameraLookAt();
     virtual void move();
 };
 
 class CameraLookDownEm : public cCamera {
 public:
-    cModel* m_target_parts;  // 0xFC
+    cParts* m_target_parts;  // 0xFC
 
     CameraLookDownEm(void* em, Vec* ofs);
     virtual ~CameraLookDownEm();

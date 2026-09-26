@@ -2,8 +2,8 @@
 //
 // cObjBow (wep_mod.h) is the cObjWep hanging on the player's left forearm (parts 0x10); its parts
 // 4 is the nocked arrow, shown / hidden by scale (setDispAllow). cObjAllow is the arrow model held
-// in the right hand (parts 10) between shots: Wep->pObj2 and bow.allow. Driven by wep.mode /
-// wep.step from wep/pl_bow.cpp: mode 1 -> moveReady (draw motion on both), 2 -> moveFire (the
+// in the right hand (parts 10) between shots: Wep->pObj2 and pAllow. Driven by mode /
+// step from wep/pl_bow.cpp: mode 1 -> moveReady (draw motion on both), 2 -> moveFire (the
 // arrow is launched as a cEmMine of type 2 by setAllow), 3 -> moveDown. Wep28_init is the
 // WeaponInitFunc, PlBowMove the WeaponMoveFunc.
 
@@ -22,7 +22,7 @@ void ObjKlauAllow_init(cObj* obj);
 
 // WeaponInitFunc (cPlayer::weaponInit with the player): creates the bow (ObjMgr id 0x11) as
 // Wep->m_pWep with its motions, then the hand arrow (id 0x10) as Wep->pObj2 (display type 1 off)
-// and links it as bow.allow; loads the effects (archive 0x4 as group 0x50).
+// and links it as pAllow; loads the effects (archive 0x4 as group 0x50).
 void Wep28_init(cModel* m)
 {
     cPlayer* pl = (cPlayer*) m;
@@ -43,36 +43,36 @@ void Wep28_init(cModel* m)
     pl->Wep->m_pWepHand = obj;
     obj->init(pl);
     obj->setDisp(1, 0);
-    pl->Wep->m_pWep->bow.allow = obj;
+    ((cObjBow*) pl->Wep->m_pWep)->pAllow = obj;
     EspDataLoad((u32) WEP_ARC_PTR(0x4), EFF_WEP28, 1);
 }
 
-// wep.mode == 1 (ready, set by the bow ready00): the bow's draw motion 0x2E and the hand arrow's
+// mode == 1 (ready, set by the bow ready00): the bow's draw motion 0x2E and the hand arrow's
 // (player archive 0x73), the string SE 2/0 at frame 10; back to mode 0 at the motion's end.
 void cObjBow::moveReady()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x2E), 0, 0, 0, 0);
-        if (bow.allow) {
-            bow.allow->motionSet(PL_ARC_PTR(pG->pPlayer, 0x73), 0, 0, 1, 0);
+        if (pAllow) {
+            pAllow->motionSet(PL_ARC_PTR(pG->pPlayer, 0x73), 0, 0, 1, 0);
         }
-        wep.step = 1;
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 10.0f)) {
-        SndCall(2, 0, &pParts->world, 0, 0, 0);
+        SndCall(2, 0, &pList->world, 0, 0, 0);
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
-// wep.mode == 2 (fire, set by the bow fire00): the release motion (0x2F, 0x2C on the last arrow),
+// mode == 2 (fire, set by the bow fire00): the release motion (0x2F, 0x2C on the last arrow),
 // the nocked arrow hidden and launched as a projectile (setAllow), release SE 2/1; back to mode 0
 // at the motion's end.
 void cObjBow::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
 
         if (ItemMgr.bulletNum()) {
@@ -83,27 +83,27 @@ void cObjBow::moveFire()
         MotionSetCore(this, &this->Motion, m, 0, 0, 0, 0);
         setDispAllow(0);
         setAllow();
-        SndCall(2, 1, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        SndCall(2, 1, &pList->world, 0, 0, 0);
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
-// wep.mode == 3 (down, set by wepDown): hides the nocked arrow and returns the bow to its idle
+// mode == 3 (down, set by wepDown): hides the nocked arrow and returns the bow to its idle
 // motion; mode 0 when that motion state reports done.
 void cObjBow::moveDown()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         setDispAllow(0);
         resetMotion();
-        wep.step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
@@ -131,23 +131,23 @@ void cObjBow::init(cModel* parent)
         wepInitErr();
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0x10);
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0x10);
     wepLightInit(this);
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x2D);
-    wep.motReset[1] = WEP_ARC_PTR(0x2D);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x2D);
+    motReset[1] = WEP_ARC_PTR(0x2D);
     resetMotion();
     setDispAllow(0);
-    bow.allow = 0;
+    pAllow = 0;
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
 // Shows (on == 1: scale 1) or hides (scale 0) the arrow nocked on the bow (parts 4).
 void cObjBow::setDispAllow(int on)
 {
-    cModel* parts = getPartsPtr(4);
+    cParts* parts = getPartsPtr(4);
     f32 s;
 
     if (on == 1) {
@@ -196,7 +196,7 @@ void cObjBow::setMotion(cPlayer* pl)
 void cObjBow::setAllow()
 {
     static const Vec dir = { -1500.0f, 0.0f, 0.0f };
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec spd;
     Vec hit;
     Vec nrm;
@@ -229,12 +229,12 @@ void cObjBow::interrupt()
 {
     cObjWep::interrupt();
     setDispAllow(0);
-    if (bow.allow) {
-        bow.allow->setDisp(1, 0);
+    if (pAllow) {
+        pAllow->setDisp(1, 0);
     }
     resetMotion();
-    wep.mode = 0;
-    wep.step = 0;
+    r_no_0 = 0;
+    r_no_1 = 0;
 }
 
 // ObjInitFunc[0x11]: placement-constructs the bow in the work cObjMgr::construct hands over.
@@ -257,8 +257,8 @@ void cObjAllow::init(cModel* parent)
         wepInitErr();
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
     wepLightInit(this);
     pos.x = -850.0f;
     pos.y = 5.0f;

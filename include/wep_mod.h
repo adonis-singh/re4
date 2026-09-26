@@ -13,6 +13,7 @@
 #include "obj.h"
 #include "pl_wep.h"
 #include "player.h"
+#include "pl_body.h"
 #include "global.h"
 #include "db_log.h"
 
@@ -47,6 +48,8 @@ static inline void AtariFlagsAndV(cAtariInfo* at, u16 mask) { *(volatile u16*) &
 // Klauser MG and wep39 carry their own copies of the class in the module object).
 class cObjMachinegun : public cObjWep {
 public:
+    u8 ctr;               // 0x368  (PS2 ctr; unused by the GC machine gun)
+
     virtual void moveFire();
     virtual void moveReload();
     virtual void init(cModel* pMod);
@@ -99,6 +102,8 @@ public:
 
 class cObjBow : public cObjWep {
 public:
+    cObjWep* pAllow;      // 0x368  the arrow object shown on the bow (cObjAllow, ObjMgr id 0x10)
+
     virtual void moveReady();
     virtual void moveFire();
     virtual void moveDown();
@@ -109,6 +114,38 @@ public:
 
     void setDispAllow(int on);   // scale the arrow parts (parts 4) to 1 / 0
     void setAllow();             // shoot: SetMine arrow along the bow's line
+};
+
+class cObjRuger : public cObjWep {
+public:
+    virtual ~cObjRuger() {}
+    virtual void moveFire();
+    virtual void moveReload();
+    virtual void init(cModel* parent);
+    virtual void setMotion(cPlayer* pl);
+
+    void setCartridge();
+};
+
+class cObjShotgun : public cObjWep {
+public:
+    virtual void moveFire();
+    virtual void moveReload();
+    virtual void init(cModel* parent);
+    virtual void setMotion(cPlayer* pl);
+
+    void setCartridge();
+};
+
+class cObjGovernment : public cObjWep {
+public:
+    virtual ~cObjGovernment() {}
+    virtual void moveFire();
+    virtual void moveReload();
+    virtual void init(cModel* parent);
+    virtual void setMotion(cPlayer* pl);
+
+    void setCartridge();
 };
 
 #endif

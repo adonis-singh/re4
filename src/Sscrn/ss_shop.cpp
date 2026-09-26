@@ -309,15 +309,14 @@ void shopClearZ(SUB_SCREEN* wk)
 // Gives message slots 8..12 their 0x1000-byte queue buffers (shop_msg_buf) or detaches them (on 0).
 void setShopMsgQueue(int on)
 {
-    Message* m = cMes.getMes(8);
     void** buf = shop_msg_buf;
     int i;
 
-    for (i = 0; i < 5; i++, m++, buf++) {
+    for (i = 0; i < 5; i++, buf++) {
         if (on) {
-            m->qbase = (MesQue*) *buf;
+            cMes.MesRegistQueue(8 + i, (MesQue*) *buf);
         } else {
-            m->qbase = (MesQue*) on;
+            cMes.MesReleaseQueue(8 + i);
         }
     }
 }
@@ -358,14 +357,14 @@ void shopModelAlloc(SUB_SCREEN* wk)
 
     wk->attr_flag |= 1;
     ssModInfoMgr.roomInit();
-    ssModInfoMgr.arrayAlloc(pl->m_piece_max + 4);
+    ssModInfoMgr.arrayAlloc(pl->pieceMax() + 4);
     ssPartsMgr.roomInit();
     ssPartsMgr.arrayAlloc(0xBE);
     cModel::mm = &ssModInfoMgr;
     cModel::pm = &ssPartsMgr;
     MapMgr.roomInit();
-    MapMgr.arrayAlloc(pl->m_piece_max + 4);
-    for (i = 0; i < pl->m_piece_max + 4; i++) {
+    MapMgr.arrayAlloc(pl->pieceMax() + 4);
+    for (i = 0; i < pl->pieceMax() + 4; i++) {
         MapMgr.create(0, i);
     }
 }
@@ -559,8 +558,8 @@ void SsShopMain::init(SUB_SCREEN* wk)
     }
     cur = topMenu;
     cur->init(wk);
-    MesData.setPtr(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
+    MesData.registData(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
 }
 
 // Shop frame: leaves at once (close_flag 0x10000) when the merchant data vanished; draws the case
@@ -704,7 +703,7 @@ void ShopTopMenu::move(SUB_SCREEN* wk)
             break;
         }
         case 1:
-            if (cMes.m_Msg[result].m_state & 2) {
+            if (cMes.GetMesStatus(result) & 2) {
                 if (++greetIdx == greetNum) {
                     IdSub.unitPtr(0, IDC_SSCRN_CKPT_2)->be_flag &= ~8;
                     IdSub.unitPtr(0, IDC_SSCRN_CKPT_2)->rev_flag |= 0xF;
@@ -947,13 +946,10 @@ void dispSellItemList(SUB_SCREEN* wk, int n, int cursor)
         slot = row + 8;
         cMes.setLayout(slot, LAYOUT_SHOP_LIST);
         cMes.MesSet(id, x, y, 0x200A8, slot, col, 4);
-        cMes.getMes(slot)->m_ot_type = 0x13;
-        U16Set(cMes.getMes(slot)->m_ot_no, 6);
+        cMes.MesSetOt(slot, 0x13, 6);
         IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag &= ~8;
         if (i == sw->cursor) {
-            ItemInfo info;
-            itemInfo(pe->id, &info);
-            if (info.type == 1) {
+            if (itemType(pe->id) == 1) {
                 if (item) {
                     weaponLevelDisp(item, item->id, 1, 1);
                 } else {
@@ -1181,9 +1177,7 @@ void SellItemNum::move(SUB_SCREEN* wk)
         }
     }
     {
-        ItemInfo info;
-        itemInfo(sw->item->id, &info);
-        if (info.type == 1) {
+        if (itemType(sw->item->id) == 1) {
             max = 1;
         } else {
             max = ItemMgr.num(sw->item->id);
@@ -1214,7 +1208,7 @@ void SellItemNum::move(SUB_SCREEN* wk)
                 int px = (int) ((u->pos0.x + 320.0f) * 0.8f) + sell_msg_x;
                 cMes.MesSet(shop_msg[msg].msg, px, (int) ((240.0f - u->pos0.y) * 0.8f) + sell_msg_y, 0x20801, 1, 0, 3);
             }
-            cMes.getMes(1)->m_cur = 1;
+            cMes.SetCursor(1, 1);
             self->transit(0, wk);
             SndCall(0, 9, 0, 0, 0, 0);
             shopStrPlay(wk, shop_msg[msg].str);
@@ -1291,17 +1285,15 @@ void SellConfirm::move(SUB_SCREEN* wk)
         SndCall(0, 5, 0, 0, 0, 0);
         return;
     }
-    result = cMes.getMes(1)->m_sel;
+    result = cMes.GetSelectMessage(1);
     if (result == 0) {
         return;
     }
     switch (result) {
     case 1: {
-        ItemInfo info;
 
         m->buyup(sw->item, sw->count, (int*) &pG->peseta);
-        itemInfo(sw->item->id, &info);
-        if (info.type == 1) {
+        if (itemType(sw->item->id) == 1) {
             ItemMgr.dumpAll(sw->item);
         } else {
             u16 left = (u16) sw->count;
@@ -1320,7 +1312,7 @@ void SellConfirm::move(SUB_SCREEN* wk)
                 left -= p->num;
                 ItemMgr.dumpAll(p);
             }
-            if (id == ItemMgr.m_wep_id && ItemMgr.num(id) == 0) {
+            if (id == ItemMgr.weaponId() && ItemMgr.num(id) == 0) {
                 ItemMgr.arm(0);
             }
         }
@@ -1408,8 +1400,7 @@ void dispBuyItemList(SUB_SCREEN* wk, int n, int cursor)
         slot = row + 8;
         cMes.setLayout(slot, LAYOUT_SHOP_LIST);
         cMes.MesSet(id, x, y, 0x200A8, slot, col, 4);
-        cMes.getMes(slot)->m_ot_type = 0x13;
-        U16Set(cMes.getMes(slot)->m_ot_no, 6);
+        cMes.MesSetOt(slot, 0x13, 6);
         if (wk->merchant->stockNew(pe->id)) {
             IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag |= 8;
         }
@@ -1417,9 +1408,7 @@ void dispBuyItemList(SUB_SCREEN* wk, int n, int cursor)
             IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag |= 8;
         }
         if (i == sw->cursor) {
-            ItemInfo info;
-            itemInfo(pe->id, &info);
-            if (info.type == 1) {
+            if (itemType(pe->id) == 1) {
                 weaponLevelDisp(0, pe->id, 1, 1);
             } else {
                 weaponLevelDisp(0, pe->id, 0, 1);
@@ -1636,7 +1625,7 @@ void BuyItemNum::move(SUB_SCREEN* wk)
             break;
         }
         if (msg != 0x13) {
-            result = cMes.getMes(1)->m_sel;
+            result = cMes.GetSelectMessage(1);
             if (result == 0) {
                 break;
             }
@@ -1656,14 +1645,14 @@ void BuyItemNum::move(SUB_SCREEN* wk)
                 wk->puzzlePlayer->appendExtraPiece(&sw->buy);
                 wk->puzzlePlayer->inHandExtraPiece();
                 pl = wk->puzzlePlayer;
-                p = pl->m_extra;
-                h = pl->m_space->m_size_y;
-                w = pl->m_space->m_size_x;
+                p = pl->pieceExtra();
+                h = pl->spacePtr()->size_y();
+                w = pl->spacePtr()->size_x();
                 for (y = 0; y < h; y++) {
                     for (x = 0; x < w; x++) {
-                        p->m_pos_x = (f32) x + p->m_center_x;
-                        p->m_pos_y = (f32) y + p->m_center_y;
-                        if (pl->putPiece(pl->m_space)) {
+                        p->set_ver0_x((f32) x);
+                        p->set_ver0_y((f32) y);
+                        if (pl->putPiece(pl->spacePtr())) {
                             goto PUT;
                         }
                     }
@@ -1671,17 +1660,17 @@ void BuyItemNum::move(SUB_SCREEN* wk)
                 p->orientation(1);
                 for (y = 0; y < h; y++) {
                     for (x = 0; x < w; x++) {
-                        p->m_pos_x = (f32) x + p->m_center_x;
-                        p->m_pos_y = (f32) y + p->m_center_y;
-                        if (pl->putPiece(pl->m_space)) {
+                        p->set_ver0_x((f32) x);
+                        p->set_ver0_y((f32) y);
+                        if (pl->putPiece(pl->spacePtr())) {
                             goto PUT;
                         }
                     }
                 }
             PUT:
-                pl->m_p_active_board = pl->m_space;
-                pl->getPiece(pl->m_space);
-                pieceModelSet(wk->puzzlePlayer->m_extra);
+                pl->m_p_active_board = pl->spacePtr();
+                pl->getPiece(pl->spacePtr());
+                pieceModelSet(wk->puzzlePlayer->pieceExtra());
                 wk->back2 = 1;
                 sw->placed = 1;
                 dispItem(0, 0);
@@ -1721,7 +1710,7 @@ int deleteExtraPiece(SUB_SCREEN* wk)
 {
     pzlPlayer* pl = wk->puzzlePlayer;
 
-    if (pl->m_extra) {
+    if (pl->pieceExtra()) {
         if (pl->removeExtraPiece()) {
             return 1;
         }
@@ -1740,16 +1729,16 @@ int buyItem(SUB_SCREEN* wk)
     wk->merchant->sell(sw->buyId, sw->count, (int*) &pG->peseta);
     ItemMgr.get(sw->buyId, (u16) sw->count);
     if (sw->placed) {
-        ItemWork* p = ItemMgr.pLast;
+        ItemWork* p = ItemMgr.newbie();
         if (p) {
             p->x = sw->buy.x;
             p->y = sw->buy.y;
             p->orient = sw->buy.orient;
             p->board = sw->buy.board;
-            wk->puzzlePlayer->m_extra->item = p;
+            wk->puzzlePlayer->pieceExtra()->item = p;
         }
     } else {
-        ItemWork* p = ItemMgr.pLast;
+        ItemWork* p = ItemMgr.newbie();
         if (p) {
             switch (p->id) {
             case 0x7C:
@@ -1826,7 +1815,7 @@ void BuyConfirm::move(SUB_SCREEN* wk)
             SndCall(0, 5, 0, 0, 0, 0);
         }
     } else {
-        result = cMes.getMes(1)->m_sel;
+        result = cMes.GetSelectMessage(1);
         if (result) {
             switch (result) {
             case 1:
@@ -1861,7 +1850,7 @@ void BuyConfirm::move(SUB_SCREEN* wk)
         if (sw->placed) {
             deleteExtraPiece(wk);
             tempSpaceDisp(0);
-            Cckpt.m_LifeMeter.frameIn();
+            Cckpt.lifeMeterFrameIn();
             IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag &= 0xF0;
         }
         transit(0, wk);
@@ -1874,7 +1863,7 @@ void BuyConfirm::move(SUB_SCREEN* wk)
         }
         break;
     case 3:
-        wk->puzzlePlayer->m_space->rmPiece(wk->puzzlePlayer->m_extra);
+        wk->puzzlePlayer->spacePtr()->rmPiece(wk->puzzlePlayer->pieceExtra());
         wk->puzzlePlayer->inHandExtraPiece();
         transit(2, wk);
         IdSub.unitPtr(0xF9, IDC_SSCRN_CKPT_0)->rev_flag |= 0xF;
@@ -1897,7 +1886,7 @@ void BuyPuzzleEnd::move(SUB_SCREEN* wk)
 {
     ShopWork* sw = wk->shop;
 
-    if (wk->puzzlePlayer->m_board->search(wk->puzzlePlayer->m_extra)) {
+    if (wk->puzzlePlayer->boardPtr()->search(wk->puzzlePlayer->pieceExtra())) {
         buyItem(wk);
         transit(1, wk);
         shopStrPlay(wk, shop_msg[21].str);
@@ -1980,15 +1969,12 @@ void dispLvUpItemList(SUB_SCREEN* wk, int n, int cursor)
         slot = (u8) (row + 8);
         cMes.setLayout(slot, LAYOUT_SHOP_LIST);
         cMes.MesSet(id, x, y, 0x200A8, slot, col, 4);
-        U16Set(cMes.getMes(slot)->m_ot_type, 0x13);
-        U16Set(cMes.getMes(slot)->m_ot_no, 6);
+        cMes.MesSetOt(slot, 0x13, 6);
         if (wk->merchant->levelNew(le->id)) {
             IdSub.unitPtr(row + 0x80, IDC_SSCRN_CKPT_1)->be_flag |= 8;
         }
         if (i == sw->cursor) {
-            ItemInfo info;
-            itemInfo(le->id, &info);
-            if (info.type == 1) {
+            if (itemType(le->id) == 1) {
                 if (item) {
                     weaponLevelDisp(item, le->id, 1, 1);
                 } else {
@@ -2074,8 +2060,7 @@ void levelItemDisp(SUB_SCREEN* wk, int sw)
             }
             cMes.setLayout(slot, LAYOUT_SHOP_LIST);
             cMes.MesSet(type + 6, x, y, 0x200A1, slot, 0, 3);
-            cMes.getMes(slot)->m_ot_type = 0x13;
-            U16Set(cMes.getMes(slot)->m_ot_no, 6);
+            cMes.MesSetOt(slot, 0x13, 6);
             switch (type) {
             case 0:
                 bar = IdSub.unitPtr(0x30, IDC_SSCRN_CKPT_1);
@@ -2218,8 +2203,7 @@ void levelItemDisp(SUB_SCREEN* wk, int sw)
                 int no = 0xC;
                 cMes.setLayout(no, LAYOUT_SHOP_LIST);
                 cMes.MesSet(0x28, x, y, 0x200A1, no, 0, 3);
-                cMes.m_Msg[no].m_ot_type = 0x13;
-                cMes.m_Msg[no].m_ot_no = 6;
+                cMes.MesSetOt(no, 0x13, 6);
             }
         }
     }
@@ -2543,7 +2527,7 @@ void LvUpConfirm::move(SUB_SCREEN* wk)
         SndCall(0, 5, 0, 0, 0, 0);
         return;
     }
-    if (msg == 0x17 && (result = cMes.getMes(1)->m_sel) != 0) {
+    if (msg == 0x17 && (result = cMes.GetSelectMessage(1)) != 0) {
         switch (result) {
         case 1: {
             TuneLevel* t;
@@ -2578,8 +2562,8 @@ void LvUpConfirm::move(SUB_SCREEN* wk)
                 ItemWork* item = sw->item;
                 item->bullet = (item->bullet & 0xE000) | (WeaponId2ChargeNum(item->id, (item->lv8[1] & 0xF) + 1) & 0x1FFF);
             }
-            if (ItemMgr.pArm == sw->item) {
-                ItemMgr.arm(ItemMgr.pArm);
+            if (ItemMgr.weapon() == sw->item) {
+                ItemMgr.arm(ItemMgr.weapon());
             }
             pG->peseta -= sw->price;
             shopStrPlay(wk, shop_msg[25].str);
@@ -2980,7 +2964,7 @@ void dispItem(int id, int sw)
 // Screen (+-240 half height) -> world x/y at the camera distance, z 0.
 void screenPos2worldPos(Vec* scr, Vec* out)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     f32 z = cam->param.pos.z;
     f32 h = fabsf((f32) (z * tan(cam->param.fovy * 0.5f * 3.1415927f / 180.0f)));
 

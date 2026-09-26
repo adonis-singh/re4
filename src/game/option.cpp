@@ -355,7 +355,7 @@ int retry_load_menu(OptionScreen* pOpt)
                     no = 0x8A;
                 }
                 cMes.MesSet(no, x0, y0, (pOpt->_msg_attr | 0x40) & ~0x80, 0, 0, 4);
-                cMes.getWork()->m_cur = 1;
+                cMes.SetCursor(0, 1);
                 pOpt->_rno3 = 1;
                 confirm = 1;
                 yes = 1;
@@ -424,7 +424,7 @@ int retry_load_menu(OptionScreen* pOpt)
             cMes.Delete(0);
             SndCall(0, 0x39, 0, 0, 0, 0);
         } else {
-            s8 res = cMes.getWork()->m_sel;
+            s8 res = cMes.GetSelectMessage(0);
 
             if (res != 0) {
                 cMes.Delete(0);
@@ -466,7 +466,7 @@ int retry_load_menu(OptionScreen* pOpt)
                 Cckpt.roomInit();
                 Cckpt.move();
                 Cockpit* ck = &Cckpt;
-                ck->m_LifeMeter.fix(1);
+                ck->lifeMeterFix(1);
                 ck->lifeMeterDisp(0);
             }
             IdTexDataLoad(OPT_PTR(0x20), TEX_OWNER_ID_DEAD);

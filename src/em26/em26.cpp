@@ -84,7 +84,7 @@ void em26DmCk(cEm26* em)
             em->hp = 0;
             EmSetDie(em);
             w->flags |= 0x20;
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
             return;
         }
     }
@@ -145,8 +145,8 @@ void em26DmCk(cEm26* em)
     case 8:
     case 0x21:
         if (near) {
-            Camera* cam = &pG->Camera;
-            cModel* p = em->getPartsPtr(0);
+            CAMERA* cam = &pG->Camera;
+            cParts* p = em->getPartsPtr(0);
 
             if ((cam->param.pos.x - p->world.x) * (cam->param.pos.x - p->world.x)
                     + (cam->param.pos.y - p->world.y) * (cam->param.pos.y - p->world.y)
@@ -189,9 +189,9 @@ void em26DmCk(cEm26* em)
     }
     SndCall(8, 0xA, &em->pos, em->id, 0, em);
     if (em->hp <= 0) {
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
     } else if (part->parts_no == 5 || part->parts_no == 0x18 || Rnd() % 5 == 0) {
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
     }
 }
 
@@ -287,10 +287,7 @@ static void em26_R0_Init(cEm26* em)
 
         em->LightInfo.init2(0, 3, &ofs, &size, 2);
     }
-    em->lockParts = 5;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(5, 0.0f, 0.0f, 0.0f);
     if (pG->stage_no == 0 && pG->room_no == 4) {
         if (em->hp < 0) {
             em->hp = 1000;
@@ -314,7 +311,7 @@ static void em26_R0_Init(cEm26* em)
     w->pCtrl12 = GetCtrlCtrl12();
     w->x194 = zero;
     em->setStatus(EM_STATUS_ACTIVE);
-    EmRoutineSet(em, 1, zero, zero, zero);
+    em->setRno(1, zero, zero, zero);
     if (w->flags & 0x10) {
         MotionSetCore(em, MOTION(em), ARC(8), 0, 0, 0x41, 0);
     } else {
@@ -374,12 +371,12 @@ static void em26_R1_Wait(cEm26* em)
         EstSet(em, -1, 0, 0, EFF_EM26, 3, 0, ESP_CORE_KIND_NONE, em, 0);
     }
     if (w->dmgTotal > 500) {
-        cModel* p = em->getPartsPtr(4);
+        cParts* p = em->getPartsPtr(4);
 
         if ((p->world.x - pPL->pos.x) * (p->world.x - pPL->pos.x)
                 + (p->world.z - pPL->pos.z) * (p->world.z - pPL->pos.z) < 1000000.0f
             && fabsf(em->pos.y - pPL->pos.y) < 500.0f) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
     }
 }
@@ -411,7 +408,7 @@ static void em26_R1_Atk(cEm26* em)
             em26AtkCk(em);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -473,7 +470,7 @@ static void em26_R1_Dm_Small(cEm26* em)
     }
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -544,7 +541,7 @@ static void em26_R1_Die_Normal(cEm26* em)
             }
         }
         if (MotionMove(em, 0)) {
-            cModel* p = em->getPartsPtr(2);
+            cParts* p = em->getPartsPtr(2);
 
             EstSet(0, -1, &p->world, &em->ang, EFF_EM26, 4, 0, ESP_CORE_KIND_NONE, 0, 0);
             em->r_no_2++;
@@ -580,7 +577,7 @@ int em26AtkCk(cEm26* em)
     }
     {
         EmAtkInfo* atk = &em26_atk_info;
-        cModel* p = em->getPartsPtr(4);
+        cParts* p = em->getPartsPtr(4);
         int hit = EmAtkHitCk(atk, &p->world, &p->world_old, 0);
 
         if (hit) {

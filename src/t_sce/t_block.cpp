@@ -271,7 +271,7 @@ void tBlockInit()
         }
     }
     TaskSleep(2);
-    DC.dbgHeap = 1;
+    DC.setUseDebugMemFlag(1);
     Block.noMemCtrl = 1;
     if (Block.debugData == 1) {
         Debug_free(Block.pData);
@@ -339,7 +339,7 @@ static void tBlockExit()
         memcpy(buf, &pW->file, pW->fileSize);
         Block.pUnit = (cBlockUnit*) Debug_alloc(pW->file.hdr.nBlock << 4, 0);
         Block.roomInit(buf);
-        DC.dbgHeap = 0;
+        DC.setUseDebugMemFlag(0);
         Block.noMemCtrl = 0;
         file_unlock(pW->pathX);
         pG->Disp_flg = pW->saveDispFlag;
@@ -1082,33 +1082,32 @@ void tBlockArea_dispBlockModel(int on)
 
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj* obj = ObjMgr.fastAt(i);
-        u32 be = obj->be_flag;
         int blk;
 
-        if ((be & 0x201) != 1) continue;
+        if (!obj->isAlive()) continue;
         blk = obj->blk;
         if (blk < 0) continue;
         if (obj->id != 2) continue;
         if (on == 1) {
             if (blk == pW->connect[pW->connectNo].blockNo) {
-                obj->be_flag = be | 2;
+                obj->be_flag |= 2;
             } else if (FlagChkVar(&pW->mram, (u32) blk)) {
                 if (pW->blink & 4) {
-                    obj->be_flag = be | 2;
+                    obj->be_flag |= 2;
                 } else {
-                    obj->be_flag = be & ~2;
+                    obj->be_flag &= ~2;
                 }
             } else if (FlagChkVar(&pW->aram, (u32) blk)) {
                 if (pW->blink & 0x10) {
-                    obj->be_flag = be | 2;
+                    obj->be_flag |= 2;
                 } else {
-                    obj->be_flag = be & ~2;
+                    obj->be_flag &= ~2;
                 }
             } else {
-                obj->be_flag = be & ~2;
+                obj->be_flag &= ~2;
             }
         } else {
-            obj->be_flag = be | 2;
+            obj->be_flag |= 2;
         }
     }
 }
@@ -1147,7 +1146,7 @@ void tBlockArea_dispBlockBox(u8 no, u32 col)
         Vec box[8];
         Vec c;
 
-        if ((obj->be_flag & 0x201) != 1) continue;
+        if (!obj->isAlive()) continue;
         if (obj->blk != no) continue;
         if (obj->id != 2) continue;
         info = obj->pModelInfo;

@@ -2,8 +2,8 @@
 // The module object carries the class, the entry points and the handgun routine registration
 // (wep/pl_handgun.cpp).
 //
-// Ada's cObjRuger: one model (0x6) offset in her right hand (parts 10), driven by wep.mode /
-// wep.step from the handgun routines (mode 2 fire: slide motion, the loud or the suppressed SE set
+// Ada's cObjRuger: one model (0x6) offset in her right hand (parts 10), driven by mode /
+// step from the handgun routines (mode 2 fire: slide motion, the loud or the suppressed SE set
 // by weapon_type, flash 0x35, cartridge; mode 4 reload with only the level-1 motion variants).
 // Wep38_init is the WeaponInitFunc, PlHandgunMove the WeaponMoveFunc.
 
@@ -18,18 +18,7 @@
 
 void PlHandgunMove(cPlayer* pl);   // wep/pl_handgun.cpp
 
-class cObjRuger : public cObjWep {
-public:
-    virtual ~cObjRuger() {}
-    virtual void moveFire();
-    virtual void moveReload();
-    virtual void init(cModel* parent);
-    virtual void setMotion(cPlayer* pl);
-
-    void setCartridge();
-};
-
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before Wep38_init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before Wep38_init's string)
 extern const u8 ruger_tbl[3];
 const u8 ruger_tbl[3] = { 0x10, 0xE, 0xC };
 
@@ -64,35 +53,35 @@ void cObjRuger::init(cModel* parent)
         pLog->err(0, 0, "cObjWep::init() failed.");
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
-    pParts->pos.x = 22.5f;
-    pParts->pos.y = 0.0f;
-    pParts->pos.z = -5.0f;
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0xA);
+    pList->pos.x = 22.5f;
+    pList->pos.y = 0.0f;
+    pList->pos.z = -5.0f;
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x36);
-    wep.motReset[1] = WEP_ARC_PTR(0x3B);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x36);
+    motReset[1] = WEP_ARC_PTR(0x3B);
     resetMotion();
-    wep.shotFrame[0] = ruger_tbl[0];
-    wep.shotFrame[1] = ruger_tbl[1];
-    wep.shotFrame[2] = ruger_tbl[2];
+    shotFrame[0] = ruger_tbl[0];
+    shotFrame[1] = ruger_tbl[1];
+    shotFrame[2] = ruger_tbl[2];
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire): step 0 starts the slide motion (0x34, 0x39 on the last round), the six
+// mode == 2 (fire): step 0 starts the slide motion (0x34, 0x39 on the last round), the six
 // shot SEs of the loud (type != 1, Status_flg[0] bit23) or suppressed set, the muzzle flash 0x35
 // (type 1 variant for the suppressed model), a cartridge and the pad vibration; mode 0 at the
 // motion's end.
 void cObjRuger::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -103,23 +92,23 @@ void cObjRuger::moveFire()
         }
         MotionSetCore(this, &Motion, m, 0, 0, 0, 0);
         if (pG->weapon_type != 1) {
-            SndCall(2, 2, &pParts->world, 0, 0, 0);
-            SndCall(2, 4, &pParts->world, 0, 0, 0);
-            SndCall(2, 1, &pParts->world, 0, 0, 0);
-            SndCall(2, 3, &pParts->world, 0, 0, 0);
-            SndCall(2, 5, &pParts->world, 0, 0, 0);
+            SndCall(2, 2, &pList->world, 0, 0, 0);
+            SndCall(2, 4, &pList->world, 0, 0, 0);
+            SndCall(2, 1, &pList->world, 0, 0, 0);
+            SndCall(2, 3, &pList->world, 0, 0, 0);
+            SndCall(2, 5, &pList->world, 0, 0, 0);
             StaFlagOn(pG, STA_PL_FIRE);
             se = 0;
         } else {
-            SndCall(2, 0x15, &pParts->world, 0, 0, 0);
-            SndCall(2, 0x1A, &pParts->world, 0, 0, 0);
-            SndCall(2, 0x1C, &pParts->world, 0, 0, 0);
-            SndCall(2, 0x19, &pParts->world, 0, 0, 0);
-            SndCall(2, 0x1B, &pParts->world, 0, 0, 0);
-            SndCall(2, 0x1D, &pParts->world, 0, 0, 0);
+            SndCall(2, 0x15, &pList->world, 0, 0, 0);
+            SndCall(2, 0x1A, &pList->world, 0, 0, 0);
+            SndCall(2, 0x1C, &pList->world, 0, 0, 0);
+            SndCall(2, 0x19, &pList->world, 0, 0, 0);
+            SndCall(2, 0x1B, &pList->world, 0, 0, 0);
+            SndCall(2, 0x1D, &pList->world, 0, 0, 0);
             se = 0x18;
         }
-        SndCall(2, se, &pParts->world, 0, 0, 0);
+        SndCall(2, se, &pList->world, 0, 0, 0);
         switch (pG->weapon_type) {
         case 0:
             EstSet(this, -1, 0, 0, EFF_WEP01, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
@@ -130,15 +119,15 @@ void cObjRuger::moveFire()
         }
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion (0x3D; 0x3C from an empty magazine at
+// mode == 4 (reload): step 0 starts the reload motion (0x3D; 0x3C from an empty magazine at
 // level 1) with the level's SE (0x16/0x20/0x21); at the level's frame (31/26/17) ItemMgr.reload
 // refills. The player routine ends the mode.
 void cObjRuger::moveReload()
@@ -146,7 +135,7 @@ void cObjRuger::moveReload()
     static const f32 reloadEnd[3] = { 31.0f, 26.0f, 17.0f };
     void* m = WEP_ARC_PTR(0x3D);
 
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         u16 se;
 
         if (ItemMgr.bulletNum()) {
@@ -170,8 +159,8 @@ void cObjRuger::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }
@@ -181,7 +170,7 @@ void cObjRuger::moveReload()
 // offset (-109, -22, 90) with a random +-15 spread, gravity 10, 30 frames, landing effect 0x13.
 void cObjRuger::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

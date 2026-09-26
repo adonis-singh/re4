@@ -4,6 +4,7 @@
 // (bounce factors), a landing sound, a Lost_wait despawn timer and a burn tint.
 #include "atari.h"
 #include "obj.h"
+#include "obj12.h"
 #include "emhit.h"
 #include "global.h"
 #include "math_sub.h"
@@ -12,22 +13,6 @@
 #include "pad.h"
 #include "motion.h"
 #include "em_sub.h"
-
-// Hanging object that can be thrown and falls as a three-point rope (obj00 variant with a rope
-// type, a life counter and a throw routine).
-class cObj12 : public cObj {
-public:
-    virtual void move();
-    virtual ~cObj12() {}
-
-    void setParent(cModel* oya, int partsNo, int noNormalize);
-    void chainMove();
-    void setFall(Vec* spd, u8 type);
-    void setFallSe(u8 blk, u8 no, u8 id);
-    void fallMove();
-    void throwMove();
-    void setBurn();
-};
 
 // One point of the falling rope (fallMove).
 struct Obj12Node {
@@ -42,7 +27,7 @@ struct Obj12Node {
 // throw flight (bit 8), rope fall (bit 2), parts/collision update, Lost_wait countdown to removal.
 void cObj12::move()
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     Mtx m;
     Vec v0;
     Vec v1;
@@ -57,17 +42,14 @@ void cObj12::move()
         w->Motion_info = MotionMove(this, 0);
     }
     if (!(w->be_flag & 0x106)) {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
     }
     if (w->pEm_oya) {
-        if ((w->pEm_oya->be_flag & 0x201) != 1) {
+        if (!w->pEm_oya->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }
-        if (w->pEm_oya->pParts) {
+        if (w->pEm_oya->pList) {
             PSMTXConcat(w->pEm_oya->getPartsPtr(w->oya_parts)->mat, mat, m);
             if (!(w->be_flag & 0x80)) {
                 v0.x = m[0][0];
@@ -137,7 +119,7 @@ void cObj12::move()
     }
     throwMove();
     fallMove();
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         if (!(w->be_flag & 6)) {
             partsMatCalc();
         }
@@ -179,7 +161,7 @@ cObj12* SetObj12(void* bin, void* tpl, Vec* pos, Vec* rot)
 
     obj = (cObj12*) ObjMgr.createBack(cObjMgr::ID_EM12_WEAPON);
     if (obj) {
-        w = &obj->o12;
+        w = OBJ12_WK(obj);
         if (obj->modelInit(bin, tpl) == 0) {
             pLog->err(0, 0, "SetObj12() modelInit() failed.");
             ObjMgr.destroy(obj);
@@ -188,7 +170,7 @@ cObj12* SetObj12(void* bin, void* tpl, Vec* pos, Vec* rot)
             static const Vec p0 = { 0.0f, 0.0f, 0.0f };
             static const Vec p1 = { 500.0f, 500.0f, 500.0f };
 
-            obj->sub2B4.atari.throughOn();
+            obj->atari.off();
             obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
             obj->pos = *pos;
             obj->pos_old = *pos;
@@ -208,7 +190,7 @@ cObj12* SetObj12(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Attaches to parts partsNo of `oya`; noNormalize keeps the parent's scale (be_flag 0x80).
 void cObj12::setParent(cModel* oya, int partsNo, int noNormalize)
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
 
     w->pEm_oya = oya;
     w->oya_parts = partsNo;
@@ -235,7 +217,7 @@ void cObj12::chainMove()
 // (double 0.0, the u32 -> f32 magic, 1.0).
 static void obj12SetRate(cObj* obj, u32 rate)
 {
-    Obj12Work* w = &obj->o12;
+    Obj12Work* w = OBJ12_WK((cObj12*) obj);
 
     if (w->oya_hokan == 0.0) {
         return;
@@ -250,7 +232,7 @@ static void obj12SetRate(cObj* obj, u32 rate)
 // (or a random upward toss when spd is NULL), fall_type selects the bounce factors.
 void cObj12::setFall(Vec* pSpd, u8 type)
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     u32 i;
     f32 r;
 
@@ -260,23 +242,23 @@ void cObj12::setFall(Vec* pSpd, u8 type)
         if (pSpd) {
             if (i == 0) {
                 r = fRand0_1();
-                w->fallSpd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r) * 10.0f);
+                w->spd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r) * 10.0f);
+                w->spd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r) * 10.0f);
+                w->spd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r) * 10.0f);
             } else {
                 r = fRand0_1();
-                w->fallSpd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r * 2.0f) * 10.0f);
+                w->spd[i][0] = (s16) ((pSpd->x * 0.5f + pSpd->x * r * 2.0f) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r * 2.0f) * 10.0f);
+                w->spd[i][1] = (s16) ((pSpd->y * 0.5f + pSpd->y * r * 2.0f) * 10.0f);
                 r = fRand0_1();
-                w->fallSpd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r * 2.0f) * 10.0f);
+                w->spd[i][2] = (s16) ((pSpd->z * 0.5f + pSpd->z * r * 2.0f) * 10.0f);
             }
         } else {
-            w->fallSpd[i][0] = (s16) (fRand1_1() * 100.0f);
-            w->fallSpd[i][1] = (s16) (fRand1_1() * 100.0f) + 500;
-            w->fallSpd[i][2] = (s16) (fRand1_1() * 100.0f);
+            w->spd[i][0] = (s16) (fRand1_1() * 100.0f);
+            w->spd[i][1] = (s16) (fRand1_1() * 100.0f) + 500;
+            w->spd[i][2] = (s16) (fRand1_1() * 100.0f);
         }
     }
     w->be_flag |= 0x200;
@@ -291,7 +273,7 @@ void cObj12::setFall(Vec* pSpd, u8 type)
 // Sets the landing sound (block, number, enemy id; block 0xFF = none).
 void cObj12::setFallSe(u8 se_id, u8 se_no, u8 em_id)
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
 
     w->fall_se_id = se_id;
     w->fall_se_no = se_no;
@@ -303,7 +285,7 @@ void cObj12::setFallSe(u8 se_id, u8 se_no, u8 em_id)
 // damping, the landing sound below -50 y speed, and the resulting orientation/centre.
 void cObj12::fallMove()
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     Vec ofs[5][3] = {
         { { 0.0f, 0.0f, 600.0f }, { 0.0f, 0.0f, -600.0f }, { 300.0f, 0.0f, 0.0f } },
         { { 0.0f, 0.0f, 1500.0f }, { 0.0f, 0.0f, 0.0f }, { 300.0f, 0.0f, 1300.0f } },
@@ -330,9 +312,9 @@ void cObj12::fallMove()
     floor = EatMgr.getFloor(&pos, 0, 600.0f, 100000.0f, 0) + 50.0f;
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        p->spd.x = (f32) w->fallSpd[i][0] * 0.1f;
-        p->spd.y = (f32) w->fallSpd[i][1] * 0.1f;
-        p->spd.z = (f32) w->fallSpd[i][2] * 0.1f;
+        p->spd.x = (f32) w->spd[i][0] * 0.1f;
+        p->spd.y = (f32) w->spd[i][1] * 0.1f;
+        p->spd.z = (f32) w->spd[i][2] * 0.1f;
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
@@ -417,9 +399,9 @@ void cObj12::fallMove()
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        w->fallSpd[i][0] = (s16) (p->spd.x * 10.0f);
-        w->fallSpd[i][1] = (s16) (p->spd.y * 10.0f);
-        w->fallSpd[i][2] = (s16) (p->spd.z * 10.0f);
+        w->spd[i][0] = (s16) (p->spd.x * 10.0f);
+        w->spd[i][1] = (s16) (p->spd.y * 10.0f);
+        w->spd[i][2] = (s16) (p->spd.z * 10.0f);
     }
     if (w->fall_type != 4) {
         PSVECSubtract(&node[0].pos, &node[1].pos, &vz);
@@ -470,12 +452,12 @@ void cObj12::fallMove()
 // Never called (dead-stripped, STRIP_UNUSED): constant pool only (10, 75, 350, 0.0, pi/2).
 static void obj12ThrowSet(cObj* obj, Vec* spd)
 {
-    Obj12Work* w = &obj->o12;
+    Obj12Work* w = OBJ12_WK((cObj12*) obj);
     f32 ang;
 
-    w->fallSpd[0][0] = (s16) (spd->x * 10.0f);
-    w->fallSpd[0][1] = (s16) (spd->y * 75.0f);
-    w->fallSpd[0][2] = (s16) (spd->z * 350.0f);
+    w->spd[0][0] = (s16) (spd->x * 10.0f);
+    w->spd[0][1] = (s16) (spd->y * 75.0f);
+    w->spd[0][2] = (s16) (spd->z * 350.0f);
     ang = atan2f(spd->x, spd->z);
     if (ang < 0.0f) {
         ang += 1.5707964f;
@@ -488,7 +470,7 @@ static void obj12ThrowSet(cObj* obj, Vec* spd)
 // along its velocity.
 void cObj12::throwMove()
 {
-    Obj12Work* w = &o12;
+    Obj12Work* w = OBJ12_WK(this);
     Vec spd;
     Mtx m;
     Vec up;
@@ -500,10 +482,10 @@ void cObj12::throwMove()
     }
     static EmAtkInfo obj12Atk = { 300.0f, PL_DM_AUTO, 400, 0, 10, 0 };
 
-    w->fallSpd[0][1] -= 15;
-    spd.x = (f32) w->fallSpd[0][0];
-    spd.y = (f32) w->fallSpd[0][1];
-    spd.z = (f32) w->fallSpd[0][2];
+    w->spd[0][1] -= 15;
+    spd.x = (f32) w->spd[0][0];
+    spd.y = (f32) w->spd[0][1];
+    spd.z = (f32) w->spd[0][2];
     PSVECAdd(&pos, &spd, &pos);
     if (EatMgr.hitCheck(&pos_old, &pos, 0, 0, 0, 0)) {
         w->be_flag &= ~0x100;

@@ -16,7 +16,7 @@ VIEW View;
 u8 ViewHit[0xD00];
 
 // Boot: the frustum follows camera `cam` (pG->Camera).
-void VIEW::gameInit(Camera* p_camera)
+void VIEW::gameInit(CAMERA* p_camera)
 {
     _p_camera = p_camera;
     roomInit();

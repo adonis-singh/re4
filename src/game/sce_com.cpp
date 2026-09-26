@@ -95,7 +95,7 @@ struct SceElevatorData {
 };
 
 static void* ItemEventTbl[16];
-static Camera SceCam;
+static CAMERA SceCam;
 
 // Begins a scenario event (nestable; only the outermost call acts): the calling scenario task is
 // marked as an event task, mode 0 puts every enemy / object / damage area into event mode, kills
@@ -109,8 +109,8 @@ void SceEventStart(int mode)
     if (SceSys.checkCTaskRange() == 1) {
         s = &SceSys;
         if (s->task_kind_back == 0) {
-            s->task_kind_back = SceCTask()->task->flag;
-            SceCTask()->task->flag |= 2;
+            s->task_kind_back = SceCTask()->getKind();
+            SceCTask()->setNoSuspend(1);
         }
     }
     if (SceSys.event_start_cnt != 0) {
@@ -149,9 +149,6 @@ void SceEventStart(int mode)
     SpfFlagOn(pG, SPF_SCE_AT);
     SndBlkStop(2);
 }
-
-// The value is evaluated before the `->task` load (`lbz x70` between the call and `lwz 8(r3)`).
-static inline void SceTaskFlagSet(ScePrim* p, u8 v) { p->task->flag = v; }
 
 // Ends the event when the nesting count drops to 0: enemies / objects back from event mode (mode
 // passed to cEm::endEvent) with the camera returned, the player's damage state restored, lights,
@@ -194,7 +191,7 @@ void SceEventEnd(int mode)
     if (SceSys.checkCTaskRange() == 1) {
         s = &SceSys;
         if (s->task_kind_back != 0) {
-            SceTaskFlagSet(SceCTask(), s->task_kind_back);
+            SceCTask()->setKind(s->task_kind_back);
         }
     }
     SceSys.task_kind_back = 0;
@@ -211,8 +208,8 @@ void SceUpCutStart()
     if (SceSys.checkCTaskRange() == 1) {
         s = &SceSys;
         if (s->task_kind_back == 0) {
-            s->task_kind_back = SceCTask()->task->flag;
-            SceCTask()->task->flag |= 2;
+            s->task_kind_back = SceCTask()->getKind();
+            SceCTask()->setNoSuspend(1);
         }
     }
     if (SceSys.stop_bak_flg == 0) {
@@ -222,7 +219,7 @@ void SceUpCutStart()
     KeyStop(0xEFCF0000);
     DpfFlagOn(pG, DPF_PL);
     DpfFlagOn(pG, DPF_SUBCHAR);
-    pPL->atari.clrFlag100();
+    pPL->atari.offSca();
     StaFlagOn(pG, STA_SUSPEND);  // the pG load waits for the clrFlag100 store
     (pG->Stop_flg = 0xFFFFFFFF);
     SpfFlagOff(pG, SPF_CAMERA);
@@ -247,7 +244,7 @@ void SceUpCutEnd()
     SpfFlagOff(pG, SPF_KEY);
     DpfFlagOff(pG, DPF_PL);
     DpfFlagOff(pG, DPF_SUBCHAR);
-    pPL->atari.setFlag100();
+    pPL->atari.onSca();
     StaFlagOff(pG, STA_SUSPEND);  // the pG load waits for the setFlag100 store
     if (s->stop_bak_flg == 1) {
         pG->Stop_flg = s->stop_bak;
@@ -255,9 +252,9 @@ void SceUpCutEnd()
     }
     if (s->checkCTaskRange() == 1) {
         if (s->task_kind_back != 0) {
-            ScePrim* p = SceCTask();
+            SCE_TASK* p = SceCTask();
             u8 v = s->task_kind_back;  // read before the task pointer (both loads after the call)
-            p->task->flag = v;
+            p->setKind(v);
         }
     }
     SceSys.task_kind_back = 0;
@@ -333,7 +330,7 @@ void SceMesSet(int no, u32 flags, int sel, int x, int y)
         attr |= 0x2000000;
     }
     cMes.MesSet(no, x, y, attr, 0, 0, 4);
-    cMes.m_Msg[0].m_cur = sel - 1;
+    cMes.SetCursor(0, sel - 1);
     Cckpt.lifeMeterDisp(0);
     if (!(flags & 0x10)) {
         SceMesWait();
@@ -349,7 +346,7 @@ void SceMesCamSndSet(int mes_no, int cam_no, int se_no, int attr)
     if (se_no != -1) {
         SndCall(6, se_no, 0, 0, 0, 0);
     }
-    SceMesSet(mes_no, cam_no == -1 ? 0 : 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(mes_no, cam_no == -1 ? 0 : 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Up-cut message through SceAtSetMes: message `a` (flags bit0 = type 1), camera cut `b`, SE `c`
@@ -383,10 +380,10 @@ int SceMesGetSelection()
 {
     int r;
 
-    if ((r = cMes.getWork()->m_sel) == 0) {
+    if ((r = cMes.GetSelectMessage(0)) == 0) {
         do {
             SceSleep(1);
-        } while ((r = cMes.getWork()->m_sel) == 0);
+        } while ((r = cMes.GetSelectMessage(0)) == 0);
     }
     return r;
 }
@@ -394,7 +391,7 @@ int SceMesGetSelection()
 // Sleeps while message slot 0 is open.
 void SceMesWait()
 {
-    while (cMes.m_Msg[0].m_state & 1) {
+    while (cMes.GetMesStatus(0) & 1) {
         SceSleep(1);
     }
 }
@@ -569,7 +566,7 @@ void SceSetItemEvent(int atNo, int itemNo, int flagNo, int cut, void (*func)(int
             m = SceAtItemModelPtr(itemNo);
             SceAtSetEnable(itemNo, 0);
             if (m) {
-                m->be_flag |= 2;
+                m->setTrans(1);
             }
         }
     }
@@ -746,7 +743,7 @@ void SceChapterEnd()
     u16 room;
     u8 x4F9E;
     EventMgr* ev = &EvtMgr;
-    u32* key = &ev->NowExeEvtKey;
+    char* key = ev->GetNowExeEvtNamePtr();
 
     pG->chapter = SceSys.m_chapter_no + 1;
     if (ev->IsAliveEvt(key, 0, 1)) {
@@ -791,7 +788,7 @@ void SceChapterEnd()
     FadeKillAll();
     FadeSetW(0x80000000, 10, 0, 0);
     SceSleep(0xF);
-    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     Vec plPos;
     Vec plRot;
     // The two zeros are assigned after the FadeSetW so its `col.end = 0` keeps its own zero pseudo (the
@@ -858,7 +855,7 @@ void SceChapterEnd()
         SndRoomBgmStartCheck(1);
         SndRoomStrStartCheck();
         FadeSetW(0x80000000, 10, 0, 0);
-        SceSys.pause = 0;
+        SceSys.clearChapterEnd();
     }
 }
 
@@ -878,9 +875,7 @@ void SceSetChapterEnd(int ChapterNo, int door_at_no)
     SndSeAbsFadeOutAll_sec(1);
     SceEventStart(0);
     SpfFlagOff(pG, SPF_SCE);
-    SceSys.pause = 1;
-    SceSys.m_chapter_no = ChapterNo;
-    SceSys.m_chapter_door = door_at_no;
+    SceSys.setChapterEnd(ChapterNo, door_at_no);
     SetGameTime();
     SceExec(5, (TaskFunc) SceChapterEnd, 0, 0, SCE_PRIO_DEF_2, 0);
     SceSleep(1);
@@ -899,7 +894,7 @@ void SceCamMove(Vec* pCamPos, Vec* pTarget, f32 fovy)
     SceCam.Up.z = 0.0f;
     SceCam.Distance = VEC_DIST(&SceCam.param.pos, &SceCam.param.at);
     CameraSetOrientationUp(&SceCam);
-    CamCtrl.m_pExtraCamera = (s32) &SceCam;
+    CamCtrl.SetExtraCamera(&SceCam);
 }
 
 // Opens / closes a container (scroll objects id1 / id2 = lids or doors, the item model `itemNo`
@@ -935,10 +930,10 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
         item = SceAtItemModelPtr(itemNo);
     }
     if (o1) {
-        o1->be_flag |= 0x20;
+        o1->setMove(1);
     }
     if (o2) {
-        o2->be_flag |= 0x20;
+        o2->setMove(1);
     }
     if (mode == 0) {
         switch (type) {
@@ -948,7 +943,7 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
             }
             for (int i = 0; i < 2; i++) {
                 if (o1) {
-                    o1->pParts->ang.z += -0.034906585f;
+                    o1->pList->ang.z += -0.034906585f;
                 }
                 SceSleep(1);
             }
@@ -1027,22 +1022,22 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
                 break;
             case 7:
                 if (o1) {
-                    o1->pParts->ang.x += (1.7f / 30.0f);
+                    o1->pList->ang.x += (1.7f / 30.0f);
                 }
                 break;
             case 8:
                 if (o1) {
-                    o1->pParts->ang.x += (-1.7f / 30.0f);
+                    o1->pList->ang.x += (-1.7f / 30.0f);
                 }
                 break;
             case 9:
                 if (o1) {
-                    o1->pParts->ang.z += (1.7f / 30.0f);
+                    o1->pList->ang.z += (1.7f / 30.0f);
                 }
                 break;
             case 0xA:
                 if (o1) {
-                    o1->pParts->ang.z += (-1.7f / 30.0f);
+                    o1->pList->ang.z += (-1.7f / 30.0f);
                 }
                 break;
             case 0xB:
@@ -1101,7 +1096,7 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
                 dy -= 10.0f;
                 if (o1) {
                     o1->pos.y += dy;
-                    o1->pParts->ang.z += -0.017453292f;
+                    o1->pList->ang.z += -0.017453292f;
                 }
                 break;
             case 0x16:
@@ -1175,22 +1170,22 @@ void OpenBoxMain(int type, int mode, int se, u32 id1, u32 id2, int itemNo)
             break;
         case 7:
             if (o1) {
-                o1->pParts->ang.x += 1.7f;
+                o1->pList->ang.x += 1.7f;
             }
             break;
         case 8:
             if (o1) {
-                o1->pParts->ang.x += -1.7f;
+                o1->pList->ang.x += -1.7f;
             }
             break;
         case 9:
             if (o1) {
-                o1->pParts->ang.z += 1.7f;
+                o1->pList->ang.z += 1.7f;
             }
             break;
         case 0xA:
             if (o1) {
-                o1->pParts->ang.z += -1.7f;
+                o1->pList->ang.z += -1.7f;
             }
             break;
         case 0xB:

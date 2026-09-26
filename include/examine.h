@@ -31,7 +31,7 @@ public:
     u8 m_scrn_flag;             // 0x21  0 in game, 1 sub screen, 2 puzzle
     s8 m_level[4];            // 0x22  weapon tune levels (power, speed, reload, bullet)
     u8 pad_26[2];
-    cCoord* m_pList_pParent_bak;  // 0x28  model->pParts->pParent at init
+    cCoord* m_pList_pParent_bak;  // 0x28  model->pList->pParent at init
     Vec m_pList_pos_bak;    // 0x2C
     Vec m_pList_ang_bak;    // 0x38
     u16 m_item_id;              // 0x44  item id
@@ -51,7 +51,7 @@ public:
 };
 
 extern ItemExamine itemExam;
-extern Camera itemCamera;
+extern CAMERA itemCamera;
 extern ExamInfo exam_info_ext[2];
 extern f32 cap_dist_min;
 extern f32 cap_dist_max;

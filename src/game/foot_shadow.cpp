@@ -56,7 +56,7 @@ void DrawFootShadow(cEm* pMod)
         return;
     }
     if (StaFlagChk(pG, STA_EVENT)) {
-        pos = pMod->pParts->world;
+        pos = pMod->pList->world;
         pos.y = SatMgr.getFloor(&pos, 0, 600.0f, 100000.0f, 0);
     } else {
         pos = pMod->pos;
@@ -70,7 +70,7 @@ void DrawFootShadow(cEm* pMod)
         f32 range;
 
         if (cnt != 0) {
-            l = (cLight*) l->pNext;
+            l = LightMgr.getNext(l);
             if (l == 0) {
                 break;
             }
@@ -126,7 +126,7 @@ void DrawFootShadow(cEm* pMod)
             PSMTXConcat(m2, m1, m1);
             PSMTXMultVecSR(m1, &dir, &dir);
         } else if (l->xD == 0) {
-            PSVECSubtract(&pMod->pParts->world, &lpos, &dir);
+            PSVECSubtract(&pMod->pList->world, &lpos, &dir);
 #line 152 "D:/Bio4/Prog/foot_shadow.cpp"
             VECNormalize(&dir, &dir);
         }
@@ -137,7 +137,7 @@ void DrawFootShadow(cEm* pMod)
             f32 ang;
             f32 d;
 
-            PSVECSubtract(&pMod->pParts->world, &lpos, &tmp);
+            PSVECSubtract(&pMod->pList->world, &lpos, &tmp);
             dot = PSVECDotProduct(&dir, &tmp);
             PSVECScale(&dir, &tmp, dot);
             PSVECAdd(&lpos, &tmp, &tmp);
@@ -170,7 +170,7 @@ void DrawFootShadow(cEm* pMod)
             prevCnt = 0;
             for (i = 0; i < tbl->nTbl; i++) {
                 FootShadowDat* dat = &tbl->dat[i];
-                cModel* p = pMod->getPartsPtr(dat->joint);
+                cParts* p = pMod->getPartsPtr(dat->joint);
                 ShadowInfo mid;
                 Vec ofs;
 

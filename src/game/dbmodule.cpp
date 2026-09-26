@@ -865,7 +865,7 @@ void DrawObjWireframe(cObj* pObj, int col)
     if (pObj == NULL) {
         return;
     }
-    if ((pObj->be_flag & 0x201) != 1) {
+    if (!pObj->isAlive()) {
         return;
     }
     Draw_line3d_init();

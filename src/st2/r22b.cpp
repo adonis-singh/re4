@@ -57,14 +57,14 @@ extern "C" void Evt_R22bS00_Func(Event* e)
         switch (e->NowCut) {
         case 0:
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 25, 0, 0);
                 }
             }
             if (e->NowFrame == 0x4E) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 12, 0, 0);
@@ -73,14 +73,14 @@ extern "C" void Evt_R22bS00_Func(Event* e)
             break;
         case 1:
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 12, 0, 0);
                 }
             }
             if (e->NowFrame == 0x7B) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 6, 0, 0);
@@ -89,14 +89,14 @@ extern "C" void Evt_R22bS00_Func(Event* e)
             break;
         case 2:
             if (e->NowFrame == 0) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 0, 0, 0);
                 }
             }
             if (e->NowFrame == 6) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(0x80000002, 5, 0, 0);
@@ -105,7 +105,7 @@ extern "C" void Evt_R22bS00_Func(Event* e)
             break;
         case 5:
             if (e->NowFrame == 0x59) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, 25, 0, 0);

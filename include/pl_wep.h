@@ -6,15 +6,61 @@
 #include "model.h"
 #include "obj.h"
 #include "main.h"
+#include "cFlag.h"
 
 class cPlayer;
 
-// Player weapon object (game/objWep.cpp): a cObj whose work area holds ObjWepWork (`wep`, obj.h).
-// The vtable order is objWep's `cObjWep virtual table`; the in-class bodies are the ones the
-// original emits after the destructor (objWep owns the vtable, so every in-class inline is
-// emitted there: add none that the target lacks).
+// Player weapon object (game/objWep.cpp). The vtable order is objWep's `cObjWep virtual table`;
+// the in-class bodies are the ones the original emits after the destructor (objWep owns the
+// vtable, so every in-class inline is emitted there: add none that the target lacks).
 class cObjWep : public cObj {
 public:
+    enum FLAG {
+        F_ON_LASER_SIGHT = 0,    // draw the laser this frame
+        F_ON_LASER_SIGHT_D = 1,  // drawn last frame
+        F_DISP_0 = 2,            // setDisp types 0/1/2: the model is drawn only when all three are on
+        F_DISP_1 = 3,
+        F_DISP_2 = 4,
+    };
+    enum ETCFLAG {
+        ETC_ADABOW_NOARROW = 0,
+        ETC_LASER_FIRE00 = 1,
+        ETC_LASER_FIRE01 = 2,
+        ETC_LASER_FIRE02 = 3,
+        ETC_LASER_FIRE03 = 4,
+        ETC_LASER_FIRE04 = 5,
+    };
+
+    // r_no_0 states. PS2's enum has S_SET between S_READY and S_FIRE, which this version does not
+    // have, so the values from S_FIRE on are one lower.
+    enum STAT {
+        S_STAY = 0,
+        S_READY = 1,
+        S_FIRE = 2,
+        S_DOWN = 3,
+        S_RELOAD = 4,
+        S_DROP = 5,
+    };
+
+    void* motReset[2];    // 0x328  resetMotion idle motions: [0] normal, [1] empty magazine (pWepArc) (PS2 motReset[2])
+    f32 bureX;            // 0x330  aim sway (lock random, pl_wep PlWepLockRand): pitch range, degrees -> radians in setAbility (PS2 bureX)
+    f32 bureY;            // 0x334  yaw range (PS2 bureY)
+    f32 bureSpeedX;       // 0x338  pitch step per frame (PS2 bureSpeedX)
+    f32 bureSpeedY;       // 0x33C  yaw step per frame (PS2 bureSpeedY)
+    u8 shotFrame[4];      // 0x340  fire motion shot frames, from each weapon's const table (ruger_tbl, xd9_tbl, ...) (PS2 shotFrame[4])
+    u32 m_EraseTime;      // 0x344  (PS2 m_EraseTime; setEraseTime is not in the GC code)
+    cModel* m_pParent;    // 0x348  model the weapon hangs on (parentSet) (PS2 m_pParent)
+    u16 itemId;           // 0x34C  weapon item id (cObjLauncher::init: 0x35) (PS2 ITEM_ID itemId)
+    u8 r_no_0;            // 0x34E  0 stay, 1 ready, 2 fire, 3 down, 4 reload, 5 drop (move dispatch)
+    u8 r_no_1;            // 0x34F  step inside the mode
+    cFlag<u8, FLAG> flag;        // 0x350
+    cFlag<u8, ETCFLAG> etcflag;  // 0x351
+    s8 m_EtcTimer;        // 0x352  (PS2 m_EtcTimer)
+    u8 pad_2B;
+    u32 m_StopSeId;       // 0x354  SndCall handle stopped by resetMotion (PS2 m_StopSeId)
+    Vec m_ShotPos;        // 0x358  laser sight end / hit marker position (pl_wep getMarkerPos, PlWepHitCheck2) (PS2 m_ShotPos)
+    class cEm* m_SightEm; // 0x364  enemy the laser points at (GetWepTargetPos) (PS2 m_SightEm)
+
     cObjWep();
     virtual ~cObjWep() {}
     virtual void move();
@@ -32,11 +78,23 @@ public:
     // Aim sway ranges / per-frame steps in degrees (stored in radians) — each weapon module's
     // init() calls it (pl_wep PlWepLockRand).
     void setAbility(f32 pitch, f32 yaw, f32 pitchStep, f32 yawStep) {
-        wep.bureX = pitch * 0.017453292f;
-        wep.bureY = yaw * 0.017453292f;
-        wep.bureSpeedX = pitchStep * 0.017453292f;
-        wep.bureSpeedY = yawStep * 0.017453292f;
+        bureX = pitch * 0.017453292f;
+        bureY = yaw * 0.017453292f;
+        bureSpeedX = pitchStep * 0.017453292f;
+        bureSpeedY = yawStep * 0.017453292f;
     }
+    void getAbility(f32* pitch, f32* yaw, f32* pitchStep, f32* yawStep) {
+        *pitch = bureX;
+        *yaw = bureY;
+        *pitchStep = bureSpeedX;
+        *yawStep = bureSpeedY;
+    }
+    void setStat(STAT stat) {
+        r_no_0 = stat;
+        r_no_1 = 0;
+    }
+    STAT getStat() { return (STAT) r_no_0; }
+    void setParent(cModel* pParent) { m_pParent = pParent; }
     virtual int keyKamae() { return (Key.on >> 4) & 1; }   // pl_sub joyKamae
     virtual void fire() {}
     virtual void beginReload() {}
@@ -57,20 +115,30 @@ public:
 // scenario / water / player weapon target line (`rocket`, obj.h).
 class cObjRocket : public cObj {
 public:
+    Vec oldPos;           // 0x328  position before this frame's motion (hit line start)
+    int endTimer;         // 0x334  flight frames left (300)
+
     virtual ~cObjRocket() {}
     virtual void beginEvent(u32 flag);
     virtual void move();
-
     void init();
     void fire();
-
     static const Vec lightPos;   // light set origin / range shared with the launcher (objRocket.cpp)
     static const Vec lightSize;
 };
 
-// Rocket launcher (game/objRocket.cpp): carries a cObjRocket (`launcher`, obj.h) it launches.
+// Rocket launcher (game/objRocket.cpp): carries a cObjRocket it launches.
 class cObjLauncher : public cObjWep {
 public:
+    enum FLAG {
+        FLAG_REQ_DROP = 0,  // fired: interrupt() drops the launcher
+    };
+
+    cFlag<u32, FLAG> flg; // 0x368
+    Vec lpos;             // 0x36C  launch line (getMarkerPos) (PS2 lpos)
+    Vec hpos;             // 0x378  (PS2 hpos)
+    cObjRocket* pRocket;  // 0x384  loaded rocket (loadRocket)
+
     cObjLauncher();
     virtual ~cObjLauncher();
     // The launcher and its loaded rocket keep moving while the game is suspended.
@@ -80,8 +148,8 @@ public:
         } else {
             be_flag &= ~0x800;
         }
-        if (launcher.rocket) {
-            launcher.rocket->setNoSuspend(on);
+        if (pRocket) {
+            pRocket->setNoSuspend(on);
         }
     }
     virtual void moveFire();
@@ -134,7 +202,7 @@ public:
 // The weapon object of player `pl` and its own cAtariInfo (the object's collision with enemies
 // while it is held).
 #define WEP_OBJ(pl) ((pl)->Wep->m_pWep)
-#define WEP_ATARI(pl) (&WEP_OBJ(pl)->sub2B4.atari)
+#define WEP_ATARI(pl) (&WEP_OBJ(pl)->atari)
 
 // knife/weapon collision (pl, top, bottom, type, flags, length)
 u32 PlWepHitCheck2(cModel* pl, Vec* pPos, Vec* pPos2, int weapon_no, u32 flag, f32 radius);

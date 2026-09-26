@@ -186,7 +186,7 @@ static void r11f_EventS00()
     } else {
         EvtMgr.EvtReadExec("event/evd/r11fs02.evd", 0, EvtReadFlagNone);
         if (r11f_work->em0.setEm(0xF8, -1, 1, 1, 1)) {
-            Cckpt.m_LifeMeter.flags = (u32) r11f_work->em0.getPtr();
+            Cckpt.lifeMeterBoss(r11f_work->em0.getPtr());
         }
         GamePointBossReset();
         {
@@ -234,7 +234,7 @@ extern "C" void Evt_R11FS00_Func(Event* e)
             int cut = 0x10;
 
             EvtFlgOnStatus(e, 3);
-            e->EvtCancelCut = cut;
+            e->SetEvtCancelCut(cut);
         }
         SmdSetTrans(1, 0);
         SmdSetTrans(2, 0);
@@ -327,7 +327,7 @@ extern "C" void Evt_R11FS00_Func(Event* e)
         }
         if (skip == 0) {
             EventMgr* em = &EvtMgr;
-            em->EvtSndStrPlay(&em->NowExeEvtKey, 1, 0x50, 1, 0.0f);
+            em->EvtSndStrPlay(em->GetNowExeEvtNamePtr(), 1, 0x50, 1, 0.0f);
         }
         break;
     }
@@ -544,7 +544,7 @@ static void r11f_EventS10EndProc()
     }
     SceEventEnd(0);
     if (r11f_work->em0.isActive()) {
-        Cckpt.m_LifeMeter.flags = (u32) r11f_work->em0.getPtr();
+        Cckpt.lifeMeterBoss(r11f_work->em0.getPtr());
     }
     SceExec(0x12, r11f_Eventxxx, 0, 0, SCE_PRIO_DEF_2, 0);
 }
@@ -613,12 +613,12 @@ static void r11f_EventS11()
     SceExec(0x12, r11f_AshleyRunUp, 0, 0, SCE_PRIO_DEF_2, 0);
 }
 
-// After the escape event: half a second later Ashley (pSubEm) runs back to Leon (chase) with her SE.
+// After the escape event: half a second later Ashley (pSUB) runs back to Leon (chase) with her SE.
 static void r11f_AshleyRunUp()
 {
     SceSleep(30);
     if (!(SubCharGetStatus() & 0x20000000)) {
         SubCharCtrl(SCC_CHASE, 0);
     }
-    RoomSeCall(0, &pSubEm->pos, 0, 0, pSubEm);
+    RoomSeCall(0, &pSUB->pos, 0, 0, pSUB);
 }

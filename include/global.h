@@ -4,6 +4,7 @@
 #include "types.h"
 #include "vec.h"
 #include "camera.h"
+#include "flag.h"
 
 // Archive header at pG->pCore: a table of file offsets to the sub-files. Only the entries that
 // matched units use are named.
@@ -15,7 +16,7 @@ struct ArcFile {
     u32 ofs_1C;   // 0x1C  vibration pattern table (pl_dmg: VibSetData)
     u32 ofs_20;   // 0x20  obstacle model bin (obj20 SetObaModel)
     u32 ofs_24;   // 0x24  obstacle model tpl
-    u32 ofs_28;   // 0x28  message tables (mes: MesData.ptr[0..2])
+    u32 ofs_28;   // 0x28  message tables (mes: MesData.m_Data[0..2])
     u32 ofs_2C;   // 0x2C  core light data (game: cLightMgr::roomInit core cLit)
     u32 ofs_30;   // 0x30  core camera data (game: CameraControl::CoreDataRead)
     u32 ofs_34;   // 0x34
@@ -26,13 +27,13 @@ struct ArcFile {
     u32 ofs_48;   // 0x48
     u32 ofs_4C;   // 0x4C
     u32 ofs_50;   // 0x50  debug effect data (eff_sys: EspDataLoad owner 0xD1)
-    u32 ofs_54;   // 0x54  message table type 3 (mes: MesData.ptr[3])
+    u32 ofs_54;   // 0x54  message table type 3 (mes: MesData.m_Data[3])
     u32 ofs_58;   // 0x58  item examine light cuts 0..4 (examine ItemExamine::init)
     u32 ofs_5C;   // 0x5C
     u32 ofs_60;   // 0x60
     u32 ofs_64;   // 0x64
     u32 ofs_68;   // 0x68
-    u32 ofs_6C;   // 0x6C  system message table (dvd: MesData.ptr[4])
+    u32 ofs_6C;   // 0x6C  system message table (dvd: MesData.m_Data[4])
     u32 ofs_70;   // 0x70  TV-mode message table (tv_mode)
     u32 ofs_74;   // 0x74  HUD id textures (cockpit: IdTexDataLoad(.., 4))
     u32 ofs_78;   // 0x78
@@ -155,7 +156,7 @@ struct GlobalWork {
     u32 game_start_time;         // 0x5C  OSTicksToSeconds at the last InitGameTime/SetGameTime
     u32 Debug_flg[4];      // 0x60  debug option bits ([2] 0x04000000 / [3] 0x00200000 shown in the title debug page)
     f32 Speed;         // 0x70  motion frame step per game frame (MotionSequenceCtrl: speed * Speed)
-    Camera Camera;            // 0x74 .. 0x16C  (Cam.param at 0x118)
+    CAMERA Camera;            // 0x74 .. 0x16C  (Cam.param at 0x118)
     u32 room_start_addr[1]; // 0x16C
     u32 Stop_flg;          // 0x170  stop flags (debug tools save/restore it)
     u32 Room_flg[4];       // 0x174  per-room flag words: [0] room scripts (pl_sub joyFireOn 0x20000000 in room 11C), [1] objRobo WalkHitCk bit31 = the statue caught the player, [2]/[3] cleared by SceAtWorkLoopInit every frame
@@ -166,7 +167,7 @@ struct GlobalWork {
     f32 prim_rate;         // 0x4F14  worst free ratio of the primitive buffer seen so far
     s32 prim_cnt;          // 0x4F18  entries used so far this frame
     s32 nPrim;          // 0x4F1C  entries per frame (game: ConsGetRoomValue(8), 0x8000 while stopped)
-    void* RoomMes;        // 0x4F20  room message table (mes: MesData.ptr[1])
+    void* RoomMes;        // 0x4F20  room message table (mes: MesData.m_Data[1])
     void* pCamCore;    // 0x4F24  core camera data ("B40x")
     void* pCamRoom;    // 0x4F28  room camera data ("B40x")
     void* Rtp;        // 0x4F2C  room "RTP" data (read: ReadAreaData)
@@ -298,15 +299,9 @@ extern SYSTEM_SAVE_WORK SystemSave;
 // Flag helpers: `f |= b` / `f &= ~b` through a reference. Not an aliasing device: the pG reload after a
 // store is the compiler's own (docs/matching.md, "Compiler", mem-flags patch), and a plain `pG->x = v` is
 // the form. They are kept where the original keeps consecutive updates of one word as separate
-// read-modify-write pairs with the constant in its own register, and (BitOff16) where a 16-bit clear
-// is the 32-bit `rlwinm` mask rather than `andi.`; use them where the asm shows that.
+// read-modify-write pairs with the constant in its own register; use them where the asm shows that.
 static inline void BitOn(u32& f, u32 b) { f |= b; }
 static inline void BitOff(u32& f, u32 b) { f &= ~b; }
-
-static inline void BitOn16(u16& f, u16 b) { f |= b; }
-// `f &= ~b` with b a parameter keeps the 32-bit mask: `rlwinm` instead of the folded `andi.` (pl_sub).
-static inline void BitOff16(u16& f, u16 b) { f &= ~b; }
-// Plain store through the same kind of reference (debug tools restoring saved flag words).
 
 // Flag bit indices, names taken from a mix of t_flag.cpp names and PS2 symbols.
 // t_flag.cpp had some typos that showed the names were manually entered there, instead of being
@@ -1323,32 +1318,16 @@ enum EXT_FLAG {
     EXT_1f = 31,
 };
 
-#define DbgFlagChk(g, n) FlagChk(&(g)->Debug_flg, n)
-#define StaFlagChk(g, n) FlagChk(&(g)->Status_flg, n)
-#define SysFlagChk(g, n) FlagChk(&(g)->System_flg, n)
-#define SpfFlagChk(g, n) FlagChk(&(g)->Stop_flg, n)
-#define DpfFlagChk(g, n) FlagChk(&(g)->Disp_flg, n)
-#define ScfFlagChk(g, n) FlagChk(&(g)->Scenario_flg, n)
-#define ItfFlagChk(g, n) FlagChk(&(g)->Item_flg, n)
-#define KyfFlagChk(g, n) FlagChk(&(g)->Key_flg, n)
+#define DbgFlagChk(g, n) FlagBitChk((g)->Debug_flg, n)
+#define StaFlagChk(g, n) FlagBitChk((g)->Status_flg, n)
+#define SysFlagChk(g, n) FlagBitChk(&(g)->System_flg, n)
+#define SpfFlagChk(g, n) FlagBitChk(&(g)->Stop_flg, n)
+#define DpfFlagChk(g, n) FlagBitChk(&(g)->Disp_flg, n)
+#define ScfFlagChk(g, n) FlagBitChk((g)->Scenario_flg, n)
+#define ItfFlagChk(g, n) FlagBitChk((g)->Item_flg, n)
+#define KyfFlagChk(g, n) FlagBitChk((g)->Key_flg, n)
 // Room_flg: the bit numbers are per room, see the R<xxx>_FLAG enum at the top of the room source.
-#define RmfFlagChk(g, n) FlagChk(&(g)->Room_flg, n)
-
-// Set and clear, against the same base and index as FlagChk.
-#define FlagOn(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) |= (0x80000000 >> ((no) & 31)))
-#define FlagOff(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) &= ~(0x80000000 >> ((no) & 31)))
-#define FlagXor(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) ^= (0x80000000 >> ((no) & 31)))
-
-// The same four, for a call site whose flag number is a variable or a struct field rather than an
-// enumerator.  Both arguments are copied into locals: substituted twice the field would be loaded
-// twice, where the original loads it once.  The number keeps the type the call site gives it, so an
-// index cast to u32 folds its shift into a single rlwinm where a signed one takes two instructions.
-#define FLAG_WORD_VAR(base, no, op) ({ u32 flagBase_ = (u32) (base); __typeof__(no) flagNo_ = (no); \
-                                       *(u32*) (((flagNo_ >> 5) << 2) + flagBase_) op; })
-#define FlagChkVar(base, no) FLAG_WORD_VAR(base, no, & (0x80000000 >> (flagNo_ & 31)))
-#define FlagOnVar(base, no) FLAG_WORD_VAR(base, no, |= (0x80000000 >> (flagNo_ & 31)))
-#define FlagOffVar(base, no) FLAG_WORD_VAR(base, no, &= ~(0x80000000 >> (flagNo_ & 31)))
-#define FlagXorVar(base, no) FLAG_WORD_VAR(base, no, ^= (0x80000000 >> (flagNo_ & 31)))
+#define RmfFlagChk(g, n) FlagBitChk((g)->Room_flg, n)
 
 #define DbgFlagOn(g, n) FlagOn(&(g)->Debug_flg, n)
 #define DbgFlagOff(g, n) FlagOff(&(g)->Debug_flg, n)
@@ -1369,10 +1348,10 @@ enum EXT_FLAG {
 #define KyfFlagOff(g, n) FlagOff(&(g)->Key_flg, n)
 #define RmfFlagOn(g, n) FlagOn(&(g)->Room_flg, n)
 #define RmfFlagOff(g, n) FlagOff(&(g)->Room_flg, n)
-#define CfgFlagChk(g, n) FlagChk(&(g)->Config_flg, n)
+#define CfgFlagChk(g, n) FlagBitChk(&(g)->Config_flg, n)
 #define CfgFlagOn(g, n) FlagOn(&(g)->Config_flg, n)
 #define CfgFlagOff(g, n) FlagOff(&(g)->Config_flg, n)
-#define ExtFlagChk(g, n) FlagChk(&(g)->Extra_flg, n)
+#define ExtFlagChk(g, n) FlagBitChk(&(g)->Extra_flg, n)
 #define ExtFlagOn(g, n) FlagOn(&(g)->Extra_flg, n)
 #define ExtFlagOff(g, n) FlagOff(&(g)->Extra_flg, n)
 

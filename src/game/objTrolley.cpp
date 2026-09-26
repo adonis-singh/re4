@@ -5,6 +5,7 @@
 #include "map_obj.h"
 #include "widget.h"
 #include "obj.h"
+#include "objTrolley.h"
 #include "em.h"
 #include "emwep.h"
 #include "global.h"
@@ -26,22 +27,6 @@ struct TrolleyEmWork {
 };
 #define TROLLEY_EM_WK(em) ((TrolleyEmWork*) ((u8*) (em) + 0x3E0))
 
-
-// Mine trolley (obj 0x3B): three cars (parts 0 / 4 / 8) running along their motion with a scenario
-// collision piece and an effect collision piece per car; the player and the enemies standing on a
-// car are carried along, the break routine throws them off.
-class cObjTrolley : public cObj {
-public:
-    virtual void move();
-    virtual ~cObjTrolley() {}
-
-    void setMotion(void** tbl);
-    int ckTrolleyRide(Vec* pos, u8* partsNo, Vec* out);
-    int ckTrolleyRideAdjust(Vec* pos, Vec* out);
-    void setStart();
-    void set2ndStart();
-    int ckStop();
-};
 
 // Room module enemy (the em1x classes): a cEm with the module's own virtuals; the trolley only
 // calls the one the cars' break throws them with (vtable slot 31).
@@ -116,7 +101,7 @@ cObj* SetTrolley(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->trolley;
+    w = TROLLEY_WK((cObjTrolley*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         pLog->err(0, 0, "SetLadder() failed.");
         ObjMgr.destroy(obj);
@@ -126,8 +111,8 @@ cObj* SetTrolley(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p1 = { 5000.0f, 5000.0f, 5000.0f };
 
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    AtariInit(&obj->sub2B4.atari, 0.0f, 1000.0f, -700.0f, 350.0f, 700.0f, 700.0f, 1000.0f, 0, 2, 0);
-    obj->sub2B4.atari.throughOn();
+    AtariInit(&obj->atari, 0.0f, 1000.0f, -700.0f, 350.0f, 700.0f, 700.0f, 1000.0f, 0, 2, 0);
+    obj->atari.off();
     if (pos) {
         obj->pos = *pos;
     } else {
@@ -172,7 +157,7 @@ void cObjTrolley::move()
 // setStart (Be_flg bit0) the player rides (Ride_pl, Status_flg[0] 0x20) and the run begins.
 void objTrolley_R0_Set(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
 
     if (w->Mot_tbl[0]) {
         MotionSetCore(pObj, &pObj->Motion, w->Mot_tbl[0], 0, 0, 0x8001, 0);
@@ -200,7 +185,7 @@ void objTrolley_R0_Set(cObjTrolley* pObj)
 // (plobjTrolleyDie). Every frame the riders are carried along and the front of the car hits enemies.
 void objTrolley_R0_Move(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
 
     objTrolleyPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -272,7 +257,7 @@ void objTrolley_R0_Move(cObjTrolley* pObj)
 // ends, are told setTrolleyLost and the cars vanish.
 void objTrolley_R0_Break(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
 
     objTrolleyPushMtx(pObj);
     switch (pObj->r_no_2) {
@@ -303,15 +288,15 @@ void objTrolley_R0_Break(cObjTrolley* pObj)
 // Marks all scenario / effect pieces inactive (m_Flag bit2) until objTrolleySatSet re-places them.
 static void objTrolleySatClear(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
     int i;
 
     for (i = 0; i < 5; i++) {
         if (w->pSat[i]) {
-            w->pSat[i]->m_Flag &= ~4;
+            w->pSat[i]->setDisable();
         }
         if (w->pEat[i]) {
-            w->pEat[i]->m_Flag &= ~4;
+            w->pEat[i]->setDisable();
         }
     }
 }
@@ -320,11 +305,11 @@ static void objTrolleySatClear(cObjTrolley* pObj)
 // effect) one collision piece per car at the car's parts position + 500, following its yaw.
 void objTrolleySatSet(cObjTrolley* pObj)
 {
-    TrolleyWork* w = &pObj->trolley;
+    TrolleyWork* w = TROLLEY_WK(pObj);
     Vec pos;
     Vec rot;
     Vec v;
-    cModel* parts;
+    cParts* parts;
     cSat** sat = w->pSat;
     u32 i;
 
@@ -340,7 +325,7 @@ void objTrolleySatSet(cObjTrolley* pObj)
         pos = parts->world;
         pos.y += 500.0f;
         if (w->pSat[i]) {
-            w->pSat[i]->m_Flag |= 4;
+            w->pSat[i]->setEnable();
             w->pSat[i]->setCoord(&pos, &rot);
         } else {
             switch (i) {
@@ -358,7 +343,7 @@ void objTrolleySatSet(cObjTrolley* pObj)
         }
         cSat** sat2 = w->pEat;
         if (w->pEat[i]) {
-            w->pEat[i]->m_Flag |= 4;
+            w->pEat[i]->setEnable();
             w->pEat[i]->setCoord(&pos, &rot);
         } else {
             switch (i) {
@@ -380,7 +365,7 @@ void objTrolleySatSet(cObjTrolley* pObj)
 // Action button callback: the player jumps off (plobjTrolleyEscape) and the trolley crashes.
 void objTrolleyEscapeAction(cObjTrolley* ptr)
 {
-    ptr->trolley.Ride_pl = 0;
+    TROLLEY_WK(ptr)->Ride_pl = 0;
     SetPlDamage((cEm*) ptr, plobjTrolleyEscape);
     ptr->r_no_0 = 2;
     ptr->r_no_1 = 0;
@@ -395,8 +380,8 @@ void plobjTrolleyEscape(cPlayer* pEm)
 {
     cEm* em = (cEm*) pEm;
     cObjTrolley* obj = (cObjTrolley*) em->pEmCatch;
-    TrolleyWork* w = &obj->trolley;
-    cModel* parts = em->getPartsPtr(4);
+    TrolleyWork* w = TROLLEY_WK((cObjTrolley*) obj);
+    cParts* parts = em->getPartsPtr(4);
 
     em->subArc = pPL->pEmCatch->subArc;
     em->dmg.set(0, 0xF);
@@ -407,7 +392,7 @@ void plobjTrolleyEscape(cPlayer* pEm)
         em->pos.z = 73991.43f;
         em->ang.y = 0.0f;
         MotionSetCore(em, &em->Motion, w->Mot_tbl[4], 0, 0, 0x201, 0);
-        em->atari.throughOn();
+        em->atari.off();
         em->be_flag &= ~0x10;
         em->r_no_2++;
     case 1:
@@ -469,7 +454,7 @@ void plobjTrolleyEscape(cPlayer* pEm)
     case 5:
         if (MotionMove(em, 0)) {
             em->be_flag |= 0x10;
-            em->atari.throughOff();
+            em->atari.on();
             EndPlDamage();
         } else {
             if (em->Motion.Seq_frame == 140.0f) {
@@ -501,7 +486,7 @@ void plobjTrolleyDie(cPlayer* pEm)
 {
     cEm* em = (cEm*) pEm;
     cObjTrolley* obj = (cObjTrolley*) em->pEmCatch;
-    TrolleyWork* w = &obj->trolley;
+    TrolleyWork* w = TROLLEY_WK((cObjTrolley*) obj);
     u8 step;
 
     em->subArc = pPL->pEmCatch->subArc;
@@ -514,7 +499,7 @@ void plobjTrolleyDie(cPlayer* pEm)
         em->pos.z = 87300.0f;
         em->ang.y = 0.0f;
         MotionSetCore(em, &em->Motion, w->Mot_tbl[5], 0, 0, 1, 0);
-        em->atari.throughOn();
+        em->atari.off();
         pG->pl_life = step;
         em->be_flag &= ~0x10;
         em->r_no_2++;
@@ -528,7 +513,7 @@ void plobjTrolleyDie(cPlayer* pEm)
 // Copies the 9 motions from the room and starts the first run motion (frame 0).
 void cObjTrolley::setMotion(void** mot_tbl)
 {
-    TrolleyWork* w = &trolley;
+    TrolleyWork* w = TROLLEY_WK(this);
     int i;
 
     for (i = 0; i < 9; i++) {
@@ -589,7 +574,7 @@ void objTrolleyGetAdjust(cObjTrolley* pObj)
     Vec p1;
     Vec p0;
     Vec d;
-    cModel* parts;
+    cParts* parts;
     f32 a0;
     f32 a1;
     u32 i;
@@ -627,7 +612,7 @@ void objTrolleySetAdjust(cObjTrolley* pObj, cEm* em)
     Mtx inv;
     Vec v;
     Vec d;
-    cModel* parts;
+    cParts* parts;
     int no;
 
     no = objTrolleyGetTrolleyNo(pObj, &em->pos);
@@ -646,8 +631,8 @@ void objTrolleySetAdjust(cObjTrolley* pObj, cEm* em)
     em->setPos(&v);
     if (em->id == 0) {
         if (CamCtrl.m_pExtraCamera) {
-            PSVECAdd(&((Camera*) CamCtrl.m_pExtraCamera)->param.at, &d, &((Camera*) CamCtrl.m_pExtraCamera)->param.at);
-            PSVECAdd(&((Camera*) CamCtrl.m_pExtraCamera)->param.pos, &d, &((Camera*) CamCtrl.m_pExtraCamera)->param.pos);
+            PSVECAdd(&CamCtrl.m_pExtraCamera->param.at, &d, &CamCtrl.m_pExtraCamera->param.at);
+            PSVECAdd(&CamCtrl.m_pExtraCamera->param.pos, &d, &CamCtrl.m_pExtraCamera->param.pos);
         }
         pG->quake_ofs = d;
     }
@@ -667,7 +652,7 @@ void objTrolleyMoveAdjustEM(cObjTrolley* pObj)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1) {
+        if (em->isAlive()) {
             if (em->id == 0x42) {
                 ((cEmWep*) em)->setParentMatCalc(1);
             } else if (em->id > 0xF) {
@@ -684,7 +669,7 @@ void objTrolleyMoveAdjustEM(cObjTrolley* pObj)
 int cObjTrolley::ckTrolleyRide(Vec* pPos, u8* pParts_no, Vec* pOffset)
 {
     Mtx inv;
-    cModel* parts;
+    cParts* parts;
     int no;
 
     no = objTrolleyGetTrolleyNo2(this, pPos);
@@ -703,7 +688,7 @@ int cObjTrolley::ckTrolleyRideAdjust(Vec* pPos, Vec* pPos2)
 {
     Mtx inv;
     Vec v;
-    cModel* parts;
+    cParts* parts;
     int no;
 
     *pPos2 = *pPos;
@@ -721,20 +706,20 @@ int cObjTrolley::ckTrolleyRideAdjust(Vec* pPos, Vec* pPos2)
 // Scenario: begin the ride (Be_flg bit0).
 void cObjTrolley::setStart()
 {
-    trolley.Be_flg |= 1;
+    TROLLEY_WK(this)->Be_flg |= 1;
 }
 
 // Scenario: begin the second run (Be_flg bit1), clears "stopped".
 void cObjTrolley::set2ndStart()
 {
-    trolley.Be_flg |= 2;
-    trolley.Be_flg &= ~4;
+    TROLLEY_WK(this)->Be_flg |= 2;
+    TROLLEY_WK(this)->Be_flg &= ~4;
 }
 
 // 1 while the trolley has stopped after the first run (Be_flg bit2).
 int cObjTrolley::ckStop()
 {
-    if (trolley.Be_flg & 4) {
+    if (TROLLEY_WK(this)->Be_flg & 4) {
         return 1;
     }
     return 0;
@@ -745,7 +730,7 @@ int cObjTrolley::ckStop()
 void objTrolleyHitCk(cObjTrolley* pObj)
 {
     Vec v;
-    cModel* parts;
+    cParts* parts;
 
     parts = pObj->getPartsPtr(0);
     if ((parts->world.x - parts->world_old2.x) * (parts->world.x - parts->world_old2.x) +
@@ -779,7 +764,7 @@ void objTrolleyFallEM(cObjTrolley* pObj)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1 && em->id > 0xF && em->id <= 0x20 && em->hp > 0) {
+        if (em->isAlive() && em->id > 0xF && em->id <= 0x20 && em->hp > 0) {
             em->hp = 0;
             TROLLEY_EM_WK(em)->yaw = em->ang.y;
             em->be_flag |= 0x10000;
@@ -799,7 +784,7 @@ void objTrolleyLostEM(cObjTrolley* pObj)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if ((em->be_flag & 0x201) == 1 && em->id > 0xF && em->id <= 0x20 && (em->be_flag & 2)) {
+        if (em->isAlive() && em->id > 0xF && em->id <= 0x20 && (em->be_flag & 2)) {
             ((cEmRoom*) em)->setTrolleyLost();
         }
     }

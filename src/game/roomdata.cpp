@@ -306,7 +306,7 @@ void cRoomData::linkRelData(u16 room_no)
         }
         TaskSleep(1);
     }
-    BitOff16(flag, 1);
+    m_CtrlFlag.off(CTRL_STOP);
     if (m_pModule->bssSize == 0) {
         m_pModule_bss = 0;
     } else {
@@ -318,11 +318,11 @@ void cRoomData::linkRelData(u16 room_no)
     DLL_PROLOG(m_pModule)();
 }
 
-// Temporarily unlinks the room REL (flag bit0), saving its bss to the backup.
+// Temporarily unlinks the room REL (CTRL_STOP), saving its bss to the backup.
 void cRoomData::stopRelData()
 {
-    if ((flag & 1) == 0 && m_pModule != 0) {
-        flag |= 1;
+    if (!m_CtrlFlag.check(CTRL_STOP) && m_pModule != 0) {
+        m_CtrlFlag.on(CTRL_STOP);
         if (m_pModule_bss != 0) {
             memcpy(m_pModule_bss_bak, m_pModule_bss, m_pModule->bssSize);
         }
@@ -333,8 +333,8 @@ void cRoomData::stopRelData()
 // Re-links a stopped room REL and restores its bss from the backup.
 void cRoomData::restartRelData()
 {
-    if ((flag & 1) && m_pModule != 0) {
-        BitOff16(flag, 1);
+    if (m_CtrlFlag.check(CTRL_STOP) && m_pModule != 0) {
+        m_CtrlFlag.off(CTRL_STOP);
         DLL_Link(m_pModule, m_pModule_bss);
         if (m_pModule_bss != 0) {
             memcpy(m_pModule_bss, m_pModule_bss_bak, m_pModule->bssSize);

@@ -6,6 +6,7 @@
 #include "light.h"
 #include "dmg.h"
 #include "obj.h"
+#include "obj10.h"
 #include "esp.h"
 #include "emhit.h"
 #include "global.h"
@@ -15,20 +16,6 @@
 #include "pl_wep.h"
 #include "player.h"
 #include "motion.h"
-
-// Thrown weapon item (bottle / explosive): the grenade (obj01) flight model with its own
-// landing sounds, a player hit check on the explosion and no flash / underwater variants.
-class cWepItem : public cObj {
-public:
-    virtual void move();
-    virtual void beginEvent(u32 mode);
-    virtual ~cWepItem() {}
-
-    void move00();
-    void move01();
-    void dmgSet(int kind);
-    void hitCkPl();
-};
 
 extern "C" {
 int obj10AddSpeed(cWepItem* obj);
@@ -47,7 +34,7 @@ void cWepItem::move()
 // flash, 3 incendiary), pending motion, hold-on-parts / release, flight (obj10AddSpeed) and spin.
 void cWepItem::move00()
 {
-    WepItemWork* w = &wepItem;
+    WepItemWork* w = WEPITEM_WK(this);
     int life = w->timer;
     f32 wh;
 
@@ -105,15 +92,15 @@ void cWepItem::move00()
     if (w->be_flag & 2) {
         MotionMove(this, 0);
     }
-    if (w->hold) {
+    if (w->pEm) {
         if (w->release_timer) {
             w->release_timer--;
             if (w->release_timer == 0) {
-                cModel* parts;
+                cParts* parts;
                 Vec hit;
                 Vec dir;
 
-                parts = GetPartsAddr(w->hold->pParts, 0);
+                parts = GetPartsAddr(w->pEm->pList, 0);
                 if (SatMgr.hitCheck(&parts->world, &pos, &hit, 0, 0, 0)) {
                     PSVECSubtract(&parts->world, &hit, &dir);
 #line 167 "D:/Bio4/Prog/obj10.cpp"
@@ -124,10 +111,10 @@ void cWepItem::move00()
                     TransMatrix(mat, &pos);
                 }
                 pos_old = pos;
-                w->hold = 0;
+                w->pEm = 0;
             }
         }
-        if (w->hold == 0) {
+        if (w->pEm == 0) {
             if (obj10AddSpeed(this)) {
                 ObjMgr.destroy(this);
                 return;
@@ -138,8 +125,8 @@ void cWepItem::move00()
         return;
     }
     if (w->be_flag & 8) {
-        if (w->hold == 0) {
-            cModel* parts = GetPartsAddr(pParts, 0);
+        if (w->pEm == 0) {
+            cParts* parts = GetPartsAddr(pList, 0);
             if (parts) {
                 PSVECAdd(&parts->ang, &w->rot_spd, &parts->ang);
                 parts->ang.x = LIMIT_ANGLE(parts->ang.x);
@@ -151,26 +138,23 @@ void cWepItem::move00()
             }
         }
     }
-    if (w->hold) {
-        if ((w->hold->be_flag & 0x201) != 1) {
-            w->hold = 0;
+    if (w->pEm) {
+        if (!w->pEm->isAlive()) {
+            w->pEm = 0;
         }
     }
-    if (w->hold) {
-        cModel* parts = w->hold->getPartsPtr(w->parts_no);
+    if (w->pEm) {
+        cParts* parts = w->pEm->getPartsPtr(w->parts_no);
         RotMatrix(mat, &w->ang);
         TransMatrix(mat, &w->offset);
         ScaleMatrix(mat, &scale);
         PSMTXMultVec(parts->mat, &w->offset, &pos);
         PSMTXConcat(parts->mat, mat, mat);
         TransMatrix(mat, &pos);
-        invisible_factor = w->hold->invisible_factor;
-        invisible_factor2 = w->hold->invisible_factor2;
+        invisible_factor = w->pEm->invisible_factor;
+        invisible_factor2 = w->pEm->invisible_factor2;
     } else {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
         invisible_factor = 1.0f;
         invisible_factor2 = 1.0f;
     }
@@ -224,7 +208,7 @@ void cWepItem::beginEvent(u32 flag)
 // player's landing sounds; returns 1 when the object should be destroyed.
 int obj10AddSpeed(cWepItem* pObj)
 {
-    WepItemWork* w = &pObj->wepItem;
+    WepItemWork* w = WEPITEM_WK(pObj);
     f32 wh;
     Vec ref;
     Vec nrm;
@@ -348,10 +332,10 @@ cObj* SetObj10(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 1000.0f, 1000.0f, 0.0f };
 
-    obj->sub2B4.atari.throughOn();
-    obj->sub2B4.atari.m_flag |= 0x400;
+    obj->atari.off();
+    obj->atari.m_flag |= 0x400;
     obj->LightInfo.init2(0, 1, &p0, &p1, 4);
-    w = &obj->wepItem;
+    w = WEPITEM_WK((cWepItem*) obj);
     obj->pos = *pos;
     obj->pos_old = *pos;
     obj->ang = *rot;
@@ -359,7 +343,7 @@ cObj* SetObj10(void* bin, void* tpl, Vec* pos, Vec* rot, Vec* spd, f32 grav, f32
     w->gravity = grav;
     w->r = rad;
     w->timer = life;
-    w->hold = 0;
+    w->pEm = 0;
     w->eff = -1;
     w->est = -1;
     w->eff2 = -1;
@@ -399,7 +383,7 @@ void Obj10SetEst(cObj* obj, int no0, int prm0, u32 type, int no1, int prm1, int 
     if (obj == 0) {
         return;
     }
-    w = &obj->wepItem;
+    w = WEPITEM_WK((cWepItem*) obj);
     w->eff = no0;
     w->est = prm0;
     w->eff2 = no1;

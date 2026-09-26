@@ -26,12 +26,6 @@
 #include <stdio.h>
 
 
-// Message slot address written out as one expression on a pointer variable (not the getMes inline):
-// a reference argument built from it is computed in place into the parameter register, so cse
-// loses the `slot * sizeof` product and gcse PRE re-copies it for the next store (the `mr` +
-// duplicated `add` chain of dispFileList / mes.cpp setLayout).
-#define SS_MES(pm, no) ((Message*) ((no) * sizeof(Message) + (u32) (pm) + sizeof(u32)))
-
 #define DVD_READ_N(name, dst, a, b, c, mode) DvdReadN(name, dst, a, b, c, mode, __FILE__, __LINE__)
 
 // File screen state (SUB_SCREEN::pFileWk, 0x10 bytes).
@@ -56,7 +50,7 @@ int getMsgNum(int no);
 u32 getMsgAttr(u32 type);
 int getTplName(int no, u32 page);
 void setLogMesAddr(SUB_SCREEN* wk);
-void fileCameraInit(SUB_SCREEN* wk, Camera* cam);
+void fileCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 int fileId2No(u16 id);
 u16 fileNo2Id(int no);
 int fileNo(int cat, int no);
@@ -255,7 +249,7 @@ void setLogMesAddr(SUB_SCREEN* wk)
 }
 
 // The file screen uses the common sub screen camera.
-void fileCameraInit(SUB_SCREEN* wk, Camera* cam)
+void fileCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     sscrnCameraInit(wk, cam);
 }
@@ -311,11 +305,8 @@ void SsFileInit::move(SUB_SCREEN* wk)
             generalModelAlloc(wk);
             playerModelInit();
             sscrnLightClear(wk);
-            {
-                LifeMeter* life = &Cckpt.m_LifeMeter;
-                life->fix(1);
-                life->frameIn();
-            }
+            Cckpt.lifeMeterFix(1);
+            Cckpt.lifeMeterFrameIn();
         } else {
             sscrnModelClear(wk);
         }
@@ -417,8 +408,8 @@ void SsFileMain::init(SUB_SCREEN* wk)
         wk->alpha_flag = 0;
         wk->alpha_cnt = 10;
     }
-    MesData.setPtr(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pFileDat, 5));
+    MesData.registData(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pFileDat, 5));
     sscrnMainMenuInit(wk, 0);
     state = 0;
 #line 623 "D:/Bio4/Prog/ss_file.cpp"
@@ -546,7 +537,7 @@ void sscrn_file_out_init(SUB_SCREEN* wk)
 {
     IdSub.unitPtr(0, IDC_SSCRN_FAR_1)->rev_flag |= 1;
     if (wk->menu_next == 2) {
-        Cckpt.m_LifeMeter.frameOut();
+        Cckpt.lifeMeterFrameOut();
         wk->alpha_flag = 1;
     }
 }
@@ -596,8 +587,8 @@ void dispFileList(SUB_SCREEN* wk, int n)
     x = (int) ((pos->pos0.x + 320.0f) * 0.8f);
     y = (int) ((240.0f - pos->pos0.y) * 0.8f);
     cMes.setFontSize(4, file_title_w[1], file_title_h[1]);
-    cMes.getMes(4)->m_line_gap = 0;
-    cMes.getMes(4)->m_char_gap = file_title_space[3];
+    cMes.setLineGap(4, 0);
+    cMes.setFontGap(4, file_title_space[3]);
     cMes.MesSet(fw->cat + 3, x, y, 0x20081, 4, 8, 3);
     for (i = top; i < top + n; i++, k++) {
         int id = 0;
@@ -631,16 +622,12 @@ void dispFileList(SUB_SCREEN* wk, int n)
             y = (int) ((240.0f - p->pos0.y) * 0.8f);
         }
         cMes.setFontSize(slot, file_name_w[1], file_name_h[1]);
-        {
-            MessageControl* pm = &cMes;
-            u16 zero = 0;
-            U16Set(SS_MES(pm, slot)->m_char_gap, file_name_space[3]);
-            SS_MES(pm, slot)->m_line_gap = zero;
-            if (i == 0) {
-                pm->MesSet(2, x, y, 0x20081, slot, col, 3);
-            } else {
-                pm->MesSet(id, x, y, 0x20088, slot, col, 4);
-            }
+        cMes.setFontGap(slot, file_name_space[3]);
+        cMes.setLineGap(slot, 0);
+        if (i == 0) {
+            cMes.MesSet(2, x, y, 0x20081, slot, col, 3);
+        } else {
+            cMes.MesSet(id, x, y, 0x20088, slot, col, 4);
         }
     }
 }
@@ -714,13 +701,9 @@ void FileSelect::move(SUB_SCREEN* wk)
             int ok = 0;
             if (fw->cursor > 0) {
                 if (ItemMgr.search(fileNo2Id(fileNo(fw->cat, fw->cursor)))) {
-                    MessageControl* m = &cMes;
-                    int i;
                     int no;
-                    for (i = 0; i < 16; i++) {
-                        m->Delete(i);
-                    }
-                    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pFileDat, 5));
+                    cMes.Clear();
+                    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pFileDat, 5));
                     ok = 1;
                     no = fileNo(fw->cat, fw->cursor);
                     {
@@ -737,14 +720,10 @@ void FileSelect::move(SUB_SCREEN* wk)
             } else {
                 int mdt = OpeGetMdtNo();
                 if (mdt != 0x18) {
-                    MessageControl* m = &cMes;
-                    int i;
-                    for (i = 0; i < 16; i++) {
-                        m->Delete(i);
-                    }
+                    cMes.Clear();
                     setLogMesAddr(wk);
                     ok = 1;
-                    MesData.setPtr(2, fileLogMes[mdt]);
+                    MesData.registData(2, fileLogMes[mdt]);
                     fw->msgBase = 0;
                     fw->x7 = 0;
                     fw->attr = getMsgAttr(3);
@@ -857,7 +836,7 @@ void MessageDisplay::move(SUB_SCREEN* wk)
             s8 c = fw->cursor;
             if (c == 0) {
                 cMes.WaitEnd(0);
-                if (cMes.m_Msg[c].m_state & 2) {
+                if (cMes.GetMesStatus(c) & 2) {
                     fw->page++;
                     if (fw->page >= fw->pageNum) {
                         state = 1;
@@ -1005,12 +984,7 @@ void MessageDisplay::move(SUB_SCREEN* wk)
 // the message frame.
 void MessageDisplay::quit(SUB_SCREEN* wk)
 {
-    MessageControl* m = &cMes;
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
+    cMes.Clear();
     if (pSys->language == 0) {
         cMes.setupFont(0x1C, 0x1C, (TEXPalette*) SS_ARC_PTR(wk->pCmmn, 4), 3);
     }

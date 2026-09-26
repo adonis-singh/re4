@@ -73,7 +73,7 @@ void em2eDmCk(cEm2e* em)
             EstSet(em, -1, 0, 0, EFF_EM2E, 0, 0, ESP_CORE_KIND_NONE, em, 0);
             SndCall(8, 4, &em->pos, em->id, 0, em);
             EmSetDie(em);
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
         }
     }
     if (em->dmg.m_Flag) {
@@ -91,7 +91,7 @@ void em2eDmCk(cEm2e* em)
         }
         SndCall(8, 4, &em->pos, em->id, 0, em);
         EmSetDie(em);
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
     }
 }
 
@@ -176,12 +176,9 @@ static void em2e_R0_Init(cEm2e* em)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     at->init(0.0f, 0.0f, 0.0f, 150.0f, 150.0f, 150.0f, 300.0f, 1, 0x2000, 10);
-    AtariOff(at, 0xFDFF);
+    at->offOba();
     em->be_flag &= ~0x10;
     YarareInit(em, 0.0f, 0.0f, 0.0f, 100.0f, 50.0f, 1, YAT_FLAG_ON);
     w->flags = zero;
@@ -192,7 +189,7 @@ static void em2e_R0_Init(cEm2e* em)
     switch (em->set) {
     case 0:
     default:
-        EmRoutineSet(em, 1, zero, zero, zero);
+        em->setRno(1, zero, zero, zero);
         break;
     case 1: {
         Mtx m;
@@ -215,8 +212,8 @@ static void em2e_R0_Init(cEm2e* em)
             em->pos = hit;
             w->nrm = nrm;
         }
-        AtariOff(at, 0xFEFF);
-        EmRoutineSet(em, 1, 3, zero, zero);
+        at->offSca();
+        em->setRno(1, 3, zero, zero);
         break;
     }
     }
@@ -242,9 +239,9 @@ static void em2e_R1_Wait(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 1) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -277,9 +274,9 @@ static void em2e_R1_Walk(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -311,9 +308,9 @@ static void em2e_R1_Turn(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -339,7 +336,7 @@ static void em2e_R1_W_Wait(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -370,9 +367,9 @@ static void em2e_R1_W_Walk(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else if (Rnd() & 3) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -403,7 +400,7 @@ static void em2e_R1_W_Turn(cEm2e* em)
         if (w->timer) {
             w->timer--;
         } else {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         }
         break;
     }
@@ -429,7 +426,7 @@ static void em2e_R0_Die(cEm2e* em)
 static void em2e_R1_Die_Normal(cEm2e* em)
 {
     if (em->r_no_2 == 0) {
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->be_flag &= ~2;
         em->r_no_2++;
     }
@@ -439,8 +436,8 @@ static void em2e_R1_Die_Normal(cEm2e* em)
 void em2eFootMove(cEm2e* em)
 {
     Em2eWork* w = EM2E_WK(em);
-    cModel* p2 = em->getPartsPtr(2);
-    cModel* p3 = em->getPartsPtr(3);
+    cParts* p2 = em->getPartsPtr(2);
+    cParts* p3 = em->getPartsPtr(3);
 
     p2->ang.y = w->footAng;
     p3->ang.y = -w->footAng;

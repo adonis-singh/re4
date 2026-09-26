@@ -89,7 +89,7 @@ void cEsp0e::move()
         w->wld_pos = m_Pos;
         dir = w->dir_vec;
     } else {
-        cModel* parts;
+        cParts* parts;
 
         if (m_Parts_no >= m_pMod->nParts) {
             pLog->err(0, 0, "ESP0E :PARTS_NO[%d] is invalid(MAX:%d).", m_Parts_no, m_pMod->nParts);
@@ -190,7 +190,7 @@ static f32 GetDistAlpha(cEsp0e* esp)
     f32 a;
 
     if (w->del_dist != 0.0f) {
-        Camera* cam = &pG->Camera;
+        CAMERA* cam = &pG->Camera;
 
         d.x = w->wld_pos.x - cam->param.pos.x;
         d.y = w->wld_pos.y - cam->param.pos.y;
@@ -212,7 +212,7 @@ static f32 GetDistAlpha(cEsp0e* esp)
 static f32 GetDirAlpha(cEsp0e* esp, Vec* dir)
 {
     Esp0eWork* w = &esp->m_Free;
-    Camera* cam;
+    CAMERA* cam;
     Vec d;
     f32 ang;
     f32 c;

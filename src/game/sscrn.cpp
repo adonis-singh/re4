@@ -353,8 +353,8 @@ void SubScreenExec()
             }
             step++;
         case 2:
-            pG->weapon_no = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-            pG->weapon_type = WeaponId2WeaponType(ItemMgr.m_wep_id);
+            pG->weapon_no = WeaponId2WeaponNo(ItemMgr.weaponId());
+            pG->weapon_type = WeaponId2WeaponType(ItemMgr.weaponId());
             if (StaFlagChk(pG, STA_SCOPE_CAMERA)) {
                 CamCtrl.saveScopeParam();
                 CamCtrl.endScope();
@@ -380,9 +380,7 @@ void SubScreenExec()
             }
             wk->swep_flag = 0;
             {
-                ItemInfo info;
-                itemInfo(ItemMgr.m_wep_id, &info);
-                if (info.type == 3) {
+                if (itemType(ItemMgr.weaponId()) == 3) {
                     if (ItemMgr.bulletNumCurrent() == 0) {
                         wk->swep_flag = 1;
                     }
@@ -412,7 +410,7 @@ void SubScreenExec()
             if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
                 IdTexRelease(TEX_OWNER_ID_EVENT);
             }
-            Cckpt.getCountDown()->saveDisp();
+            Cckpt.saveCountDownTimer();
             systemVISetBlack(1);
             ScreenReSize(640, 448);
             systemVISetBlack(0);
@@ -432,7 +430,7 @@ void SubScreenExec()
             TaskSuspend(0);
             RoomData.stopRelData();
             wk->pBuf = pG->pStFnt;
-            DC.m_data_ctrl_flag = 0;
+            DC.setDataCtrl(0);
             MemorySwap(wk->pBuf, SS_ARAM, SS_ARAM_SIZE);
             MemSuspendHeap(4);
             if (wk->open_flag & 0x10) {
@@ -455,11 +453,7 @@ void SubScreenExec()
             }
             wk->p_module = (OSModuleHeader*) wk->relAddr;
             {
-                MessageControl* mes = &cMes;
-                int i;
-                for (i = 0; i < 16; i++) {
-                    mes->Delete(i);
-                }
+                cMes.Clear();
             }
             if (pSys->language == 0) {
                 cMes.setupFont(28, 28, (TEXPalette*) SS_ARC_PTR(wk->pCmmn, 4), 3);
@@ -506,7 +500,7 @@ void SubScreenExec()
                 IdSub.dispSw(IDC_SSCRN_MAIN_MENU, 1);
                 break;
             }
-            Cckpt.m_LifeMeter.fix(0);
+            Cckpt.lifeMeterFix(0);
 #line 808 "D:/Bio4/Prog/sscrn.cpp"
             wk->pExamDat = MEM_ALLOC(0x3E800, 1, 13);
             if (wk->open_flag == 2) {
@@ -567,7 +561,7 @@ void SubScreenExitCore(SubScreenWork* pSscrn)
         MemSignalHeap(4);
         MemSetCurrentHeap(4);
         MemorySwap(pSscrn->pBuf, SS_ARAM, SS_ARAM_SIZE);
-        DC.m_data_ctrl_flag = 1;
+        DC.setDataCtrl(1);
         RoomData.restartRelData();
         cModel::mm = &ModInfoMgr;
         cModel::pm = &PartsMgr;
@@ -607,10 +601,10 @@ void SubScreenExit()
                 SndCall(0, 3, 0, 0, 0, 0);
             }
             cMes.Delete(0);
-            wepNo = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-            wepType = WeaponId2WeaponType(ItemMgr.m_wep_id);
-            if (ItemMgr.pArm) {
-                wepLv = ItemMgr.pArm->bullet >> 13;
+            wepNo = WeaponId2WeaponNo(ItemMgr.weaponId());
+            wepType = WeaponId2WeaponType(ItemMgr.weaponId());
+            if (ItemMgr.weapon()) {
+                wepLv = ItemMgr.weapon()->getBulletType();
             } else {
                 wepLv = 0;
             }
@@ -642,8 +636,8 @@ void SubScreenExit()
                 if (wk->flags & 2) {
                     ItemMgr.arm(0);
                     wepLv = 0;
-                    wepNo = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-                    wepType = WeaponId2WeaponType(ItemMgr.m_wep_id);
+                    wepNo = WeaponId2WeaponNo(ItemMgr.weaponId());
+                    wepType = WeaponId2WeaponType(ItemMgr.weaponId());
                 }
                 pl = pPL;
                 SndBlkStop(2);
@@ -690,7 +684,7 @@ void SubScreenExit()
                 }
             }
             IdSys.dispSw(IDC_LIFE_METER, 1);
-            Cckpt.m_LifeMeter.fix(0);
+            Cckpt.lifeMeterFix(0);
             if (wk->scope_flag) {
                 CamCtrl.startScope(0, 0);
                 CamCtrl.loadScopeParam();
@@ -709,10 +703,7 @@ void SubScreenExit()
                 if (SysFlagChk(pG, SYS_OMAKE_ETC_GAME)) {
                     mercId.set();
                 }
-                {
-                    Cockpit* ck = &Cckpt;
-                    ck->m_CountDown.loadDisp();
-                }
+                Cckpt.loadCountDownTimer();
                 FadeSetBlackOut(clear, 3, 0, 0);
             }
             TaskSignal(0);

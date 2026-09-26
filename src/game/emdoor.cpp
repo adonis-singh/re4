@@ -124,7 +124,7 @@ cEmDoor* SetDoor(void* bin, void* tpl, Vec* pos, Vec* rot, int type, int flagNo)
     w->Eff_id = 0xFF;
     AtariInit(&em->atari, -w->Width, w->Height * 0.5f, 0.0f, w->Width + 50.0f, 150.0f, 150.0f, w->Height * 0.5f + 50.0f, zero, 2, zero);
     em->atari.setPriority(PRI_LV3);
-    em->atari.clrFlag100();
+    em->atari.offSca();
     em->setStatus(EM_STATUS_ACTIVE);
     w->pSat[0] = 0;
     w->pSat[3] = 0;
@@ -140,10 +140,7 @@ cEmDoor* SetDoor(void* bin, void* tpl, Vec* pos, Vec* rot, int type, int flagNo)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 0x10);
     }
-    em->lockParts = 0;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
@@ -1159,7 +1156,7 @@ void emDoorSetDmgLock_R(cEmDoor* pEm, int type)
 void emDoorSetDmgChain(cEmDoor* pEm, u32 no)
 {
     EmDoorWork* w = EMDOOR_WK(pEm);
-    cModel* parts;
+    cParts* parts;
     u16* flg;
 
     if (w->pChain == 0) {
@@ -1220,7 +1217,7 @@ void emDoorSetDmgDoor(cEmDoor* pEm)
     EmDoorWork* w = EMDOOR_WK(pEm);
     YARARE_INFO* part = pEm->dmg.m_pDamageYarare;
     EmListData* d = &pG->Em_list[pEm->emset_no];
-    cModel* parts;
+    cParts* parts;
     u16* flg;
     Vec v;
     Vec rot;
@@ -1939,7 +1936,7 @@ void emDoor_R1_CloseLock(cEmDoor* pEm)
 void emDoorLockBendMove(cEmDoor* pEm)
 {
     EmDoorWork* w = EMDOOR_WK(pEm);
-    cModel* parts;
+    cParts* parts;
 
     if (w->pLockL) {
         parts = w->pLockL->getPartsPtr(1);
@@ -1991,7 +1988,7 @@ void emDoorSatSet(cEmDoor* pEm)
     if (pEm->hp <= 0) {
         return;
     }
-    pEm->atari.setFlag200();
+    pEm->atari.onOba();
     switch (pEm->type) {
     case 1:
     case 4:
@@ -2025,7 +2022,7 @@ void emDoorSatSet(cEmDoor* pEm)
         }
         w->pSat[1] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
     } else {
-        w->pSat[1]->m_Flag |= 4;
+        w->pSat[1]->setEnable();
         w->pSat[1]->setCoord(&pEm->pos, &pEm->ang);
     }
     if (!(pEm->flag & 0x7500)) {
@@ -2046,7 +2043,7 @@ void emDoorSatSet(cEmDoor* pEm)
             }
             w->pSat[2] = EatMgr.create(&pEm->pos, &pEm->ang, poly, h, attr, 0);
         } else {
-            w->pSat[2]->m_Flag |= 4;
+            w->pSat[2]->setEnable();
             w->pSat[2]->setCoord(&pEm->pos, &pEm->ang);
         }
     }
@@ -2070,7 +2067,7 @@ void emDoorSatSet(cEmDoor* pEm)
                 break;
             }
         } else {
-            w->pSat[3]->m_Flag |= 4;
+            w->pSat[3]->setEnable();
             w->pSat[3]->setCoord(&pEm->pos, &pEm->ang);
         }
     }
@@ -2088,7 +2085,7 @@ void emDoorSatSet(cEmDoor* pEm)
             break;
         }
     } else {
-        w->pSat[4]->m_Flag |= 4;
+        w->pSat[4]->setEnable();
         w->pSat[4]->setCoord(&pEm->pos, &pEm->ang);
     }
     if (w->pSat[5] == 0) {
@@ -2105,7 +2102,7 @@ void emDoorSatSet(cEmDoor* pEm)
             break;
         }
     } else {
-        w->pSat[5]->m_Flag |= 4;
+        w->pSat[5]->setEnable();
         w->pSat[5]->setCoord(&pEm->pos, &pEm->ang);
     }
 }
@@ -2115,21 +2112,21 @@ void emDoorSatClear(cEmDoor* pEm)
 {
     EmDoorWork* w = EMDOOR_WK(pEm);
 
-    pEm->atari.clrFlag200();
+    pEm->atari.offOba();
     if (w->pSat[1]) {
-        w->pSat[1]->m_Flag &= ~4;
+        w->pSat[1]->setDisable();
     }
     if (w->pSat[2]) {
-        w->pSat[2]->m_Flag &= ~4;
+        w->pSat[2]->setDisable();
     }
     if (w->pSat[3]) {
-        w->pSat[3]->m_Flag &= ~4;
+        w->pSat[3]->setDisable();
     }
     if (w->pSat[4]) {
-        w->pSat[4]->m_Flag &= ~4;
+        w->pSat[4]->setDisable();
     }
     if (w->pSat[5]) {
-        w->pSat[5]->m_Flag &= ~4;
+        w->pSat[5]->setDisable();
     }
 }
 
@@ -2233,7 +2230,7 @@ int emDoorDoorAutoCloseCk(cEmDoor* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->checkStatus(EM_STATUS_ACTIVE) == 0) {
@@ -2332,11 +2329,8 @@ void cEmDoor::setLock(void* bin, void* tpl, int side, int strong)
         if (flg && (*flg & 4)) {
             return;
         }
-        lockOfs.x = -1160.0f;
-        lockOfs.y = 1050.0f;
-        lockOfs.z = 150.0f;
         flag |= 0x80000000;
-        lockParts = 0;
+        setTarget(0, -1160.0f, 1050.0f, 150.0f);
         clearStatus(EM_STATUS_LOCKOFF);
         v.x = -1160.0f;
         v.y = 1050.0f;
@@ -2360,11 +2354,8 @@ void cEmDoor::setLock(void* bin, void* tpl, int side, int strong)
         if (flg && (*flg & 2)) {
             return;
         }
-        lockOfs.x = -1160.0f;
-        lockOfs.y = 1050.0f;
-        lockOfs.z = -150.0f;
         flag |= 0x40000000;
-        lockParts = 0;
+        setTarget(0, -1160.0f, 1050.0f, -150.0f);
         clearStatus(EM_STATUS_LOCKOFF);
         v.x = -1160.0f;
         v.y = 1050.0f;
@@ -2435,7 +2426,7 @@ void cEmDoor::setChain(void* bin, void* tpl)
             YarareAddCube(this, &w->hit[13], -650.0f, 1350.0f, 50.0f, 650.0f, 350.0f, 100.0f, 0, YAT_FLAG_ON);
             w->Chain_hp[0] = 2;
         } else {
-            cModel* parts = w->pChain->getPartsPtr(1);
+            cParts* parts = w->pChain->getPartsPtr(1);
 
             parts->scale.x = 0.0f;
             parts->scale.y = 0.0f;
@@ -2445,7 +2436,7 @@ void cEmDoor::setChain(void* bin, void* tpl)
             YarareAddCube(this, &w->hit[14], -650.0f, 1000.0f, 50.0f, 650.0f, 350.0f, 100.0f, 0, YAT_FLAG_ON);
             w->Chain_hp[1] = 2;
         } else {
-            cModel* parts = w->pChain->getPartsPtr(2);
+            cParts* parts = w->pChain->getPartsPtr(2);
 
             parts->scale.x = 0.0f;
             parts->scale.y = 0.0f;
@@ -2455,7 +2446,7 @@ void cEmDoor::setChain(void* bin, void* tpl)
             YarareAddCube(this, &w->hit[15], -650.0f, 700.0f, 50.0f, 650.0f, 300.0f, 100.0f, 0, YAT_FLAG_ON);
             w->Chain_hp[2] = 2;
         } else {
-            cModel* parts = w->pChain->getPartsPtr(3);
+            cParts* parts = w->pChain->getPartsPtr(3);
 
             parts->scale.x = 0.0f;
             parts->scale.y = 0.0f;
@@ -2489,7 +2480,7 @@ void cEmDoor::setYarare()
     u16 flags;
     u32 bit;
     u16* flg;
-    cModel* parts;
+    cParts* parts;
 
     if (type == 0 || type == 4) {
         flags = 0x21;
@@ -3164,7 +3155,7 @@ void plemDoorOpen(cPlayer* pEm)
             }
         }
         pEm->dmg.set(0, 0x26);
-        pEm->atari.clrFlag200();
+        pEm->atari.offOba();
         pEm->m_Work0 = 0x2D;
         pEm->r_no_2++;
     case 1:
@@ -3176,7 +3167,7 @@ void plemDoorOpen(cPlayer* pEm)
             PSVECSubtract(&pEm->m_VecWork0, &v, &pEm->m_VecWork0);
         }
         if (MotionMove(pEm, 0)) {
-            pEm->atari.setFlag200();
+            pEm->atari.onOba();
             EndPlDamage();
             pEm->dmg.set(0, 10);
         } else if (pEm->m_Work0 != 0) {
@@ -3232,7 +3223,7 @@ int cEmDoor::ckObj()
         cEm* e = (cEm*) ((u8*) m->pArray + ofs);
         FREE_EMRACK* rw = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x45) {
@@ -3379,7 +3370,7 @@ cEmDoor* DoorOpenCk(cModel* m)
         cEmDoor* em = (cEmDoor*) EmMgr.fastAt(i);
         EmDoorWork* w;
 
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->id != 0x41) {
@@ -3458,7 +3449,7 @@ void SubOpenDoorSet(cEmDoor* pDoor)
 // setOpen when the door can be kicked open; ends when the motion finishes.
 void subDoorKick()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     cEmDoor* door = (cEmDoor*) sub->pEmCatch;
 
     if (sub->r_no_2 == 0) {
@@ -3512,7 +3503,7 @@ void emDoorDropWeapon(cEmDoor* pEm)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEmWep* e = (cEmWep*) EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x42) {

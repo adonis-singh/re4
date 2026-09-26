@@ -58,7 +58,7 @@ struct Em32Work {
     f32 plAng;            // 0x698 (0xA78)  Muku towards it
     f32 plAngAbs;         // 0x69C (0xA7C)
     f32 plDist2;          // 0x6A0 (0xA80)  squared XZ distance to it
-    Camera cam;           // 0x6A4 (0xA84)  escape camera (em32EscapeCamMove)
+    CAMERA cam;           // 0x6A4 (0xA84)  escape camera (em32EscapeCamMove)
     Vec stepPos;          // 0x79C (0xB7C)  step up / down target (em32StepUpCk*, em32GetStepDownPos)
     u8 pad_7A8[0xC];
     Vec stepTarget;       // 0x7B4 (0xB94)  position to face / approach while stepping (flags bit12)

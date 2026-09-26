@@ -42,7 +42,7 @@ void cEsp1a::move()
     Vec tmp;
     Vec wpos;
     Mtx inv;
-    Camera* cam;
+    CAMERA* cam;
 
     PSVECSubtract(&m_Pos, &w->Move_vec, &m_Pos);
     if (CommonMove()) {
@@ -102,14 +102,14 @@ int cEsp1a::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
     Esp1aWork* w = &m_Free;
 
     if (parent != pEffParentWorld && (m_Release_time == 0xFF || m_Release_time <= m_Life_time)) {
-        cModel* parts;
+        cParts* parts;
 
         if ((s8)pSeq->Work8[0] >= m_pMod->nParts) {
             pLog->err(0, 0, "ESP1a : Wk0 PartsNo > %d ", m_pMod->nParts);
             return 0;
         }
         parts = m_pMod->getPartsPtr((s8)pSeq->Work8[0]);
-        m_Pos = *(Vec*)&pSeq->Pos.x;
+        m_Pos = pSeq->Pos;
         {
             Vec dir = { 0.0f, 0.01f, 0.0f };
             Vec sc;
@@ -155,6 +155,6 @@ int cEsp1a::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
         pLog->err(0, 0, "ESP1a : no parent!!");
         return 0;
     }
-    w->Dist = *(Vec*)&pSeq->Vec0.x;
+    w->Dist = pSeq->Vec0;
     return 1;
 }

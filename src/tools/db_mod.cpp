@@ -274,7 +274,7 @@ void dbModelQuit();
 int dbModel(int mode);
 void dbModMotionMove();
 void dbModSetViewFlag(u32 flag);
-void dbModelSetCamera(int no, Camera* cam);
+void dbModelSetCamera(int no, CAMERA* cam);
 void dbmodGetSet();
 void dbmodGetFilenames();
 void dbmodGetLabel(int no, char* dst);
@@ -3012,7 +3012,7 @@ void dbModMotionMove()
             continue;
         }
         model = em->pEm;
-        if ((model->be_flag & 0x201) != 1) {
+        if (!model->isAlive()) {
             continue;
         }
         noMotion = 1;
@@ -3059,7 +3059,7 @@ void dbModMotionMove()
             RotMatrix(model->mat, &model->ang);
             TransMatrix(model->mat, &model->pos);
             ScaleMatrix(model->mat, &model->scale);
-            if (parent->pParts) {
+            if (parent->pList) {
                 pp = (cParts*) parent->getPartsPtr(em->partsNo);
                 PSMTXConcat(pp->mat, model->mat, model->mat);
                 ax.x = model->mat[0][0];
@@ -3153,7 +3153,7 @@ void dbModMotionMove()
             continue;
         }
         model = em->pEm;
-        if ((model->be_flag & 0x201) != 1) {
+        if (!model->isAlive()) {
             continue;
         }
         parent = dbModSlot[n].pEm;
@@ -3164,7 +3164,7 @@ void dbModMotionMove()
         ScaleMatrix(model->mat, &model->scale);
         if (em->partsNo == -1) {
             PSMTXConcat(parent->mat, model->mat, model->mat);
-        } else if (parent->pParts) {
+        } else if (parent->pList) {
             pp = (cParts*) parent->getPartsPtr(em->partsNo);
             PSMTXConcat(pp->mat, model->mat, model->mat);
         }
@@ -3969,7 +3969,7 @@ void dbModelSetAng0(int no, Vec* rot)
 }
 
 // Copies `cam` (pos, at, roll, fovy) into slot `no`'s motion attach camera.
-void dbModelSetCamera(int no, Camera* cam)
+void dbModelSetCamera(int no, CAMERA* cam)
 {
     AttachCamera* ac = dbModSlot[no].motInfo[0].cam;
 

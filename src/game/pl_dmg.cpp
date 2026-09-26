@@ -6,6 +6,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "global.h"
 #include "db_log.h"
 #include "main.h"
@@ -117,11 +118,11 @@ void damageNormal(cPlayer* pEm)
                 pEm->dmg.m_Flag = 0;
                 pEm->dmg.m_Timer = 5;
                 EndPlDamage();
-                EmRoutineSet(pEm, 0, 0, 0, 0);
+                pEm->setRno(0, 0, 0, 0);
             }
         }
         if (pEm->m_Work1 != 0) {
-            cModel* p = pEm->getPartsPtr(0);
+            cParts* p = pEm->getPartsPtr(0);
             p->ang.y += Muku2(pEm->getPartsPtr(0)->ang.y, 0.0f, PI / 10.0f);
         }
         break;
@@ -146,7 +147,7 @@ void damageNormal(cPlayer* pEm)
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x23, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }
         }
-        if (GetWaterHeight(pos, &wh) && pEm->pParts->world.y < wh) {
+        if (GetWaterHeight(pos, &wh) && pEm->pList->world.y < wh) {
             if (MotionCheckCrossFrame(&pEm->Motion, 18.0f)) {
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x24, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }
@@ -155,7 +156,7 @@ void damageNormal(cPlayer* pEm)
             pEm->dmg.m_Flag = 0;
             pEm->dmg.m_Timer = 5;
             EndPlDamage();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     default:
@@ -227,7 +228,7 @@ void damageBlow(cPlayer* pEm)
         }
         if (pEm->Motion.Seq_frame >= 5.0f) {
             splash = pEm->m_Work2;
-            if (splash == 0 && GetWaterHeight(&pEm->pParts->world, &wh) && pEm->pParts->world.y < wh + 400.0f) {
+            if (splash == 0 && GetWaterHeight(&pEm->pList->world, &wh) && pEm->pList->world.y < wh + 400.0f) {
                 pEm->m_Work2 = 1;
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x24, 0, ESP_CORE_KIND_NONE, pEm, (void*) splash);
             }
@@ -264,7 +265,7 @@ void damageBlow(cPlayer* pEm)
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x23, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }
         }
-        if (GetWaterHeight(pos, &wh) && pEm->pParts->world.y < wh) {
+        if (GetWaterHeight(pos, &wh) && pEm->pList->world.y < wh) {
             if (MotionCheckCrossFrame(&pEm->Motion, 18.0f)) {
                 EstSet(pEm, -1, 0, 0, EFF_ROOM, 0x24, 0, ESP_CORE_KIND_NONE, pEm, 0);
             }
@@ -273,7 +274,7 @@ void damageBlow(cPlayer* pEm)
             pEm->dmg.m_Flag = 0;
             pEm->dmg.m_Timer = 5;
             EndPlDamage();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -310,7 +311,7 @@ void damageBlast(cPlayer* pEm)
             pEm->dmg.m_Flag = 0;
             pEm->dmg.m_Timer = 5;
             EndPlDamage();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -329,7 +330,7 @@ void Pl_R0_Die(cPlayer* pEm)
         MotionSetCore(pEm, &pEm->Motion, PL_ARC_PTR(pG->pPlayer, 0x4C), (void*) (pG->pPlayer->ofs[0x4D] + (u32) pG->pPlayer), 5, 1, 0);
         EstSet(pEm, -1, 0, 0, EFF_PL00, ChkWaterEffectEnable(&pEm->pos) ? 4 : 3, 0, ESP_CORE_KIND_NONE, pEm, (void*) no);
         pEm->dmg.m_Timer |= 0x80;
-        if (pEm->Body->pHair) {
+        if (pEm->Body->m_pHead) {
             SndCall(1, 0xD, &pEm->getPartsPtr(4)->world, 0, 0, 0);
             pEm->setFace(1);
         }

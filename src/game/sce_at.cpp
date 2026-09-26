@@ -493,7 +493,7 @@ int sceAtCheck_main(cEm* em, int target_type)
     int c;
     int kind;
 
-    em->litArea.x0 &= ~1;
+    em->State.SetInRoom(0);
     pos = em->pos;
     pos.y += 250.0f;
     front.x = 0.0f;
@@ -759,15 +759,15 @@ void sceInLock(SceAtWork* w)
     switch (w->lockType) {
     case 1:
         SndCall(6, (s8) w->doorSe, &pPL->pos, 0, 0, 0);
-        SceMesSet(0xA, 0x11, 1, 0x64, MES_Y(cMes.getWork()));
-        while (cMes.m_Msg[0].m_state & 1) {
+        SceMesSet(0xA, 0x11, 1, 0x64, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
+        while (cMes.GetMesStatus(0) & 1) {
             TaskSleep(1);
         }
         break;
     case 2:
         SndCall(6, (s8) w->doorSe, &pPL->pos, 0, 0, 0);
-        SceMesSet(0xB, 0x11, 1, 0x64, MES_Y(cMes.getWork()));
-        while (cMes.m_Msg[0].m_state & 1) {
+        SceMesSet(0xB, 0x11, 1, 0x64, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
+        while (cMes.GetMesStatus(0) & 1) {
             TaskSleep(1);
         }
         FlagOn(doorUnlock(), w->lockFlag);
@@ -817,7 +817,7 @@ int sceAtFunc_door(SceAtWork* w, cModel* pModel)
         return 0;
     }
     if (CheckDoorJumpWithAshley() == 0) {
-        cMes.MesSet(0x67, 0x64, MES_Y(cMes.getWork()), 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         return 1;
     }
     pS->m_stop_flag_backup = pG->Stop_flg;
@@ -1032,8 +1032,8 @@ void sceAtGetItem(SceAtWork* w)
     static int swep_flag;
     SceAtItem* it = &w->item;
     cModel* model = w->item.pModel;
-    int fh = cMes.getWork()->m_font_h;
-    int ls = cMes.getWork()->lineSpace;
+    int fh = cMes.getFontHeight(0);
+    int ls = cMes.getLineGap(0);
     int y = 0x129 - fh - ls;
     // `cancel` is the newest zero when `swep_flag = 0` is expanded (sel has no initializer), so
     // cse stores its r25 there and cancel lives from the top: it then ranks below sel in global
@@ -1068,10 +1068,10 @@ void sceAtGetItem(SceAtWork* w)
             break;
         }
         cMes.MesSet(0x15, 0x64, y, 0x11, 0, 0, 4);
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         itemInfo(it->id, &info);
         if (info.type == 7) {
-            cMes.m_Msg[0].m_bttn_wait = 0x1E;
+            cMes.SetBttnWait(0, 0x1E);
         }
         mes = 0;
         break;
@@ -1082,14 +1082,14 @@ void sceAtGetItem(SceAtWork* w)
 
         put = ItemMgr.get(it->id, it->num);
         if (it->id == 0x73) {
-            cMes.m_Msg[0].setNumber(ItemMgr.m_bonus_time, 0);
+            cMes.MesSetNumber(0, ItemMgr.m_bonus_time, 0);
             cMes.MesSet(0x94, 0x64, y, 0x10000011, 0, 0, 4);
         } else if (it->id == 0x75) {
-            cMes.m_Msg[0].setNumber(ItemMgr.m_bonus_point, 0);
+            cMes.MesSetNumber(0, ItemMgr.m_bonus_point, 0);
             cMes.MesSet(0x95, 0x64, y, 0x10000011, 0, 0, 4);
         } else {
             if ((s32) money < (s32) pG->peseta) {
-                cMes.m_Msg[0].setNumber(pG->peseta - money, 0);
+                cMes.MesSetNumber(0, pG->peseta - money, 0);
             }
             cMes.MesSet(0x14, 0x64, y, 0x10000011, 0, 0, 4);
         }
@@ -1098,7 +1098,7 @@ void sceAtGetItem(SceAtWork* w)
         break;
     }
     case 3:
-        itemInfo(ItemMgr.m_wep_id, &info);
+        itemInfo(ItemMgr.weaponId(), &info);
         if (info.type == 3) {
             swep_flag = put;
         }
@@ -1106,23 +1106,23 @@ void sceAtGetItem(SceAtWork* w)
     case 9:
         mes = 1;
         cMes.MesSet(0x11, 0x64, y, 0x111, 0, 0, 4);
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         break;
     case 2:
         cMes.MesSet(0x13, 0x64, y, 0x211, 0, 0, 4);
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         if (it->num != 0) {
-            cMes.m_Msg[0].setNumber(it->num, 0);
+            cMes.MesSetNumber(0, it->num, 0);
         } else {
             itemInfo(it->id, &info);
-            cMes.m_Msg[0].setNumber(info.defNum, 0);
+            cMes.MesSetNumber(0, info.defNum, 0);
         }
         mes = 1;
         break;
     case 0xE:
         cMes.MesSet(0x11, 0x64, y, 0x411, 0, 0, 4);
         mes = 1;
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         break;
     case 6:
         switch (it->id) {
@@ -1147,7 +1147,7 @@ void sceAtGetItem(SceAtWork* w)
             cMes.MesSet(0x11, 0x64, y, 0x411, 0, 0, 4);
             break;
         }
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         mes = 1;
         break;
     case 0xA:
@@ -1179,15 +1179,11 @@ void sceAtGetItem(SceAtWork* w)
     LightMgr.create(0, 9, -2, 0);
     sub_screen_open = sel;
     if (mes != 0) {
-        while (cMes.getWork()->m_sel == 0 && cancel == 0) {
+        while (cMes.GetSelectMessage(0) == 0 && cancel == 0) {
             itemExam.move();
             itemExam.trans();
             if (Key.trg & 0x40000000) {
-                MessageControl* mc = &cMes;
-
-                for (i = 0; i <= 15; i++) {
-                    mc->Delete(i);
-                }
+                cMes.Clear();
                 put = 0;
                 cancel = 1;
             }
@@ -1197,7 +1193,7 @@ void sceAtGetItem(SceAtWork* w)
             // COMPILER-DIFF: candidate #12 (r0 pin): cse1 follows the `bne` into the else arm and would
             // canonicalise `res == 2` to sel; canon_reg never replaces a hard register, so the pinned res
             // keeps `cmpwi r0,2` and sel (a pseudo: preferred as class head) keeps `mr; cmpwi sel,1`.
-            register int res asm("r0") = cMes.getWork()->m_sel;
+            register int res asm("r0") = cMes.GetSelectMessage(0);
 
             sel = res;
             if (sel == 1) {
@@ -1222,7 +1218,7 @@ void sceAtGetItem(SceAtWork* w)
                 } else {
                     tmp.num = n;
                 }
-                ItemMgr.m_to_whom = 0;
+                ItemMgr.setToWhom(0);
                 // `put = 1` after the call (as in sceAtGetItem_NoModel): sched2 hoists the
                 // callee-saved li above the call with the highest LUID, so `addi r4,&tmp` issues first.
                 ItemMgr.use(&tmp);
@@ -1230,7 +1226,7 @@ void sceAtGetItem(SceAtWork* w)
             }
         }
     } else {
-        while (cMes.m_Msg[0].m_state & 1) {
+        while (cMes.GetMesStatus(0) & 1) {
             itemExam.move();
             itemExam.trans();
             SceSleep(1);
@@ -1292,8 +1288,8 @@ void sceAtGetItem_NoModel(SceAtWork* w)
     static int sub_screen_open;
     static int swep_flag;
     SceAtItem* it = &w->item;
-    int fh = cMes.getWork()->m_font_h;
-    int ls = cMes.getWork()->lineSpace;
+    int fh = cMes.getFontHeight(0);
+    int ls = cMes.getLineGap(0);
     int y = 0x129 - fh - ls;
     int cancel = 0;
     int mes = 0;
@@ -1329,10 +1325,10 @@ void sceAtGetItem_NoModel(SceAtWork* w)
             break;
         }
         cMes.MesSet(0x15, 0x64, y, 0x11, 0, 0, 4);
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         itemInfo(it->id, &info);
         if (info.type == 7) {
-            cMes.m_Msg[0].m_bttn_wait = 0x1E;
+            cMes.SetBttnWait(0, 0x1E);
         }
         mes = 0;
         break;
@@ -1341,14 +1337,14 @@ void sceAtGetItem_NoModel(SceAtWork* w)
 
         put = ItemMgr.get(it->id, it->num);
         if (it->id == 0x73) {
-            cMes.m_Msg[0].setNumber(ItemMgr.m_bonus_time, 0);
+            cMes.MesSetNumber(0, ItemMgr.m_bonus_time, 0);
             cMes.MesSet(0x94, 0x64, y, 0x10000011, 0, 0, 4);
         } else if (it->id == 0x75) {
-            cMes.m_Msg[0].setNumber(ItemMgr.m_bonus_point, 0);
+            cMes.MesSetNumber(0, ItemMgr.m_bonus_point, 0);
             cMes.MesSet(0x95, 0x64, y, 0x10000011, 0, 0, 4);
         } else {
             if ((s32) money < (s32) pG->peseta) {
-                cMes.m_Msg[0].setNumber(pG->peseta - money, 0);
+                cMes.MesSetNumber(0, pG->peseta - money, 0);
             }
             cMes.MesSet(0x14, 0x64, y, 0x10000011, 0, 0, 4);
         }
@@ -1357,7 +1353,7 @@ void sceAtGetItem_NoModel(SceAtWork* w)
         break;
     }
     case 3:
-        itemInfo(ItemMgr.m_wep_id, &info);
+        itemInfo(ItemMgr.weaponId(), &info);
         if (info.type == 3) {
             swep_flag = put;
         }
@@ -1365,23 +1361,23 @@ void sceAtGetItem_NoModel(SceAtWork* w)
     case 9:
         mes = 1;
         cMes.MesSet(0x11, 0x64, y, 0x111, 0, 0, 4);
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         break;
     case 2:
         cMes.MesSet(0x13, 0x64, y, 0x211, 0, 0, 4);
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         if (it->num != 0) {
-            cMes.m_Msg[0].setNumber(it->num, 0);
+            cMes.MesSetNumber(0, it->num, 0);
         } else {
             itemInfo(it->id, &info);
-            cMes.m_Msg[0].setNumber(info.defNum, 0);
+            cMes.MesSetNumber(0, info.defNum, 0);
         }
         mes = 1;
         break;
     case 0xE:
         cMes.MesSet(0x11, 0x64, y, 0x411, 0, 0, 4);
         mes = 1;
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         break;
     case 6:
         switch (it->id) {
@@ -1406,7 +1402,7 @@ void sceAtGetItem_NoModel(SceAtWork* w)
             cMes.MesSet(0x11, 0x64, y, 0x411, 0, 0, 4);
             break;
         }
-        cMes.m_Msg[0].m_item_no = it->id;
+        cMes.SetItemName(0, it->id);
         mes = 1;
         break;
     case 0xA:
@@ -1421,13 +1417,9 @@ void sceAtGetItem_NoModel(SceAtWork* w)
     sub_screen_open = 0;
     cancel = 0;
     if (mes != 0) {
-        while (cMes.getWork()->m_sel == 0 && cancel == 0) {
+        while (cMes.GetSelectMessage(0) == 0 && cancel == 0) {
             if (Key.trg & 0x40000000) {
-                MessageControl* mc = &cMes;
-
-                for (i = 0; i <= 15; i++) {
-                    mc->Delete(i);
-                }
+                cMes.Clear();
                 put = 0;
                 cancel = 1;
             }
@@ -1437,7 +1429,7 @@ void sceAtGetItem_NoModel(SceAtWork* w)
             // COMPILER-DIFF: candidate #12 (r0 pin): cse1 follows the `bne` into the else arm and would
             // canonicalise `res == 2` to sel; canon_reg never replaces a hard register, so the pinned res
             // keeps `cmpwi r0,2` and sel (a pseudo: preferred as class head) keeps `mr; cmpwi sel,1`.
-            register int res asm("r0") = cMes.getWork()->m_sel;
+            register int res asm("r0") = cMes.GetSelectMessage(0);
 
             sel = res;
             if (sel == 1) {
@@ -1462,13 +1454,13 @@ void sceAtGetItem_NoModel(SceAtWork* w)
                 } else {
                     tmp.num = n;
                 }
-                ItemMgr.m_to_whom = 0;
+                ItemMgr.setToWhom(0);
                 ItemMgr.use(&tmp);
                 put = 1;
             }
         }
     } else {
-        while (cMes.m_Msg[0].m_state & 1) {
+        while (cMes.GetMesStatus(0) & 1) {
             SceSleep(1);
         }
     }
@@ -1508,7 +1500,7 @@ int sceAtFunc_item(SceAtWork* w, cModel* m)
 {
     SceAtItem* it = &w->item;
     int ret;
-    ScePrim* p;
+    SCE_TASK* p;
 
     KeyClear(0xEFCF0000);
     ret = itemZoom(w);
@@ -1516,14 +1508,14 @@ int sceAtFunc_item(SceAtWork* w, cModel* m)
         p = SceExec(5, (TaskFunc) sceAtGetItem, (int) w, 0, SCE_PRIO_15, 0);
         if (p != 0) {
             SceSys.m_item_get = ret;
-            p->task->flag |= 2;
+            p->setNoSuspend(1);
             it->pModel->setNoSuspend(1);
         }
     } else {
         p = SceExec(5, (TaskFunc) sceAtGetItem_NoModel, (int) w, 0, SCE_PRIO_15, 0);
         if (p != 0) {
             SceSys.m_item_get = 1;
-            p->task->flag |= 2;
+            p->setNoSuspend(1);
         }
     }
     return 1;
@@ -1627,9 +1619,9 @@ void SceAtSetMes(SceAtMesData* pMes)
     }
     if (pMes->no >= 0) {
         if (pMes->type == 0) {
-            SceMesSet(pMes->no, flags, 1, 0x64, MES_Y(cMes.getWork()));
+            SceMesSet(pMes->no, flags, 1, 0x64, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         } else {
-            SceMesSet(pMes->no, flags | 1, 1, 0x64, MES_Y(cMes.getWork()));
+            SceMesSet(pMes->no, flags | 1, 1, 0x64, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         }
     }
     if (pMes->se != 0) {
@@ -1655,7 +1647,7 @@ void SceAtSetMes(SceAtMesData* pMes)
 int sceAtFunc_save(SceAtWork* w, cModel* pModel)
 {
     if (pSUB != 0 && (StaFlagChk(pG, STA_SUB_CATCHED) || (SubCharGetStatus() & 0x02000000))) {
-        cMes.MesSet(0x97, 0x64, MES_Y(cMes.getWork()), 1, 0, 0, 4);
+        cMes.MesSet(0x97, 0x64, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
     } else {
         CardSave(w->value, 1);
     }
@@ -1750,9 +1742,9 @@ int sceAtFunc_damage(SceAtWork* w, cModel* pModel)
                     b = (u8) w->dmg.time;
                 }
                 if (fl & 2) {
-                    pSUB->setDamage(w->dmg.kind, w->dmg.arg, w->dmg.power, a, b);
+                    SUB_CHAR()->setDamage(w->dmg.kind, w->dmg.arg, w->dmg.power, a, b);
                 } else {
-                    pSUB->setDamage(w->dmg.kind, w->dmg.arg, 123.0f, a, b);
+                    SUB_CHAR()->setDamage(w->dmg.kind, w->dmg.arg, 123.0f, a, b);
                 }
             }
         }
@@ -1791,11 +1783,11 @@ int sceAtFunc_scr_at(SceAtWork* w, cModel* pModel)
     return 0;
 }
 
-// Type 0xD handler (field info): value 0 flags the model inside (litArea.x0 bit0, dark area).
+// Type 0xD handler (field info): value 0 flags the model inside (State in-room flag, dark area).
 int sceAtFunc_field_info(SceAtWork* w, cModel* pModel)
 {
     if (w->field.value == 0) {
-        ((cEm*) pModel)->litArea.x0 |= 1;
+        ((cEm*) pModel)->State.SetInRoom(1);
     }
     return 0;
 }
@@ -1820,8 +1812,8 @@ int sceAtFunc_skey(SceAtWork* w, cModel* pModel)
 // Task: message 0xC, then restores Stop_flg.
 static void sceAtSkey(SceAtWork* w)
 {
-    cMes.MesSet(0xC, 0x64, MES_Y(cMes.getWork()), 1, 0, 0, 4);
-    while (cMes.m_Msg[0].m_state & 1) {
+    cMes.MesSet(0xC, 0x64, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
+    while (cMes.GetMesStatus(0) & 1) {
         TaskSleep(1);
     }
     pG->Stop_flg = pS->m_stop_flag_backup;
@@ -1961,7 +1953,7 @@ void SceAtCheckHideProc()
     SceAtWork* w = sceAtSetOtStart();
     int off;
     u8 step;
-    ScePrim* p;
+    SCE_TASK* p;
 
     while ((w = sceAtGetOtAddr(w)) != 0) {
         off = !(w->flag & 1);
@@ -2013,7 +2005,7 @@ FOUND:
                 pSUB->setNoSuspend(1);
                 SpfFlagOff(pG, SPF_SUBCHAR);
                 if (p != 0) {
-                    p->task->flag |= 2;
+                    p->setNoSuspend(1);
                 }
                 CamCtrl.CutCall((s8) (w->hide.cut - 1));
                 w->hide.step++;
@@ -2071,7 +2063,7 @@ void SceAtStopSemiautoCheck()
 // Room start after SceAtInit: creates the runtime collision pieces (type 0xB), gives the door /
 // message / stoop / typewriter / ladder / hide areas their action button kind and ordering slot
 // when the data did not, sets up every enabled item area (item 0x1000 also preloads enemy module
-// 0x24), and disables the areas excluded for the current language (langDisable).
+// 0x24), and disables the areas excluded for the current language (country).
 void SceAtRoomSet()
 {
     SceAtWork* w = sceAtSetOtStart();
@@ -2149,11 +2141,11 @@ void SceAtRoomSet()
             sceAtSetItem(w);
         }
         if (pG->game_country == 0) {
-            if (w->langDisable & 2) {
+            if (w->country.check(SCEAT_COUNTRY_JPN)) {
                 SceAtSetEnable(w->no, 0);
             }
         } else {
-            if (w->langDisable & 1) {
+            if (w->country.check(SCEAT_COUNTRY_USA)) {
                 SceAtSetEnable(w->no, 0);
             }
         }
@@ -2607,7 +2599,7 @@ void SceAtExecRoomJump(u16 room, Vec* pos, Vec* rot, int a)
 {
     SceAtWork w;
 
-    w.langDisable = 0;
+    w.country.reset();
     w.dstStage = room >> 8;
     w.dstRoom = room;
     w.dstPos.x = pos->x;
@@ -3698,7 +3690,7 @@ void sceAtSetItemModelParent(SceAtWork* w)
         inv.z = 1.0f / w->pParent->scale.z;
     }
     w->item.pModel->be_flag &= ~0x4000;
-    w->item.pModel->pParts->scale = inv;
+    w->item.pModel->pList->scale = inv;
     w->item.pModel->setParent(w->pParent, &w->item.pModel->pos, &w->item.pModel->ang);
 }
 

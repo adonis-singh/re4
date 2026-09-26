@@ -134,7 +134,7 @@ int em30DmCk(cEm30* em)
         EmDmBloodSet(em);
         if (em->hp <= 0) {
             EmSetDie(em);
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
         } else {
             // `lbz r3, dmWep; cmpwi r3, 0x21` with no branch (r3 = the return value): the branch
             // around an empty taken arm is deleted by jump2 after reload. Written as `== 0x21`, cse
@@ -246,15 +246,12 @@ static void em30_R0_Init(cEm30* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     YarareInit(em, 0.0f, 0.0f, 0.0f, 400.0f, 200.0f, 1, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[0], 0.0f, 0.0f, 0.0f, 200.0f, 100.0f, 5, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[1], 0.0f, -100.0f, 0.0f, 200.0f, 200.0f, 0x14, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[2], 0.0f, -100.0f, 0.0f, 200.0f, 200.0f, 0x18, YAT_FLAG_ON);
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(0xE), EFF_EM30, 0);
     w->neckAng = 0.0f;
     w->flags = 0;
@@ -297,8 +294,8 @@ static void em30_R1_Wait(cEm30* em)
         em->r_no_2++;
     case 1:
         MotionMove(em, 0);
-        if (EmDeadCk(em)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+        if (em->dmg.isDamage()) {
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -320,7 +317,7 @@ static void em30_R1_Walk(cEm30* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         MotionMove(em, 0);
         if (em->l_pl < 4000000.0f) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -347,7 +344,7 @@ static void em30_R1_Dm_Normal(cEm30* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 10);
+            em->setRno(1, 1, 0, 10);
         }
         break;
     }
@@ -444,12 +441,12 @@ void em30RouteCk(cEm30* em)
 void em30NeckMove(cEm30* em)
 {
     Em30Work* w = EM30_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
 
     p = em->getPartsPtr(4);
     {
-        cModel* h = pPL->getPartsPtr(4);
+        cParts* h = pPL->getPartsPtr(4);
 
         v.x = 0.0f;
         v.y = 250.0f;

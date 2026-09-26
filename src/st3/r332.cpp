@@ -13,6 +13,8 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
+#include "objPillar.h"
 #include "em.h"
 #include "em_set.h"
 #include "em_wrap.h"
@@ -49,11 +51,6 @@
 // across them by the action button), the down / rocket cut scenes and the s00/s10/s20 events.
 
 
-// game/objPillar.cpp
-class cObjPillar : public cObj {
-public:
-    void setMotion(void* mot);
-};
 cObj* SetPillar(void* bin, void* tpl, Vec* pos, Vec* rot);
 void Obj18CmfOn(cObj* o, u32 n);   // game/obj18.cpp
 
@@ -96,11 +93,11 @@ struct R332Work {
     int timer;              // 0x088
     int x8C;                // 0x08C
     int nearBridge;         // 0x090  R332ChkNearBridge result when the run started
-    ScePrim* task[2];       // 0x094  the bridge tasks
+    SCE_TASK* task[2];       // 0x094  the bridge tasks
     R332Bridge bridge[2];   // 0x09C
     cSat* sat[4];           // 0x0AC  collision pieces of the two bridges
     int strBlk;             // 0x0BC  SndStrPlayBlock handle
-    Camera cam;             // 0x0C0  the crane camera
+    CAMERA cam;             // 0x0C0  the crane camera
 };
 
 // The original object's .data is 8-aligned (0x260 in the REL after r330's 12-byte table).
@@ -162,9 +159,9 @@ static inline u32 r332_flgCk(u32* f, int no)
 
 
 // Through the manager pointer (an inline `this`): `&CamCtrl` in a register, the field at 0x250 off it.
-static inline void CamCtrlSetCam(CameraControl* cc, Camera* cam)
+static inline void CamCtrlSetCam(CameraControl* cc, CAMERA* cam)
 {
-    cc->m_pExtraCamera = (s32) cam;
+    cc->SetExtraCamera(cam);
 }
 
 #define R332_FLAGS ((u32*) &pG->Room_flg[0])
@@ -191,11 +188,11 @@ static inline void CamCtrlSetCam(CameraControl* cc, Camera* cam)
 // The bridge task handles the same way (the task is started first).
 #define R332_TASK_SET(no, v)                                 \
     {                                                        \
-        ScePrim* t_ = (v);                                   \
+        SCE_TASK* t_ = (v);                                   \
         int ofs_ = (no) * 4;                                 \
-        ScePrim** p_ = &r332_work->task[0];                  \
+        SCE_TASK** p_ = &r332_work->task[0];                  \
                                                              \
-        *(ScePrim**) ((u8*) p_ + ofs_) = t_;                 \
+        *(SCE_TASK**) ((u8*) p_ + ofs_) = t_;                 \
     }
 
 
@@ -418,7 +415,7 @@ static void playerDieBridge(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x2F), 0, 3, 0x201, 0);
-        AtariOffRaw(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pl->be_flag &= ~0x10;
         PlSetDamageSe(0xA);
         r332_work->dieY = start;
@@ -478,7 +475,7 @@ static void playerBridge(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         Cckpt.lifeMeterDisp(0);
-        AtariOffRaw(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pG->Room_flg[0] |= 0x10000000;
         pPL->pos.x = pos0[no].x;
         pPL->pos.y = pos0[no].y;
@@ -545,7 +542,7 @@ static void playerBridge(cPlayer* pl)
                 pl->r_no_2++;
             } else {
                 pG->pl_life = 0;
-                AtariOffRaw(&pl->atari, 0xFCFF);
+                pl->atari.off();
                 SndCall(1, 0x4A, &pPL->pos, 0, 0, 0);
                 MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x2F), 0, 3, 0x201, 0);
                 MotionMove(pl, 0);
@@ -558,7 +555,7 @@ static void playerBridge(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pPL->be_flag |= 0x10;
             pG->Room_flg[0] &= ~0x10000000;
-            AtariOnRaw(&pl->atari, 0x300);
+            pl->atari.on();
             SceEventStart(0);
             SceEventEnd(0);
             EndPlDamage();
@@ -965,7 +962,7 @@ static void R332RocketShootMain(int type)
     r332_work->strBlk = 0;
     VEC_COPY(r332_work->plPos, pPL->pos);
     VEC_COPY(r332_work->plRot, pPL->ang);
-    AtariOffRaw(&pPL->atari, 0xFCFF);
+    pPL->atari.off();
     pPL->beginEvent(0);
     pPL->setNoSuspend(1);
     CamCtrl.deleteAttachCamera(pPL->Motion.pAttachCam, pPL);
@@ -1022,8 +1019,8 @@ static void R332RocketShootMain(int type)
             lau->LightInfo.EnableMask |= 1;
             lau->LightInfo.EnableMask &= ~0x10;
             lau->grip(1);
-            ObjMgr.destroy(lau->launcher.rocket);
-            lau->launcher.rocket = 0;
+            ObjMgr.destroy(lau->pRocket);
+            lau->pRocket = 0;
         }
         pPL->Wep->m_pWep->setNoSuspend(1);
         {
@@ -1115,7 +1112,7 @@ static void R332RocketShootEnd(int type)
     pPL->ang.x = 0.0f;
     pPL->ang.y = 3.14f;
     pPL->ang.z = 0.0f;
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
     if (type == 0) {
         cObjLauncher* lau;
 
@@ -1200,8 +1197,8 @@ void R332RevaCommonMove(int no, int up)
 // Crane `no`: the player takes the lever, aims the crane camera with the stick and drops the beam.
 static void R332ExecCrane(int no)
 {
-    cModel* parts4;
-    cModel* parts0;
+    cParts* parts4;
+    cParts* parts0;
     int flgNo;
     int hitDone;
     int endDone;
@@ -1292,7 +1289,7 @@ static void R332ExecCrane(int no)
         }
         switch (step) {
         case 0:
-            AtariOffRaw(&pPL->atari, 0xFCFF);
+            pPL->atari.off();
             pPL->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x34), 3, 0, 0x200, 0);
             step = 1;
             break;
@@ -1309,7 +1306,7 @@ static void R332ExecCrane(int no)
             f32 ang;
 
             ActBtn.set(ACT_OPERATION, 5, 0, 0, ACTCTR_ENFORCE_EXEC, DISP_A_NORMAL, ACT_FUNC_NORMAL, 0);
-            Camera* cam = &r332_work->cam;
+            CAMERA* cam = &r332_work->cam;
             f32 roll = 0.0f;
             dir.x = cam->param.at.x - cam->param.pos.x;
             dir.y = cam->param.at.y - cam->param.pos.y;
@@ -1381,12 +1378,12 @@ static void R332ExecCrane(int no)
             cEmHit* hit = r332_work->hit[no];
 
             if (hit && em) {
-                f32 d = SQRTF(GetDistance(&hit->pParts->world, &em->pos));
+                f32 d = SQRTF(GetDistance(&hit->pList->world, &em->pos));
 
                 if (d < r332_craneRange) {
                     int k;
 
-                    em->setHitCrane(&hit->pParts->world);
+                    em->setHitCrane(&hit->pList->world);
                     FlagOnVar(R332_FLAGS, (u32) flgNo);
                     RsfSet(G_ROOM_ID, rsfNo);
                     for (k = 0; k < 5; k++) {
@@ -1419,7 +1416,7 @@ void R332ExecCraneEnd(int no, int atNo)
     pl->dmg.clear();
     pl->endEvent(0);
     pl->m_Hokan = 0xC;
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
 }
 
 // The s00 event (the boss appears).
@@ -1498,7 +1495,7 @@ void R332EventS00End()
     EvtMgr.EvtReadAram("event/evd/r332s20.evd", (u8) GetEmIdFromList(0xA9), 0, 0, 0);
     em = (cEm31*) r332_work->em[0].getPtr();
     if (em) {
-        Cckpt.m_LifeMeter.flags = (u32) em;
+        Cckpt.lifeMeterBoss(em);
     }
     SndRoomBgmStart(0, 0);
     EstSet(pPL, -1, 0, 0, EFF_ROOM, 9, 1, ESP_CORE_KIND_ROOM02, 0, 0);
@@ -1637,15 +1634,15 @@ void R332ScrTrans(int on)
 #define R332_PL_CHILD_TRANS(e, on)                                    \
     if ((e)->NowFrame == 0) {                                            \
         if ((e)->GetMod(&mod, "pl0200", 0, 0) == 1) {                 \
-            Obj18Work* w = &((cObj*) mod)->o18;                       \
+            Obj18Work* w = OBJ18_WK((cObj18*) mod);                       \
                                                                       \
-            if (w && w->child) {                                      \
+            if (w && w->pObjChain) {                                      \
                 if ((on) == 0) {                                      \
-                    ((cObj*) mod)->o18.ObjChainFlagCommon |= 0x04000000;\
-                    w->child->be_flag &= ~2;                          \
+                    OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;\
+                    w->pObjChain->be_flag &= ~2;                          \
                 } else {                                              \
-                    ((cObj*) mod)->o18.ObjChainFlagCommon &= ~0x04000000;\
-                    w->child->be_flag |= 2;                           \
+                    OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon &= ~0x04000000;\
+                    w->pObjChain->be_flag |= 2;                           \
                 }                                                     \
             }                                                         \
         }                                                             \
@@ -1674,7 +1671,7 @@ void Evt_R332S00_Func(Event* e)
             ResetShadowCamMoveSize();
         }
         if (e->NowCut == 0 && e->NowFrame == 0) {
-            int skip = EvtSkipCk(e);
+            int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
             if (skip == 0) {
                 FadeSetW(0x80000002, 40, 0, 0);
@@ -1719,14 +1716,14 @@ void Evt_R332S00_Func(Event* e)
         case 0x15:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
         default:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0200", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
             break;
@@ -1928,13 +1925,13 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r332_work->tex->m_Tex_no;
-        r332_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r332_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r332_work->tex->GetTexNo();
+        r332_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r332_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }
-    r332_work->tex->m_H_size = r332_work->tex->m_W_size = 0x40;
+    r332_work->tex->SetWHSize(0x40, 0x40);
     obj = SmdGetObjPtr(0x77);
     obj->pModelInfo->setTexBlendTbl(tbl);
     obj->pModelInfo->setBlendRatio(0xFF);

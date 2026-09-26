@@ -22,9 +22,26 @@ struct ItemWork {
     s8 y;          // 0x0B
     s8 orient;     // 0x0C
     u8 board;      // 0x0D  1 = in the case, 0 = on the spare board
+
+    int isAlive(int chr)
+    {
+        if (flags & 1) {
+            return type == (u8) chr;
+        }
+        return 0;
+    }
+    int isEmpty() { return (flags & 1) ? 0 : 1; }
+    int getPowerLevel() { return lv >> 12; }
+    int getSpeedLevel() { return (lv >> 8) & 0xF; }
+    int getReloadLevel() { return (lv >> 4) & 0xF; }
+    int getBulletLevel() { return (u8) lv & 0xF; }
+    void setPowerLevel(int level) { lv = (lv & 0x0FFF) | (level << 12); }
+    void setSpeedLevel(int level) { lv = (lv & 0xF0FF) | (level << 8); }
+    void setReloadLevel(int level) { lv = (lv & 0xFF0F) | (level << 4); }
+    void setBulletLevel(int level) { lv = (lv & 0xFFF0) | level; }
+    int getBulletType() { return bullet >> 13; }
+    void setBulletType(int type) { bullet = (bullet & 0x1FFF) | (type << 13); }
 };
-// The exclusive-tune nibble of ItemWork::lv (the other nibbles are read in merchant.cpp / item.cpp).
-#define LV_EX(p) ((u8) (p)->lv & 0xF)
 
 // cItemMgr::ordering() output (cItemMgr::pOrder[], 8 bytes): the in-use slots holding one item id.
 struct ItemOrder {
@@ -61,23 +78,29 @@ struct ItemSaveData {
 
 // Inventory manager (game/item.cpp, 0x30 bytes).
 class cItemMgr {
-public:
+private:
     u32* m_pAvailable;                // 0x00  one bit per item id (available()/use(): items usable this frame)
     s32 m_flag_num;                 // 0x04  words in pFlags (8)
     u16 used_id;                // 0x08  item id use() handed to check(), 0xFFFF = none
     u8 pad_A[2];
-    ItemWork* pArm;             // 0x0C  equipped weapon slot (NULL = bare hands)
+    ItemWork* m_pWep;             // 0x0C  equipped weapon slot (NULL = bare hands)
     u16 m_wep_id;                  // 0x10  equipped weapon item id
     s8 m_to_whom;                     // 0x12  0 player, 1 sub character heals (sce_at clears it before use())
     u8 m_char;                    // 0x13  inventory type (num(id) / search count only this type)
+public:
     ItemWork* m_pItem;           // 0x14
-    ItemWork* pLast;            // 0x18  slot the last get() filled (puzzle PutInCase copies the piece position into it)
+    ItemWork* m_pNew;            // 0x18  slot the last get() filled (puzzle PutInCase copies the piece position into it)
     s32 m_array_num;                 // 0x1C
     ItemOrder* m_p_order_tbl;          // 0x20  ordering() result (merchant: sorted slots of one item id)
     s32 m_order_tbl_num;                 // 0x24  entries in pOrder
     u32 m_bonus_time;                    // 0x28  (sce_at: number shown with item 0x73; get(0x73, n): mercenaries add time)
     u32 m_bonus_point;                    // 0x2C  (sce_at: number shown with item 0x75; get(0x75, n): mercenaries bonus time)
 
+    ItemWork* newbie() { return m_pNew; }
+    void setToWhom(int who) { m_to_whom = who; }
+    s8 getToWhom() { return m_to_whom; }
+    ItemWork* weapon() { return m_pWep; }
+    u16 weaponId() { return m_wep_id; }
     void clear();
     int set_game(int trial_flag);
     int set_ada(int no);
@@ -169,6 +192,30 @@ int reload_main(ItemWork* pItem_A, ItemWork* pItem_B, int charge_num);
 u8 gld_order(u8 no);
 int gld_cmp(const void* a, const void* b);
 int order_cmp(const void* a, const void* b);
+}
+
+// Each reads one field of the ItemInfo that itemInfo() fills (type, defNum, maxNum: offsets 2, 3 and 4),
+// as the three free inlines of the original (an ItemInfo temp at every call site). Free inlines carry no
+// symbol, so these three identifiers are not recovered from the original.
+inline u8 itemType(ITEM_ID id)
+{
+    ItemInfo info;
+    itemInfo(id, &info);
+    return info.type;
+}
+
+inline u8 itemDefNum(ITEM_ID id)
+{
+    ItemInfo info;
+    itemInfo(id, &info);
+    return info.defNum;
+}
+
+inline u16 itemMaxNum(ITEM_ID id)
+{
+    ItemInfo info;
+    itemInfo(id, &info);
+    return info.maxNum;
 }
 
 extern u16 g_item_order[];

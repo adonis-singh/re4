@@ -149,7 +149,7 @@ static u8 g_bgR = 50;
 static u8 g_bgG = 50;
 static u8 g_bgB = 50;
 static int g_grid = 1;
-int g_work = 1;
+bool g_work = true;
 static int g_workEm = 1;
 static int g_modSk = 0;
 static int g_fog = 1;
@@ -6156,7 +6156,7 @@ void ToolEspMain()
     g_eventNo = 0;
     g_eventSNo = 0;
     g_work = 1;
-    EspToolInit(&g_work, &g_eventNo, &g_eventSNo);
+    EspToolInit(g_work, g_eventNo, g_eventSNo);
     g_lightTool = 0;
     g_exitReq = 0;
     g_camMode = 0;

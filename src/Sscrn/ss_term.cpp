@@ -66,7 +66,7 @@ int partnerType(int no);
 void termMotionSet(void* data, int no);
 void termMotionCancel(void* data, int no);
 void termModelAlloc(SUB_SCREEN* wk);
-void terminalCameraInit(SUB_SCREEN* wk, Camera* cam);
+void terminalCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 }
 
 // Packs 0..1 float components into an ARGB8 colour word (debug drawing helper).
@@ -513,7 +513,7 @@ void SsTermMain::OpeMdtSetSub(int mdtNo, void* seq, void* mes)
     ope.mdtNo = mdtNo;
     ope.seq = (TermSeq*) seq;
     ope.mes = mes;
-    MesData.setPtr(2, (u8*) mes);
+    MesData.registData(2, (u8*) mes);
     ope.seqIdx = 0;
     ope.mesWait = 0;
     ope.flags &= ~0x08000000;
@@ -591,11 +591,7 @@ int SsTermMain::OpeSeqMove(TermSeq* s)
     w->x18 = s->mesNo;
     if (s->arg == -1) {
         OpeSndStrStop();
-        MessageControl* m = &cMes;
-        int i = 0;
-        for (; i < 16; i++) {
-            m->Delete(i);
-        }
+        cMes.Clear();
         return 0;
     }
     OpeMesSet(s->mesNo, s->arg);
@@ -615,11 +611,7 @@ void SsTermMain::OpeMesSet(int no, int wait)
         IdUnit* u = IdSub.unitPtr(0xFE, IDC_SSCRN_NEAR_0);
         int x = (int) ((u->pos0.x + 320.0f) * 0.8f);
         int y = (int) ((240.0f - u->pos0.y) * 0.8f);
-        MessageControl* m = &cMes;
-        int i;
-        for (i = 0; i < 16; i++) {
-            m->Delete(i);
-        }
+        cMes.Clear();
         cMes.MesSet(no, x, y, 0x03000054, 0, 0, 4);
     }
     ope.mesNo = no;
@@ -793,7 +785,7 @@ void termModelAlloc(SUB_SCREEN* wk)
 }
 
 // Codec screen camera: eye at (0, 0, 2000) looking at the origin, 50 degree fov.
-void terminalCameraInit(SUB_SCREEN* wk, Camera* cam)
+void terminalCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     const f32 zero = 0.0f;
 
@@ -819,7 +811,7 @@ void terminalCameraInit(SUB_SCREEN* wk, Camera* cam)
 // follow terminalCameraInit's 1.3333334 in .rodata.
 static void screenPos2terminalPos(Vec* pos, Vec* out)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     f32 pz = cam->param.pos.z;
     f32 h = fabsf((f32) (pz * tan(cam->param.fovy * 0.5f * 3.1415927f / 180.0f)));
 
@@ -936,12 +928,8 @@ void SsTermMain::move(SUB_SCREEN* wk)
         } else {
             if (OpeMesMove() == 1 || (Key.trg & 0x20000000)) {
                 OpeSndStrStop();
-                MessageControl* m = &cMes;
-                int i = 0;
                 wk->close_flag |= 8;
-                for (; i < 16; i++) {
-                    m->Delete(i);
-                }
+                cMes.Clear();
                 transit(0, wk);
             }
         }

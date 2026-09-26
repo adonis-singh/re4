@@ -24,7 +24,7 @@ int cMapMgr::construct(cMap* pMap, u32 room_no)
     if (i < nArray) {
         do {
             cMap* q = getWork(i);
-            if ((q->be_flag & 0x201) == 1 && (int)room_no == q->id) {
+            if (q->isAlive() && (int)room_no == q->id) {
                 n++;
             }
         } while (++i < nArray);
@@ -44,7 +44,7 @@ cMap* cMapMgr::room(int id, int no)
     if (i < nArray) {
         do {
             cMap* p = getWork(i);
-            if ((p->be_flag & 0x201) == 1 && id == p->id && no == p->part) {
+            if (p->isAlive() && id == p->id && no == p->part) {
                 return p;
             }
         } while (++i < nArray);
@@ -61,7 +61,7 @@ void cMapMgr::move()
     if (i < nArray) {
         do {
             cMap* p = getWork(i);
-            if ((p->be_flag & 0x201) == 1) {
+            if (p->isAlive()) {
                 if (p->be_flag & 0x20) {
                     dieCheck();
                     p->move();
@@ -85,7 +85,7 @@ int cMapMgr::dispInfo()
     n = 0;
     for (i = 0; i < nArray; i++) {
         cMap* p = fastAt(i);
-        if ((p->be_flag & 0x201) == 1) {
+        if (p->isAlive()) {
             n++;
         }
     }
@@ -97,7 +97,8 @@ int cMapMgr::dispInfo()
 cMap::cMap()
 {
     kindid = 2;
-    be_flag |= 0x1023;
+    be_flag |= 0x23;
+    setNoClip(1);
 }
 
 // Stub: only advances r_no_0 once.

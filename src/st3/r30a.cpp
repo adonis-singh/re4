@@ -140,14 +140,14 @@ static void r30a_moveElevator(u32 dir)
             Vec pos;
 
             if (dir == 0) {
-                cSubChar* sub = pSUB;
+                cSubChar* sub = SUB_CHAR();
 
                 pos.x = 37950.0f;
                 pos.y = -3971.0f;
                 pos.z = 27640.0f;
                 sub->setPos(&pos);
             } else {
-                cSubChar* sub = pSUB;
+                cSubChar* sub = SUB_CHAR();
 
                 pos.x = 37950.0f;
                 pos.y = 7741.0f;
@@ -155,7 +155,7 @@ static void r30a_moveElevator(u32 dir)
                 sub->setPos(&pos);
             }
             {
-                cSubChar* pl = pSUB;
+                cSubChar* pl = SUB_CHAR();
                 cSceObj* elv = &r30a_work->elv;
 
                 if (pl) {
@@ -200,7 +200,7 @@ static void r30a_moveElevator(u32 dir)
     if (pSUB) {
         pSUB->setNoSuspend(0);
         {
-            cSubChar* pl = pSUB;
+            cSubChar* pl = SUB_CHAR();
             cSceObj* elv = &r30a_work->elv;
 
             if (pl) {

@@ -29,7 +29,7 @@ int cPlPush::catchCheck()
     m_Target = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
-        if ((em->be_flag & 0x201) != 1) {
+        if (!em->isAlive()) {
             continue;
         }
         if (em->id != 0x45) {
@@ -150,10 +150,7 @@ int cPlPush::pushTarget()
         ret = 1;
     }
     t = m_Target;
-    RotMatrix(t->l_mat, &t->ang);
-    TransMatrix(t->l_mat, &t->pos);
-    ScaleMatrix(t->l_mat, &t->scale);
-    PSMTXCopy(t->l_mat, t->mat);
+    t->matCalc();
     m_Target->partsWorldCalc();
     if (ret == 1) {
         m_Target->Motion.pMot = 0;

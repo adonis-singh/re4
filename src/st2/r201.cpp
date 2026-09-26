@@ -261,9 +261,9 @@ void r201_openShelf_main(int no, int opened)
             obj->ang.x = 1.5707964f;
             obj->ang.y = -0.39f;
             obj->ang.z = 0.0f;
-            obj->pParts->ang.x = 0.0f;
-            obj->pParts->ang.y = 0.0f;
-            obj->pParts->ang.z = 0.0f;
+            obj->pList->ang.x = 0.0f;
+            obj->pList->ang.y = 0.0f;
+            obj->pList->ang.z = 0.0f;
             obj->setPos(&obj->pos);
             obj->setAng(pa);
         }
@@ -280,9 +280,9 @@ void r201_openShelf_main(int no, int opened)
             obj->ang.x = -1.5707964f;
             obj->ang.y = -0.23f;
             obj->ang.z = 0.0f;
-            obj->pParts->ang.x = 0.0f;
-            obj->pParts->ang.y = 0.0f;
-            obj->pParts->ang.z = 0.0f;
+            obj->pList->ang.x = 0.0f;
+            obj->pList->ang.y = 0.0f;
+            obj->pList->ang.z = 0.0f;
             obj->setPos(&obj->pos);
             obj->setAng(pa);
         }
@@ -651,13 +651,13 @@ int r201_checkAltarObj()
     }
     switch ((u32) n) {
     case 0:
-        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         break;
     case 1:
-        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         break;
     case 2:
-        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         break;
     case 3:
         return 1;
@@ -1100,7 +1100,7 @@ static void r201_execEvent00()
         MemorySwap(m->pArc, (u32) r201_work->evd->m_addr, r201_work->evd->m_size);
         EvtMgr.SetEvt(m->pArc, &key);
         ((Event*) key)->StatusFlag |= EvtStfBit(EvtStfPlPosNoSet);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         MemorySwap(m->pArc, (u32) r201_work->evd->m_addr, r201_work->evd->m_size);

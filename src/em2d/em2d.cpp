@@ -223,7 +223,7 @@ static u8 em2d_tex_flag = 0xF;
 // Attack wait by difficulty: pG is reloaded after every store (reference stores).
 // A macro: an inline copies its constant arguments into pseudos at the call point (the parms
 // are not TREE_READONLY), and a 0 argument then becomes cse's zero for the following
-// EmRoutineSet stores; the target materialises `li 0` at the store and a fresh one for the routine.
+// setRno stores; the target materialises `li 0` at the store and a fresh one for the routine.
 #define em2dSetAtkWait(w, a, b, c, d, e)   \
     {                                      \
         ((w)->atkWait = a);           \
@@ -318,9 +318,9 @@ void Em2dInit(cEm* em)
 void em2dDmCk(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     YARARE_INFO* part;
-    cModel* p;
+    cParts* p;
     Vec pos;
     Vec dir;
     Mtx inv;
@@ -347,19 +347,19 @@ void em2dDmCk(cEm2d* em)
                     EmSetDie(em);
                     EmReserveDropItem(em);
                     if (w->flags & 0x20) {
-                        EmRoutineSet(em, 3, 3, 0, 0);
+                        em->setRno(3, 3, 0, 0);
                         return;
                     }
                     if (w->flags & 0x80) {
-                        EmRoutineSet(em, 3, 5, 0, 0);
+                        em->setRno(3, 5, 0, 0);
                     } else if (w->flags & 0x800) {
-                        EmRoutineSet(em, 3, 4, 0, 0);
+                        em->setRno(3, 4, 0, 0);
                     } else if (w->flags & 0x1010) {
-                        EmRoutineSet(em, 2, 3, 0, 0);
+                        em->setRno(2, 3, 0, 0);
                     } else if (w->flags & 0x400) {
-                        EmRoutineSet(em, 3, 2, 0, 0);
+                        em->setRno(3, 2, 0, 0);
                     } else {
-                        EmRoutineSet(em, 3, 1, 0, 0);
+                        em->setRno(3, 1, 0, 0);
                     }
                     return;
                 }
@@ -368,29 +368,29 @@ void em2dDmCk(cEm2d* em)
                         return;
                     }
                     w->dmgTotal = 0;
-                    EmRoutineSet(em, 2, 4, 0, 0);
+                    em->setRno(2, 4, 0, 0);
                     return;
                 }
                 if (w->flags & 0x80) {
-                    EmRoutineSet(em, 2, 6, 0, 0);
+                    em->setRno(2, 6, 0, 0);
                     return;
                 }
                 if (w->flags & 0x800) {
-                    EmRoutineSet(em, 2, 5, 0, 0);
+                    em->setRno(2, 5, 0, 0);
                     return;
                 }
                 if (w->flags & 0x1010) {
-                    EmRoutineSet(em, 2, 3, 0, 0);
+                    em->setRno(2, 3, 0, 0);
                     return;
                 }
                 if (w->flags & 0x400) {
-                    EmRoutineSet(em, 2, 2, 0, 0);
+                    em->setRno(2, 2, 0, 0);
                     return;
                 }
                 if (w->flags & 8) {
                     return;
                 }
-                EmRoutineSet(em, 2, 0, 0, 0);
+                em->setRno(2, 0, 0, 0);
                 return;
             }
             break;
@@ -549,19 +549,19 @@ void em2dDmCk(cEm2d* em)
         EmSetDie(em);
         EmReserveDropItem(em);
         if (w->flags & 0x20) {
-            EmRoutineSet(em, 3, 3, 0, 0);
+            em->setRno(3, 3, 0, 0);
             return;
         }
         if (w->flags & 0x80) {
-            EmRoutineSet(em, 3, 5, 0, 0);
+            em->setRno(3, 5, 0, 0);
             return;
         }
         if (w->flags & 0x800) {
-            EmRoutineSet(em, 3, 4, 0, 0);
+            em->setRno(3, 4, 0, 0);
             return;
         }
         if (w->flags & 0x1010) {
-            EmRoutineSet(em, 2, 3, 0, 0);
+            em->setRno(2, 3, 0, 0);
             return;
         }
         switch (em->dmg.m_Wep) {
@@ -585,23 +585,23 @@ void em2dDmCk(cEm2d* em)
         case 0x2B:
         default:
             if (w->flags & 0x400) {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
                 return;
             }
-            EmRoutineSet(em, 3, 1, 0, 0);
+            em->setRno(3, 1, 0, 0);
             return;
         case 7:
         case 8:
         case 0x21:
             if (w->flags & 0x400) {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
                 return;
             }
             if (near == 0) {
-                EmRoutineSet(em, 3, 1, 0, 0);
+                em->setRno(3, 1, 0, 0);
                 return;
             }
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
             return;
         case 5:
         case 6:
@@ -619,10 +619,10 @@ void em2dDmCk(cEm2d* em)
         case 0x2C:
         case 0x2D:
             if (w->flags & 0x400) {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
                 return;
             }
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
             return;
         }
     }
@@ -631,19 +631,19 @@ void em2dDmCk(cEm2d* em)
             return;
         }
         w->dmgTotal = 0;
-        EmRoutineSet(em, 2, 4, 0, 0);
+        em->setRno(2, 4, 0, 0);
         return;
     }
     if (w->flags & 0x80) {
-        EmRoutineSet(em, 2, 6, 0, 0);
+        em->setRno(2, 6, 0, 0);
         return;
     }
     if (w->flags & 0x800) {
-        EmRoutineSet(em, 2, 5, 0, 0);
+        em->setRno(2, 5, 0, 0);
         return;
     }
     if (w->flags & 0x1010) {
-        EmRoutineSet(em, 2, 3, 0, 0);
+        em->setRno(2, 3, 0, 0);
         return;
     }
     if (w->flags & 0x400) {
@@ -652,7 +652,7 @@ void em2dDmCk(cEm2d* em)
             if (Rnd() & 3) {
                 return;
             }
-            EmRoutineSet(em, 2, 2, 0, 0);
+            em->setRno(2, 2, 0, 0);
             return;
         case 7:
         case 8:
@@ -660,7 +660,7 @@ void em2dDmCk(cEm2d* em)
             if (near == 0) {
                 return;
             }
-            EmRoutineSet(em, 2, 2, 0, 0);
+            em->setRno(2, 2, 0, 0);
             return;
         case 0xD:
         case 0xE:
@@ -668,7 +668,7 @@ void em2dDmCk(cEm2d* em)
         case 0x12:
         case 0x13:
         case 0x2D:
-            EmRoutineSet(em, 2, 2, 0, 0);
+            em->setRno(2, 2, 0, 0);
             return;
         }
     }
@@ -695,9 +695,9 @@ void em2dDmCk(cEm2d* em)
         }
         w->dmgTotal = 0;
         if (Rnd() & 3) {
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         } else {
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
         }
         return;
     case 7:
@@ -710,13 +710,13 @@ void em2dDmCk(cEm2d* em)
         }
         w->dmgTotal = 0;
         if (Rnd() & 3) {
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
         } else {
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         }
         return;
     case 0xE:
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
         return;
     case 5:
     case 6:
@@ -734,11 +734,11 @@ void em2dDmCk(cEm2d* em)
     case 0x2D:
     default:
         w->dmgTotal = 0;
-        EmRoutineSet(em, 2, 1, 0, 0);
+        em->setRno(2, 1, 0, 0);
         return;
     case 0x17:
     case 0x2A:
-        EmRoutineSet(em, 2, 0, 0, 0);
+        em->setRno(2, 0, 0, 0);
         return;
     }
 }
@@ -775,7 +775,7 @@ void cEm2d::move()
     if (w->poisonWait) {
         w->poisonWait--;
     }
-    if (w->atkWait == 0 && EmDeadCk(pPL) && pG->Game_level <= 9) {
+    if (w->atkWait == 0 && pPL->dmg.isDamage() && pG->Game_level <= 9) {
         w->atkWait = 10;
     }
     if (w->atkCnt > 450) {
@@ -802,9 +802,9 @@ void cEm2d::move()
     if (w->catchGuard) {
         w->catchGuard--;
         dmg.m_Timer = 2;
-        AtariOff(at, 0xFCFF);
+        at->off();
         if (w->catchGuard == 0) {
-            AtariOn(at, 0x300);
+            at->on();
         }
     }
     partsWorldCalc();
@@ -902,12 +902,12 @@ void em2dInitRtnSet(cEm2d* em)
     switch (em->set) {
     case 0:
     default:
-        EmRoutineSet(em, 1, 1, 0, 1);
+        em->setRno(1, 1, 0, 1);
         MotionSetCore(em, &em->Motion, ARC(0x46), 0, 0, 5, 0);
         break;
     case 3:
         w->flags |= 0x200;
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
         MotionSetCore(em, &em->Motion, ARC(0x46), 0, 0, 5, 0);
         break;
     case 1:
@@ -915,7 +915,7 @@ void em2dInitRtnSet(cEm2d* em)
         w->spd.x = 0.0f;
         w->spd.y = 0.0f;
         w->spd.z = 0.0f;
-        EmRoutineSet(em, 1, 0x1C, 0, 0);
+        em->setRno(1, 0x1C, 0, 0);
         MotionSetCore(em, &em->Motion, ARC(0x5D), 0, 0, 5, 0);
         break;
     case 2: {
@@ -934,7 +934,7 @@ void em2dInitRtnSet(cEm2d* em)
         fy = SatMgr.getFloor(&em->pos, 0, 600.0f, 100000.0f, 0);
         w->homePos = em->pos;
         w->homePos.y = fy;  // the floor y overrides the copy (stfs after the copy's stw)
-        EmRoutineSet(em, 1, 0x27, 0, 0);
+        em->setRno(1, 0x27, 0, 0);
         MotionSetCore(em, &em->Motion, ARC(0x47), 0, 0, 5, 0);
         break;
     }
@@ -963,7 +963,7 @@ void em2dInitRtnSet(cEm2d* em)
         if (SatMgr.hitCheck(&a, &b, &hit, &nrm, 0, 0x383830)) {
             w->wallNrm = nrm;
             *pos = hit;
-            EmRoutineSet(em, one, 0, 0, 0);
+            em->setRno(one, 0, 0, 0);
             MotionSetCore(em, &em->Motion, ARC(0x46), 0, 0, 5, 0);
             em2dSetWallMatrix(em);
             MotionMove(em, 0);
@@ -972,7 +972,7 @@ void em2dInitRtnSet(cEm2d* em)
             w->spd.x = fz;
             w->spd.y = fz;
             w->spd.z = fz;
-            EmRoutineSet(em, one, 0x1C, 0, 0);
+            em->setRno(one, 0x1C, 0, 0);
             MotionSetCore(em, &em->Motion, ARC(0x5D), 0, 0, 5, 0);
         }
         break;
@@ -981,7 +981,7 @@ void em2dInitRtnSet(cEm2d* em)
         w->wallNrm.x = 0.0f;
         w->wallNrm.y = 1.0f;
         w->wallNrm.z = 0.0f;
-        EmRoutineSet(em, 1, 0x29, 0, 0);
+        em->setRno(1, 0x29, 0, 0);
         MotionSetCore(em, &em->Motion, ARC(0x48), 0, 0, 5, 0);
         break;
     }
@@ -1034,7 +1034,7 @@ static void em2d_R0_Init(cEm2d* em)
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 700.0f, 550.0f, 550.0f, 1000.0f, 1, 0x2000, 10);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     YarareInit(em, 0.0f, -50.0f, 0.0f, 210.0f, 100.0f, 6, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[0], 0.0f, 0.0f, 0.0f, 260.0f, 50.0f, 2, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[1], 0.0f, 0.0f, 0.0f, 260.0f, 200.0f, 3, YAT_FLAG_ON);
@@ -1050,10 +1050,7 @@ static void em2d_R0_Init(cEm2d* em)
     YarareAdd(em, &w->hit[10], 0.0f, -600.0f, 0.0f, 140.0f, 600.0f, 0x15, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[11], 0.0f, 0.0f, 0.0f, 210.0f, 50.0f, 0x1E, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[12], 0.0f, 0.0f, 0.0f, 210.0f, 50.0f, 0x1F, YAT_FLAG_ON);
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
-    em->lockParts = 0;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(4), EFF_EM2D, 0);
     EffEm2d_setTexRender(em);
     w->blendRatio = 0;
@@ -1103,7 +1100,7 @@ static void em2d_R1_R213NestWait(cEm2d* em)
 
     w->flags |= 0x20;
     em->setStatus(EM_STATUS_IK_OFF);
-    AtariOff(&em->atari, 0xFCFF);
+    em->atari.off();
     switch (em->r_no_2) {
     case 0:
         MotionSetCore(em, &em->Motion, ARC(0x46), 0, 30, 5, 0);
@@ -1135,7 +1132,7 @@ static void em2d_R1_R213NestWait(cEm2d* em)
         break;
     }
     if (em->hp <= 0) {
-        EmRoutineSet(em, 3, 3, 0, 0);
+        em->setRno(3, 3, 0, 0);
     }
 }
 
@@ -1167,9 +1164,9 @@ static void em2d_R1_Wait(cEm2d* em)
                 if (!(w->flags & 0x8000) && w->atkWait == 0 && em2dToCeilingCk(em) == 0 && em2dToAirCk(em) == 0 &&
                     (hit = em2dWallWalkCk(em)) == 0) {
                     if (w->targetAngAbs > 2.09439516f) {
-                        EmRoutineSet(em, 1, 3, hit, hit);
+                        em->setRno(1, 3, hit, hit);
                     } else {
-                        EmRoutineSet(em, 1, 2, hit, hit);
+                        em->setRno(1, 2, hit, hit);
                     }
                 }
             }
@@ -1182,7 +1179,7 @@ static void em2d_R1_Wait(cEm2d* em)
             w->lockCnt++;
             if (w->lockCnt > 5) {
                 if ((Rnd() & 3) == 0) {
-                    EmRoutineSet(em, 1, 4, 0, 0);
+                    em->setRno(1, 4, 0, 0);
                     return;
                 }
                 w->lockCnt = 0;
@@ -1243,7 +1240,7 @@ static void em2d_R1_Walk(cEm2d* em)
     if (w->flags & 0x8000) {
         if ((em->pos.x - w->homePos.x) * (em->pos.x - w->homePos.x) +
                 (em->pos.z - w->homePos.z) * (em->pos.z - w->homePos.z) < 4000000.0f) {
-            EmRoutineSet(em, 1, 1, hit, hit);
+            em->setRno(1, 1, hit, hit);
         }
         return;
     }
@@ -1252,7 +1249,7 @@ static void em2d_R1_Walk(cEm2d* em)
         w->lockCnt++;
         if (w->lockCnt > 5) {
             if ((Rnd() & 3) == 0) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
                 return;
             }
             w->lockCnt = 0;
@@ -1262,9 +1259,9 @@ static void em2d_R1_Walk(cEm2d* em)
     }
     if (w->atkWait) {
         if (em->l_pl < 2250000.0f && w->routeAngAbs < 0.785398185f) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         return;
     }
@@ -1274,11 +1271,11 @@ static void em2d_R1_Walk(cEm2d* em)
             if (em->l_pl < 4000000.0f && w->routeAngAbs < 0.785398185f) {
                 if (pG->Game_level <= 1 && (em->r_no_0 != 1 || em->r_no_1 != 1) && Rnd() % 10 > 4) {
                     w->atkWait = 30;
-                    EmRoutineSet(em, 1, 1, 0, 0);
+                    em->setRno(1, 1, 0, 0);
                     return;
                 }
                 if (!(w->flags & 0x200000)) {
-                    EmRoutineSet(em, 1, 6, 0, 0);
+                    em->setRno(1, 6, 0, 0);
                     return;
                 }
             }
@@ -1300,21 +1297,21 @@ static void em2d_R1_Walk(cEm2d* em)
                     default:
                         if (em->l_pl > 6250000.0f && em->l_pl < 12250000.0f && w->routeAngAbs < 0.785398185f &&
                             !(w->flags & 0x200000)) {
-                            EmRoutineSet(em, 1, 0xA, 0, 0);
+                            em->setRno(1, 0xA, 0, 0);
                             return;
                         }
                         break;
                     case 1:
                         if (em->l_pl > 9000000.0f && em->l_pl < 16000000.0f && w->routeAngAbs < 0.785398185f &&
                             !(w->flags & 0x200000)) {
-                            EmRoutineSet(em, 1, 7, 0, 0);
+                            em->setRno(1, 7, 0, 0);
                             return;
                         }
                         break;
                     case 2:
                         if (em->l_pl > 9000000.0f && em->l_pl < 16000000.0f && w->routeAngAbs < 0.785398185f &&
                             !(w->flags & 0x200000)) {
-                            EmRoutineSet(em, 1, 9, 0, 0);
+                            em->setRno(1, 9, 0, 0);
                             return;
                         }
                         break;
@@ -1340,7 +1337,7 @@ next:
             w->wallNrm.x = 0.0f;
             w->wallNrm.y = 1.0f;
             w->wallNrm.z = 0.0f;
-            EmRoutineSet(em, 1, 0x15, hit, hit);
+            em->setRno(1, 0x15, hit, hit);
             return;
         }
     }
@@ -1353,7 +1350,7 @@ next:
         d.z = 1.0f;
         PSMTXMultVecSR(em->mat, &d, &d);
         em->ang.y = atan2f(d.x, d.z);
-        EmRoutineSet(em, 1, 5, 0, 0);
+        em->setRno(1, 5, 0, 0);
         return;
     }
     w->atkCnt++;
@@ -1396,9 +1393,9 @@ static void em2d_R1_Turn180(cEm2d* em)
         }
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -1453,14 +1450,14 @@ static void em2d_R1_SideStep(cEm2d* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
             break;
         }
         if ((em->Motion.Seq_old.Free & 1) && !(em->flag & 0x40000000)) {
-            cModel* p = em->getPartsPtr(0);
+            cParts* p = em->getPartsPtr(0);
             RotMatrix(m, &em->ang);
             TransMatrix(m, &p->world);
             // The whole probe is written in both arms (jump2 cross-jumps everything from `addi &b` on; the arms
@@ -1505,7 +1502,7 @@ static void em2d_R1_SideStep(cEm2d* em)
         em->setStatus(EM_STATUS_IK_OFF);
         em2dSetWallMatrix(em);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x15, 0, 0);
+            em->setRno(1, 0x15, 0, 0);
         }
         break;
     }
@@ -1530,7 +1527,7 @@ static void em2d_R1_BackJump(cEm2d* em)
         em2dGravityMove(em, w);
         if (MotionMove(em, 0)) {
             em2dSetAtkWait(w, 100, 75, 60, 30, 0);
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -1576,9 +1573,9 @@ static void em2d_R1_Atk(cEm2d* em)
             }
             em2dSetAtkWaitR(w, 100, 75, 60, 45, 30);
             if (w->atkHit) {
-                EmRoutineSet(em, 1, 5, 0, 1);
+                em->setRno(1, 5, 0, 1);
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
             break;
         }
@@ -1630,7 +1627,7 @@ static void em2d_R1_AtkPoison(cEm2d* em)
         }
         if (MotionMove(em, 0)) {
             em2dSetAtkWaitR(w, 100, 75, 60, 45, 30);
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             break;
         }
         if (em->Motion.Seq_old.Free & 1) {
@@ -1677,7 +1674,7 @@ static void em2d_R1_CriticalAtk(cEm2d* em)
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
             em2dSetAtkWaitR(w, 100, 75, 60, 45, 30);
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             break;
         }
         if ((em->Motion.Seq_old.Free & 1) && w->atkHit == 0) {
@@ -1728,7 +1725,7 @@ static void em2d_R1_JumpSign(cEm2d* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0) || (em->Motion.Seq_old.Free & 4)) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         }
         break;
     }
@@ -1803,7 +1800,7 @@ static void em2d_R1_JumpAtk(cEm2d* em)
             if (pG->Game_level == 10) {
                 w->atkWait = 30;
             }
-            EmRoutineSet(em, 1, 1, fe, fe);
+            em->setRno(1, 1, fe, fe);
         }
         break;
     }
@@ -1897,7 +1894,7 @@ static void em2d_R1_JumpAtkHit(cEm2d* em)
             if (pG->Game_level == 10) {
                 w->atkWait = 30;
             }
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     case 6:
@@ -2192,7 +2189,7 @@ static void em2d_R1_JumpKickHit(cEm2d* em)
             if (pG->Game_level == 10) {
                 w->atkWait = 30;
             }
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -2261,7 +2258,7 @@ static void em2d_R1_JumpAtkCounter(cEm2d* em)
         if (MotionMove(em, 0)) {
             LifeDownSet(em, 100, 0);
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
             } else {
                 w->jumpWait = Rnd() % 150 + 150;  // reference store: the pG load stays below it
                 w->atkWait = 100;
@@ -2277,7 +2274,7 @@ static void em2d_R1_JumpAtkCounter(cEm2d* em)
                 if (pG->Game_level == 10) {
                     w->atkWait = 0;
                 }
-                EmRoutineSet(em, 1, 0xE, 0, 0);
+                em->setRno(1, 0xE, 0, 0);
             }
             break;
         }
@@ -2314,11 +2311,11 @@ static void em2dKickAction(cEm2d* em)
     if (pSUB && pSUB->l_pl < 9000000.0f) {
         cDmgInfo* d = &pSUB->dmg;  // &pSUB->dmg is computed before the dead test
 
-        if (!EmDeadCk(pSUB)) {
+        if (!pSUB->dmg.isDamage()) {
             d->set(0, 30);
         }
     }
-    EmRoutineSet(em, 1, 0xD, 0, 0);
+    em->setRno(1, 0xD, 0, 0);
     GameAddPoint(LVADD_CRITICALHIT);
 }
 
@@ -2381,7 +2378,7 @@ static void em2d_R1_WakeupWait(cEm2d* em)
         if (w->wakeWait) {
             w->wakeWait--;
         } else if ((hit = em2dDownJumpCk(em)) == 0) {
-            EmRoutineSet(em, 1, 0xF, hit, hit);
+            em->setRno(1, 0xF, hit, hit);
         }
         break;
     }
@@ -2409,11 +2406,11 @@ static void em2d_R1_Wakeup(cEm2d* em)
             w->dmgTotal = zero;
             hit = em2dLockCk(em);
             if (hit) {
-                EmRoutineSet(em, 1, 4, zero, zero);
+                em->setRno(1, 4, zero, zero);
             } else if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, hit, hit);
+                em->setRno(1, 3, hit, hit);
             } else {
-                EmRoutineSet(em, 1, 2, hit, hit);
+                em->setRno(1, 2, hit, hit);
             }
         }
         break;
@@ -2477,9 +2474,9 @@ static void em2d_R1_DownJump(cEm2d* em)
             w->wallNrm.y = -1.0f;
             w->wallNrm.z = 0.0f;
             if (plPos.z < -500.0f) {
-                EmRoutineSet(em, 1, 0x18, 0, 0);
+                em->setRno(1, 0x18, 0, 0);
             }
-            EmRoutineSet(em, 1, 0x15, 0, 0);
+            em->setRno(1, 0x15, 0, 0);
         }
         break;
     }
@@ -2541,9 +2538,9 @@ static void em2d_R1_ToCeiling(cEm2d* em)
             w->wallNrm.y = -1.0f;
             w->wallNrm.z = 0.0f;
             if (plPos.z < -500.0f) {
-                EmRoutineSet(em, 1, 0x18, 0, 0);
+                em->setRno(1, 0x18, 0, 0);
             }
-            EmRoutineSet(em, 1, 0x15, 0, 0);
+            em->setRno(1, 0x15, 0, 0);
         }
         break;
     }
@@ -2592,7 +2589,7 @@ static void em2d_R1_JumpDown(cEm2d* em)
             em->pos.y = fl;
             if (fl <= -99000.0f) {
                 em->be_flag |= 0x10000;
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
                 break;
             }
             em->r_no_2++;
@@ -2605,9 +2602,9 @@ static void em2d_R1_JumpDown(cEm2d* em)
     case 5:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -2653,9 +2650,9 @@ static void em2d_R1_WallOver(cEm2d* em)
             PSMTXMultVecSR(em->mat, &d, &d);
             em->ang.y = atan2f(d.x, d.z);
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, t, t);
+                em->setRno(1, 3, t, t);
             } else {
-                EmRoutineSet(em, 1, 2, t, t);
+                em->setRno(1, 2, t, t);
             }
         }
         break;
@@ -2686,9 +2683,9 @@ static void em2d_R1_W_Wait(cEm2d* em)
                 w->flags |= 0x200;
             }
         } else if (w->atkWait == 0) {
-            EmRoutineSet(em, 1, 0x15, 0, 0);
+            em->setRno(1, 0x15, 0, 0);
         } else if (plPos.z < -8000.0f) {
-            EmRoutineSet(em, 1, 0x18, 0, 0);
+            em->setRno(1, 0x18, 0, 0);
         }
         break;
     }
@@ -2759,7 +2756,7 @@ static void em2d_R1_W_Walk(cEm2d* em)
                 alpha = ny;
                 if (ny > 0.899999976f || ({ asm("" : "=m"(inv[0][0]) : "f"(nyd)); alpha; }) < -0.899999976f) {
                     w->atkWait = Rnd() % 30 + 30;
-                    EmRoutineSet(em, 1, 0x14, t, t);
+                    em->setRno(1, 0x14, t, t);
                     break;
                 }
             }
@@ -2775,45 +2772,45 @@ static void em2d_R1_W_Walk(cEm2d* em)
                     d.z = 1.0f;
                     PSMTXMultVecSR(em->mat, &d, &d);
                     em->ang.y = atan2f(d.x, d.z);
-                    EmRoutineSet(em, 1, 6, t, t);
+                    em->setRno(1, 6, t, t);
                     break;
                 }
             } else if (em->l_pl < 250000.0f && alpha < -0.899999976f) {
                 if (fabsf(em->pos.y - pPL->pos.y) < 4000.0f) {
-                    EmRoutineSet(em, 1, 0x17, 0, 0);
+                    em->setRno(1, 0x17, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 0x19, 0, 0);
+                    em->setRno(1, 0x19, 0, 0);
                 }
                 break;
             } else if (alpha < -0.899999976f || (alpha > -0.100000001f && alpha < 0.100000001f)) {
-                EmRoutineSet(em, 1, 0x16, 0, 0);
+                em->setRno(1, 0x16, 0, 0);
                 break;
             }
         }
         if (alpha < -0.899999976f && em->l_pl < 250000.0f) {
             if (fabsf(em->pos.y - pPL->pos.y) < 4000.0f && Rnd() % 10 > 4) {
-                EmRoutineSet(em, 1, 0x17, 0, 0);
+                em->setRno(1, 0x17, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x19, 0, 0);
+                em->setRno(1, 0x19, 0, 0);
             }
         } else if (w->flags & 0x2000) {
-            EmRoutineSet(em, 1, 0x19, 0, 0);
+            em->setRno(1, 0x19, 0, 0);
         } else {
             t = w->flags & 0x8000;
             if (t) {
-                EmRoutineSet(em, 1, 0x19, 0, 0);
+                em->setRno(1, 0x19, 0, 0);
                 break;
             }
             if (plPos.z < -8000.0f) {
-                EmRoutineSet(em, 1, 0x18, t, t);
+                em->setRno(1, 0x18, t, t);
             }
             r = em2dNoWallCk(em);
             if (r) {
-                EmRoutineSet(em, 1, 0x19, t, t);
+                em->setRno(1, 0x19, t, t);
             } else {
                 int f = em2dWallFallCk(em);
                 if (f) {
-                    EmRoutineSet(em, 1, 0x19, r, r);
+                    em->setRno(1, 0x19, r, r);
                 } else if (w->wallNrm.y > 0.899999976f && em->l_pl < 1440000.0f &&
                            fabsf(em->mat[1][3] - pPL->pos.y) < 500.0f && w->routeAngAbs > 1.04719758f &&
                            w->routeAngAbs < 1.91986215f) {
@@ -2822,7 +2819,7 @@ static void em2d_R1_W_Walk(cEm2d* em)
                     d.z = 1.0f;
                     PSMTXMultVecSR(em->mat, &d, &d);
                     em->ang.y = atan2f(d.x, d.z);
-                    EmRoutineSet(em, 1, 5, f, f);
+                    em->setRno(1, 5, f, f);
                 }
             }
         }
@@ -2880,9 +2877,9 @@ static void em2d_R1_W_Atk(cEm2d* em)
             }
             if (w->atkHit) {
                 em2dSetAtkWait(w, 100, 75, 60, 45, 30);
-                EmRoutineSet(em, 1, 0x14, 0, 0);
+                em->setRno(1, 0x14, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x15, 0, 0);
+                em->setRno(1, 0x15, 0, 0);
             }
             break;
         }
@@ -2944,7 +2941,7 @@ static void em2d_R1_W_AtkPoison(cEm2d* em)
         end = MotionMove(em, 0);
         if (end) {
             em2dSetAtkWaitR(w, 100, 75, 60, 45, 30);
-            EmRoutineSet(em, 1, 0x14, 0, 0);
+            em->setRno(1, 0x14, 0, 0);
         } else if (em->Motion.Seq_frame > 22.7000008f && em->Motion.Seq_frame < 23.2999992f) {
             EstSet(em, -1, 0, 0, EFF_EM2D, 9, 0, ESP_CORE_KIND_NONE, em, (void*) end);
             em2dSetPoison(em, 1);
@@ -2974,7 +2971,7 @@ static void em2d_R1_W_Turn180(cEm2d* em)
         MotionAddSpeed(em, &em->Motion, &spd, &rot);
         em2dSetWallMatrix2(em, 0.4f);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x14, 0, 0);
+            em->setRno(1, 0x14, 0, 0);
         }
         break;
     }
@@ -2993,7 +2990,7 @@ static void em2d_R1_W_Turn180(cEm2d* em)
         (em)->pos.y = fl_;                                                                     \
         if (fl_ <= -99000.0f) {                                                                \
             (em)->be_flag |= 0x10000;                                                          \
-            EmRoutineSet(em, 3, 0, 0, 0);                                                      \
+            em->setRno(3, 0, 0, 0);                                                      \
         } else {                                                                               \
             v_.x = 0.0f;                                                                       \
             v_.y = 0.0f;                                                                       \
@@ -3095,9 +3092,9 @@ static void em2d_R1_W_Fall(cEm2d* em)
         w->flags &= ~0x40;
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -3120,7 +3117,7 @@ static void em2d_R1_ToAir(cEm2d* em)
         }
         MotionMove(em, 0);
         if (em->Motion.Seq_old.Free & 1) {
-            EmRoutineSet(em, 1, 0x1D, 0, 10);
+            em->setRno(1, 0x1D, 0, 10);
         }
         break;
     }
@@ -3151,7 +3148,7 @@ static void em2d_R1_ToGround(cEm2d* em)
             em->pos.y = fl;
             if (fl <= -99000.0f) {
                 em->be_flag |= 0x10000;
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
                 break;
             }
             em->r_no_2++;
@@ -3164,9 +3161,9 @@ static void em2d_R1_ToGround(cEm2d* em)
     case 3:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -3226,16 +3223,16 @@ static void em2d_R1_A_Wait(cEm2d* em)
             if (w->flags & 0x200) {
                 if (em->pos.y < pPL->pos.y && em->l_pl > 9000000.0f && (hit = Rnd() & 3) == 0 &&
                     Em2dGetCeiling(em) > em->pos.y + 4000.0f) {
-                    EmRoutineSet(em, 1, 0x20, hit, hit);
+                    em->setRno(1, 0x20, hit, hit);
                     break;
                 }
                 int h2;
                 if (em->pos.y > pPL->pos.y + 3000.0f && em->l_pl > 9000000.0f && (h2 = Rnd() & 3) == 0) {
-                    EmRoutineSet(em, 1, 0x21, h2, h2);
+                    em->setRno(1, 0x21, h2, h2);
                     break;
                 }
             }
-            EmRoutineSet(em, 1, 0x1F, 0, 0);
+            em->setRno(1, 0x1F, 0, 0);
             break;
         } else {
             em2dFindCk(em);
@@ -3262,12 +3259,12 @@ static void em2d_R1_A_Wait(cEm2d* em)
         if (w->lockCnt > 15) {
             if ((Rnd() & 1) && em->pos.y > SatMgr.getFloor(&em->pos, 0, 600.0f, 100000.0f, 0) + 2000.0f &&
                 em->pos.y > pPL->pos.y + 1000.0f && (Rnd() & 1) && em->l_pl < 9000000.0f) {
-                EmRoutineSet(em, 1, 0x21, 0, 0);
+                em->setRno(1, 0x21, 0, 0);
             } else if ((Rnd() & 1) && em->pos.y < pPL->pos.y + 5000.0f && em->l_pl > 9000000.0f && (Rnd() & 1) &&
                        Em2dGetCeiling(em) > em->pos.y + 4000.0f) {
-                EmRoutineSet(em, 1, 0x20, 0, 0);
+                em->setRno(1, 0x20, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x1F, 0, 0);
+                em->setRno(1, 0x1F, 0, 0);
             }
             return;
         }
@@ -3277,9 +3274,9 @@ static void em2d_R1_A_Wait(cEm2d* em)
     }
     if (em->l_pl < 16000000.0f && w->routeAngAbs < 0.34906584f && em->pos.y - pPL->pos.y < 1000.0f) {
         if ((Rnd() & 1) && em->l_pl > 12250000.0f) {
-            EmRoutineSet(em, 1, 0x23, 0, 0);
+            em->setRno(1, 0x23, 0, 0);
         } else {
-            EmRoutineSet(em, 1, 0x24, 0, 0);
+            em->setRno(1, 0x24, 0, 0);
         }
     }
 }
@@ -3716,7 +3713,7 @@ static void em2d_R1_A_CatchHit(cEm2d* em)
         MotionAddSpeed(em, &em->Motion, &spd, &rot);
         if (MotionMove(em, 0)) {
             em->atari.setPriority(0);
-            EmRoutineSet(em, 1, 0x1E, 0, 0);
+            em->setRno(1, 0x1E, 0, 0);
         }
         break;
     case 4:
@@ -3729,7 +3726,7 @@ static void em2d_R1_A_CatchHit(cEm2d* em)
                 em->atari.setPriority(0);
                 w->jumpWait = Rnd() % 150 + 150;
                 w->atkWait = 75;
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         } while (0);
         break;
@@ -3778,7 +3775,7 @@ static void em2d_R1_A_CatchHit(cEm2d* em)
         MotionAddSpeed(em, &em->Motion, &spd, &rot);
         if (MotionMove(em, 0)) {
             em->atari.setPriority(0);
-            EmRoutineSet(em, 1, 0x1E, 0, 0);
+            em->setRno(1, 0x1E, 0, 0);
         }
         break;
     }
@@ -3898,7 +3895,7 @@ static void em2d_R1_C_Wait(cEm2d* em)
         t = em->flag & 1;
         if (t) {
             w->flags |= 0x200;
-            EmRoutineSet(em, 1, 0x28, 0, 0);
+            em->setRno(1, 0x28, 0, 0);
             break;
         }
         range = 9000000.0f;
@@ -3907,7 +3904,7 @@ static void em2d_R1_C_Wait(cEm2d* em)
         }
         if (em->l_pl < range) {
             w->flags |= 0x200;
-            EmRoutineSet(em, 1, 0x28, t, t);
+            em->setRno(1, 0x28, t, t);
         }
         break;
     }
@@ -3952,7 +3949,7 @@ static void em2d_R1_C_Fall(cEm2d* em)
             em->pos.y = fl;
             if (fl <= -99000.0f) {
                 em->be_flag |= 0x10000;
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
                 break;
             }
             d.x = 0.0f;
@@ -3982,9 +3979,9 @@ static void em2d_R1_C_Fall(cEm2d* em)
     case 5:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -4049,7 +4046,7 @@ static void em2d_R1_Dm_Normal(cEm2d* em)
                     if (air) {
                         break;
                     }
-                    EmRoutineSet(em, 1, 4, air, air);
+                    em->setRno(1, 4, air, air);
                 }
                 break;
             }
@@ -4062,9 +4059,9 @@ static void em2d_R1_Dm_Normal(cEm2d* em)
                 }
             }
             if (w->targetAngAbs > 2.09439516f) {
-                EmRoutineSet(em, 1, 3, hit, hit);
+                em->setRno(1, 3, hit, hit);
             } else {
-                EmRoutineSet(em, 1, 2, hit, 1);
+                em->setRno(1, 2, hit, 1);
             }
         }
         break;
@@ -4101,9 +4098,9 @@ static void em2d_R1_Dm_Blow(cEm2d* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (em->hp <= 0) {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0xE, 0, 0);
+                em->setRno(1, 0xE, 0, 0);
             }
         }
         break;
@@ -4127,7 +4124,7 @@ static void em2d_R1_Dm_Down(cEm2d* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0) && (hit = em2dDownJumpCk(em)) == 0) {
-            EmRoutineSet(em, 1, 0xF, hit, hit);
+            em->setRno(1, 0xF, hit, hit);
         }
         break;
     }
@@ -4149,7 +4146,7 @@ static void em2d_R1_Dm_Down(cEm2d* em)
             (em)->pos.y = fl_;                                                                 \
             if (fl_ <= -99000.0f) {                                                            \
                 (em)->be_flag |= 0x10000;                                                      \
-                EmRoutineSet(em, 3, 0, 0, 0);                                                  \
+                em->setRno(3, 0, 0, 0);                                                  \
             } else {                                                                           \
                 v_.x = 0.0f;                                                                   \
                 v_.y = 0.0f;                                                                   \
@@ -4221,9 +4218,9 @@ static void em2d_R1_Dm_Jump(cEm2d* em)
         w->flags &= ~0x40;
         if (MotionMove(em, 0)) {
             if (em->hp > 0) {
-                EmRoutineSet(em, 1, 0xE, 0, 0);
+                em->setRno(1, 0xE, 0, 0);
             } else {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
             }
         }
         break;
@@ -4262,9 +4259,9 @@ static void em2d_R1_Dm_Wall(cEm2d* em)
         w->flags &= ~0x40;
         if (MotionMove(em, 0)) {
             if (em->hp > 0) {
-                EmRoutineSet(em, 1, 0xE, 0, 0);
+                em->setRno(1, 0xE, 0, 0);
             } else {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
             }
         }
         break;
@@ -4304,7 +4301,7 @@ static void em2d_R1_Dm_Air(cEm2d* em)
             em->pos.y = fl;
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x1F, 0, 0);
+            em->setRno(1, 0x1F, 0, 0);
         }
         break;
     }
@@ -4316,7 +4313,7 @@ static void em2d_R1_Dm_Ceiling(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
     Vec d;
-    cModel* p;
+    cParts* p;
     f32 fl;
     int end;
 
@@ -4337,7 +4334,7 @@ static void em2d_R1_Dm_Ceiling(cEm2d* em)
             em->pos.y = fl;
             if (fl <= -99000.0f) {
                 em->be_flag |= 0x10000;
-                EmRoutineSet(em, 3, 0, 0, 0);
+                em->setRno(3, 0, 0, 0);
                 break;
             }
             d.x = 0.0f;
@@ -4368,9 +4365,9 @@ static void em2d_R1_Dm_Ceiling(cEm2d* em)
     case 5:
         if (MotionMove(em, 0)) {
             if (em->hp > 0) {
-                EmRoutineSet(em, 1, 0xE, 0, 0);
+                em->setRno(1, 0xE, 0, 0);
             } else {
-                EmRoutineSet(em, 3, 2, 0, 0);
+                em->setRno(3, 2, 0, 0);
             }
         }
         break;
@@ -4395,7 +4392,7 @@ static void em2d_R1_Die_Lost(cEm2d* em)
 
     switch (fe) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->hp = fe;
         EmSetDie(em);
         EmReserveDropItem(em);
@@ -4464,7 +4461,7 @@ static void em2d_R1_Die_Normal(cEm2d* em)
         }
         w->turnAng -= 15.0f;
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
         }
         break;
     }
@@ -4495,7 +4492,7 @@ static void em2d_R1_Die_Down(cEm2d* em)
         }
         w->turnAng -= 15.0f;
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 3, 0, 0, 0);
+            em->setRno(3, 0, 0, 0);
         }
         break;
     }
@@ -4565,7 +4562,7 @@ static void em2d_R1_Die_Wall(cEm2d* em)
     case 3:
         w->flags &= ~0x40;
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 3, 2, 0, 0);
+            em->setRno(3, 2, 0, 0);
         }
         break;
     }
@@ -4608,7 +4605,7 @@ static void em2d_R1_Die_Air(cEm2d* em)
     case 5:
         w->flags &= ~0x40;
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 3, 2, 0, 0);
+            em->setRno(3, 2, 0, 0);
         }
         break;
     }
@@ -4643,7 +4640,7 @@ static void em2d_R1_Die_Ceiling(cEm2d* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 3, 2, 0, 0);
+            em->setRno(3, 2, 0, 0);
         }
         break;
     }
@@ -4787,7 +4784,7 @@ int em2dAtkCk(cEm2d* em, int no, int parts)
 {
     Em2dWork* w = EM2D_WK(em);
     EmAtkInfo* atk;
-    cModel* p;
+    cParts* p;
     int hit;
 
     if (w->atkHit) {
@@ -4850,7 +4847,7 @@ void em2dScaleCompress(cEm2d* em)
     Em2dWork* w = EM2D_WK(em);
     Mtx m;
     Vec scale;
-    cModel* p;
+    cParts* p;
 
     if (em->r_no_0 != 3) {
         return;
@@ -4863,7 +4860,7 @@ void em2dScaleCompress(cEm2d* em)
     scale.y = w->Compress_y;
     scale.z = 1.0f;
     ScaleMatrix(m, &scale);
-    for (p = em->pParts; p; p = p->pParts) {
+    for (p = em->pList; p; p = p->pList) {
         PSMTXConcat(m, p->mat, p->mat);
         p->mat[0][3] = p->world.x;
         p->mat[1][3] = p->world.y;
@@ -5272,7 +5269,7 @@ int em2dCatchCk(cEm2d* em)
     Mtx inv;
     Vec pos;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -5311,7 +5308,7 @@ int em2dAirCatchCk(cEm2d* em)
     Mtx inv;
     Vec pos;
 
-    if (EmDeadCk(pPL)) {
+    if (pPL->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -5349,7 +5346,7 @@ int em2dFallCatchCk(cEm2d* em)
     cDmgInfo* dm = &pl->dmg;
     f32 dy;
 
-    if (EmDeadCk(pl)) {
+    if (pl->dmg.isDamage()) {
         return 0;
     }
     if ((s16) pG->pl_life <= 0) {
@@ -5380,7 +5377,7 @@ int em2dFallCatchCk(cEm2d* em)
 int em2dCamMove(cEm2d* em, int mode, f32 rate)
 {
     Em2dWork* w = EM2D_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec pos;
     Vec at;
     Vec hit;
@@ -5474,7 +5471,7 @@ int em2dCamMove(cEm2d* em, int mode, f32 rate)
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     w->cam.param.fovy = 50.0f;
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
     return blocked ^ 1;
 }
 
@@ -5499,7 +5496,7 @@ void em2dDieCamMove(cEm2d* em)
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     w->cam.param.fovy = 50.0f;
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // 1 when this insect may approach: fewer than three visible ones are already nearer to the player, or
@@ -5512,7 +5509,7 @@ int em2dStayCk(cEm2d* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
+        if (e->isAlive() && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
             (EM2D_WK(e)->flags & 0x200) && e->l_pl < em->l_pl) {
             cnt++;
         }
@@ -5533,7 +5530,7 @@ int em2dCrashCk(cEm2d* em)
     Vec out;
     int zero;
 
-    if (EmDeadCk(em)) {
+    if (em->dmg.isDamage()) {
         return 0;
     }
     if (em->hp <= 0) {
@@ -5555,7 +5552,7 @@ int em2dCrashCk(cEm2d* em)
     if (DmgMgr.hitCheck(&em->pos, &out) != DMG_TYPE_PUSH) {
         return 0;
     }
-    EmRoutineSet(em, 2, 1, zero, zero);
+    em->setRno(2, 1, zero, zero);
     return 1;
 }
 
@@ -5566,7 +5563,7 @@ void em2dPlHeadLost()
     Vec ofs;
     Vec spd;
     Vec rot;
-    cModel* p3;
+    cParts* p3;
     cObj* obj;
     int zero;
 
@@ -5613,7 +5610,7 @@ void em2dSetPoison(cEm2d* em, int type)
 {
     cObj* obj;
     EmAtkInfo* atk;
-    cModel* p;
+    cParts* p;
     Vec spd;
 
     SndStop(EM2D_WK(em)->sndId, 0);
@@ -5655,7 +5652,7 @@ f32 em2dGetPlDir(cEm2d* em, Vec* pos)
         (w)->wallNrm.x = 0.0f;          \
         (w)->wallNrm.y = 1.0f;          \
         (w)->wallNrm.z = 0.0f;          \
-        EmRoutineSet(em, 1, 0x15, 0, 1); \
+        em->setRno(1, 0x15, 0, 1); \
         (w)->wallTarget = hit;          \
     }
 
@@ -5750,7 +5747,7 @@ void em2dDoorOpenCk(cEm2d* em)
         cEmDoor* e = (cEmDoor*) EmMgr.fastAt(i);
         EmDoorWork* dw;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x41) {
@@ -5802,8 +5799,8 @@ void em2dDoorOpenCk(cEm2d* em)
 void em2dFootSeMove(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p;
-    cModel* p0;
+    cParts* p;
+    cParts* p0;
     Vec pos;
     int parts;
     u32 no;
@@ -5871,9 +5868,9 @@ void em2dFootSeMove(cEm2d* em)
 void em2dSetdLandingEff(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
     Vec pos;
-    cModel* p;
+    cParts* p;
 
     if ((w->flags & 0x80000) && (pG->room_id == 0x205 || pG->room_id == 0x21D)) {
         SndCall(8, 0x2E, &em->pos, em->id, 0, em);
@@ -5899,7 +5896,7 @@ void em2dSetdLandingEff(cEm2d* em)
 void em2dSetDownEff(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
 
     if (ChkWaterEffectEnable(&em->pos)) {
         SndCall(8, 2, &p0->world, 0, 0, em);
@@ -5918,7 +5915,7 @@ void em2dSetDownEff(cEm2d* em)
 void em2dSetJumpEff(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    cModel* p0 = em->getPartsPtr(0);
+    cParts* p0 = em->getPartsPtr(0);
 
     if (ChkWaterEffectEnable(&em->pos)) {
         SndCall(8, 2, &p0->world, 0, 0, em);
@@ -5944,7 +5941,7 @@ int em2dFallCk(cEm2d* em)
     w->wallNrm.x = 0.0f;
     w->wallNrm.y = 1.0f;
     w->wallNrm.z = 0.0f;
-    EmRoutineSet(em, 1, 0x19, 0, 0);
+    em->setRno(1, 0x19, 0, 0);
     return 1;
 }
 
@@ -5973,7 +5970,7 @@ int em2dDownJumpCk(cEm2d* em)
     if (SatMgr.hitCheck(&a, &b, 0, 0, 0, 0x383830) == 0) {
         return 0;
     }
-    EmRoutineSet(em, 1, 0x10, r, r);
+    em->setRno(1, 0x10, r, r);
     return 1;
 }
 
@@ -6001,7 +5998,7 @@ int em2dToCeilingCk(cEm2d* em)
     if (SatMgr.hitCheck(&a, &b, 0, 0, 0, 0x383830) == 0) {
         return 0;
     }
-    EmRoutineSet(em, 1, 0x11, r, r);
+    em->setRno(1, 0x11, r, r);
     return 1;
 }
 
@@ -6016,7 +6013,7 @@ int em2dToAirCk(cEm2d* em)
     if (em->set != 1) {
         return 0;
     }
-    EmRoutineSet(em, em->set, 0x1A, r, r);
+    em->setRno(em->set, 0x1A, r, r);
     return 1;
 }
 
@@ -6039,7 +6036,7 @@ int em2dToGround(cEm2d* em)
     if (em->pos.y > SatMgr.getFloor(&em->pos, 0, 600.0f, 100000.0f, 0) + 2000.0f) {
         return 0;
     }
-    EmRoutineSet(em, set, 0x1B, r, r);
+    em->setRno(set, 0x1B, r, r);
     return 1;
 }
 
@@ -6150,7 +6147,7 @@ int em2dJumpDownCk(cEm2d* em)
         return 0;
     }
     w->jumpAng = ang;
-    EmRoutineSet(em, 1, 0x12, 0, 0);
+    em->setRno(1, 0x12, 0, 0);
     return 1;
 }
 
@@ -6187,7 +6184,7 @@ int em2dWallOverCk(cEm2d* em)
         return 0;
     }
     w->jumpAng = ang;
-    EmRoutineSet(em, 1, 0x13, zero, zero);
+    em->setRno(1, 0x13, zero, zero);
     return 1;
 }
 
@@ -6203,7 +6200,7 @@ void em2dAirNextRtnSet(cEm2d* em)
     int r;
 
     if (w->flags & 0x8000) {
-        EmRoutineSet(em, 1, 0x1D, 0, 0);
+        em->setRno(1, 0x1D, 0, 0);
         return;
     }
     wait = w->atkWait;
@@ -6212,40 +6209,40 @@ void em2dAirNextRtnSet(cEm2d* em)
         if (dy < 1000.0f && dy > -200.0f) {
             fabsf(Muku(&pPL->pos, &em->pos, pPL->ang.y, 3.14159274f));
             if ((Rnd() & 1) && em->l_pl > 12250000.0f) {
-                EmRoutineSet(em, 1, 0x23, wait, wait);
+                em->setRno(1, 0x23, wait, wait);
             } else {
-                EmRoutineSet(em, 1, 0x24, 0, 0);
+                em->setRno(1, 0x24, 0, 0);
             }
             return;
         }
     }
     if (em2dLockCk(em) && Rnd() % 10 > 6) {
-        EmRoutineSet(em, 1, 0x1F, 0, 0);
+        em->setRno(1, 0x1F, 0, 0);
         return;
     }
     wait2 = w->atkWait;
     if (!(wait2 == 0 && em2dStayCk(em) && (w->flags & 0x200))) {
         if (em->l_pl < 16000000.0f) {
-            EmRoutineSet(em, 1, 0x1E, 0, 0);
+            em->setRno(1, 0x1E, 0, 0);
             return;
         }
         w->atkWait = 30;
-        EmRoutineSet(em, 1, 0x1C, 0, 0);
+        em->setRno(1, 0x1C, 0, 0);
         return;
     }
     {
         if (w->targetAngAbs > 1.57079637f) {
-            EmRoutineSet(em, 1, 0x22, wait2, wait2);
+            em->setRno(1, 0x22, wait2, wait2);
             return;
         }
         if (em->pos.y > SatMgr.getFloor(&em->pos, 0, 600.0f, 100000.0f, 0) + 2000.0f &&
             em->pos.y > pPL->pos.y + 1000.0f && ((Rnd() & 1) || em->l_pl < 9000000.0f)) {
-            EmRoutineSet(em, 1, 0x21, wait2, wait2);
+            em->setRno(1, 0x21, wait2, wait2);
             return;
         }
         if (em->pos.y < pPL->pos.y + 1000.0f && em->l_pl > 9000000.0f && (r = Rnd() & 3) == 0 &&
             Em2dGetCeiling(em) > em->pos.y + 4000.0f) {
-            EmRoutineSet(em, 1, 0x20, r, r);
+            em->setRno(1, 0x20, r, r);
             return;
         }
         r = em2dToGround(em);
@@ -6253,15 +6250,15 @@ void em2dAirNextRtnSet(cEm2d* em)
             return;
         }
         if ((Rnd() & 3) && em->l_pl > 16000000.0f) {
-            EmRoutineSet(em, 1, 0x1D, r, r);
+            em->setRno(1, 0x1D, r, r);
             return;
         }
         {
             int r2 = Rnd() & 3;
             if (r2) {
-                EmRoutineSet(em, 1, 0x1F, 0, 0);
+                em->setRno(1, 0x1F, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x1E, r2, r2);
+                em->setRno(1, 0x1E, r2, r2);
             }
         }
     }
@@ -6309,7 +6306,7 @@ int em2dFindCk(cEm2d* em)
             }
         }
         if (!StaFlagChk(pG, STA_PL_FIRE) || !(w->plDist < 25000.0f)) {
-            if (EmDeadCk(em) == 0 && em2dSomebodyFindCk(em) == 0) {
+            if (em->dmg.isDamage() == 0 && em2dSomebodyFindCk(em) == 0) {
                 return 0;
             }
         }
@@ -6329,7 +6326,7 @@ int em2dSomebodyFindCk(cEm2d* em)
         cEm* e = EmMgr.fastAt(i);
         f32 d;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x2D) {
@@ -6376,7 +6373,7 @@ void cEm2d::setReset(Vec* pos, Vec* rot)
 {
     Em2dWork* w = EM2D_WK(this);
     Vec p;
-    cModel* parts;
+    cParts* parts;
 
     invisible_factor = 1.0f;
     atari.m_flag |= 0x300;
@@ -6407,17 +6404,17 @@ void cEm2d::setReset(Vec* pos, Vec* rot)
         this->pos = r213Pos;
         this->ang.y = fRand1_1() * 3.14159274f;
         MotionSetCore(this, &Motion, PL_ARC_PTR(subArc, 0x67), 0, 0, 5, 0);
-        EmRoutineSet(this, 1, 0x1D, 0, 0);
+        setRno(1, 0x1D, 0, 0);
         w->catchGuard = 30;
     }
     w->catchGuard = 30;
     if (set == 1) {
-        EmRoutineSet(this, set, 0x1D, 0, 0);
+        setRno(set, 0x1D, 0, 0);
     }
     MotionMove(this, 0);
     em2d_R0_Move(this);
     partsWorldCalc();
-    for (parts = pParts; parts; parts = parts->pParts) {
+    for (parts = pList; parts; parts = parts->pList) {
         parts->world_old = parts->world;
         parts->world_old2 = parts->world_old;
     }
@@ -6473,7 +6470,7 @@ int em2dReturnPosCk(cEm2d* em)
 void em2dHumSeMove(cEm2d* em)
 {
     Em2dWork* w = EM2D_WK(em);
-    Camera* cam;
+    CAMERA* cam;
     u32 cnt;
     u32 i;
     f32 d;
@@ -6503,7 +6500,7 @@ void em2dHumSeMove(cEm2d* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) == 1 && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
+        if (e->isAlive() && e->id == 0x2D && e->hp > 0 && e != em && e->checkStatus(EM_STATUS_ACTIVE) &&
             (EM2D_WK(e)->flags & 0x40000) &&
             (cam->param.pos.x - e->pos.x) * (cam->param.pos.x - e->pos.x) +
                     (cam->param.pos.y - e->pos.y) * (cam->param.pos.y - e->pos.y) +

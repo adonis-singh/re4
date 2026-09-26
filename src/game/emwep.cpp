@@ -132,14 +132,11 @@ cEmWep* SetWeapon(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type)
             em->LightInfo.init2(0, 1, &ofs, &size, 2);
         }
     }
-    LockPartsSet(em, 0);
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
     em->atari.setPriority(PRI_LV3);
-    em->atari.throughOn();
+    em->atari.off();
     em->be_flag &= ~0x10;
     w->At_no = -1;
     w->seThrow[3] = 4;
@@ -344,7 +341,7 @@ void cEmWep::move()
 
     emWepDmCk(this);
     EmWep_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) != 1) {
+    if (!isAlive()) {
         return;
     }
     moveCloth();
@@ -372,14 +369,14 @@ void cEmWep::move()
         if (w->alwaysTimer) {
             w->alwaysTimer--;
             if (w->alwaysTimer == 0) {
-                cModel* p = getPartsPtr(0);
+                cParts* p = getPartsPtr(0);
 
                 w->alwaysTimer = w->alwaysWait;
                 SndCall(w->seAlways[0], w->seAlways[1], &p->world, w->seAlways[2], 0, this);
             }
         }
     }
-    if (w->pEm_oya && (w->pEm_oya->be_flag & 0x201) != 1) {
+    if (w->pEm_oya && !w->pEm_oya->isAlive()) {
         EmMgr.destroy(this);
     }
 }
@@ -1167,7 +1164,7 @@ void emWep_R1_Rocket(cEmWep* pEm)
     Vec d;
     Mtx m;
     Vec hit;
-    cModel* p;
+    cParts* p;
 
     switch (pEm->r_no_2) {
     case 0:
@@ -1234,8 +1231,8 @@ void emWep_R1_Rocket(cEmWep* pEm)
 void emWepRocketBobm(cEmWep* pEm)
 {
     EmWepWork* w = EMWEP_WK(pEm);
-    Camera* cam = &pG->Camera;
-    cModel* p;
+    CAMERA* cam = &pG->Camera;
+    cParts* p;
     Vec r;
     Vec pos;
     f32 len;
@@ -1325,8 +1322,8 @@ void emWep_R1_BombThrow(cEmWep* pEm)
     }
     if (w->Bomb_wait == 0) {
         GlobalWork* g = pG;
-        Camera* cam = &g->Camera;
-        cModel* p;
+        CAMERA* cam = &g->Camera;
+        cParts* p;
         Vec r;
         Vec pos;
         f32 dist;
@@ -1797,7 +1794,7 @@ void emWepEscapeCamMove(cEmWep* pEm)
     w->Cam.Up.z = 0.0f;
     w->Cam.Distance = SQRTF(len);
     CameraSetOrientationUp(&w->Cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->Cam;
+    CamCtrl.SetExtraCamera(&w->Cam);
 }
 
 // Puts the weapon in `parent`'s parts `partsNo_` (Rno1 3); flag skips the matrix normalisation.
@@ -2466,7 +2463,7 @@ void emWepPlHeadLost()
 {
     Vec p0;
     Vec p1;
-    cModel* p;
+    cParts* p;
     cObj* obj;
 
     if (pSys->eff_country == 0) {
@@ -2527,7 +2524,7 @@ int emWepShotHitVaseCk(Vec* pPos, Vec* pPos2)
         cEm* e = EmMgr.fastAt(i);
         YARARE_INFO* part;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->hp <= 0) {
@@ -2602,7 +2599,7 @@ int emWepShotHitWindowCk(Vec* pPos, Vec* pPos2)
         cEm* e = EmMgr.fastAt(i);
         YARARE_INFO* part = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->hp <= 0) {
@@ -2677,15 +2674,15 @@ void cEmWep::setCloth(cModel* pEm)
 void cEmWep::moveCloth()
 {
     EmWepWork* w = EMWEP_WK(this);
-    cModel* p;
+    cParts* p;
     Mtx inv;
 
     if (w->Be_flg & 4) {
-        if (w->Cloth.pEm_at && (w->Cloth.pEm_at->be_flag & 0x201) != 1) {
+        if (w->Cloth.pEm_at && !w->Cloth.pEm_at->isAlive()) {
             w->Cloth.pEm_at = 0;
         }
         PenClothMove2(this, &w->Cloth);
-        for (p = getPartsPtr(1); p; p = p->pParts) {
+        for (p = getPartsPtr(1); p; p = p->pList) {
             PSMTXInverse(p->pParent->mat, inv);
             PSMTXConcat(inv, p->mat, p->l_mat);
         }
@@ -2709,7 +2706,7 @@ void cEmWep::setParentMatCalc(int mode)
     RotMatrix(mat, &ang);
     TransMatrix(mat, &pos);
     ScaleMatrix(mat, &scale);
-    if (parent->pParts) {
+    if (parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];

@@ -6,7 +6,7 @@
 //
 // Entry: Wep17_init is the WeaponInitFunc, Wep17_move the WeaponMoveFunc (pl_R1_Weapon, r_no_1
 // == 6). r_no_2 is the weapon state (0 ready, 1 set, 2 fire, 4 reload, 5 next target, 6 out),
-// r_no_3 the step, mirrored into the weapon object's wep.mode / wep.step. The VP70 (0x11) fires a
+// r_no_3 the step, mirrored into the weapon object's r_no_0 / r_no_1. The VP70 (0x11) fires a
 // three-round burst while the trigger is held (m_Work4 counts); weapon 3 is the Red9 with this
 // module's motions (weapon_type 2 = the stock variant's fire / reload set). Weapon archive slots:
 // 0x11 draw, 0x12/0x17/0x19 aim idle down/level/up (mot3 pitch on m3r), 0x14/0x18/0x1A (Red9
@@ -147,7 +147,7 @@ static void wep17_r2_ready(cPlayer* pl)
     }
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -157,7 +157,7 @@ static void wep17_r2_ready(cPlayer* pl)
             pl->r_no_1 = 0;
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
-            WEP_ATARI(pl)->clrFlag200();
+            WEP_ATARI(pl)->offOba();
         }
     }
     if (pl->keyReload() && WEP_OBJ(pl)->reloadable()) {
@@ -199,7 +199,7 @@ int ckEmWep(cPlayer* pl)
         if (Front_check(pl, em, PI / 2.0f) == 0) {
             continue;
         }
-        if (SatMgr.hitCheck(&pl->pParts->world, &em->pParts->world, 0, 0, 0, 0)) {
+        if (SatMgr.hitCheck(&pl->pList->world, &em->pList->world, 0, 0, 0, 0)) {
             continue;
         }
         pCkEm = em;
@@ -214,7 +214,7 @@ int ckEmWep(cPlayer* pl)
 // object mode 1, its enemy collision (atari 0x200) on; the wall check (Status_flg[3] bit27 set,
 // stage > 1) probes 1 m ahead at head height and picks the free side (left: m_Work0 0, right: 1)
 // for the out routine, or turns to a visible enemy (ckEmWep, side from the stick). Otherwise the
-// lock-on resets and the draw motion 0x11 starts. Forms that matter: `md` (an int holding 1) is what wep.mode and the left tail's x3E4
+// lock-on resets and the draw motion 0x11 starts. Forms that matter: `md` (an int holding 1) is what r_no_0 and the left tail's x3E4
 // share (r23); the x3E0 store is written first in both tails: the later use of the same register is
 // the one the scheduler issues early (its REG_DEAD lowers the register weight), so the earlier store
 // ends up last, before the call.
@@ -233,17 +233,16 @@ static void wep17_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r[2] = zero;
+    m3r.setDelay(zero);
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
+    m3r.reset(pitch);
     pl->m_Fwork0 = zero;
     pl->Neck->init(0, 0, 0);
     SndCall(2, 9, &pl->getPartsPtr(0xA)->world, 0, 0, 0);
     obj = WEP_OBJ(pl);
     md = 1;
-    obj->wep.mode = md;
-    obj->wep.step = 0;
+    obj->r_no_0 = md;
+    obj->r_no_1 = 0;
     AtariFlagsOr(WEP_ATARI(pl), 0x200);
     if (pG->stage_no > 1 && pl->m_Work0 == 0 && (StaFlagChk(pG, STA_SLOW))) {
         Vec nrm;
@@ -328,7 +327,7 @@ static void wep17_r3_ready00(cPlayer* pl)
     pl->Wep->lockInit();
     m = WEP_ARC_PTR(0x11);
     mot3.set(pl, m, m, m, 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->r_no_3 = 1;
 }
 
@@ -353,8 +352,8 @@ static void wep17_r3_ready10(cPlayer* pl)
         pl->r_no_2 = 1;
         pl->r_no_3 = 4;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -368,20 +367,19 @@ static void wep17_r3_ready20(cPlayer* pl)
         pl->r_no_2 = 1;
         pl->r_no_3 = 4;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
 // ready step 3: the lock-on turn (PlWepLockCtrl's request): turn towards `tgt` (PI/8 per frame),
-// slide towards `pos`, aim the pitch target m3r[1] at the target's elevation in 0.05 steps
-// (clamped -1..1); motion end -> set state. (The form of wep/pl_handgun.cpp.)
+// slide towards `pos`, aim the pitch target at the target's elevation in 0.05 steps
+// (clamped -1..1); motion end -> set state.
 static void wep17_r3_ready30(cPlayer* pl)
 {
     f32 dist;
     f32 x;
     f64 a;
-    f32* r;
     Vec* t;
 
     if (MotionMove(pl, 0)) {
@@ -397,33 +395,17 @@ static void wep17_r3_ready30(cPlayer* pl)
     t = &tgt;
     dist = GetDistance3(&pos, t);
     a = atan2(t->y - pos.y, dist);
-    r = m3r;
-    x = a / (PI / 4.0f) - r[0];
+    x = a / (PI / 4.0f) - m3r;
     if (x > 0.05f) {
         x = 0.05f;
     }
     if (x < -0.05f) {
         x = -0.05f;
     }
-    r[1] += x;
-    if (r[2] == 0.0f) {
-        m3r[0] = r[1];
-    }
-    {
-        f32 lo = -1.0f;
-        f32 hi = 1.0f;
-
-        if (r[1] < lo) {
-            r[1] = lo;
-        } else if (r[1] > hi) {
-            r[1] = hi;
-        }
-    }
-    if (r[2] == 0.0f) {
-        r[0] = r[1];
-    }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r += x;
+    m3r.limit(-1.0f, 1.0f);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -448,7 +430,7 @@ static void wep17_r2_set(cPlayer* pl)
     }
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if ((pl->stat & 0x40) == 0) {
+        if ((pl->stat.check(cPlayer::F_CROUCH)) == 0) {
             wepDown(pl);
             return;
         }
@@ -494,14 +476,14 @@ static void wep17_r2_set(cPlayer* pl)
     }
 }
 
-// set step 0: start the three-way aim idle (0x12 down / 0x17 level / 0x19 up on m3r[0]), reset
+// set step 0: start the three-way aim idle (0x12 down / 0x17 level / 0x19 up on m3r), reset
 // the burst counter m_Work4, step 1.
 static void wep17_r3_set00(cPlayer* pl)
 {
     PlArc* arc = pG->pWep;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0x12), PL_ARC_PTR(arc, 0x17), PL_ARC_PTR(arc, 0x19), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->m_Work4 = 0;
     pl->r_no_3 = 1;
@@ -572,7 +554,7 @@ static void wep17_r2_fire(cPlayer* pl)
 // m_Work4 counts the burst rounds, weapon object mode 2, PlWepLockRand recoils the aim. Step 1.
 static void wep17_r3_fire00(cPlayer* pl)
 {
-    cModel* parts;
+    cParts* parts;
     cObjWep* obj;
     void* m0;
     void* m1;
@@ -596,12 +578,12 @@ static void wep17_r3_fire00(cPlayer* pl)
         m2 = WEP_ARC_PTR(0x23);
     }
     mot3.set(pl, m0, m1, m2, 0, 0, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     MotionMove(pl, 0);
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(pl->m_Fwork0, 0.4f);
-    WEP_ATARI(pl)->clrFlag200();
+    WEP_ATARI(pl)->offOba();
     pl->Body->waistMove();
     pl->partsWorldCalc();
     parts = pl->getPartsPtr(10);
@@ -617,14 +599,11 @@ static void wep17_r3_fire00(cPlayer* pl)
     PlWepHitCheck2(pl, &p0, &p1, pG->weapon_no, 0, 6000.0f);
     pl->m_Work4++;
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
-    pitch = m3r[0];
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
+    pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r[1] = pitch;
-    if (m3r[2] == 0.0f) {
-        m3r[0] = pitch;
-    }
+    m3r = pitch;
     pl->r_no_3 = 1;
 }
 
@@ -640,7 +619,7 @@ static void wep17_r3_fire10(cPlayer* pl)
     }
     if (MotionCheckCrossFrame(&pl->Motion, 11.0f)) {
         pl->m_Work4 = 0;
-        WEP_ATARI(pl)->setFlag200();
+        WEP_ATARI(pl)->onOba();
         pl->r_no_0 = 0;
         pl->r_no_1 = 6;
         pl->r_no_2 = 1;
@@ -671,9 +650,9 @@ void wepDown(cPlayer* pl)
     }
     pl->motionMove();
     obj = WEP_OBJ(pl);
-    obj->wep.mode = 3;
-    obj->wep.step = 0;
-    WEP_ATARI(pl)->clrFlag200();
+    obj->r_no_0 = 3;
+    obj->r_no_1 = 0;
+    WEP_ATARI(pl)->offOba();
     pl->ang.y = pl->ang.y - pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -711,8 +690,8 @@ static void wep17_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = WEP_OBJ(pl);
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
         break;
     case 1:
         if (MotionMove(pl, 0)) {
@@ -721,7 +700,7 @@ static void wep17_r2_reload(cPlayer* pl)
                 pl->r_no_1 = 6;
                 pl->r_no_2 = 1;
                 pl->r_no_3 = 0;
-            } else if (pl->stat & 0x40) {
+            } else if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -815,7 +794,7 @@ static void wep17_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -892,7 +871,7 @@ static void wep17_r2_out(cPlayer* pl)
                 pl->r_no_3 = 5;
             }
         } else if (joyFireOn()) {
-            cModel* parts;
+            cParts* parts;
             Vec p0;
             Vec p1;
             int zero;
@@ -953,7 +932,7 @@ static void wep17_r2_out(cPlayer* pl)
             pl->r_no_1 = 0;
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
-            WEP_ATARI(pl)->clrFlag200();
+            WEP_ATARI(pl)->offOba();
         }
         break;
     case 6:
@@ -965,7 +944,7 @@ static void wep17_r2_out(cPlayer* pl)
             pl->r_no_1 = 0;
             pl->r_no_2 = 0;
             pl->r_no_3 = 0;
-            WEP_ATARI(pl)->clrFlag200();
+            WEP_ATARI(pl)->offOba();
         }
         break;
     }

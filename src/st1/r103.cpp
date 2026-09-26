@@ -140,28 +140,28 @@ extern "C" void r103_openShelf_main(R103Shelf* s, int opened)
             f32 rb = 1.9198622f;
             // COMPILER-DIFF: candidate #17 (local-alloc qty order of the two pool highs). The
             // original allocates the -1.92 high first (r9); ours allocates the +1.92 high first
-            // because the `lwz pParts` fills the cycle between its `lis` and `lfs` in sched1, so
-            // its span is longer. A pseudo -> hard-register copy of the pParts pointer (kept
+            // because the `lwz pList` fills the cycle between its `lis` and `lfs` in sched1, so
+            // its span is longer. A pseudo -> hard-register copy of the pList pointer (kept
             // from combine by the volatile load and the keep-alive asm, a no-op deleted by
             // reload_cse after both take r10) is issued between the second `lis` and its `lfs`
             // in sched1, which equalises the spans and lets the qty number decide.
-            cModel* pa = *(cModel* volatile*) &a->pParts;
+            cModel* pa = *(cModel* volatile*) &a->pList;
             register cModel* pa2 asm("r10");
 
             pa2 = pa;
             pa2->ang.y = ra;
             asm("" : "=m"(a->be_flag) : "r"(pa2));
-            b->pParts->ang.y = rb;
+            b->pList->ang.y = rb;
         } else {
             int i;
 
             SndCall(6, 0x1A, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
                 if (a != 0) {
-                    a->pParts->ang.y += -0.063995406f;
+                    a->pList->ang.y += -0.063995406f;
                 }
                 if (b != 0) {
-                    b->pParts->ang.y += 0.063995406f;
+                    b->pList->ang.y += 0.063995406f;
                 }
                 SceSleep(1);
             }
@@ -268,9 +268,9 @@ static void r103_execOpenCover(R103Cesspit* c)
     f32 step = 0.06981317f;
 
     for (;;) {
-        lid->pParts->ang.x -= step;
-        if (lid->pParts->ang.x < -1.83f) {
-            lid->pParts->ang.x = -1.83f;
+        lid->pList->ang.x -= step;
+        if (lid->pList->ang.x < -1.83f) {
+            lid->pList->ang.x = -1.83f;
             break;
         }
         SceSleep(1);
@@ -317,9 +317,9 @@ static void r103_checkCloseCover(R103Cesspit* c)
         f32 lim = 1.12f;
 
         do {
-            lid->pParts->ang.x += spd;
-            if (lid->pParts->ang.x > lim) {
-                lid->pParts->ang.x = 1.12f;
+            lid->pList->ang.x += spd;
+            if (lid->pList->ang.x > lim) {
+                lid->pList->ang.x = 1.12f;
                 break;
             }
             spd += 0.017453292f;
@@ -329,13 +329,13 @@ static void r103_checkCloseCover(R103Cesspit* c)
     SndCall(6, 8, &lid->pos, 0, 0, 0);
     EstSet(0, -1, 0, 0, EFF_ROOM, 0x11, 0, ESP_CORE_KIND_NONE, 0, 0);
     ScfFlagOn(pG, SCF_R103_CLOSE_COVER);
-    lid->pParts->ang.x -= 0.06981317f;
+    lid->pList->ang.x -= 0.06981317f;
     SceSleep(1);
-    lid->pParts->ang.x -= 0.02617994f;
+    lid->pList->ang.x -= 0.02617994f;
     SceSleep(1);
-    lid->pParts->ang.x += 0.02617994f;
+    lid->pList->ang.x += 0.02617994f;
     SceSleep(1);
-    lid->pParts->ang.x += 0.06981317f;
+    lid->pList->ang.x += 0.06981317f;
     SceSleep(1);
 }
 
@@ -453,7 +453,7 @@ extern "C" void r103_initCesspit(R103Cesspit* c)
     } else {
         SmdGetObjPtr(c->cover)->be_flag &= ~2;
         if (!ScfFlagChk(pG, SCF_R103_OPEN_COVER)) {
-            SmdGetObjPtr(c->lid)->pParts->ang.x = 1.12f;
+            SmdGetObjPtr(c->lid)->pList->ang.x = 1.12f;
             SceAtDataSet_exec(c->at18, SCE_LEVEL10, 0, (TaskFunc) r103_execOpenCover, c, 1);
             SceAtSetEnable(c->at14, 0);
             if (ScfFlagChk(pG, SCF_R103_ITEM_IN_CESSPIT)) {
@@ -468,7 +468,7 @@ extern "C" void r103_initCesspit(R103Cesspit* c)
             }
             SceExec(0x12, (TaskFunc) r103_checkCesspit1, (int) c, 0, SCE_PRIO_DEF_2, 0);
         } else {
-            SmdGetObjPtr(c->lid)->pParts->ang.x = -1.83f;
+            SmdGetObjPtr(c->lid)->pList->ang.x = -1.83f;
             SceAtSetEnable(c->at10, 0);
             if (SceAtItemFlgCk(c->itemAt) == 0) {
                 SceExec(0x12, (TaskFunc) r103_checkCesspit2, (int) c, 0, SCE_PRIO_DEF_2, 0);

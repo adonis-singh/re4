@@ -102,7 +102,7 @@ cEmTorch* SetTorch(void* bin, void* tpl, Vec* pos, Vec* rot, int type, int etcNo
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 700.0f, 400.0f, 500.0f, 500.0f, 0, 2, 0);
     em->atari.setPriority(PRI_LV3);
-    em->atari.throughOn();
+    em->atari.off();
     emTorchYarareInit(em);
     em->hp_max = em->hp;
     {
@@ -111,10 +111,7 @@ cEmTorch* SetTorch(void* bin, void* tpl, Vec* pos, Vec* rot, int type, int etcNo
 
         em->LightInfo.init2(0, 1, &ofs, &size, 0x10);
     }
-    em->lockParts = 0;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
@@ -418,7 +415,7 @@ void emTorch_R1_Parent(cEmTorch* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];

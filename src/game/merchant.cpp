@@ -13,9 +13,6 @@
 #define LIST_MAX 0xFF
 
 // ItemWork::x6 tune levels (the exclusive nibble is read as a byte)
-#define LV_FIRE(it) ((it)->lv >> 12)
-#define LV_MAG(it) (((it)->lv >> 8) & 0xF)
-#define LV_SPEED(it) (((it)->lv >> 4) & 0xF)
 
 MerchantInfo merchant_info_A = {0, -10, -10, -10, -10, 10000, 5, 10, 10, 10, 20, 30, 70, 30, 10};
 
@@ -984,10 +981,7 @@ void stockDataInit(MerchantData* p_data)
 // the 0x35 (Rocket Launcher special) stays single outside Japan.
 void add_stock(StockEntry* dst, StockEntry* src)
 {
-    ItemInfo info;
-
-    itemInfo(src->id, &info);
-    switch (info.type) {
+    switch (itemType(src->id)) {
     case 1:
     case 9:
         dst->num = 1;
@@ -1211,15 +1205,12 @@ void Merchant::stockSub(u16 id, int num)
 // for 0xFE), otherwise the stock count (-1 = 1000, -2/absent = 0).
 int Merchant::stockNum(u16 id)
 {
-    ItemInfo info;
     StockEntry* s = stockPtr(id);
 
-    itemInfo(id, &info);
-    if (info.type == 1) {
+    if (itemType(id) == 1) {
         return ItemMgr.search(id) == 0;
     }
-    itemInfo(id, &info);
-    if (info.type == 9) {
+    if (itemType(id) == 9) {
         return ItemMgr.search(id) == 0;
     }
     if (id == 0x38 || id == 0x35) {
@@ -1356,9 +1347,9 @@ int Merchant::stockSpecial(ITEM_ID id)
 // 1 when the weapon is at every normal max level and the exclusive upgrade is offered.
 int Merchant::specialTunable(ItemWork* p_item)
 {
-    if (stockSpecial(p_item->id) != 0 && LV_FIRE(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 0) &&
-        LV_MAG(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 1) && LV_SPEED(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 2) &&
-        LV_EX(p_item) + 1 == WeaponId2MaxLevel(p_item->id, 3)) {
+    if (stockSpecial(p_item->id) != 0 && p_item->getPowerLevel() + 1 == WeaponId2MaxLevel(p_item->id, 0) &&
+        p_item->getSpeedLevel() + 1 == WeaponId2MaxLevel(p_item->id, 1) && p_item->getReloadLevel() + 1 == WeaponId2MaxLevel(p_item->id, 2) &&
+        p_item->getBulletLevel() + 1 == WeaponId2MaxLevel(p_item->id, 3)) {
         return 1;
     }
     return 0;
@@ -1367,8 +1358,8 @@ int Merchant::specialTunable(ItemWork* p_item)
 // 1 when the weapon already has its exclusive upgrade.
 int Merchant::specialTuned(ItemWork* p_item)
 {
-    if (LV_FIRE(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 0) || LV_MAG(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 1) ||
-        LV_SPEED(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 2) || LV_EX(p_item) + 1 > WeaponId2MaxLevel(p_item->id, 3)) {
+    if (p_item->getPowerLevel() + 1 > WeaponId2MaxLevel(p_item->id, 0) || p_item->getSpeedLevel() + 1 > WeaponId2MaxLevel(p_item->id, 1) ||
+        p_item->getReloadLevel() + 1 > WeaponId2MaxLevel(p_item->id, 2) || p_item->getBulletLevel() + 1 > WeaponId2MaxLevel(p_item->id, 3)) {
         return 1;
     }
     return 0;
@@ -1381,8 +1372,8 @@ int Merchant::tunable(ItemWork* p_item)
         return 0;
     }
     if (stockSpecial(p_item->id) == 0) {
-        if (LV_FIRE(p_item) + 1 >= levelMax(p_item->id, 0) && LV_MAG(p_item) + 1 >= levelMax(p_item->id, 1) &&
-            LV_SPEED(p_item) + 1 >= levelMax(p_item->id, 2) && LV_EX(p_item) + 1 >= levelMax(p_item->id, 3)) {
+        if (p_item->getPowerLevel() + 1 >= levelMax(p_item->id, 0) && p_item->getSpeedLevel() + 1 >= levelMax(p_item->id, 1) &&
+            p_item->getReloadLevel() + 1 >= levelMax(p_item->id, 2) && p_item->getBulletLevel() + 1 >= levelMax(p_item->id, 3)) {
             return 0;
         }
     } else {
@@ -1496,7 +1487,6 @@ int Merchant::makeExerciseList()
     PriceEntry* p = m_p_exer;
     int n;
     int j;
-    ItemInfo info;
 
     for (int i = 0; i < LIST_MAX; i++) {
         exerciseList[i] = 0;
@@ -1511,8 +1501,7 @@ int Merchant::makeExerciseList()
         if (checkExerciseItem(p->id) == 0) {
             continue;
         }
-        itemInfo(p->id, &info);
-        if (info.type == 1) {
+        if (itemType(p->id) == 1) {
             ItemMgr.ordering(p->id);
             if (ItemMgr.m_order_tbl_num > 0) {
                 for (j = 0; j < ItemMgr.m_order_tbl_num; j++) {
@@ -1566,7 +1555,6 @@ PriceEntry* Merchant::exerciseItemId(u16 id)
 // weapons/ammo/grenades/the case, 90% otherwise.
 int Merchant::buyupPrice(u16 id, int num)
 {
-    ItemInfo info;
     PriceEntry* p;
     int price;
     int n;
@@ -1586,8 +1574,7 @@ int Merchant::buyupPrice(u16 id, int num)
     }
     n = num * 10;
     price = p->price * n;
-    itemInfo(id, &info);
-    type = info.type;
+    type = itemType(id);
     if (type == 5 || type == 0xC) {
         return (int) ((f32) price * 1.0f);
     }
@@ -1607,30 +1594,28 @@ int Merchant::buyupPrice(u16 id, int num)
 // tune level bought.
 int Merchant::buyupPrice(ItemWork* item, int num)
 {
-    ItemInfo info;
     int price = buyupPrice(item->id, num);
     const f32 rate = 0.5f; // pool entry before the 0x4330 magic; the literal is folded at every use
     int type;
     int lv;
 
-    itemInfo(item->id, &info);
-    if (info.type == 1 && num == 1) {
-        price += buyupPrice(WeaponId2BulletId(item->id, item->bullet >> 13), item->bullet & 0x1FFF);
+    if (itemType(item->id) == 1 && num == 1) {
+        price += buyupPrice(WeaponId2BulletId(item->id, item->getBulletType()), item->bullet & 0x1FFF);
         for (type = 0; type <= 3; type++) {
             int lvMax = 0;
 
             switch (type) {
             case 0:
-                lvMax = LV_FIRE(item) + 1;
+                lvMax = item->getPowerLevel() + 1;
                 break;
             case 1:
-                lvMax = LV_MAG(item) + 1;
+                lvMax = item->getSpeedLevel() + 1;
                 break;
             case 2:
-                lvMax = LV_SPEED(item) + 1;
+                lvMax = item->getReloadLevel() + 1;
                 break;
             case 3:
-                lvMax = LV_EX(item) + 1;
+                lvMax = item->getBulletLevel() + 1;
                 break;
             }
             for (lv = 2; lv <= lvMax; lv++) {
@@ -1656,13 +1641,10 @@ int Merchant::buyupPrice(ItemWork* item, int num)
 // to the stock and raises favor by shift_Buyup.
 int Merchant::buyup(ItemWork* p_item, int num, int* pocket)
 {
-    ItemInfo ii;
-
     *pocket += buyupPrice(p_item, num);
     stockAdd(p_item->id, num);
-    itemInfo(p_item->id, &ii);
-    if (ii.type == 1 && num == 1) {
-        stockAdd(WeaponId2BulletId(p_item->id, p_item->bullet >> 13), p_item->bullet & 0x1FFF);
+    if (itemType(p_item->id) == 1 && num == 1) {
+        stockAdd(WeaponId2BulletId(p_item->id, p_item->getBulletType()), p_item->bullet & 0x1FFF);
     }
     m_friendship += m_p_info->shift_Buyup;
     m_friendship = m_friendship < 0 ? 0 : (m_friendship > 100 ? 100 : m_friendship);
@@ -1673,7 +1655,6 @@ int Merchant::buyup(ItemWork* p_item, int num, int* pocket)
 // includes one magazine of ammo; 0x40/0x37 cost 1,000,000.
 int Merchant::sellPrice(u16 id, int num)
 {
-    ItemInfo info;
     PriceEntry* p = sellingItemId(id);
     f32 rate = 1.0f - (f32) m_reduction_ratio / 100.0f;
     int price;
@@ -1689,8 +1670,7 @@ int Merchant::sellPrice(u16 id, int num)
     } else if (id == 0x6D || id == 0x34) {
         price = 1000000;
     } else {
-        itemInfo(id, &info);
-        if (info.type == 1 && num == 1) {
+        if (itemType(id) == 1 && num == 1) {
             u16 bid = WeaponId2BulletId(id, 0);
             int m = WeaponId2ChargeNum(id, 1);
             p = exerciseItemId(bid);
@@ -1723,7 +1703,6 @@ int Merchant::sellUnit(u16 id)
 // threshold) and clears the discount. Returns 1 on success.
 int Merchant::sell(u16 id, int num, int* pocket)
 {
-    ItemInfo ii;
     int price = sellPrice(id, num);
     int point = (int) ((f32) price * 0.02f);
 
@@ -1733,8 +1712,7 @@ int Merchant::sell(u16 id, int num, int* pocket)
         }
         *pocket -= price;
         stockSub(id, num);
-        itemInfo(id, &ii);
-        if (ii.type == 1 && num != 0) {
+        if (itemType(id) == 1 && num != 0) {
             u16 bid = WeaponId2BulletId(id, 0);
             stockSub(bid, WeaponId2ChargeNum(id, 1));
         }

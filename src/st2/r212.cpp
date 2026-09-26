@@ -19,6 +19,7 @@ class cObjWep;
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj02.h"
 #include "em.h"
 #include "emhit.h"
 #include "emdoor.h"
@@ -353,7 +354,7 @@ static void r212_EventTrap()
     if (r212_work->evd->waitLoadOk() == 1 && m != 0) {
         MemorySwap(m->pArc, (u32) r212_work->evd->m_addr, r212_work->evd->m_size);
         EvtMgr.SetEvt(m->pArc, 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
             SceSleep(1);
         }
         MemorySwap(m->pArc, (u32) r212_work->evd->m_addr, r212_work->evd->m_size);
@@ -530,7 +531,7 @@ static void r212_RoofTrapWatcher()
 // Area 0xA, the shut roof-room door: message 2; the first time Ashley's pointing task starts.
 static void r212_MesRoofDoor()
 {
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (!(pG->Room_flg[0] & 0x01000000)) {
         pG->Room_flg[0] |= 0x01000000;
         SceExec(0x12, (TaskFunc) r212_AshleyPointToCheck, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -568,7 +569,7 @@ static void r212_AshleyPointTo(cEm* sub)
         if (sub->motionMove()) {
             sub->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x26), 10, 0, 1, 0);
             sub->r_no_2++;
-            cMes.MesSet(r212_work->mesNo, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x01000052, 0, 0, 4);
+            cMes.MesSet(r212_work->mesNo, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x01000052, 0, 0, 4);
             RoomSeCall(0x13, &sub->pos, 0, 0, sub);
         }
         break;
@@ -578,10 +579,7 @@ static void r212_AshleyPointTo(cEm* sub)
 
             sub->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x27), 10, 0, 1, 0);
             sub->r_no_2++;
-            MessageControl* m = &cMes;
-            for (i = 0; i < 16; i++) {
-                m->Delete(i);
-            }
+            cMes.Clear();
         }
         break;
     case 3:
@@ -711,7 +709,7 @@ static void r212_DrillAppearCheckEndProc()
     pSUB->setNoSuspend(0);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
-    r212_work->eat2->m_Flag &= ~4;
+    r212_work->eat2->setDisable();
     SceExec(0x12, (TaskFunc) r212_DrillMove, 0, 0, SCE_PRIO_DEF_2, 0);
     SceExec(0x12, (TaskFunc) r212_DrillEndCheck, 0, 0, SCE_PRIO_DEF_2, 0);
 }
@@ -748,8 +746,8 @@ static void r212_DrillMove()
     cObj* d0 = SmdGetObjPtr(0x2A);
     cObj* d1 = SmdGetObjPtr(0x2B);
     cObj* d2 = SmdGetObjPtr(0x2C);
-    R212DrillWork* w1 = (R212DrillWork*) &d1->work;
-    R212DrillWork* w2 = (R212DrillWork*) &d2->work;
+    R212DrillWork* w1 = (R212DrillWork*) &((cObjScr*) d1)->free;
+    R212DrillWork* w2 = (R212DrillWork*) &((cObjScr*) d2)->free;
 
     d0->be_flag |= 0x20;
     d1->be_flag |= 0x20;

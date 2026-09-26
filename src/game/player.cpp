@@ -5,6 +5,7 @@
 #include "atari_init.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_push.h"
 #include "pl_npc.h"
 #include "global.h"
@@ -211,7 +212,7 @@ void PlayerLifeReset()
 // stat bit0 = weapon effect data shared (not released by weaponRelease).
 cPlayer::cPlayer()
 {
-    stat = 0;
+    stat.reset();
     pPL = this;
     hp = pG->pl_life;
     subArc = (PlArc*)0x807EC000;
@@ -219,7 +220,7 @@ cPlayer::cPlayer()
     memclr_asm(m_MotTbl, 0x1B4);
     m_MotTbl2 = (void**) PL_MEM_ALLOC(0x30, 376);
     memclr_asm(m_MotTbl2, 0x30);
-    stat |= 1;
+    stat.on(F_NO_WEP_EFF);
     debugInit();
 }
 
@@ -242,7 +243,7 @@ void cPlayer::init0()
 // Neck, light set, collision, hit boxes, routine 0, mirror table, first world calc.
 void cPlayer::init1()
 {
-    if (!VALID_PTR(pParts)) {
+    if (!VALID_PTR(pList)) {
         pLog->err(0, 0, "cPlayer::cPlayer() FAILED");
         EmMgr.destroy(this);
         return;
@@ -255,7 +256,7 @@ void cPlayer::init1()
         static const Vec lightSize = { 1000.0f, 1000.0f, 0.0f };
         LightInfo.init2(0, 1, &lightOfs, &lightSize, 1);
     }
-    litArea.on(1);
+    State.SetLightIgnore();
     atari.init(0.0f, -200.0f, 0.0f, 400.0f, 200.0f, 400.0f, 800.0f, 1, 0x1000, 10);
     lockOfs.x = 0.0f;
     lockOfs.y = 0.0f;
@@ -273,7 +274,7 @@ void cPlayer::init1()
     Pl_func_tbl[0] = pl_R0_Move;
     m_CmdTimer = 0;
     m_pEffRoom = 0;
-    stat |= 0x800;
+    stat.on(F_SHADOW);
     m_SeId = 0;
     m_EyeMode = 0;
     m_pBoss = 0;
@@ -295,7 +296,7 @@ void cPlayer::startUp()
     matUpdate();
     m_Frame = 0;
     m_Hokan = 0;
-    EmRoutineSet(this, 0, 0, 0, 1);
+    setRno(0, 0, 0, 1);
     move();
     motionMove();
     motionMove();
@@ -326,7 +327,7 @@ void cPlayer::move()
     clearStatus(EM_STATUS_IK_OFF);
     StaFlagOff(pG, STA_PL_DONT_FIRE);
     if (Wep->m_pWep) {
-        Wep->m_pWep->wep.m_SightEm = 0;
+        Wep->m_pWep->m_SightEm = 0;
     }
     MotBase->adjust();
     dmg.move();
@@ -345,13 +346,13 @@ void cPlayer::move()
     moved = 1;
 moveChecked:
     if (Key.trg & 0x10) {
-        stat &= ~0x1000;
+        stat.off(F_KNIFE);
     }
     if (Key.trg & 0x800) {
-        if (stat & 0x1000) {
-            stat &= ~0x1000;
+        if (stat.check(F_KNIFE)) {
+            stat.off(F_KNIFE);
         } else {
-            stat |= 0x1000;
+            stat.on(F_KNIFE);
         }
     }
     moveBinocular();
@@ -366,7 +367,7 @@ moveChecked:
         }
     }
     if (r_no_0 == 0 && r_no_1 == 6 && r_no_2 == 0) {
-        pParts->ang.y *= 0.5f;
+        pList->ang.y *= 0.5f;
     }
     ang.y = LIMIT_ANGLE(ang.y);
     m_Flag = (u16) m_Flag;
@@ -374,7 +375,7 @@ moveChecked:
     MotBase->move();
     Neck->move();
     moveEye();
-    Body->waistSet(Waist->m_Ang.y);
+    Body->waistSet(*Waist);
     Body->move();
     moveMatCalcBefore();
     partsWorldCalc();
@@ -448,7 +449,7 @@ void pl_R1_Footwork(cPlayer* pEm)
     }
     if (pEm->actionSelect() == 0) {
         if ((Key.on & 1) && (Key.on & 0x40000000) && joyKamae() == 0) {
-            EmRoutineSet(pEm, 0, 3, 0, 0);
+            pEm->setRno(0, 3, 0, 0);
         } else {
             pEm->checkCtrl();
         }
@@ -496,7 +497,7 @@ void pl_R1_Walk(cPlayer* pEm)
             pEm->m_Hokan = 5;
             pEm->m_Frame = (u8) (pEm->Motion.Seq_frame * 255.0f / (f32) pEm->Motion.Seq_frame_num);
         } else if (!(Key.on & 1)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         } else {
             if (Key.on & 4) {
                 pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
@@ -516,13 +517,13 @@ void pl_R1_Back(cPlayer* pEm)
     if (pEm->r_no_2 == 0) {
         void** tbl = pEm->m_MotTbl;
         pEm->motionSet(tbl[8], tbl[9], tbl[0x63], tbl[0x64], 8, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
     }
     pEm->motionMove();
     if (pEm->actionSelect() == 0) {
         if (!(Key.on & 2)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         } else {
             if (Key.on & 4) {
                 pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
@@ -580,7 +581,7 @@ void pl_R1_Run(cPlayer* pEm)
         } else {
             pEm->Neck->init(PL_ARC_PTR(pG->pPlayer, 0x44), PL_ARC_PTR(pG->pPlayer, 0x45), (u16) frame);
         }
-        pEm->Waist->m_Ang.y = 0.0f;
+        pEm->Waist->reset();
         pEm->m_Work0 = 0;
         breath_ctr = 0;
         pEm->r_no_2 = 3;
@@ -623,7 +624,7 @@ void pl_R1_Run(cPlayer* pEm)
             }
             pEm->ang.y = LIMIT_ANGLE(pEm->ang.y);
             if (joyKamae()) {
-                EmRoutineSet(pEm, 0, 0, 0, 0);
+                pEm->setRno(0, 0, 0, 0);
             } else if (!(Key.on & 0x40000000) || !(Key.on & 1)) {
                 if (Key.on & 1) {
                     pEm->m_Hokan = 5;
@@ -633,13 +634,13 @@ void pl_R1_Run(cPlayer* pEm)
                     pEm->r_no_2 = 0;
                     pEm->m_Frame = (u8) (pEm->Motion.Seq_frame * 255.0f / (f32) pEm->Motion.Seq_frame_num);
                 } else {
-                    EmRoutineSet(pEm, 0, 0, 0, 0);
+                    pEm->setRno(0, 0, 0, 0);
                 }
                 return;
             }
             pEm->checkCtrl();
             if (PlDbFlag & 4) {
-                PlWepHitCheck2(pEm, &pEm->pParts->world, &pEm->pParts->world, 0x14, 0, 1000.0f);
+                PlWepHitCheck2(pEm, &pEm->pList->world, &pEm->pList->world, 0x14, 0, 1000.0f);
             }
         }
     }
@@ -657,17 +658,17 @@ void pl_R1_Turn(cPlayer* pEm)
             pEm->motionSet(pEm->m_MotTbl[0xF], pEm->m_MotTbl[0x10], pEm->m_MotTbl[0x69], pEm->m_MotTbl[0x6A], 7, 0);
             pEm->r_no_2 = 2;
         }
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->motionMove();
         break;
     case 1:
         if (!(Key.on & 4)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     case 2:
         if (!(Key.on & 8)) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -694,7 +695,7 @@ void pl_R1_Turn180(cPlayer* pEm)
         v.z = 1000.0f;
         PSMTXMultVec(pEm->mat, &v, &dd0);
         CamCtrlShoulderSetSearchFrame(30);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
     }
     case 1: {
@@ -730,7 +731,7 @@ void pl_R1_Turn180(cPlayer* pEm)
         }
         if (end) {
             pEm->m_BbtnCnt = 0;
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
             CamCtrlShoulderSetSearchFrame(0);
             return;
         }
@@ -743,13 +744,13 @@ void pl_R1_Turn180(cPlayer* pEm)
 // Defined after pl_R1_Turn180: both have constructors and are emitted at their definition, behind
 // Turn180's static `dd0` in .bss.
 cMot3 mot3;
-cMot3Rate m3rObj;
+cDelayF m3r;
 
 // Weapon routine: WeaponMoveFunc (pl_wep.cpp registers it); Ashley has none.
 void pl_R1_Weapon(cPlayer* pEm)
 {
     if (pG->pl_type == 1) {
-        EmRoutineSet(pEm, 0, 0, 0, 0);
+        pEm->setRno(0, 0, 0, 0);
     } else if (WeaponMoveFunc == 0) {
         pLog->err(0, 0, "pl_R1_Weapon(): Function is no regist!");
     } else {
@@ -789,9 +790,9 @@ void pl_R1_Ladder(cPlayer* pEm)
     case 0:
         pEm->m_Fwork0 = pEm->pos.y;
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x27), 5, 0, 1, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
-        pEm->stat &= ~0x800;
+        pEm->stat.off(cPlayer::F_SHADOW);
     case 1:
         if (pEm->Motion.Seq_frame > 11.7f && pEm->Motion.Seq_frame < 12.3f) {
             SndCall(6, 0x61, &pEm->pos, 0, 0, 0);
@@ -851,17 +852,17 @@ void pl_R1_Ladder(cPlayer* pEm)
         if (pEm->motionMove()) {
             pEm->m_Fwork0 += 1500.0f;
             pEm->dmg.clear();
-            pEm->atari.throughOff();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
-            pEm->stat |= 0x800;
+            pEm->atari.on();
+            pEm->setRno(0, 0, 0, 0);
+            pEm->stat.on(cPlayer::F_SHADOW);
         }
         break;
     case 0xA:
         pEm->m_Fwork0 = pEm->pos.y;
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x2A), 5, 0, 1, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 0xB;
-        pEm->stat &= ~0x800;
+        pEm->stat.off(cPlayer::F_SHADOW);
     case 0xB:
         if (pEm->Motion.Seq_frame > 7.7f && pEm->Motion.Seq_frame < 8.3f) {
             SndCall(6, 0x60, &pEm->pos, 0, 0, 0);
@@ -917,8 +918,8 @@ void pl_R1_Ladder(cPlayer* pEm)
         if (pEm->motionMove()) {
             pEm->m_Fwork0 -= 500.0f;
             pEm->dmg.clear();
-            pEm->atari.throughOff();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->atari.on();
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -937,9 +938,9 @@ void pl_R1_Crouch(cPlayer* pEm)
         pEm->endCamera();
         CamCtrl.resetCameraAngle();
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x5A), 3, 0, 0, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
-        pEm->stat |= 0x40;
+        pEm->stat.on(cPlayer::F_CROUCH);
         pEm->m_Fwork0 = pEm->ang.y;
     case 1:
         if (pEm->motionMove()) {
@@ -951,17 +952,17 @@ void pl_R1_Crouch(cPlayer* pEm)
     case 0xA:
         if (Key.on & 4) {
             pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y += cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y += cPlayer::SPEED_WALK_TURN;
         }
         if (Key.on & 8) {
             pEm->ang.y += cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y -= cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y -= cPlayer::SPEED_WALK_TURN;
         }
-        if (pEm->pParts->ang.y > 1.0471976f) {
+        if (pEm->pList->ang.y > 1.0471976f) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x68), 3, 0, 1, 0);
             pEm->r_no_2 = 0xB;
         }
-        if (pEm->pParts->ang.y < -1.0471976f) {
+        if (pEm->pList->ang.y < -1.0471976f) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x69), 3, 0, 1, 0);
             pEm->r_no_2 = 0xC;
         }
@@ -970,14 +971,14 @@ void pl_R1_Crouch(cPlayer* pEm)
     case 0xB:
         if (Key.on & 4) {
             pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y += cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y += cPlayer::SPEED_WALK_TURN;
         }
         if (Key.on & 8) {
             pEm->ang.y += cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y -= cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y -= cPlayer::SPEED_WALK_TURN;
         }
         MotionGetSpeed(pEm, MOTION(pEm), 0, &spd, &rot);
-        pEm->pParts->ang.y += rot.y;
+        pEm->pList->ang.y += rot.y;
         if (pEm->motionMove()) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x5B), 3, 0, 5, 0);
             pEm->motionMove();
@@ -987,14 +988,14 @@ void pl_R1_Crouch(cPlayer* pEm)
     case 0xC:
         if (Key.on & 4) {
             pEm->ang.y -= cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y += cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y += cPlayer::SPEED_WALK_TURN;
         }
         if (Key.on & 8) {
             pEm->ang.y += cPlayer::SPEED_WALK_TURN;
-            pEm->pParts->ang.y -= cPlayer::SPEED_WALK_TURN;
+            pEm->pList->ang.y -= cPlayer::SPEED_WALK_TURN;
         }
         MotionGetSpeed(pEm, MOTION(pEm), 0, &spd, &rot);
-        pEm->pParts->ang.y += rot.y;
+        pEm->pList->ang.y += rot.y;
         if (pEm->motionMove()) {
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x5B), 3, 0, 5, 0);
             pEm->motionMove();
@@ -1003,10 +1004,10 @@ void pl_R1_Crouch(cPlayer* pEm)
         break;
     case 0x14:
         pEm->motionMove();
-        pEm->pParts->ang.y *= 0.5f;
+        pEm->pList->ang.y *= 0.5f;
         if (MotionCheckCrossFrame(MOTION(pEm), endFrame)) {
-            pEm->pParts->ang.y = 0.0f;
-            EmRoutineSet(pEm, 0, 0, 2, 0);
+            pEm->pList->ang.y = 0.0f;
+            pEm->setRno(0, 0, 2, 0);
         }
         break;
     }
@@ -1015,10 +1016,10 @@ void pl_R1_Crouch(cPlayer* pEm)
             pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x5C), 5, 0, 1, 0);
             pEm->motionMove();
             pEm->r_no_2 = 0x14;
-            pEm->stat &= ~0x40;
+            pEm->stat.off(cPlayer::F_CROUCH);
         }
         if (joyKamae()) {
-            EmRoutineSet(pEm, 0, 6, 0, 0);
+            pEm->setRno(0, 6, 0, 0);
         }
     }
 }
@@ -1027,19 +1028,19 @@ void pl_R1_Crouch(cPlayer* pEm)
 // a floor is found, then the landing motion.
 void pl_R1_JumpFall(cPlayer* pEm)
 {
-    pEm->stat &= ~0x180;
+    pEm->stat.off(cPlayer::F_LANDING).off(cPlayer::F_FALLING);
     switch (pEm->r_no_2) {
     case 0:
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x5E), PL_ARC_PTR(pG->pPlayer, 0x60), 3, 0x201, 0);
-        pEm->Neck->m_MotR = 0;
-        pEm->atari.throughOn();
+        pEm->Neck->clear();
+        pEm->atari.off();
         pEm->Shd_color = 0xFF;
         pEm->m_Work0 = 0;
         pEm->r_no_2 = 1;
-        pEm->stat &= ~0x800;
+        pEm->stat.off(cPlayer::F_SHADOW);
     case 1:
         pEm->m_Work0++;
-        pEm->stat |= 0x100;
+        pEm->stat.on(cPlayer::F_FALLING);
         if (pEm->m_Work0 >= 5 && pEm->m_Work0 <= 14) {
             pEm->pos.y += pEm->m_JumpAdjY * 0.1f;
         }
@@ -1047,9 +1048,9 @@ void pl_R1_JumpFall(cPlayer* pEm)
             if (fallCheck(pEm)) {
                 MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x5F), PL_ARC_PTR(pG->pPlayer, 0x61), 3, 0x201, 0);
                 pEm->dmg.clear();
-                pEm->atari.throughOff();
+                pEm->atari.on();
                 pEm->r_no_2 = 2;
-                pEm->stat |= 0x880;
+                pEm->stat.on(cPlayer::F_LANDING).on(cPlayer::F_SHADOW);
             }
         }
         pEm->motionMove();
@@ -1057,7 +1058,7 @@ void pl_R1_JumpFall(cPlayer* pEm)
     case 2:
         pEm->motionMove();
         if (pEm->Motion.Seq_frame >= 20.0f) {
-            EmRoutineSet(pEm, 0, 0, 2, 0);
+            pEm->setRno(0, 0, 2, 0);
         }
         break;
     }
@@ -1069,15 +1070,15 @@ void pl_R1_Whistle(cPlayer* pEm)
     switch (pEm->r_no_2) {
     case 0:
         pEm->motionSet(PL_ARC_PTR(pG->pPlayer, 0x7C), 7, 0, 1, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->r_no_2 = 1;
     case 1:
         if (MotionCheckCrossFrame(MOTION(pEm), 20.0f)) {
-            SndCall(1, 0xE, &pEm->pParts->world, 0, 0, 0);
+            SndCall(1, 0xE, &pEm->pList->world, 0, 0, 0);
             StaFlagOn(pG, STA_PL_FIRE);
         }
         if (pEm->motionMove()) {
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1101,8 +1102,8 @@ void pl_R1_LevelUp(cPlayer* pEm)
     case 0: {
         void* m0;
         void* m1;
-        pEm->stat &= ~0x800;
-        pEm->atari.throughOn();
+        pEm->stat.off(cPlayer::F_SHADOW);
+        pEm->atari.off();
         if (pEm->m_Work0 == 1) {
             m0 = pEm->m_MotTbl2[0];
             m1 = pEm->m_MotTbl2[1];
@@ -1111,7 +1112,7 @@ void pl_R1_LevelUp(cPlayer* pEm)
             m1 = pEm->m_MotTbl2[9];
         }
         MotionSetCore(pEm, MOTION(pEm), m0, m1, 6, 5, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         PSVECScale(&pEm->m_ActNorm, &pos, 400.0f);
         PSVECAdd(&pos, &pEm->m_ActCross, &pos);
         pos.y = pEm->pos.y;
@@ -1123,9 +1124,9 @@ void pl_R1_LevelUp(cPlayer* pEm)
     }
     case 1:
         if (pEm->motionMove()) {
-            pEm->stat &= ~0x800;
-            EmRoutineSet(pEm, 0, 0, 0, 0);
-            pEm->atari.throughOff();
+            pEm->stat.off(cPlayer::F_SHADOW);
+            pEm->setRno(0, 0, 0, 0);
+            pEm->atari.on();
         }
         break;
     }
@@ -1140,10 +1141,10 @@ void pl_R1_LevelDown(cPlayer* pEm)
     pEm->dmg.set(0, 10);
     switch (pEm->r_no_2) {
     case 0:
-        pEm->stat &= ~0x800;
-        pEm->atari.throughOn();
+        pEm->stat.off(cPlayer::F_SHADOW);
+        pEm->atari.off();
         MotionSetCore(pEm, MOTION(pEm), pEm->m_MotTbl2[10], pEm->m_MotTbl2[11], 6, 5, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         PSVECScale(&pEm->m_ActNorm, &pos, 400.0f);
         PSVECAdd(&pos, &pEm->m_ActCross, &pos);
         pos.y = pEm->pos.y;
@@ -1157,9 +1158,9 @@ void pl_R1_LevelDown(cPlayer* pEm)
             if (pEm->m_Work0 == 1) {
                 pEm->pos.y -= 1000.0f;
             }
-            pEm->stat |= 0x800;
-            EmRoutineSet(pEm, 0, 0, 0, 0);
-            pEm->atari.throughOff();
+            pEm->stat.on(cPlayer::F_SHADOW);
+            pEm->setRno(0, 0, 0, 0);
+            pEm->atari.on();
         }
         break;
     }
@@ -1173,10 +1174,10 @@ void pl_R1_ObjPush(cPlayer* pEm)
     case 0:
         CamCtrl.startPushObject();
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x20), 0, 6, 5, 0);
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         pEm->m_Work0 = 0;
         pEm->r_no_2 = 1;
-        pEm->stat |= 8;
+        pEm->stat.on(cPlayer::F_OBJPUSH);
     case 1:
         if (pEm->motionMove()) {
             pEm->r_no_2 = 0x14;
@@ -1215,15 +1216,15 @@ void pl_R1_ObjPush(cPlayer* pEm)
         break;
     case 0x28:
         CamCtrl.endPushObject();
-        pEm->stat &= ~8;
+        pEm->stat.off(cPlayer::F_OBJPUSH);
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x22), 0, 5, 5, 0);
-        EmRoutineSet(pEm, 0, 0, 2, 0);
+        pEm->setRno(0, 0, 2, 0);
         break;
     case 0x32:
         CamCtrl.endPushObject();
-        pEm->stat &= ~8;
+        pEm->stat.off(cPlayer::F_OBJPUSH);
         MotionSetCore(pEm, MOTION(pEm), pEm->m_MotTbl[0], 0, 0xF, 5, 0);
-        EmRoutineSet(pEm, 0, 0, 2, 0);
+        pEm->setRno(0, 0, 2, 0);
         break;
     }
 }
@@ -1239,7 +1240,7 @@ void pl_R1_Fance(cPlayer* pEm)
 
     switch (pEm->r_no_2) {
     case 0:
-        pEm->atari.clrFlag100();
+        pEm->atari.offSca();
         pEm->atari.setPriority(PRI_LV2);
         if (pG->pl_type == 1 || pG->pl_type == 2 || pG->pl_type == 4) {
             MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x53), PL_ARC_PTR(pG->pPlayer, 0x54), 3, 5, 0);
@@ -1250,7 +1251,7 @@ void pl_R1_Fance(cPlayer* pEm)
         } else {
             MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x55), PL_ARC_PTR(pG->pPlayer, 0x56), 3, 5, 0);
         }
-        pEm->Neck->m_MotR = 0;
+        pEm->Neck->clear();
         if (PlFanceFlag & 1) {
             pos.x = PlFancePos.x;
             pos.y = pEm->pos.y;
@@ -1307,8 +1308,8 @@ void pl_R1_Fance(cPlayer* pEm)
     }
     if (end) {
         pEm->atari.setPriority(0);
-        pEm->atari.setFlag100();
-        EmRoutineSet(pEm, 0, 0, 0, 0);
+        pEm->atari.onSca();
+        pEm->setRno(0, 0, 0, 0);
     }
     pEm->dmg.set(0, 2);
 }
@@ -1336,7 +1337,7 @@ int fanceWidthCheck(cPlayer* pEm)
     if (SatMgr.hitCheck(&p0, &p1, 0, 0, 0, 0) & ~0x20) {
         return 0;
     }
-    return SatMgr.hitCheck(&pEm->pParts->world, &p0, 0, 0, 0, 0) == 0;
+    return SatMgr.hitCheck(&pEm->pList->world, &p0, 0, 0, 0, 0) == 0;
 }
 
 // Slide the player sideways off a wall next to the fence: 50 to the left when the right side
@@ -1415,14 +1416,14 @@ void pl_R1_Fall(cPlayer* pEm)
     switch (pEm->r_no_2) {
     case 0:
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x2D), PL_ARC_PTR(pG->pPlayer, 0x2E), 3, 5, 0);
-        pEm->atari.throughOn();
-        pEm->Neck->m_MotR = 0;
+        pEm->atari.off();
+        pEm->Neck->clear();
         pEm->atari.setPriority(PRI_LV2);
         if (pSUB) {
-            pSUB->registPlAction(&pEm->pos, pEm->ang.y, 0);
+            SUB_CHAR()->registPlAction(&pEm->pos, pEm->ang.y, 0);
         }
         pEm->m_Work0 = 0;
-        pEm->stat &= ~0x800;
+        pEm->stat.off(cPlayer::F_SHADOW);
         PSVECScale(&pEm->m_ActNorm, &pos, 400.0f);
         PSVECAdd(&pos, &pEm->m_ActCross, &pos);
         pos.y = pEm->pos.y;
@@ -1438,7 +1439,7 @@ void pl_R1_Fall(cPlayer* pEm)
             v.z = 0.0f;
             RotVector(&pEm->m_FallVec, &v, &d);
             PSVECScale(&d, &a, 400.0f);
-            PSVECAdd(&a, &pEm->pParts->world, &a);
+            PSVECAdd(&a, &pEm->pList->world, &a);
             PSVECScale(&pEm->m_FallVec, &b, 1000.0f);
             PSVECAdd(&b, &a, &b);
             if (!(SatMgr.hitCheck(&a, &b, 0, 0, 0, 0) & 0x00100000)) {
@@ -1450,7 +1451,7 @@ void pl_R1_Fall(cPlayer* pEm)
             v.z = 0.0f;
             RotVector(&pEm->m_FallVec, &v, &d);
             PSVECScale(&d, &a, 400.0f);
-            PSVECAdd(&a, &pEm->pParts->world, &a);
+            PSVECAdd(&a, &pEm->pList->world, &a);
             PSVECScale(&pEm->m_FallVec, &b, 1000.0f);
             PSVECAdd(&b, &a, &b);
             if (!(SatMgr.hitCheck(&a, &b, 0, 0, 0, 0) & 0x00100000)) {
@@ -1477,15 +1478,15 @@ void pl_R1_Fall(cPlayer* pEm)
             MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x2F), PL_ARC_PTR(pG->pPlayer, 0x30), 0, 5, 0);
             pEm->motionMove();
             pEm->r_no_2 = 4;
-            pEm->stat |= 0x800;
+            pEm->stat.on(cPlayer::F_SHADOW);
         }
         break;
     case 4:
         if (pEm->motionMove()) {
             pEm->atari.setPriority(0);
-            pEm->atari.throughOff();
+            pEm->atari.on();
             pEm->dmg.clear();
-            EmRoutineSet(pEm, 0, 0, 0, 0);
+            pEm->setRno(0, 0, 0, 0);
         }
         break;
     }
@@ -1496,19 +1497,13 @@ void pl_R1_Fall(cPlayer* pEm)
 void pl_R0_Dijection(cPlayer* pEm)
 {
     if (pEm->r_no_1 == 0) {
-        cModelInfo* face;
         pEm->endCamera();
-        face = pEm->Body->pFace;
-        if (VALID_PTR(face)) {
-            face->mat[2][2] = 0.0f;
-            face->mat[1][1] = 0.0f;
-            face->mat[0][0] = 0.0f;
-        }
+        pEm->Body->setKnife(false);
         MotionSetCore(pEm, MOTION(pEm), PL_ARC_PTR(pG->pPlayer, 0x57), PL_ARC_PTR(pG->pPlayer, 0x58), 3, 1, 0);
         pEm->r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(MOTION(pEm), 60.0f)) {
-        SndCall(1, 0x45, &pEm->pParts->world, 0, 0, 0);
+        SndCall(1, 0x45, &pEm->pList->world, 0, 0, 0);
     }
     pEm->motionMove();
 }

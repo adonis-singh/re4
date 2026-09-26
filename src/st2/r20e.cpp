@@ -476,7 +476,7 @@ static void r20e_execThrough(int no)
     u32 i;
 
     pl->beginAction();
-    AtariOff(&pPL->atari, 0xFEFF);
+    pPL->atari.offSca();
     pPL->atari.setPriority(PRI_LV1);
     pPL->dmg.set(0, 0x80);
     t = &r20e_throughTbl[no];
@@ -548,7 +548,7 @@ static void r20e_execThrough(int no)
     }
     pl->endAction(8);
     pPL->dmg.clear();
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     pPL->atari.setPriority(0);
 }
 
@@ -630,16 +630,16 @@ void r20d_moveArmorStatue(int noAnim)
             EstSet(0, -1, 0, 0, EFF_ROOM, 1, 1, (u8) r20e_work->effKind, 0, 0);
             r20e_work->snd = SndCall(6, 7, 0, 0, 0, 0);
             for (i = 0; i < 90; i++) {
-                o23->pParts->ang.y += 0.034906585f;
-                o24->pParts->ang.y += 0.034906585f;
+                o23->pList->ang.y += 0.034906585f;
+                o24->pList->ang.y += 0.034906585f;
                 SceSleep(1);
             }
         }
         // weight lever: the two extra refs rank o23 above noAnim in global-alloc (o23 r31, noAnim r30,
         // o24 r29, i r28)
         do {
-            o23->pParts->ang.y = 3.1415927f;
-            o24->pParts->ang.y = 3.1415927f;
+            o23->pList->ang.y = 3.1415927f;
+            o24->pList->ang.y = 3.1415927f;
         } while (0);
     }
 }
@@ -738,11 +738,11 @@ static void r20d_getSalazarCrest_end()
         o24 = SmdGetObjPtr(0x24);
         if (o23) {
             o23->be_flag |= 0x20;
-            o23->pParts->ang.y = 3.1415927f;
+            o23->pList->ang.y = 3.1415927f;
         }
         if (o24) {
             o24->be_flag |= 0x20;
-            o24->pParts->ang.y = 3.1415927f;
+            o24->pList->ang.y = 3.1415927f;
         }
         obj = SmdGetObjPtr(0x16);
         if (obj) {
@@ -1301,7 +1301,7 @@ void r20e_openBox_main(int no, int opened)
     if (obj) {
         obj->be_flag |= 0x20;
         if (opened == 1) {
-            PSVECAdd(&obj->pParts->ang, &spd, &obj->pParts->ang);
+            PSVECAdd(&obj->pList->ang, &spd, &obj->pList->ang);
         } else {
             Vec step;
             int i;
@@ -1309,7 +1309,7 @@ void r20e_openBox_main(int no, int opened)
             PSVECScale(&spd, &step, 1.0f / 30.0f);
             SndCall(6, 0x5B, 0, 0, 0, 0);
             for (i = 0; i < 30; i++) {
-                PSVECAdd(&obj->pParts->ang, &step, &obj->pParts->ang);
+                PSVECAdd(&obj->pList->ang, &step, &obj->pList->ang);
                 SceSleep(1);
             }
         }
@@ -1354,16 +1354,16 @@ void r20e_openShelf_main(int no, int opened)
         a->be_flag |= 0x20;
         b->be_flag |= 0x20;
         if (opened == 1) {
-            a->pParts->ang.y = ang;
-            b->pParts->ang.y = -ang;
+            a->pList->ang.y = ang;
+            b->pList->ang.y = -ang;
         } else {
             int i;
 
             ang /= 30.0f;
             SndCall(6, 0x19, 0, 0, 0, 0);
             for (i = 0; i < 30; i++) {
-                a->pParts->ang.y += ang;
-                b->pParts->ang.y -= ang;
+                a->pList->ang.y += ang;
+                b->pList->ang.y -= ang;
                 SceSleep(1);
             }
         }

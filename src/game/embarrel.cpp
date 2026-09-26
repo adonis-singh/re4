@@ -114,10 +114,7 @@ cEmBarrel* SetBarrel(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcN
         em->LightInfo.init2(0, 1, barrelLightOfs(), &size, 0x10);
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->be_flag &= ~0x01000000;
     em->be_flag &= ~0x10;
@@ -190,10 +187,7 @@ cEmBarrel* SetR227Barrel(Vec* pPos, Vec* pAng)
 
         em->LightInfo.init2(0, 1, barrelLightOfs(), &size, 0x10);
     }
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->be_flag &= ~0x01000000;
     em->be_flag &= ~0x10;
@@ -499,7 +493,7 @@ void cEmBarrel::move()
     }
     be_flag &= ~0x4000;
     EmBarrel_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         EmAtCheck(this);
         atari.move();
         emBarrelEatSet(this);
@@ -584,7 +578,7 @@ void emBarrel_R1_Break(cEmBarrel* pEm)
 void emBarrel_R1_R227Roll(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
-    cModel* p;
+    cParts* p;
     f32 floor;
     f32 ang;
     f32 dist;
@@ -603,7 +597,7 @@ void emBarrel_R1_R227Roll(cEmBarrel* pEm)
             pEm->r_no_3 = 0;
             return;
         }
-        pEm->atari.throughOn();
+        pEm->atari.off();
         w->rollSe = 0;
         if ((Rnd() & 3) == 0) {
             w->rollSe = 1;
@@ -771,8 +765,8 @@ void cEmBarrel::setEff(u8 eff_id)
 void emBarrelSetBomb(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
-    Camera* cam;
-    cModel* p;
+    CAMERA* cam;
+    cParts* p;
     Vec v;
     f32 d2;
     f32 power;
@@ -826,8 +820,8 @@ void emBarrelSetBomb(cEmBarrel* pEm)
 void emBarrelSetBomb2(cEmBarrel* pEm)
 {
     EmBarrelWork* w = EMBARREL_WK(pEm);
-    Camera* cam;
-    cModel* p;
+    CAMERA* cam;
+    cParts* p;
     Vec v;
     f32 d2;
     f32 power;
@@ -882,7 +876,7 @@ void emBarrelEatSet(cEmBarrel* pEm)
         return;
     }
     if (w->sat) {
-        w->sat->m_Flag &= ~4;
+        w->sat->setDisable();
     }
     if (pEm->hp <= 0) {
         return;
@@ -904,7 +898,7 @@ void emBarrelEatSet(cEmBarrel* pEm)
         v[3].z = r;
         w->sat = EatMgr.create(&pEm->pos, &pEm->ang, v, 1250.0f, 0x400000, 0);
     } else {
-        w->sat->m_Flag |= 4;
+        w->sat->setEnable();
         w->sat->setCoord(&pEm->pos, &pEm->ang);
     }
 }
@@ -967,7 +961,7 @@ void emBarrelRunDownCk(cEmBarrel* pEm)
     PSMTXInverse(pEm->mat, inv);
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {

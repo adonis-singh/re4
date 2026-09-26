@@ -86,6 +86,12 @@ int ESP_IsActive(cEsp* pEsp)
     return 1;
 }
 
+// Dead-stripped by the original link (nothing calls it).
+int cEsp::IsActive()
+{
+    return m_Be_flg & 1;
+}
+
 // Allocates an effect of id `id`: runs its registered create (operator new picks a free slot),
 // marks it live (m_Be_flg bit0), stores the id and bumps ActiveEspNum. Returns 1 on success;
 // on a bad id or a full pool *out is the dummy esp (pDmyEsp) and 0 is returned.
@@ -245,7 +251,7 @@ int EspMove()
         if (esp->parent != pEffParentWorld) {
             cModel* m = esp->m_pMod;
             if (m != NULL) {
-                if ((m->be_flag & 0x201) != 1 || m->guid != esp->m_Guid_pMod) {
+                if (!m->isAlive() || m->guid != esp->m_Guid_pMod) {
                     PushEsp(esp);
                     continue;
                 }
@@ -318,7 +324,7 @@ int EspTrans()
     Vec* wp;
     cEsp* esp;
     EspTransFunc trans;
-    Camera* cam;
+    CAMERA* cam;
     u32 i;
     u16 prio;
     int ot;

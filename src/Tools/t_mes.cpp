@@ -126,7 +126,7 @@ void cMessageDebug::move()
 // English, ROOM message type, message 0 at (30, 360), a 2 MB buffer for loading.
 void cMessageDebug::init()
 {
-    MesData.lang = 0;
+    MesData.setLanguage(0);
     m_type = 1;
     m_x = 30;
     m_y = 360;
@@ -192,14 +192,14 @@ void cMessageDebug::message()
     MessageControl* pm = &cMes;
     int i;
 
-    if (pm->m_Msg[0].m_state & 1) {
+    if (pm->GetMesStatus(0) & 1) {
         pm->Move();
         return;
     }
     if (Joy[0].trg & 0x100) {
         pm->MesSet(m_mes, m_x, m_y, m_type, 0, 0, 4);
         for (i = 0; i < 3; i++) {
-            cMes.getMes(0)->setJump(0xFFFF);
+            cMes.MesSetJump(0, 0xFFFF);
         }
     } else if (Joy[0].trg & 0x200) {
         pm->Delete(0);
@@ -392,7 +392,7 @@ void cMessageDebug::language()
             case 0:
                 break;
             case 1:
-                MesData.lang = 1;
+                MesData.setLanguage(1);
                 break;
             }
             r_no_0 = 0;

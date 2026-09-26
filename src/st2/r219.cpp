@@ -97,7 +97,7 @@ static void toroko_go(int dir)
     cPlayer* pl = pPL;
 
     if (CheckDoorJumpWithAshley() == 0) {
-        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         return;
     }
     {
@@ -170,7 +170,7 @@ static void toroko_ret(int dir)
     cPlayer* pl = pPL;
 
     if (CheckDoorJumpWithAshley() == 0) {
-        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         return;
     }
     {
@@ -276,9 +276,9 @@ void r219_openShelf_main(int no, int mode)
         obj->ang.x = 1.28598f;
         obj->ang.y = -0.072f;
         obj->ang.z = 1.57173f;
-        obj->pParts->ang.x = 0.0f;
-        obj->pParts->ang.y = 0.0f;
-        obj->pParts->ang.z = 0.0f;
+        obj->pList->ang.x = 0.0f;
+        obj->pList->ang.y = 0.0f;
+        obj->pList->ang.z = 0.0f;
         obj->setPos(pos);
         obj->setAng(rot);
     }

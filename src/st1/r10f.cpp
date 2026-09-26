@@ -110,11 +110,8 @@ void R10fInit()
             if (r10f_work->gondola[i] != 0) {
                 r10f_work->gondola[i]->setMoveMotion(ROOM_ARC_PTR(pG->pRoom, 0x26), (u16) (i * 0x1C2));
                 if (m != 0) {
-                    // COMPILER-DIFF: candidate #17 (value-carrying pin): the pG temp of the setSubMotion block is
-                    // r10 in the original (its qty ahead of the work pointer's; ours reverses the two).
-                    register GlobalWork* g2 asm("r10");
-                    g2 = pG;
-                    r10f_work->gondola[i]->setSubMotion((MotionWork*) m++, ROOM_ARC_PTR(g2->pRoom, 0x30), ROOM_ARC_PTR(g2->pRoom, 0x31));
+                    r10f_work->gondola[i]->setSubMotion((MotionWork*) m, ROOM_ARC_PTR(pG->pRoom, 0x30), ROOM_ARC_PTR(pG->pRoom, 0x31));
+                    m++;
                 }
             }
         }
@@ -177,10 +174,10 @@ static void r10f_GondolaGetOn(int side)
     Vec zero;
     Vec p;
     cObj* obj;
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
 
     if (sub != 0 && RouteCkPosToPosDis(&pPL->pos, &sub->pos) > 10000.0f) {
-        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         SceExit();
     }
     SceEventStart(0);
@@ -205,7 +202,7 @@ static void r10f_GondolaGetOn(int side)
             SubCharCtrl(SCC_AUX_MOT, 0);
             pSUB->setNoSuspend(1);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 r10f_setPos(s, &((R10fGondolaTbl*) mot)->posB[side]);
                 ang.x = 0.0f;
@@ -340,7 +337,7 @@ static void r10f_GondolaGetOff(int side)
             SubCharCtrl(SCC_AUX_MOT, 0);
             pSUB->setNoSuspend(1);
             {
-                cSubChar* s = pSUB;
+                cSubChar* s = SUB_CHAR();
 
                 r10f_setPos(s, &((R10fGondolaTbl*) mot)->posB[side]);
                 ang.x = 0.0f;
@@ -439,7 +436,7 @@ extern "C" void r10f_DoorOpen()
     cObj* eye;
     cPlayer* pl;
     int eff;
-    ScePrim* cam;
+    SCE_TASK* cam;
 
     SceEventStart(0);
     eye = r10f_setFalseEye();
@@ -521,20 +518,20 @@ static void r10f_checkFalseEyeUse()
 static void r10f_DoorClose(u32 no)
 {
     if (no == 0 && ItemMgr.num(0x3D) != 0) {
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SubScreenOpen(SS_OPEN_ITEM, SS_ATTR_EVENT);
         SceExit();
     }
     SndCall(6, 7, 0, 0, 0, 0);
     switch (no) {
     case 0:
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         break;
     case 0x11D:
-        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         break;
     case 0x11E:
-        SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         break;
     }
 }

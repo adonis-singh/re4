@@ -1,7 +1,7 @@
 // wep15 module: the magnum (cObjMagnum, object id 0x2C; routines wep/pl_handgun.cpp).
 //
 // cObjMagnum is the cObjWep (game/objWep.cpp) of the Broken Butterfly revolver, hanging on the
-// player's right hand (parts 10) and driven by wep.mode / wep.step from the handgun routines:
+// player's right hand (parts 10) and driven by r_no_0 / r_no_1 from the handgun routines:
 // mode 2 -> moveFire (recoil motion, SEs, flash 0x49, strong vibration; no cartridge), mode 4 ->
 // moveReload (motion by tune level, ItemMgr.reload at frame 34). Both modes are ended by the
 // player routine. Wep15_init is the WeaponInitFunc, PlHandgunMove the WeaponMoveFunc; the module
@@ -55,50 +55,50 @@ void ObjMagnum_init(cObj* obj)
 }
 
 // cObjWep::init override (parent = the player): model 0x6 / texture 0x5, atari bits 8/9 off,
-// hung on the right hand, light area, idle motion 0x34, wep.shotFrame[0..2] = 0x20, default lock spread.
+// hung on the right hand, light area, idle motion 0x34, shotFrame[0..2] = 0x20, default lock spread.
 void cObjMagnum::init(cModel* parent)
 {
     if (modelInit(WEP_ARC_PTR(0x6), WEP_ARC_PTR(0x5)) == 0) {
         pLog->err(0, 0, "cObjMagnum::init() failed.");
         return;
     }
-    sub2B4.atari.m_flag &= 0xFCFF;
-    pParts->pParent = parent->getPartsPtr(0xA);
+    atari.m_flag &= 0xFCFF;
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x34);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x34);
     resetMotion();
-    wep.shotFrame[0] = 0x20;
-    wep.shotFrame[1] = 0x20;
-    wep.shotFrame[2] = 0x20;
+    shotFrame[0] = 0x20;
+    shotFrame[1] = 0x20;
+    shotFrame[2] = 0x20;
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire): step 0 starts the recoil motion 0x32, plays the three shot SEs, the
+// mode == 2 (fire): step 0 starts the recoil motion 0x32, plays the three shot SEs, the
 // muzzle flash 0x49 and the strong pad vibration (pattern 7); step 1 waits for the player routine.
 void cObjMagnum::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x32), 0, 0, 0, 0);
         SndCall(2, 0, &pos, 0, 0, 0);
         SndCall(2, 2, &pos, 0, 0, 0);
         SndCall(2, 4, &pos, 0, 0, 0);
         EstSet(this, -1, 0, 0, EFF_WEP15, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 7, 1);
-        wep.step = 1;
+        r_no_1 = 1;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the cylinder reload motion of the tune level (0x33/0x36/
+// mode == 4 (reload): step 0 starts the cylinder reload motion of the tune level (0x33/0x36/
 // 0x35) with the level's SE (0x16/0x20/0x18); at frame 34 ItemMgr.reload refills the cylinder.
 void cObjMagnum::moveReload()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -125,8 +125,8 @@ void cObjMagnum::moveReload()
             se = 0x18;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, 34.0f)) {
         ItemMgr.reload();
     }

@@ -3349,7 +3349,7 @@ int toolIdDataDecode(void* buf, IdTool* w)
             d->mark = r1->mark;
             if (d->mark != 0xFF) {
                 if (w->markUse[d->mark] != 0) {
-                    pLog.p->warn(0, 0, "toolIdDataDecode(): Mark 0x%02x is already used.", d->mark);
+                    pLog->warn(0, 0, "toolIdDataDecode(): Mark 0x%02x is already used.", d->mark);
                 }
                 w->markUse[d->mark] = 1;
             }
@@ -3417,7 +3417,7 @@ int toolIdDataDecode(void* buf, IdTool* w)
             d->mark = r2->mark;
             if (d->mark != 0xFF) {
                 if (w->markUse[d->mark] != 0) {
-                    pLog.p->warn(0, 0, "toolIdDataDecode(): Mark 0x%02x is already used.", d->mark);
+                    pLog->warn(0, 0, "toolIdDataDecode(): Mark 0x%02x is already used.", d->mark);
                 }
                 w->markUse[d->mark] = 1;
             }
@@ -3684,7 +3684,7 @@ void toolIdPaste(u8 parentNo, u8 no)
                 p->level = level0 + lv;
                 if (p->kind == 1) {
                     if (nParent > 0xF) {
-                        pLog.p->err(0, 0, "toolIdPaste(): overflow parent table size %d", 0x10);
+                        pLog->err(0, 0, "toolIdPaste(): overflow parent table size %d", 0x10);
                     } else {
                         tbl[nParent].oldNo = c->unitNo;
                         tbl[nParent].newNo = p->unitNo;

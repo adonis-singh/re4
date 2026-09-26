@@ -38,8 +38,8 @@
 struct R310Work {
     cObj* box1;         // 0x00  scroll object 3, pushed towards -x, then falls
     cObj* box2;         // 0x04  scroll object 4, pushed towards +x
-    ScePrim* pushTask;  // 0x08  the Leon push task (r310_pushBoxN_leon)
-    ScePrim* subTask;   // 0x0C  the Ashley push task (r310_pushBoxN_ashley)
+    SCE_TASK* pushTask;  // 0x08  the Leon push task (r310_pushBoxN_leon)
+    SCE_TASK* subTask;   // 0x0C  the Ashley push task (r310_pushBoxN_ashley)
     int pad_10;
     u32 se;             // 0x14  crate sliding sound (SndCall handle)
 };
@@ -191,10 +191,10 @@ void r310_execHide_main(int on, int no)
         SndCall(6, 0x14, &pSUB->pos, 0, 0, 0);
         // The exit store on the break path: peeled exit test (docs/matching.md COMPILER-DIFF #7/#9).
         for (;;) {
-            o->pParts->ang.z -= spd;
+            o->pList->ang.z -= spd;
             spd += add;
-            if (o->pParts->ang.z < lim) {
-                o->pParts->ang.z = lim;
+            if (o->pList->ang.z < lim) {
+                o->pList->ang.z = lim;
                 break;
             }
             SceSleep(1);
@@ -202,9 +202,9 @@ void r310_execHide_main(int on, int no)
     } else {
         SndCall(6, 0x13, &pSUB->pos, 0, 0, 0);
         for (;;) {
-            o->pParts->ang.z += 0.2f;
-            if (o->pParts->ang.z > 0.0f) {
-                o->pParts->ang.z = 0.0f;
+            o->pList->ang.z += 0.2f;
+            if (o->pList->ang.z > 0.0f) {
+                o->pList->ang.z = 0.0f;
                 break;
             }
             SceSleep(1);
@@ -264,10 +264,10 @@ static void r310_pushBox2_ashley()
         SceSleep(1);
     }
     if (pSys->language == 0) {
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         // COMPILER-DIFF: #12 fallthrough-arm form. A literal 0 here is cse's known-zero `language` register (kept in
         // r30 across SceMesSet); the original's arm stored a fresh `li 0`. `(work & 4) >> 3` is 0 only to combine.
-        r310_work->subTask = (ScePrim*) (((u32) r310_work & 4) >> 3);
+        r310_work->subTask = (SCE_TASK*) (((u32) r310_work & 4) >> 3);
     }
     SceExit();
 near:
@@ -307,7 +307,7 @@ near:
         }
         PSVECAdd(&pSUB->pos, &d, &pSUB->pos);
         pSUB->ang.y = pSUB->ang.y + Muku2(pSUB->ang.y, ang, 0.17453292f);
-        sub = pSUB;
+        sub = SUB_CHAR();
         sub->setPos(&sub->pos);
         sub->setAng(&sub->ang);
         asm("" : : "r"(sub)); // COMPILER-DIFF: 12 (regmove operand pick, r20d)
@@ -337,7 +337,7 @@ static void r310_pushBox2_leon()
     Vec goal;
 
     pPL->beginEvent(0);
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     PlSetHand(1, 0);
     Vec plPos = {0.0f, 0.0f, 0.0f};
     plPos.x = pPL->pos.x + 500.0f;
@@ -396,7 +396,7 @@ static void r310_pushBox2_leon()
     }
 done:
     if (r310_work->subTask) {
-        ScePrim* none = 0;
+        SCE_TASK* none = 0;
 
         pG->Room_flg[0] &= ~0x40000000;
         SceKill(r310_work->subTask);
@@ -504,10 +504,10 @@ static void r310_pushBox1_ashley()
         SceSleep(1);
     }
     if (pSys->language == 0) {
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         // COMPILER-DIFF: #12 fallthrough-arm form. A literal 0 here is cse's known-zero `language` register (kept in
         // r30 across SceMesSet); the original's arm stored a fresh `li 0`. `(work & 4) >> 3` is 0 only to combine.
-        r310_work->subTask = (ScePrim*) (((u32) r310_work & 4) >> 3);
+        r310_work->subTask = (SCE_TASK*) (((u32) r310_work & 4) >> 3);
     }
     SceExit();
 near:
@@ -547,7 +547,7 @@ near:
         }
         PSVECAdd(&pSUB->pos, &d, &pSUB->pos);
         pSUB->ang.y = pSUB->ang.y + Muku2(pSUB->ang.y, ang, 0.17453292f);
-        sub = pSUB;
+        sub = SUB_CHAR();
         sub->setPos(&sub->pos);
         sub->setAng(&sub->ang);
         asm("" : : "r"(sub)); // COMPILER-DIFF: 12 (regmove operand pick, r20d)
@@ -578,7 +578,7 @@ static void r310_pushBox1_leon()
     Vec goal;
 
     pPL->beginEvent(0);
-    AtariOn(&pPL->atari, 0x100);
+    pPL->atari.onSca();
     PlSetHand(1, 0);
     Vec plPos = {0.0f, 0.0f, 0.0f};
     plPos.x = pPL->pos.x - 500.0f;
@@ -637,7 +637,7 @@ static void r310_pushBox1_leon()
     }
 done:
     if (r310_work->subTask) {
-        ScePrim* none = 0;
+        SCE_TASK* none = 0;
 
         pG->Room_flg[0] &= ~0x40000000;
         SceKill(r310_work->subTask);

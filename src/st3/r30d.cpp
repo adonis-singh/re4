@@ -49,7 +49,7 @@ struct R30dWork {
     R30dCoop coop;    // 0x08
     cObj* obj[2];     // 0x1C  the two lever models
     cEmWrap em[2];    // 0x24
-    ScePrim* timer;   // 0x3C  R30dTimerDisp task
+    SCE_TASK* timer;   // 0x3C  R30dTimerDisp task
 };
 
 
@@ -394,7 +394,7 @@ static void R30dShutterFrontEvent()
     while ((SubCharGetStatus() & 0x00800000) == 0) {
         SceSleep(1);
     }
-    EmRoutineSet(pSUB, 0, 0, 0, 0);
+    pSUB->setRno(0, 0, 0, 0);
     SubCharCtrl(0, 0);
     for (i = 0; i < 40; i++) {
         SceSleep(1);
@@ -424,7 +424,7 @@ static void R30dShutterFrontEvent()
         SndCall(6, 0x25, &bar->pos, 0, 0, 0);
     }
     pSUB->dmg.clear();
-    EmRoutineSet(pSUB, 0, 0, 0, 0);
+    pSUB->setRno(0, 0, 0, 0);
     SubCharCtrl(1, 0);
 }
 
@@ -472,7 +472,7 @@ static void R30dCoopSwitch()
         }
         cObj* o0 = r30d_work->obj[0];
         if (o0) {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 x = o0->pos.x - 619.92f;
             f32 z = o0->pos.z + 12.8f;
             v.x = x;
@@ -500,7 +500,7 @@ static void R30dCoopSwitch()
         }
         cObj* o1 = r30d_work->obj[1];
         if (o1) {
-            cSubChar* sub = pSUB;
+            cSubChar* sub = SUB_CHAR();
             f32 x = o1->pos.x - 619.92f;
             f32 z = o1->pos.z + 12.8f;
             v.x = x;
@@ -667,7 +667,7 @@ static void R30dCoopSwitch()
     } while (COOP_ACTIVE(c) != 0);
     CamCtrl.Comeback(0);
     pPL->endEvent(2);
-    EmRoutineSet(pSUB, 0, 0, 0, 0);
+    pSUB->setRno(0, 0, 0, 0);
     SubCharCtrl(1, 0);
 }
 
@@ -723,7 +723,7 @@ static void funcAshleyShutter(cEm* p)
         v.y = 0.0f;
         v.z = 0.0f;
         p->setAng(&v);
-        AtariOffV(&p->atari, 0xFCFF);
+        p->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x2D), 3, 0, 0x101, 0);
         SndCall(6, 6, &p->pos, 0, 0, 0);
         p->r_no_2++;
@@ -743,7 +743,7 @@ static void funcAshleyShutter(cEm* p)
     case 3:
         if (p->motionMove() != 0) {
             pG->Room_flg[0] |= 0x40000000;
-            AtariOn(&p->atari, 0x300);
+            p->atari.on();
             p->r_no_2++;
         }
         break;

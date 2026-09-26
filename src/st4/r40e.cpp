@@ -17,6 +17,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "em_set.h"
 #include "em_wrap.h"
@@ -330,18 +331,14 @@ static void R40EExecEventS00()
     if (RsfCheck(G_ROOM_ID, 0) == 0) {
         SceEventStart(0);
         pPL->setNoSuspend(1);
-        // Two sets of one pointer variable: `addi r31,r9,cMes@l; addi r31,r31,4` in place (a fresh
-        // `cMes.getWork()` pseudo gives `addi r9,..; addi r31,r9,4`).
-        MesWork* w = (MesWork*) &cMes;
-        w = (MesWork*) ((u8*) w + 4);
-        SceMesSet(0, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() != 1) {
             CamCtrl.Comeback(0);
             SceEventEnd(0);
         } else {
             SndCall(6, 2, 0, 0, 0, 0);
             if ((u32) ItemMgr.num(0xC) <= 4) {
-                SceMesSet(2, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+                SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
                 CamCtrl.Comeback(0);
                 SceEventEnd(0);
             } else {
@@ -458,11 +455,11 @@ extern "C" void Evt_R40ES00_Func(Event* e)
                     ((cModel*) mod)->LightInfo.EnableMask = 2;
                 }
                 if (e->GetMod(&mod, "pl0c00", 0, 0) == 1) {
-                    Obj18Work* w = &((cObj*) mod)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod);
 
-                    if (w && w->child) {
-                        ((cObj*) mod)->o18.ObjChainFlagCommon |= 0x04000000;
-                        w->child->be_flag &= ~2;
+                    if (w && w->pObjChain) {
+                        OBJ18_WK((cObj18*) mod)->ObjChainFlagCommon |= 0x04000000;
+                        w->pObjChain->be_flag &= ~2;
                     }
                 }
             }

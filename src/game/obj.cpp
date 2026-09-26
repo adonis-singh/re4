@@ -5,6 +5,36 @@
 #include "atari.h"
 #include "event.h"
 #include "obj.h"
+#include "obj00.h"
+#include "obj01.h"
+#include "obj02.h"
+#include "obj03.h"
+#include "obj04.h"
+#include "obj05.h"
+#include "obj06.h"
+#include "obj08.h"
+#include "obj09.h"
+#include "obj10.h"
+#include "obj12.h"
+#include "obj13.h"
+#include "obj14.h"
+#include "obj15.h"
+#include "obj16.h"
+#include "obj18.h"
+#include "obj19.h"
+#include "obj1b.h"
+#include "obj1c.h"
+#include "obj1d.h"
+#include "obj20.h"
+#include "obj26.h"
+#include "objBull.h"
+#include "objGondola.h"
+#include "objMissile.h"
+#include "objPillar.h"
+#include "objRobo.h"
+#include "objSubWep.h"
+#include "objTrolley.h"
+#include "objYagura.h"
 #include "global.h"
 #include "db_log.h"
 #include "va_ppc.h"
@@ -22,153 +52,10 @@ extern "C" {
 void objMove(cObj* p);
 }
 
-// Per-id classes constructed by cObjMgr::construct. Each declares its `move` so the vtable stays
-// with the unit that defines it (a class without a key function would emit a linkonce copy here).
-class cObj00 : public cObj {
-public:
-    virtual void move();
-};
-class cObj01 : public cObj {
-public:
-    virtual void move();
-};
-class cObjScr : public cObj {
-public:
-    cObjScr();
-    virtual void move();
-};
-class cObj03 : public cObj {
-public:
-    cObj03();
-    virtual void move();
-};
-class cObj04 : public cObj {
-public:
-    virtual void move();
-};
-class cObj05 : public cObj {
-public:
-    virtual void move();
-};
-class cObjBox : public cObj {
-public:
-    cObjBox();
-    virtual void move();
-};
-class cObj08 : public cObj {
-public:
-    virtual void move();
-};
-class cObj09 : public cObj {
-public:
-    virtual void move();
-};
-class cWepItem : public cObj {
-public:
-    virtual void move();
-};
-class cObj12 : public cObj {
-public:
-    virtual void move();
-};
-class cObjLadder : public cObj {
-public:
-    virtual void move();
-};
-class cObjBell : public cObj {
-public:
-    virtual void move();
-};
-class cObjGatling : public cObj {
-public:
-    virtual void move();
-};
-class cObj16 : public cObj {
-public:
-    virtual void move();
-};
-class cObj18 : public cObj {
-public:
-    virtual void move();
-};
-class cItemObj : public cObj {
-public:
-    cItemObj();
-    virtual void move();
-};
-class cObjGrenade : public cObj {
-public:
-    cObjGrenade();
-    virtual void move();
-};
-class cObjSpear : public cObj {
-public:
-    virtual void move();
-};
-class cObj1c : public cObj {
-public:
-    virtual void move();
-};
-class cObjChain : public cObj {
-public:
-    virtual void move();
-};
-class cObjPillar : public cObj {
-public:
-    virtual void move();
-};
-class cObjObaModel : public cObj {
-public:
-    virtual void move();
-};
-class cObj26 : public cObj {
-public:
-    virtual void move();
-};
-class cObjGreFire : public cObj {
-public:
-    cObjGreFire();
-    virtual void move();
-};
-class cObjGreLight : public cObj {
-public:
-    cObjGreLight();
-    virtual void move();
-};
-class cObjGondola : public cObj {
-public:
-    virtual void move();
-};
-class cObjRobo : public cObj {
-public:
-    virtual void move();
-};
-class cObjMissile : public cObj {
-public:
-    virtual void move();
-};
-class cObjYagura : public cObj {
-public:
-    virtual void move();
-};
-class cObjEgg : public cObj {
-public:
-    cObjEgg();
-    virtual void move();
-};
-class cObjTrolley : public cObj {
-public:
-    virtual void move();
-};
-class cObjBull : public cObj {
-public:
-    virtual void move();
-};
-
 void (*ObjInitFunc[0x40])(cObj*);
 
 // Manager of the 0x3D8-byte cObj works (kind 2 of the unit managers).
-cObjMgr::cObjMgr() : cManager<cObj>(sizeof(cObj), 2)
+cObjMgr::cObjMgr() : cManager<cObj>(OBJ_WORK_SIZE, 2)
 {
     setName("cObjMgr");
     Guid = 0;
@@ -319,18 +206,8 @@ int cObjMgr::construct(cObj* pObj, u32 id)
 // Per-frame: die check, then objMove on every alive object.
 void cObjMgr::move()
 {
-    cObj* p;
-    cObj* n;
-    void (*func)(cObj*);
-
     dieCheck();
-    func = objMove;
-    p = pAlive;
-    while (p) {
-        n = p;
-        p = (cObj*) p->pNext;
-        func(n);
-    }
+    applyFuncAll(objMove);
 }
 
 // One object's frame: skips inactive objects (be_flag 0x20 clear) and, during an event
@@ -361,7 +238,7 @@ void objMove(cObj* pObj)
 // Destroys an object: releases its model/parts (push) when it was alive, then the manager slot.
 void cObjMgr::destroy(cObj* pObj)
 {
-    if ((pObj->be_flag & 0x201) != 1) {
+    if (!pObj->isAlive()) {
         return;
     }
     pObj->push();

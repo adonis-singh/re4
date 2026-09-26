@@ -82,15 +82,12 @@ cEmShield* SetShield(void* bin, void* tpl, Vec* pos, Vec* rot)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
-    em->lockParts = 0;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
     em->atari.setPriority(PRI_LV3);
-    em->atari.throughOn();
+    em->atari.off();
     w->Be_flg = 0;
     em->be_flag &= ~0x10;
     w->Fall_wait = 0;
@@ -178,9 +175,9 @@ void emShieldDmCk(cEmShield* pEm)
     Vec r;
     u8 wep;
     YARARE_INFO* part;
-    cModel* parts;
-    cModel* parts0;
-    cModel* parts2;
+    cParts* parts;
+    cParts* parts0;
+    cParts* parts2;
 
     if (pEm->dmg.m_Flag == 0) {
         return;
@@ -370,7 +367,7 @@ void cEmShield::move()
 
     emShieldDmCk(this);
     EmShield_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) == 1) {
+    if (isAlive()) {
         if (w->pParent) {
             invisible_factor = w->pParent->invisible_factor;
             invisible_factor2 = w->pParent->invisible_factor2;
@@ -396,7 +393,7 @@ void cEmShield::move()
             if (((cEm*) w->pParent)->hp <= 0) {
                 hp = 0;
             }
-            if (w->pParent && (w->pParent->be_flag & 0x201) != 1) {
+            if (w->pParent && !w->pParent->isAlive()) {
                 EmMgr.destroy(this);
             }
         }
@@ -509,7 +506,7 @@ void emShield_R1_Parent(cEmShield* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];
@@ -587,7 +584,7 @@ void emShield_R1_Fall(cEmShield* pEm)
     u32 k;
     f32 mag;
     f32 d;
-    cModel* parts0;
+    cParts* parts0;
 
     pEm->hp = 0;
     pEm->setStatus(EM_STATUS_LOCKOFF);

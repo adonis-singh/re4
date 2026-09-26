@@ -57,7 +57,7 @@ struct R300Work {
     f32 sweepAng2;          // 0x138
     f32 miraAng;            // 0x13C  mirror A rotation target
     f32 mirbAng;            // 0x140  mirror B rotation target
-    Camera cam;             // 0x144  mirror event camera
+    CAMERA cam;             // 0x144  mirror event camera
     cEmHit* hit;            // 0x23C
     int x240;               // 0x240
     Vec laserPos[2];        // 0x244  laser reflection points
@@ -674,9 +674,9 @@ static void setTexRender()
         tbl0[0] = 1;
         tbl0[1] = 0;
         tbl0[4] = 0xF7;
-        tbl0[5] = r300_work->tex[0]->m_Tex_no;
-        r300_work->tex[0]->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r300_work->tex[0]->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl0[5] = r300_work->tex[0]->GetTexNo();
+        r300_work->tex[0]->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r300_work->tex[0]->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "R300Init() : Manager alloc failed!!");
     }
@@ -687,15 +687,14 @@ static void setTexRender()
         tbl1[0] = 1;
         tbl1[1] = 0;
         tbl1[4] = 0xF7;
-        tbl1[5] = r300_work->tex[1]->m_Tex_no;
-        r300_work->tex[1]->m_Rep_type = 1;
+        tbl1[5] = r300_work->tex[1]->GetTexNo();
+        r300_work->tex[1]->SetRepeatType(1);
         {
             TexRenderMng* t = r300_work->tex[1];
 
-            t->m_W_size = 0x20;
-            t->m_H_size = 0x20;
+            t->SetWHSize(0x20, 0x20);
         }
-        EstSet(0, -1, 0, 0, EFF_ROOM, 4, r300_work->tex[1]->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 4, r300_work->tex[1]->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "R300Init() : Manager alloc failed!!");
     }
@@ -773,7 +772,7 @@ static void Evt_R300S00_Func(Event* e)
                     ((cModel*) mod)->ot_type = 1;
                 }
                 if (e->GetMod(&mod, "obm3600", 0, 0) == 1) {
-                    cModel* p;
+                    cParts* p;
 
                     ((cModel*) mod)->be_flag |= 0x80;
                     p = ((cModel*) mod)->getPartsPtr(3);
@@ -1082,7 +1081,7 @@ static void r300_mira_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x11);
     SceSleep(1);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         CamCtrl.CutCall(0xD);
         SceSleep(1);
@@ -1120,7 +1119,7 @@ static void r300_mira_exec()
             Vec pos = {-20664.0f, -10229.0f, -19603.0f};
             Mtx m;
             Vec dir;
-            Camera* cam = &r300_work->cam;
+            CAMERA* cam = &r300_work->cam;
             dir.x = cam->param.at.x - pos.x;
             dir.y = 0.0f;
             dir.z = cam->param.at.z - pos.z;
@@ -1153,7 +1152,7 @@ static void r300_mira_exec()
             PSVECAdd(&dir, &pos, &cam->param.pos);
             r300_work->cam.param.roll = 0.0f;
             CameraSetOrientationRoll(&r300_work->cam);
-            cc->m_pExtraCamera = (s32) &r300_work->cam;
+            cc->SetExtraCamera(&r300_work->cam);
             SceSleep(1);
         }
     }
@@ -1167,7 +1166,7 @@ static void r300_mirb_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x12);
     SceSleep(1);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         CamCtrl.CutCall(0xC);
         SceSleep(1);
@@ -1206,7 +1205,7 @@ static void r300_mirb_exec()
             Vec pos = {-33306.0f, -10229.0f, -40392.0f};
             Mtx m;
             Vec dir;
-            Camera* cam = &r300_work->cam;
+            CAMERA* cam = &r300_work->cam;
             dir.x = cam->param.at.x - pos.x;
             dir.y = 0.0f;
             dir.z = cam->param.at.z - pos.z;
@@ -1239,7 +1238,7 @@ static void r300_mirb_exec()
             PSVECAdd(&dir, &pos, &cam->param.pos);
             r300_work->cam.param.roll = 0.0f;
             CameraSetOrientationRoll(&r300_work->cam);
-            cc->m_pExtraCamera = (s32) &r300_work->cam;
+            cc->SetExtraCamera(&r300_work->cam);
             SceSleep(1);
         }
         if (pG->Room_flg[0] & 0x40000000) {
@@ -1371,7 +1370,7 @@ static void r300_laser_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x13);
     SceSleep(1);
-    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
 }
@@ -1382,7 +1381,7 @@ static void r300_laser2_exec()
     SceEventStart(1);
     CamCtrl.CutCall(0x14);
     SceSleep(1);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
 }
@@ -1390,7 +1389,7 @@ static void r300_laser2_exec()
 // Area 0xC: message 3 (the gate must be burnt open).
 static void r300_laser_door_exec()
 {
-    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // End of the gate Ganado event (also its cancel path): the event Ganado em[20] swapped for the list

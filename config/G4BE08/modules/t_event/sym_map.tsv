@@ -137,7 +137,7 @@ section	offset	size	unit	scope	name	demangled
 .text	0x0001241C	0xF0	t_event/db_sctrl.cpp	global	SctrlAdjustAxisRange__FP11DbSctrlWork	SctrlAdjustAxisRange
 .text	0x0001250C	0x40	t_event/db_sctrl.cpp	global	SctrlSetAxisLabel__FP11DbSctrlWorkPCcT1	SctrlSetAxisLabel
 .text	0x0001254C	0x70	t_event/db_sctrl.cpp	global	SctrlInitCursor__FP11DbSctrlWorkff	SctrlInitCursor
-.text	0x000125BC	0x10C	t_event/db_sctrl.cpp	global	dbSctrlScreenOrientation__FP11DbSctrlWorkP6Cameraf	dbSctrlScreenOrientation
+.text	0x000125BC	0x10C	t_event/db_sctrl.cpp	global	dbSctrlScreenOrientation__FP11DbSctrlWorkP6CAMERAf	dbSctrlScreenOrientation
 .text	0x000126C8	0x98	t_event/db_sctrl.cpp	global	DbSctrl__FP11DbSctrlWorkii	DbSctrl
 .text	0x00012760	0x20	t_event/db_sctrl.cpp	local	sctrlQuit__FP11DbSctrlWork	sctrlQuit
 .text	0x00012780	0xE7C	t_event/db_sctrl.cpp	local	sctrlMenu__FP11DbSctrlWork	sctrlMenu

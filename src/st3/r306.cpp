@@ -170,24 +170,21 @@ static void r306_StrCheck()
     }
 }
 
-// The 308 door: the key message while the player has the key. The message work pointer of the unlock
-// branch is a local computed before the loop; the other branch's cMes.getWork() is hoisted as its copy.
+// The 308 door: the key message while the player has the key.
 static void r306_checkDoor308KeyUse()
 {
-    MesWork* w = &cMes.m_Msg[0];
-
     for (;;) {
         while (ItemMgr.check(0x84) != 1) {
             SceSleep(1);
         }
         if (pG->Room_flg[2] & 0x80000000) {
             SndCall(6, 4, 0, 0, 0, 0);
-            SceMesSet(4, 0, 1, 0x64, 0x150 - w->lineSpace - w->m_font_h - 1);
+            SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             KyfFlagOn(pG, KYF_R306_TO_R308_DOOR);
             SceAtDataReset(4);
             SceAtSetEnable(6, 0);
         } else {
-            SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         }
     }
 }
@@ -210,7 +207,7 @@ static void r306_checkDoor30bKeyUse()
     }
     ItemMgr.dump(0x92);
     SndCall(6, 4, 0, 0, 0, 0);
-    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     KyfFlagOn(pG, KYF_R306_TO_R30B_DOOR);
     SceAtDataReset(5);
 }

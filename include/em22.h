@@ -34,7 +34,7 @@ struct Em22Work {
 
     int gotoOn;           // 0x068 (0x448)  cEm22::setGoto: run to gotoPos (em22_R1_Goto)
     Vec gotoPos;          // 0x06C (0x44C)
-    Camera cam;           // 0x078 (0x458)  event camera of the catch scenes (em22CamMove)
+    CAMERA cam;           // 0x078 (0x458)  event camera of the catch scenes (em22CamMove)
     YARARE_INFO hit[5];     // 0x170 (0x550)  extra hit boxes (em22YarareInit)
     class cObj16* pPara[5];     // 0x274 (0x654)  parasites on the back (em22SetParasite)
     class cObj16* pParaAtk[3];  // 0x288 (0x668)  parasites of the attack (em22SetParasiteAtk)

@@ -2,6 +2,7 @@
 #define ROOM_DATA_H
 
 #include "types.h"
+#include "cFlag.h"
 
 // Per-room save data and room DLL control (game/roomdata.cpp).
 struct OSModuleHeader;
@@ -44,9 +45,13 @@ struct RoomSave {
 
 class cRoomData {
 public:
+    enum CTRL_FLAG {
+        CTRL_STOP = 0,  // room DLL unlinked (stopRelData)
+    };
+
     u16 total;                // 0x00  rooms in all stage tables
     u16 num;                  // 0x02  rooms with a save record
-    u16 flag;                 // 0x04  bit 0: room DLL unlinked (stopRelData)
+    cFlag<u16, CTRL_FLAG> m_CtrlFlag;  // 0x04
     u8 pad_6[2];
     OSModuleHeader* m_pModule;  // 0x08  linked room DLL (exception.cpp loads its symbols)
     void* m_pModule_bss;               // 0x0C  DLL bss
@@ -56,7 +61,7 @@ public:
     u16 m_RelNo;              // 0x1C  FileTbl index (rel_no) of the room dll loaded; cleared before linkRelData (stage.cpp)
     u16 x1E;                  // 0x1E
 
-    cRoomData() { flag = 0; }
+    cRoomData() { m_CtrlFlag.reset(); }
     ~cRoomData() {}  // the empty destructor is what makes GCC emit the static destructor function
 
     void init();

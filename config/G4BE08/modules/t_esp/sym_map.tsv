@@ -232,7 +232,7 @@ section	offset	size	unit	scope	name	demangled
 .text	0x0001D3F8	0xD0	t_esp/db_port.cpp	global	DB_WorkPush	DB_WorkPush
 .text	0x0001D4C8	0xE0	t_esp/db_port.cpp	global	DB_WorkPop	DB_WorkPop
 .text	0x0001D5A8	0x154	t_esp/db_port.cpp	global	DbModCarSet	DbModCarSet
-.text	0x0001D6FC	0x1FC8	t_esp/db_port.cpp	global	EspToolInit	EspToolInit
+.text	0x0001D6FC	0x1FC8	t_esp/db_port.cpp	global	EspToolInit__FRbRUcT1	EspToolInit
 .text	0x0001F6C4	0x8C	t_esp/db_port.cpp	global	EspToolExitEstSet	EspToolExitEstSet
 .text	0x0001F750	0x1A8	t_esp/db_port.cpp	global	EspToolExit	EspToolExit
 .text	0x0001F8F8	0x2C	t_esp/db_port.cpp	global	DB_isGetComeEventTool	DB_isGetComeEventTool

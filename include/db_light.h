@@ -14,7 +14,7 @@ public:
     ~cLightTool();
     // 1 = running, 2 = player mode (the caller moves the player and camera), 0 = quit
     int move();
-    void setLogMode(int on);  // t_esp's build only
+    void setLogMode(bool on);  // t_esp's build only
 };
 
 #endif

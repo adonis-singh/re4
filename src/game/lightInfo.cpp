@@ -24,7 +24,7 @@ cLightInfo::cLightInfo()
     Size.x = Size.y = Size.z = 0.0f;
 }
 
-// Sets the lighting volume: type (Flag & 3: 0 capsule-like Size.x+Size.y, 1 sphere Size.x, else box
+// Sets the lighting volume: type (getType(): 0 capsule-like Size.x+Size.y, 1 sphere Size.x, else box
 // diagonal) attached to parts partsNo (0 = the model origin), centre offset, size and the light
 // kind enable mask. Returns 0 on invalid pointers.
 int cLightInfo::init2(int type, int partsNo, const Vec* pOffset, const Vec* pSize, int mask)
@@ -44,9 +44,9 @@ int cLightInfo::init2(int type, int partsNo, const Vec* pOffset, const Vec* pSiz
     SelectMask = 0xFFFFFFFF;
     Offset = *pOffset;
     Size = *pSize;
-    if ((Flag & 3) == 0) {
+    if (getType() == 0) {
         Radius = Size.x + Size.y;
-    } else if ((Flag & 3) != 2) {
+    } else if (getType() != 2) {
         Radius = Size.x;
     } else {
         Radius = SQRTF(Size.x * Size.x + Size.y * Size.y + Size.z * Size.z);
@@ -82,7 +82,7 @@ void cLightInfo::updateMatrix(cModel* pMod)
     if (PartsNo == 0) {
         PSVECAdd(&v, &pMod->pos, &v);
     } else {
-        if (pMod->pParts == 0) {
+        if (pMod->pList == 0) {
             return;
         }
         PSVECAdd(&v, &pMod->getPartsPtr(PartsNo - 1)->world, &v);
@@ -93,9 +93,9 @@ void cLightInfo::updateMatrix(cModel* pMod)
 }
 
 // World-space offset of the volume centre (rotated by the parts' matrix); returns the parts used.
-cModel* cLightInfo::getPos(cModel* m, Vec* out)
+cCoord* cLightInfo::getPos(cModel* m, Vec* out)
 {
-    cModel* c;
+    cCoord* c;
 
     if (PartsNo > 0) {
         c = m->getPartsPtr(PartsNo - 1);

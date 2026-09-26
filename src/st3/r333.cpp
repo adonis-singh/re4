@@ -18,6 +18,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "em_wrap.h"
 #include "pl0e.h"
@@ -366,7 +367,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
                 void* m;
 
                 if (e->GetMod(&m, "pl0100", 0, 0) == 1) {
-                    ((cObj*) m)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) m)->be_flag |= 0x40;
                 }
             }
         } else {
@@ -374,7 +375,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
                 void* m;
 
                 if (e->GetMod(&m, "pl0100", 0, 0) == 1) {
-                    ((cObj*) m)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) m)->be_flag &= ~0x40;
                 }
             }
         }
@@ -404,7 +405,7 @@ extern "C" void Evt_R333S10_Func(Event* e)
             break;
         case 0x13:
             if (e->NowFrame == 380) {
-                int skip = EvtSkipCk(e);
+                int skip = e->FlgCkStatus(EvtStfToolFrontExec);
 
                 if (skip == 0) {
                     FadeSetW(2, e->MaxFrame - 380, 0, 0);
@@ -431,9 +432,9 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r333_work->tex->m_Tex_no;
-        r333_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r333_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r333_work->tex->GetTexNo();
+        r333_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r333_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }
@@ -541,14 +542,14 @@ static void r333_useMes()
             SubScreenOpen(0x80, 1);
         }
     } else {
-        cMes.MesSet(0x67, 100, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(0x67, 100, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
     }
 }
 
 // Leon gets on the jet ski.
 void ride()
 {
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     pG->Room_flg[0] |= 0x80000000;
     EffectEspDelete(1, ESP_CORE_KIND_ROOM03, 0, 0);
     EffectEspgenDelete(1, ESP_CORE_KIND_ROOM03, 0);
@@ -671,7 +672,7 @@ static void gameResult()
     // ahead of SceMesSet (r30), where `sel = f()` legitimises the address after the call (`li r9`).
     int* pSel = &sel;
 
-    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0x80, 1, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     *pSel = SceMesGetSelection();
     res->quit();
     delete res;

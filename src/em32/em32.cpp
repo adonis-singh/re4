@@ -312,7 +312,7 @@ void em32DmCk(cEm32* em)
     int flag;
     int wep;
 
-    if (em->hp > 0 && EmDeadCk(em) == 0) {
+    if (em->hp > 0 && em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -397,7 +397,7 @@ void em32DmCk(cEm32* em)
     }
     if (w->mode == 1 && (w->flags & 0x100000)) {
         if (em->hp <= em->hp_max * 3 / 8) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
             return;
         }
     }
@@ -506,7 +506,7 @@ void em32DmCk(cEm32* em)
         break;
     }
     w->dmgTotal = 0;
-    EmRoutineSet(em, 2, 0, 0, 0);
+    em->setRno(2, 0, 0, 0);
 }
 
 // Per-frame update from the enemy manager. Order: damage, clear the per-frame flags, tick the wait
@@ -614,7 +614,7 @@ static void em32_R0_Init(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     cModelInfo* info;
-    cModel* p;
+    cParts* p;
     Vec v;
     f32 fzero;
     int zero;
@@ -652,7 +652,7 @@ static void em32_R0_Init(cEm32* em)
     em->LightInfo.init2(0, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 10000.0f, 10000.0f, 10000.0f }), 2);
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 1500.0f, 1, 0x2000, 10);
     em->atari.setPriority(PRI_LV1);
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     fzero = 0.0f;
     v.x = fzero;
     v.y = fzero;
@@ -689,10 +689,7 @@ static void em32_R0_Init(cEm32* em)
     YarareAdd(em, &w->hit[25], fzero, fzero, fzero, 250.0f, 300.0f, 0x56, 0);
     YarareAdd(em, &w->hit[26], fzero, fzero, fzero, 250.0f, 300.0f, 0x57, 0);
     YarareAdd(em, &w->hit[27], fzero, fzero, fzero, 250.0f, 300.0f, 0x58, 0);
-    em->lockParts = 2;
-    em->lockOfs.x = fzero;
-    em->lockOfs.y = fzero;
-    em->lockOfs.z = fzero;
+    em->setTarget(2, fzero, fzero, fzero);
     w->flags = zero;
     w->neckAng = fzero;
     w->wait = zero;
@@ -793,11 +790,11 @@ static void em32_R1_Parasite(cEm32* em)
     case 1:
         if (MotionMove(em, 0)) {
             w->wait = 10;
-            // A local for the 1: stored directly, it shares a register with EmRoutineSet's own
+            // A local for the 1: stored directly, it shares a register with setRno's own
             // literal arguments below instead of getting its own.
             int n = 1;
             w->mode = n;
-            EmRoutineSet(em, 1, 6, 0, 0);
+            em->setRno(1, 6, 0, 0);
         }
         break;
     }
@@ -819,11 +816,11 @@ static void em32_R1_LastMode(cEm32* em)
         if (MotionMove(em, 0)) {
             w->x978 = 450;
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             w->mode = 2;
@@ -865,7 +862,7 @@ static void em32_R1_2ndAppear(cEm32* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0xD, 0, 0);
+            em->setRno(1, 0xD, 0, 0);
         }
         break;
     }
@@ -892,7 +889,7 @@ static void em32_R1_3rdAppear(cEm32* em)
             em->flag &= ~1;
             em32SetYarareMark(em, 1);
             em32GetJumpDownNo(em);
-            EmRoutineSet(em, 1, 0x18, zero, 1);
+            em->setRno(1, 0x18, zero, 1);
         }
     }
 }
@@ -957,13 +954,13 @@ static void em32_R1_4thAppear(cEm32* em)
 static inline void em32NextWalkSet(cEm32* em, Em32Work* w, int r)
 {
     if (w->targetAngAbs > 1.30899692f) {
-        EmRoutineSet(em, 1, 0xC, r, r);
+        em->setRno(1, 0xC, r, r);
     } else if (w->mode == 2) {
-        EmRoutineSet(em, 1, 0xB, r, r);
+        em->setRno(1, 0xB, r, r);
     } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-        EmRoutineSet(em, 1, 8, r, r);
+        em->setRno(1, 8, r, r);
     } else {
-        EmRoutineSet(em, 1, 9, r, r);
+        em->setRno(1, 9, r, r);
     }
 }
 
@@ -1063,29 +1060,29 @@ static void em32_R1_Ambush(cEm32* em)
                 f32 a = w->plAngAbs;
                 if (a < 1.04719758f && w->plDist2 < 6250000.0f) {
                     if (Rnd() % 10 > 4 && w->plDist2 < 4000000.0f) {
-                        EmRoutineSet(em, 1, 0xF, timer, timer);
+                        em->setRno(1, 0xF, timer, timer);
                     } else {
-                        EmRoutineSet(em, 1, 0x10, 0, 0);
+                        em->setRno(1, 0x10, 0, 0);
                     }
                 } else {
                     f32 ang = w->plAngAbs;
                     if (ang < 0.52359879f && w->plDist2 > 9000000.0f && w->plDist2 < 25000000.0f) {
-                        EmRoutineSet(em, 1, 0x12, 0, 0);
+                        em->setRno(1, 0x12, 0, 0);
                     }
                 }
             }
             break;
         case 1:
             if (w->routeAngAbs < 0.52359879f && em->l_pl < 9000000.0f && Rnd() % 10 > 4) {
-                EmRoutineSet(em, mode, 0x1D, timer, timer);
+                em->setRno(mode, 0x1D, timer, timer);
             } else if (w->routeAngAbs < 0.785398185f && em->l_pl < 9000000.0f) {
-                EmRoutineSet(em, 1, 0x1C, 0, 0);
+                em->setRno(1, 0x1C, 0, 0);
             }
             break;
         case 2:
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             if ((w->flags & 0x1000) && em32StepUpCk2(em)) {
                 break;
             }
@@ -1096,13 +1093,13 @@ static void em32_R1_Ambush(cEm32* em)
                 break;
             }
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             }
         }
         break;
@@ -1130,7 +1127,7 @@ static void em32_R1_Ambush(cEm32* em)
         if ((w)->stuckCnt > 30 && (w)->mode != 0) {                                  \
             (w)->stuckCnt = zero;                                                    \
             if (Rnd() % 10 > 4) {                                                    \
-                EmRoutineSet(em, 1, 0x20, zero, zero);                               \
+                em->setRno(1, 0x20, zero, zero);                               \
                 return;                                                              \
             }                                                                        \
         }                                                                            \
@@ -1194,7 +1191,7 @@ static void em32_R1_Walk(cEm32* em)
                 break;
             }
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
                 break;
             }
         }
@@ -1203,7 +1200,7 @@ static void em32_R1_Walk(cEm32* em)
         case 0:
         default:
             if (em->pos.x > 7000.0f || (em->flag & 0x80000000)) {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
                 break;
             }
             ret = em32AmbushAtkCk(em);
@@ -1213,9 +1210,9 @@ static void em32_R1_Walk(cEm32* em)
             if (w->flags & 1) {
                 if (w->plAngAbs < 1.04719758f && w->plDist2 < 6250000.0f) {
                     if (Rnd() % 10 > 4 && w->plDist2 < 4000000.0f) {
-                        EmRoutineSet(em, 1, 0xF, ret, ret);
+                        em->setRno(1, 0xF, ret, ret);
                     } else {
-                        EmRoutineSet(em, 1, 0x10, 0, 0);
+                        em->setRno(1, 0x10, 0, 0);
                     }
                     break;
                 }
@@ -1223,7 +1220,7 @@ static void em32_R1_Walk(cEm32* em)
                     int wait = w->longAtkWait;
                     if (wait == 0 && w->plAngAbs < 0.52359879f && w->plDist2 > 9000000.0f &&
                         w->plDist2 < 25000000.0f) {
-                        EmRoutineSet(em, 1, 0x12, wait, wait);
+                        em->setRno(1, 0x12, wait, wait);
                         break;
                     }
                 }
@@ -1238,25 +1235,25 @@ static void em32_R1_Walk(cEm32* em)
             break;
         case 1:
             if (em->hp <= em->hp_max * 3 / 8 && (w->flags & 0x100000)) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             ret = em->flag & 0x40000000;
             if (ret) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             if (w->routeAngAbs < 0.52359879f && em->l_pl < 9000000.0f && Rnd() % 10 > 4) {
-                EmRoutineSet(em, 1, 0x1D, ret, ret);
+                em->setRno(1, 0x1D, ret, ret);
                 break;
             }
             if (w->routeAngAbs < 0.785398185f && em->l_pl < 9000000.0f) {
-                EmRoutineSet(em, 1, 0x1C, 0, 0);
+                em->setRno(1, 0x1C, 0, 0);
             }
             break;
         case 2:
             if (w->routeAngAbs < 0.52359879f && em->l_pl < 25000000.0f) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             }
             break;
         }
@@ -1324,7 +1321,7 @@ static void em32_R1_Dash(cEm32* em)
             timer = w->timer;
             if (timer == 0) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 6, timer, timer);
+                em->setRno(1, 6, timer, timer);
                 break;
             }
             w->timer = timer - 1;
@@ -1332,7 +1329,7 @@ static void em32_R1_Dash(cEm32* em)
                 break;
             }
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
                 break;
             }
         }
@@ -1341,7 +1338,7 @@ static void em32_R1_Dash(cEm32* em)
         case 0:
         default:
             if (em->pos.x > 7000.0f || (em->flag & 0x80000000)) {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
                 break;
             }
             ret = em32AmbushAtkCk(em);
@@ -1352,9 +1349,9 @@ static void em32_R1_Dash(cEm32* em)
                 f32 a = w->plAngAbs;
                 if (a < 1.04719758f && w->plDist2 < 6250000.0f) {
                     if (Rnd() % 10 > 4 && w->plDist2 < 4000000.0f) {
-                        EmRoutineSet(em, 1, 0xF, ret, ret);
+                        em->setRno(1, 0xF, ret, ret);
                     } else {
-                        EmRoutineSet(em, 1, 0x10, 0, 0);
+                        em->setRno(1, 0x10, 0, 0);
                     }
                     break;
                 }
@@ -1363,7 +1360,7 @@ static void em32_R1_Dash(cEm32* em)
                     f32 ang = w->plAngAbs;
                     if (wait == 0 && ang < 0.52359879f && w->plDist2 > 9000000.0f &&
                         w->plDist2 < 25000000.0f) {
-                        EmRoutineSet(em, 1, 0x12, wait, wait);
+                        em->setRno(1, 0x12, wait, wait);
                         break;
                     }
                 }
@@ -1378,25 +1375,25 @@ static void em32_R1_Dash(cEm32* em)
             break;
         case 1:
             if (em->hp <= em->hp_max * 3 / 8 && (w->flags & 0x100000)) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             ret = em->flag & 0x40000000;
             if (ret) {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
                 break;
             }
             if (w->routeAngAbs < 0.52359879f && em->l_pl < 9000000.0f && Rnd() % 10 > 4) {
-                EmRoutineSet(em, 1, 0x1D, ret, ret);
+                em->setRno(1, 0x1D, ret, ret);
                 break;
             }
             if (w->routeAngAbs < 0.785398185f && em->l_pl < 9000000.0f) {
-                EmRoutineSet(em, 1, 0x1C, 0, 0);
+                em->setRno(1, 0x1C, 0, 0);
             }
             break;
         case 2:
             if (w->routeAngAbs < 0.52359879f && em->l_pl < 25000000.0f) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             }
             break;
         }
@@ -1430,13 +1427,13 @@ static void em32_R1_Back(cEm32* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2 && w->routeAngAbs < 0.52359879f && em->l_pl < 25000000.0f) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             }
         }
         break;
@@ -1473,9 +1470,9 @@ static void em32_R1_AtkWalk(cEm32* em)
         if (MotionMove(em, 0)) {
             if (w->Atk_ck) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 0xD, 0, 0);
+                em->setRno(1, 0xD, 0, 0);
             } else if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else {
                 em->r_no_2++;
             }
@@ -1508,36 +1505,36 @@ static void em32_R1_AtkWalk(cEm32* em)
             threat:
                 w->wait = 60;
                 EM32_EFFECT_DELETE(w->espKind[1], em);
-                EmRoutineSet(em, 1, 0xD, 0, 0);
+                em->setRno(1, 0xD, 0, 0);
                 break;
             }
             if (w->targetAngAbs > 1.30899692f) {
                 EM32_EFFECT_DELETE(w->espKind[1], em);
-                EmRoutineSet(em, 1, 0xC, hit, hit);
+                em->setRno(1, 0xC, hit, hit);
                 break;
             }
             if (w->stuckCnt > 30) {
                 w->stuckCnt = hit;
                 if (Rnd() % 10 > 4) {
                     EM32_EFFECT_DELETE(w->espKind[1], em);
-                    EmRoutineSet(em, 1, 0x20, hit, hit);
+                    em->setRno(1, 0x20, hit, hit);
                     break;
                 }
             }
             if (Rnd() % 10 > 7) {
                 EM32_EFFECT_DELETE(w->espKind[1], em);
-                EmRoutineSet(em, 1, 0x1F, 0, 0);
+                em->setRno(1, 0x1F, 0, 0);
                 break;
             }
             if (pG->Game_level <= 9) {
                 if (Rnd() % 10 > 7) {
                     EM32_EFFECT_DELETE(w->espKind[1], em);
-                    EmRoutineSet(em, 1, 0xD, 0, 0);
+                    em->setRno(1, 0xD, 0, 0);
                     break;
                 }
                 if (em->l_pl > 64000000.0f) {
                     EM32_EFFECT_DELETE(w->espKind[1], em);
-                    EmRoutineSet(em, 1, 8, 0, 0);
+                    em->setRno(1, 8, 0, 0);
                     break;
                 }
             }
@@ -1603,15 +1600,15 @@ static void em32_R1_Turn(cEm32* em)
         if (MotionMove(em, 0)) {
             if (w->Atk_ck) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 6, 0, 0);
+                em->setRno(1, 6, 0, 0);
             } else if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2 && w->routeAngAbs < 0.52359879f && em->l_pl < 25000000.0f) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             }
         }
         break;
@@ -1651,7 +1648,7 @@ static void em32_R1_Threat(cEm32* em)
     case 0: {
         int hokan = 10;
 
-        AtariOn(&em->atari, 0x300);
+        em->atari.on();
         if (em->r_no_3) {
             w->flags |= 0x40;
             hokan = 0;
@@ -1681,43 +1678,43 @@ static void em32_R1_Threat(cEm32* em)
             default:
                 if ((w->flags & 1) && w->plAngAbs < 1.04719758f && w->plDist2 < 6250000.0f) {
                     if (Rnd() % 10 > 4 && w->plDist2 < 4000000.0f) {
-                        EmRoutineSet(em, 1, 0xF, 0, 0);
+                        em->setRno(1, 0xF, 0, 0);
                     } else {
-                        EmRoutineSet(em, 1, 0x10, 0, 0);
+                        em->setRno(1, 0x10, 0, 0);
                     }
                     return;
                 }
                 break;
             case 1:
                 if (w->routeAngAbs < 0.52359879f && em->l_pl < 9000000.0f && Rnd() % 10 > 4) {
-                    EmRoutineSet(em, mode, 0x1D, 0, 0);
+                    em->setRno(mode, 0x1D, 0, 0);
                     return;
                 }
                 if (w->routeAngAbs < 0.785398185f && em->l_pl < 9000000.0f) {
-                    EmRoutineSet(em, 1, 0x1C, 0, 0);
+                    em->setRno(1, 0x1C, 0, 0);
                     return;
                 }
                 break;
             case 2:
                 if (Rnd() % 10 > 7) {
-                    EmRoutineSet(em, 1, 0x1F, 0, 0);
+                    em->setRno(1, 0x1F, 0, 0);
                     return;
                 }
                 break;
             }
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2) {
                 if (w->routeAngAbs < 0.52359879f && em->l_pl < 25000000.0f) {
-                    EmRoutineSet(em, 1, 0xB, 0, 0);
+                    em->setRno(1, 0xB, 0, 0);
                 }
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             }
         } else if (w->targetAngAbs > 1.30899692f && em->l_pl > 12250000.0f) {
-            EmRoutineSet(em, 1, 0xC, ret, ret);
+            em->setRno(1, 0xC, ret, ret);
         }
         break;
     }
@@ -1761,12 +1758,12 @@ static void em32_R1_AmbushAtk(cEm32* em)
             }
             EM32_ATK_END_CK(em, w, 16000000.0f, 4);
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (em->l_pl < 25000000.0f) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 0xD, 0, 0);
+                em->setRno(1, 0xD, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         } else {
             if (em->Motion.Seq_old.Free & 1) {
@@ -1806,12 +1803,12 @@ static void em32_R1_Atk(cEm32* em)
             }
             EM32_ATK_END_CK(em, w, 16000000.0f, 7);
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if ((em->l_pl < 25000000.0f && pG->Game_level <= 9) || w->Atk_ck) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 0xD, 0, 0);
+                em->setRno(1, 0xD, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         } else if (em->Motion.Seq_old.Free & 1) {
             EM32_CLAW_ATK(em, 0);
@@ -1860,12 +1857,12 @@ static void em32_R1_Catch(cEm32* em)
             GameAddPoint(LVADD_ESCAPEATTACK);
             EM32_ATK_END_CK(em, w, 16000000.0f, 7);
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if ((em->l_pl < 25000000.0f && pG->Game_level <= 9) || w->Atk_ck) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 0xD, 0, 0);
+                em->setRno(1, 0xD, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         }
         break;
@@ -1920,7 +1917,7 @@ static void em32_R1_CatchHit(cEm32* em)
             em->r_no_2 = 2;
             break;
         }
-        dead = EmDeadCk(em);
+        dead = em->dmg.isDamage();
         if (dead) {
             em->r_no_2 = 2;
             break;
@@ -1945,7 +1942,7 @@ static void em32_R1_CatchHit(cEm32* em)
             w->timer--;
             EmCatchMotionMove(em, 1.0f, 1.0f);
         } else {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if (MotionMove(em, 0)) {
                 if ((w->flags & 0x1000) && em32StepUpCk2(em)) {
                     break;
@@ -1957,10 +1954,10 @@ static void em32_R1_CatchHit(cEm32* em)
                     break;
                 }
                 if (w->targetAngAbs > 1.30899692f) {
-                    EmRoutineSet(em, 1, 0xC, 0, 0);
+                    em->setRno(1, 0xC, 0, 0);
                 } else {
                     w->wait = 60;
-                    EmRoutineSet(em, 1, 0xD, 0, 0);
+                    em->setRno(1, 0xD, 0, 0);
                 }
                 break;
             }
@@ -2013,7 +2010,7 @@ static void plem32_CatchHit(cPlayer* pl)
             pl->m_Work0--;
             EmCatchMotionMove(pl, 1.0f, 1.0f);
         } else if (MotionMove(pl, 0)) {
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
         end:
             EndPlDamage();
             pl->dmg.set(0, 30);
@@ -2082,12 +2079,12 @@ static void em32_R1_LongAtk(cEm32* em)
             }
             EM32_ATK_END_CK(em, w, 16000000.0f, 7);
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if ((em->l_pl < 25000000.0f && pG->Game_level <= 9) || w->Atk_ck) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 0xD, 0, 0);
+                em->setRno(1, 0xD, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         } else {
             if (em->Motion.Seq_old.Free & 1) {
@@ -2315,7 +2312,7 @@ static void plemEscape(cPlayer* pl)
 void em32EscapeCamMove(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec pos;
     Vec at;
     Vec hit;
@@ -2346,7 +2343,7 @@ void em32EscapeCamMove(cEm32* em)
     w->cam.Up.z = 0.0f;
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // Step up onto a container: the run-up towards stepPos, then the tunnel attack / wait / step down.
@@ -2398,11 +2395,11 @@ static void em32_R1_StepUp(cEm32* em)
                 break;
             }
             if (em->r_no_3) {
-                EmRoutineSet(em, 1, 0x14, 0, 0);
+                em->setRno(1, 0x14, 0, 0);
             } else if (em32PlInTunnelCk(em)) {
-                EmRoutineSet(em, 1, 0x14, 0, 0);
+                em->setRno(1, 0x14, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 0x15, 0, 0);
+                em->setRno(1, 0x15, 0, 0);
             }
         }
         break;
@@ -2500,17 +2497,17 @@ static void em32_R1_StepDown(cEm32* em)
             flag = w->flags & 0x1000;
             if (flag) {
                 w->flags &= ~0x1000;
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
             } else {
                 w->atkWait = Rnd() % 150 + 150;
                 if (w->targetAngAbs > 1.30899692f) {
-                    EmRoutineSet(em, 1, 0xC, flag, flag);
+                    em->setRno(1, 0xC, flag, flag);
                 } else if (w->mode == 2) {
-                    EmRoutineSet(em, 1, 0xB, flag, flag);
+                    em->setRno(1, 0xB, flag, flag);
                 } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                    EmRoutineSet(em, 1, 8, flag, flag);
+                    em->setRno(1, 8, flag, flag);
                 } else {
-                    EmRoutineSet(em, 1, 9, flag, flag);
+                    em->setRno(1, 9, flag, flag);
                 }
             }
         }
@@ -2591,7 +2588,7 @@ static void em32_R1_TunnelAtk(cEm32* em)
         em->r_no_2++;
     case 3:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0x14, 0, 1);
+            em->setRno(1, 0x14, 0, 1);
             break;
         }
         if ((em->Motion.Seq_old.Free & 4) && w->Atk_ck == 0 && em->r_no_3 == 0) {
@@ -2661,7 +2658,7 @@ static void em32_R1_JumpUp(cEm32* em)
         }
         if (MotionMove(em, 0)) {
             w->flags |= 0x80;
-            EmRoutineSet(em, 1, 0x19, 0, 0);
+            em->setRno(1, 0x19, 0, 0);
         }
         break;
     }
@@ -2730,15 +2727,15 @@ static void em32_R1_JumpDown(cEm32* em)
             w->atkWait = Rnd() % 150 + 150;
             ret = em->r_no_3;
             if (ret) {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             } else if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, ret, ret);
+                em->setRno(1, 0xC, ret, ret);
             } else if (w->mode == 2) {
-                EmRoutineSet(em, 1, 0xB, ret, ret);
+                em->setRno(1, 0xB, ret, ret);
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, ret, ret);
+                em->setRno(1, 8, ret, ret);
             } else {
-                EmRoutineSet(em, 1, 9, ret, ret);
+                em->setRno(1, 9, ret, ret);
             }
         }
         break;
@@ -2899,7 +2896,7 @@ static void em32_R1_C_Atk(cEm32* em)
             if ((w->Atk_ck || (Rnd() & 1)) && em32JumpDownCk(em)) {
                 return;
             }
-            EmRoutineSet(em, 1, 0x19, 0, 0);
+            em->setRno(1, 0x19, 0, 0);
         } else if (w->timer) {
             w->timer--;
         } else if (w->timer2 && w->Atk_ck == 0 && w->routeAngAbs < 1.57079637f && em->l_pl < 16000000.0f) {
@@ -2936,7 +2933,7 @@ static void em32_R1_C_AtkHit(cEm32* em)
         EmCatchPLSet(em, 3.14159274f, 1, -83.8300018f, 0.0f, -2411.40991f, plem32_C_AtkHit);
         GameAddPoint(LVADD_PL_DAMAGE);
         PlGachaInit();
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         EstSet(em, -1, 0, 0, EFF_EM32, 0xD, 0, ESP_CORE_KIND_NONE, em, (void*) step);
         EstSet(pPL, -1, 0, 0, EFF_EM32, 0x14, 0, w->espKind[1], em, (void*) step);
         SndStop(w->sndId, 0);
@@ -2994,11 +2991,11 @@ static void em32_R1_C_AtkHit(cEm32* em)
             w->timer--;
             EmCatchMotionMove(em, 1.0f, 1.0f);
         } else if (MotionMove(em, 0)) {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if ((w->Atk_ck || (Rnd() & 1)) && em32JumpDownCk(em)) {
                 break;
             }
-            EmRoutineSet(em, 1, 0x19, 0, 0);
+            em->setRno(1, 0x19, 0, 0);
             break;
         }
         if (em->Motion.Seq_old.Free & 1) {
@@ -3022,7 +3019,7 @@ static void plem32_C_AtkHit(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, EM_ARC(pl, 0x87), 0, 0, 0x201, 0);
-        AtariOff(&pl->atari, 0xFCFF);
+        pl->atari.off();
         PlSetFace(1);
         pl->r_no_2++;
     case 1:
@@ -3041,9 +3038,9 @@ static void plem32_C_AtkHit(cPlayer* pl)
             pl->m_Work0--;
             EmCatchMotionMove(pl, 1.0f, 1.0f);
         } else {
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
             if (MotionMove(pl, 0)) {
-                AtariOn(&pl->atari, 0x300);
+                pl->atari.on();
                 EndPlDamage();
                 pl->dmg.set(0, 30);
             }
@@ -3059,7 +3056,7 @@ static void em32_R1_P_Atk(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     int step = em->r_no_2;
-    cModel* p;
+    cParts* p;
     Vec v;
 
     w->flags |= 0x10;
@@ -3082,17 +3079,17 @@ static void em32_R1_P_Atk(cEm32* em)
             }
             if (w->Atk_ck) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 0xA, 0, 0);
+                em->setRno(1, 0xA, 0, 0);
             } else if (w->routeAngAbs < 0.785398185f && em->l_pl < 9000000.0f) {
-                EmRoutineSet(em, 1, 0x1C, 0, 0);
+                em->setRno(1, 0x1C, 0, 0);
             } else if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             }
         }
         break;
@@ -3157,12 +3154,12 @@ static void em32_R1_P_Catch(cEm32* em)
                 return;
             }
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (em->l_pl < 25000000.0f && pG->Game_level <= 9) {
                 w->wait = 60;
-                EmRoutineSet(em, 1, 0xD, 0, 0);
+                em->setRno(1, 0xD, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             }
         }
         break;
@@ -3213,7 +3210,7 @@ static void em32_R1_P_CatchHit(cEm32* em)
         if (em32BetweenHitCk(em)) {
             SndStop(w->TmpU32, 0);
             SndStop(w->sndId2, 0);
-            EmRoutineSet(em, 2, 0, 0, 0);
+            em->setRno(2, 0, 0, 0);
         }
         break;
     case 2:
@@ -3236,7 +3233,7 @@ static void em32_R1_P_CatchHit(cEm32* em)
             w->timer--;
             EmCatchMotionMove(em, 1.0f, 1.0f);
         } else {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
             if (MotionMove(em, 0)) {
                 if ((w->flags & 0x1000) && em32StepUpCk2(em)) {
                     break;
@@ -3248,10 +3245,10 @@ static void em32_R1_P_CatchHit(cEm32* em)
                     break;
                 }
                 if (w->targetAngAbs > 1.30899692f) {
-                    EmRoutineSet(em, 1, 0xC, 0, 0);
+                    em->setRno(1, 0xC, 0, 0);
                 } else {
                     w->wait = 60;
-                    EmRoutineSet(em, 1, 0xD, 0, 0);
+                    em->setRno(1, 0xD, 0, 0);
                 }
                 break;
             }
@@ -3312,9 +3309,9 @@ static void plem32_P_CatchHit(cPlayer* pl)
         if (obj) {
             obj->modelInit(EM_ARC(pl, 0xAC), EM_ARC(pl, 0xAB));
             w->pCatchObj->atari.m_flag &= 0xFCFF;
-            w->pCatchObj->pParts->pParent = pPL->getPartsPtr(0xA);
+            w->pCatchObj->pList->pParent = pPL->getPartsPtr(0xA);
             w->pCatchObj->LightInfo.init2(1, 1, &((Vec) { 0.0f, 0.0f, 0.0f }), &((Vec) { 500.0f, 0.0f, 0.0f }), 1);
-            w->pCatchObj->wep.parent = pPL;
+            ((cObjWep*) w->pCatchObj)->m_pParent = pPL;
             w->pCatchObj->getPartsPtr(1)->ang.y = 3.14159274f;
         }
         pl->m_Work0 = 15;
@@ -3329,7 +3326,7 @@ static void plem32_P_CatchHit(cPlayer* pl)
                 w->pCatchObj = 0;
             }
             pl->Wep->setTrans(1, 0);
-            AtariOn(&pl->atari, 0x300);
+            pl->atari.on();
             EndPlDamage();
             pl->dmg.set(0, 30);
         }
@@ -3368,11 +3365,11 @@ static void em32_R1_Ground(cEm32* em)
         } else if (w->timer) {
             w->timer--;
         } else {
-            AtariOff(&em->atari, 0xFCFF);
+            em->atari.off();
         }
         break;
     case 2:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         w->Atk_ck = 0;
         w->actionSet = 0;
         w->TmpU32 = Rnd() & 1;
@@ -3456,11 +3453,11 @@ static void em32_R1_Ground(cEm32* em)
         em->r_no_2++;
     case 7:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0xD, 0, 0);
+            em->setRno(1, 0xD, 0, 0);
         } else if (w->timer) {
             w->timer--;
         } else {
-            AtariOn(&em->atari, 0x300);
+            em->atari.on();
         }
         break;
     }
@@ -3471,7 +3468,7 @@ static void em32_R1_BreakBarred(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     int step = em->r_no_2;
-    cModel* p;
+    cParts* p;
     Vec v;
 
     w->flags |= 0x10;
@@ -3485,13 +3482,13 @@ static void em32_R1_BreakBarred(cEm32* em)
     case 1:
         if (MotionMove(em, 0)) {
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             }
         }
         break;
@@ -3571,14 +3568,14 @@ static void em32_R1_Dm_Normal(cEm32* em)
                 return;
             }
             if (w->targetAngAbs > 1.30899692f) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             } else if (w->mode == 2) {
-                EmRoutineSet(em, 1, 0xB, 0, 0);
+                em->setRno(1, 0xB, 0, 0);
                 return;
             } else if (Rnd() % 10 > 4 || em->l_pl < 49000000.0f) {
-                EmRoutineSet(em, 1, 8, 0, 0);
+                em->setRno(1, 8, 0, 0);
             } else {
-                EmRoutineSet(em, 1, 9, 0, 0);
+                em->setRno(1, 9, 0, 0);
             }
         }
         if (em->Motion.Seq_old.Free & 4) {
@@ -3586,7 +3583,7 @@ static void em32_R1_Dm_Normal(cEm32* em)
                 return;
             }
             if (w->mode == 2 && Rnd() % 10 > 4) {
-                EmRoutineSet(em, 1, 0x1F, 0, 0);
+                em->setRno(1, 0x1F, 0, 0);
             }
         }
         break;
@@ -3612,7 +3609,7 @@ static void em32_R1_Die_Normal(cEm32* em)
     w->flags |= 0x4000;
     switch (step) {
     case 0:
-        AtariOff(&em->atari, 0xFCFF);
+        em->atari.off();
         em->setPos(&pos);
         em->ang.y = 0.0f;
         MotionSetCore(em, &em->Motion, ARC(0x77), ARC(0x78), 3, 1, 0);
@@ -3674,7 +3671,7 @@ void em32RouteCk(cEm32* em)
     Vec b;
     Vec c;
     Vec d;
-    cModel* p;
+    cParts* p;
 
     if (em->hp <= 0) {
         return;
@@ -3724,7 +3721,7 @@ void em32NeckMove(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
     cParts* p;
-    cModel* pp;
+    cParts* pp;
     Vec v;
 
     if (w->mode == 2) {
@@ -3785,8 +3782,8 @@ void em32ClothSet(cEm32* em)
 void em32ClothMove(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
-    cModel* p;
-    cModel* p2;
+    cParts* p;
+    cParts* p2;
 
     if (w->mode != 2) {
         return;
@@ -3839,7 +3836,7 @@ void em32BlendMotSet(cEm32* em, void* m0, void* m1, void* m2, void* m3, int a, i
 // Tests attack `no` swept from part `parts`' previous to its current world position (em32AtkCk2).
 int em32AtkCk(cEm32* em, int no, int parts)
 {
-    cModel* p = em->getPartsPtr(parts);
+    cParts* p = em->getPartsPtr(parts);
 
     return em32AtkCk2(em, no, &p->world, &p->world_old);
 }
@@ -3930,7 +3927,7 @@ int em32StepUpCk(cEm32* em)
         }
         if (!(fabsf(Muku2(ang, GetXZAngle(&em->pos, &e->pos), 3.14159274f)) > 1.04719758f)) {
             w->stepPos = e->pos;
-            EmRoutineSet(em, 1, 0x13, sub, sub);
+            em->setRno(1, 0x13, sub, sub);
             return 1;
         }
     }
@@ -3999,7 +3996,7 @@ int em32StepUpCk2(cEm32* em)
         return 0;
     }
     if (w->flags & 0x1000) {
-        EmRoutineSet(em, 1, 0x13, 0, 0);
+        em->setRno(1, 0x13, 0, 0);
     } else {
         em->r_no_1 = 0x13;
         em->r_no_2 = 0;
@@ -4063,7 +4060,7 @@ int em32StepUpCk3(cEm32* em)
         }
         if (!(fabsf(Muku2(ang, GetXZAngle(&em->pos, &e->pos), 3.14159274f)) > 1.04719758f)) {
             w->stepPos = e->pos;
-            EmRoutineSet(em, 1, 0x13, sub, sub);
+            em->setRno(1, 0x13, sub, sub);
             return 1;
         }
     }
@@ -4150,7 +4147,7 @@ int em32TunnelAtkCk(cEm32* em)
             PSMTXMultVec(m, &v, &em->pos);
             em->ang.y = e->rotY;
             w->pPoint = (Em32Point*) e;
-            EmRoutineSet(em, state, 0x16, sub, sub);
+            em->setRno(state, 0x16, sub, sub);
             return 1;
         }
     }
@@ -4178,7 +4175,7 @@ int em32JumpUpCk(cEm32* em)
         }
         if (!((em->pos.x - e->pos.x) * (em->pos.x - e->pos.x) + (em->pos.z - e->pos.z) * (em->pos.z - e->pos.z) > 2250000.0f)) {
             w->pPoint = (Em32Point*) e;
-            EmRoutineSet(em, 1, 0x17, 0, 0);
+            em->setRno(1, 0x17, 0, 0);
             return 1;
         }
     }
@@ -4212,7 +4209,7 @@ int em32JumpDownCk(cEm32* em)
         }
         if (!((em->pos.x - e->pos.x) * (em->pos.x - e->pos.x) + (em->pos.z - e->pos.z) * (em->pos.z - e->pos.z) > 250000.0f)) {
             w->pPoint = (Em32Point*) e;
-            EmRoutineSet(em, 1, 0x18, 0, 0);
+            em->setRno(1, 0x18, 0, 0);
             return 1;
         }
     }
@@ -4294,7 +4291,7 @@ int em32CeilingAtkCk(cEm32* em)
             w->pPoint = (Em32Point*) e;
             em->pos = e->pos;
             em->ang.y = ang;
-            EmRoutineSet(em, 1, 0x1A, 0, 0);
+            em->setRno(1, 0x1A, 0, 0);
             return 1;
         }
     }
@@ -4385,12 +4382,12 @@ void cEm32::setNext(int no)
     default:
         w->flags &= ~0x1000;
         hp = 500;
-        EmRoutineSet(this, 1, 2, 0, 0);
+        setRno(1, 2, 0, 0);
         break;
     case 1:
         w->flags &= ~0x1000;
         hp = 1500;
-        EmRoutineSet(this, no, 3, 0, 0);
+        setRno(no, 3, 0, 0);
         break;
     case 2:
         // A local for the 1: stored directly, it shares a register with the hp/AtariOff work below
@@ -4400,8 +4397,8 @@ void cEm32::setNext(int no)
             w->mode = n;
         }
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
-        EmRoutineSet(this, 1, 4, 0, 0);
+        atari.off();
+        setRno(1, 4, 0, 0);
         break;
     case 4:
         // A local for the 1: stored directly, it shares a register with the hp/AtariOff work below
@@ -4411,14 +4408,14 @@ void cEm32::setNext(int no)
             w->mode = n;
         }
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
+        atari.off();
         flag &= ~1;
         w->flags |= 0x100000;
         if (w->pTexModel) {
             w->flags |= 0x140000;
             w->pTexModel->resetTexBlendTbl();
         }
-        EmRoutineSet(this, 1, 5, 0, 0);
+        setRno(1, 5, 0, 0);
         break;
     case 5:
         // A local for the 1: stored directly, it shares a register with the hp/AtariOff work below
@@ -4428,7 +4425,7 @@ void cEm32::setNext(int no)
             w->mode = n;
         }
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
+        atari.off();
         flag &= ~1;
         w->flags |= 0x100000;
         if (w->pTexModel) {
@@ -4436,11 +4433,11 @@ void cEm32::setNext(int no)
             w->pTexModel->resetTexBlendTbl();
         }
         w->flags |= 0x20000;
-        EmRoutineSet(this, 1, 0xD, 0, 1);
+        setRno(1, 0xD, 0, 1);
         break;
     case 6:
         hp = hp_max;
-        AtariOff(&atari, 0xFCFF);
+        atari.off();
         flag &= ~1;
         r_no_1 = 0xD;
         r_no_2 = 0;
@@ -4457,7 +4454,7 @@ void cEm32::setNext(int no)
         w->wait = 10;
         EM32_EFFECT_DELETE(w->espKind[1], this);
         em32TexrenderInit(this);
-        EmRoutineSet(this, 1, 6, 0, 1);
+        setRno(1, 6, 0, 1);
         break;
     }
 }
@@ -4492,20 +4489,20 @@ void em32TexrenderInit(cEm32* em)
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = w->pTex->m_Tex_no;
-    w->pTex->m_Rep_type = 1;
-    w->pTex->m_H_size = w->pTex->m_W_size = 0x40;
-    EffectEspDelete(w->pTex->m_Core_flg | 0x801, w->espKind[1], em, 0);
-    EffectEspgenDelete(w->pTex->m_Core_flg | 0x801, w->espKind[1], em);
-    EffectEfmDelete(w->pTex->m_Core_flg | 0x801, w->espKind[1], em);
-    EstSet(0, -1, 0, 0, EFF_EM32, 0, w->pTex->m_Core_flg | 0x801, w->espKind[1], em, 0);
+    tbl[5] = w->pTex->GetTexNo();
+    w->pTex->SetRepeatType(1);
+    w->pTex->SetWHSize(0x40, 0x40);
+    EffectEspDelete(w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em, 0);
+    EffectEspgenDelete(w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em);
+    EffectEfmDelete(w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em);
+    EstSet(0, -1, 0, 0, EFF_EM32, 0, w->pTex->GetCoreFlg() | 0x801, w->espKind[1], em, 0);
 }
 
 // The player's position 18 frames ahead (plPos) and the angle / squared distance to it.
 void em32GetPlPos(cEm32* em)
 {
     Em32Work* w = EM32_WK(em);
-    cModel* p = pPL->getPartsPtr(0);
+    cParts* p = pPL->getPartsPtr(0);
     Vec d;
 
     PSVECSubtract(&p->world, &p->world_old2, &d);
@@ -4654,7 +4651,7 @@ int em32AmbushAtkCk(cEm32* em)
         if (SatMgr.hitCheck(&c, &b, 0, 0, 0, 0)) {
             return 0;
         }
-        EmRoutineSet(em, 1, 0xE, 0, 0);
+        em->setRno(1, 0xE, 0, 0);
         return 1;
     }
     c.x = 0.0f;
@@ -4674,7 +4671,7 @@ int em32AmbushAtkCk(cEm32* em)
     if (SatMgr.hitCheck(&c, &b, 0, 0, 0, 0)) {
         return 0;
     }
-    EmRoutineSet(em, 1, 0xE, 0, 1);
+    em->setRno(1, 0xE, 0, 1);
     return 1;
 }
 
@@ -4798,11 +4795,6 @@ void em32PlDivideModelInit(cEm32* em)
     }
 }
 
-class cObj00 : public cObj {
-public:
-    void setScrAtari(f32 r);
-};
-
 // The player is cut in two by the tail: the halves take his place and fall.
 void em32PlDivideSet(cEm32* em)
 {
@@ -4860,7 +4852,7 @@ static void plemDivide(cPlayer* pl)
     switch (pl->r_no_2) {
     case 0:
         MotionSetCore(pl, &pl->Motion, EM_ARC(pl, 0x9E), 0, 3, 1, 0);
-        AtariOff(&pl->atari, 0xFCFF);
+        pl->atari.off();
         pl->r_no_2++;
     case 1:
         MotionMove(pl, 0);
@@ -4882,7 +4874,7 @@ void em32RackBreakCk(cEm32* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x45) {
@@ -4941,7 +4933,7 @@ void em32BreakBarred(cEm32* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x4E) {
@@ -5038,7 +5030,7 @@ void em32ScaleCompress(cEm32* em)
     Em32Work* w = EM32_WK(em);
     Mtx m;
     Vec scale;
-    cModel* p;
+    cParts* p;
 
     if (!(w->flags & 0x20)) {
         return;
@@ -5048,7 +5040,7 @@ void em32ScaleCompress(cEm32* em)
     scale.y = w->scale;
     scale.z = 1.0f;
     ScaleMatrix(m, &scale);
-    for (p = em->pParts; p; p = p->pParts) {
+    for (p = em->pList; p; p = p->pList) {
         PSMTXConcat(m, p->mat, p->mat);
         p->mat[0][3] = p->world.x;
         p->mat[1][3] = p->world.y;

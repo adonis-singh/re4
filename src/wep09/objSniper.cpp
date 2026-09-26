@@ -2,7 +2,7 @@
 // with cartridge ejection after the shot and the level-dependent reload motion.
 //
 // cObjSniper is the cObjWep (game/objWep.cpp) of the rifle (weapon_no 9), hanging on the player's
-// right hand (parts 10) and driven by wep.mode / wep.step from the rifle routines
+// right hand (parts 10) and driven by r_no_0 / r_no_1 from the rifle routines
 // (wep/pl_rifle.cpp): mode 2 -> moveFire is the bolt cycle (set by fire20 after the shot: the
 // gun's motion 0x21 with the cartridge ejected at frame 14), mode 4 -> moveReload (motion by tune
 // level, ItemMgr.reload at frame 10). The scope glass is display type 1 (setDisp in pl_rifle).
@@ -25,7 +25,7 @@ public:
     void setCartridge();
 };
 
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
 extern const u8 sniper_tbl[3];
 const u8 sniper_tbl[3] = { 0x14, 0, 0 };
 
@@ -40,47 +40,47 @@ void ObjSniper_init(cObj* obj)
 // right hand, light area, idle motion 0x23, the sniper_tbl bytes, default lock spread.
 void cObjSniper::init(cModel* parent)
 {
-    wep.itemId = 0x2E;
+    itemId = 0x2E;
     if (modelInit(WEP_ARC_PTR(0xA), WEP_ARC_PTR(0x9)) == 0) {
         pLog->err(0, 0, "cObjSniper::init() failed.");
         ObjMgr.destroy(this);
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x23);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x23);
     resetMotion();
-    wep.shotFrame[0] = sniper_tbl[0];
-    wep.shotFrame[1] = sniper_tbl[1];
-    wep.shotFrame[2] = sniper_tbl[2];
+    shotFrame[0] = sniper_tbl[0];
+    shotFrame[1] = sniper_tbl[1];
+    shotFrame[2] = sniper_tbl[2];
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (the bolt cycle, set by the rifle fire20): step 0 starts the gun's bolt motion
+// mode == 2 (the bolt cycle, set by the rifle fire20): step 0 starts the gun's bolt motion
 // 0x21 at normal speed with the bolt SE and Status_flg[0] bit23; step 1 ejects the cartridge at
 // frame 14 and returns to mode 0 at the motion's end.
 void cObjSniper::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         MotionSetCore(this, &this->Motion, WEP_ARC_PTR(0x21), 0, 0, 0, 0);
         Motion.Seq_speed = 1.0f;
         SndCall(2, 4, &getPartsPtr(0)->world, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
-        wep.step = 1;
+        r_no_1 = 1;
     } else {
         if (MotionCheckCrossFrame(&Motion, 14.0f)) {
             setCartridge();
         }
         if (MotionGetState(this)) {
-            wep.mode = 0;
-            wep.step = 0;
+            r_no_0 = 0;
+            r_no_1 = 0;
         }
     }
 }
@@ -89,7 +89,7 @@ void cObjSniper::moveFire()
 // at (-240, -20, 70) with a random +-15 spread, gravity 10, 40 frames, landing effect 0x13.
 void cObjSniper::setCartridge()
 {
-    cModel* parts = getPartsPtr(1);
+    cParts* parts = getPartsPtr(1);
     Vec pos;
     Vec rot;
     Vec spd;
@@ -116,12 +116,12 @@ void cObjSniper::setCartridge()
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the gun's reload motion of the tune level (0x22/0x25/
+// mode == 4 (reload): step 0 starts the gun's reload motion of the tune level (0x22/0x25/
 // 0x26) with the level's SE (2/0x20/0x21); at frame 10 the clip effect 0x3D plays and
 // ItemMgr.reload refills. The player routine ends the mode.
 void cObjSniper::moveReload()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -148,8 +148,8 @@ void cObjSniper::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &getPartsPtr(0)->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &getPartsPtr(0)->world, 0, 0, 0);
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 10.0f)) {
         EstSet(this, -1, 0, 0, EFF_WEP09, 0, 0, ESP_CORE_KIND_PL_WEP, 0, 0);

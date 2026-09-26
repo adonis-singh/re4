@@ -529,7 +529,7 @@ static void R30bCrane()
     light = SmdGetObjPtr(0xD);
     if (crane && magnet && cable && light) {
         if (SceCkFindPL(0) == 1) {
-            SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             pG->Room_flg[0] |= 0x40000000;
             SceExec(0x12, (TaskFunc) R30bEmGotoSet, 0, 0, 2, 0);
             RsfSet(G_ROOM_ID, 2);
@@ -539,7 +539,7 @@ static void R30bCrane()
         }
         SceEventStart(0);
         SetShadowParallelDirX(0.0000001f);
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() != 1) {
             ReetShadowParallelDirX();
             SceEventEnd(0);

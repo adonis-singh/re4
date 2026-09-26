@@ -55,8 +55,8 @@ struct R221Work {
     u32 elvSe0;           // 0x4FC
     u32 elvSe1;           // 0x500
     u32 doorSe;           // 0x504
-    ScePrim* wireTask;    // 0x508
-    ScePrim* wireTask2;   // 0x50C
+    SCE_TASK* wireTask;    // 0x508
+    SCE_TASK* wireTask2;   // 0x50C
     f32 elvY;             // 0x510  elevator rest height
 };
 
@@ -67,7 +67,7 @@ static R221Work* r221_work;
 // The death bits of enemy list `list` (pG->Em_flg[list]), as an integer base (the r218 idiom).
 static inline u32* emDeadWords(int list) { return EM_FLG_ROW(list); }
 
-#define R221_MES_Y (0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1)
+#define R221_MES_Y (0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1)
 
 void r221_setShutterEff(int on);
 static void r221_checkShutterOpen_end();
@@ -200,10 +200,7 @@ static void r221_checkShutter_end()
         SceEventStart(0);
         r221_checkBossAppear_end();
     }
-    MessageControl* m = &cMes;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
+    cMes.Clear();
     r221_setShutterEff(1);
     CamCtrl.Comeback(0);
     SceEventEnd(0);
@@ -623,10 +620,7 @@ static void r221_checkElevatorArrive_end()
             SndStop(r221_work->doorSe, 0);
         }
     }
-    MessageControl* m = &cMes;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
+    cMes.Clear();
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     SceAtSetEnable(8, 0);
@@ -901,10 +895,7 @@ static void r221_checkSwitchboard_end()
             r221_setElevatorEff(1);
         }
     }
-    MessageControl* m = &cMes;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
+    cMes.Clear();
     CamCtrl.Comeback(0);
     SceEventEnd(0);
     SceExec(0x12, (TaskFunc) r221_checkBossAppear, 0, 0, SCE_PRIO_DEF_2, 0);
@@ -939,12 +930,7 @@ static void r221_checkSwitchboard()
         SceSleep(1);
     }
     {
-        MessageControl* m = &cMes;
-        int i;
-
-        for (i = 0; i < 16; i++) {
-            m->Delete(i);
-        }
+        cMes.Clear();
     }
     r221_moveShutter(0, 0);
     CamCtrl.CutCall(6);
@@ -955,7 +941,7 @@ static void r221_checkSwitchboard()
             r221_work->elvSe0 = SndCall(6, 0, &o->pos, 0, 0, 0);
         }
     }
-    ScePrim* wire = SceExec(0x12, (TaskFunc) r221_moveWire, 0, 2, SCE_PRIO_DEF_2, 0);
+    SCE_TASK* wire = SceExec(0x12, (TaskFunc) r221_moveWire, 0, 2, SCE_PRIO_DEF_2, 0);
     r221_work->wireTask2 = wire;
     pG->Room_flg[0] |= 0x10000000;
     while (CamCtrl.IsMotionEnd() == 0) {
@@ -1413,9 +1399,9 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r221_work->tex->m_Tex_no;
-        r221_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0x1F, r221_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r221_work->tex->GetTexNo();
+        r221_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0x1F, r221_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }

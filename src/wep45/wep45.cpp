@@ -94,9 +94,9 @@ cObjWep* equipWeapon(cPlayer* pl)
     rot.z = 0.34906584f;
     obj->parentSet(pl, 0x11, &pos, &rot);
     if (pG->weapon_no == 0x19 || pG->weapon_no == 0x1F || pG->weapon_no == 0x20) {
-        obj->pParts->scale.x = 0.5f;
-        obj->pParts->scale.y = 0.5f;
-        obj->pParts->scale.z = 0.5f;
+        obj->pList->scale.x = 0.5f;
+        obj->pList->scale.y = 0.5f;
+        obj->pList->scale.z = 0.5f;
     }
     if (ItemMgr.bulletNum() <= 1) {
         obj->setDisp(0, 0);
@@ -116,9 +116,9 @@ cObjWep* equipWeapon(cPlayer* pl)
     rot.z = 0.0f;
     obj->parentSet(pl, 0xA, &pos, &rot);
     if (pG->weapon_no == 0x19 || pG->weapon_no == 0x1F || pG->weapon_no == 0x20) {
-        obj->pParts->scale.x = 0.5f;
-        obj->pParts->scale.y = 0.5f;
-        obj->pParts->scale.z = 0.5f;
+        obj->pList->scale.x = 0.5f;
+        obj->pList->scale.y = 0.5f;
+        obj->pList->scale.z = 0.5f;
     }
     pl->Wep->m_pWepHand = obj;
     if (ItemMgr.bulletNum() == 0) {
@@ -135,7 +135,7 @@ void ObjHandGre_init(cObj* obj)
 
 // cObjWep::init override: the model of weapon_no from the player archive (grenade body 0x6A with
 // the texture of the kind 0x6B/0x6D/0x6F, egg 0x7D with 0x7E/0x7F/0x80) and the item kind in
-// wep.itemId; no atari / parent (parentSet does that).
+// itemId; no atari / parent (parentSet does that).
 void cObjHandGre::init(cModel* parent)
 {
     void* bin;
@@ -146,32 +146,32 @@ void cObjHandGre::init(cModel* parent)
     default:
         bin = PL_ARC_PTR(pG->pPlayer, 0x6A);
         tpl = PL_ARC_PTR(pG->pPlayer, 0x6B);
-        wep.itemId = 1;
+        itemId = 1;
         break;
     case 0x16:
         bin = PL_ARC_PTR(pG->pPlayer, 0x6A);
         tpl = PL_ARC_PTR(pG->pPlayer, 0x6D);
-        wep.itemId = 2;
+        itemId = 2;
         break;
     case 0x17:
         bin = PL_ARC_PTR(pG->pPlayer, 0x6A);
         tpl = PL_ARC_PTR(pG->pPlayer, 0x6F);
-        wep.itemId = 0xE;
+        itemId = 0xE;
         break;
     case 0x19:
         bin = PL_ARC_PTR(pG->pPlayer, 0x7D);
         tpl = PL_ARC_PTR(pG->pPlayer, 0x7E);
-        wep.itemId = 8;
+        itemId = 8;
         break;
     case 0x1F:
         bin = PL_ARC_PTR(pG->pPlayer, 0x7D);
         tpl = PL_ARC_PTR(pG->pPlayer, 0x7F);
-        wep.itemId = 9;
+        itemId = 9;
         break;
     case 0x20:
         bin = PL_ARC_PTR(pG->pPlayer, 0x7D);
         tpl = PL_ARC_PTR(pG->pPlayer, 0x80);
-        wep.itemId = 0xA;
+        itemId = 0xA;
         break;
     }
     if (modelInit(bin, tpl) == 0) {

@@ -44,7 +44,7 @@ struct Em2dWork {
     int startSet2;        // 0x3A4 (0x784)  x38D at init
     f32 plDir;            // 0x3A8 (0x788)  em2dGetPlDir: yaw towards the player's head
     f32 plDirAbs;         // 0x3AC (0x78C)
-    Camera cam;           // 0x3B0 (0x790)  catch / death camera (em2dCamMove installs it as CamCtrl.x250)
+    CAMERA cam;           // 0x3B0 (0x790)  catch / death camera (em2dCamMove installs it as CamCtrl.x250)
     Vec spd;              // 0x4A8 (0x888)  movement per frame
     u8 pad_4B4[0xC];
     Vec hoverPhase;       // 0x4C0 (0x8A0)  A_ routines: sine phases of the hover

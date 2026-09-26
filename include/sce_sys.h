@@ -10,12 +10,22 @@
 // linked into an ordering table (libgpu OTag) by priority.
 
 // One scenario task (0xC bytes), SceSys.prim[slot - 5]
-struct ScePrim {
-    u32 next;     // 0x00  OTag link
-    u8 running;   // 0x04  scheduled this frame
-    u8 cancel;    // 0x05  1 = this task is the event-cancel target
+struct SCE_TASK {
+    u32 tag;          // 0x00  OTag link
+    u8 exec_flag;     // 0x04  scheduled this frame
+    u8 cancel_flag;   // 0x05  1 = this task is the event-cancel target
     u8 pad_6[2];
-    TASK* task;   // 0x08
+private:
+    TASK* pTask;      // 0x08
+public:
+    TASK* getTaskPtr() { return pTask; }
+    void setTaskPtr(TASK* task) { pTask = task; }
+    int isNoSuspend() { return pTask->isNoSuspend(); }
+    void setNoSuspend(int on) { pTask->setNoSuspend(on); }
+    int isDiedemoMove() { return pTask->isDiedemoMove(); }
+    void setDiedemoMove(int on) { pTask->setDiedemoMove(on); }
+    void setKind(u8 kind) { pTask->setKind(kind); }
+    u8 getKind() { return pTask->getKind(); }
 };
 
 // Deferred scenario execution condition (0x14 bytes, SceExecOt list)
@@ -31,9 +41,10 @@ struct SceCond {
 };
 
 class cSceSys {
+private:
+    int m_draw_done;      // 0x00  1 = GXDrawDone before the next task
+    int m_chapter_end;    // 0x04  nonzero from SceSetChapterEnd until the chapter end task runs: scenario stopped
 public:
-    int wait;             // 0x00  1 = GXDrawDone before the next task
-    int pause;            // 0x04  nonzero: scenario stopped
     void (*pExitFunc)();         // 0x08
     void* pExitParam;             // 0x0C
     void (*pDoorFunc)();        // 0x10
@@ -58,13 +69,25 @@ public:
     u8 x77;               // 0x77
     s16 m_chapter_door;   // 0x78  door area the chapter end returns through (-1 = none; sce_com)
     u16 m_debug_disp_y;   // 0x7A  debug print y (0x3C, 0x5A with a sub character; sce_com +0xF per line)
-    int sndFlag;          // 0x7C  1 = SndEventStrStop on event cancel
+    int m_str_stop_flag;  // 0x7C  1 = SndEventStrStop on event cancel
     cDmgInfo m_dmg_bak;         // 0x80
-    ScePrim prim[13];     // 0x98  slots 5..17
-    ScePrim* pLadderTask; // 0x134  sceAtLadder task (SceEventStart(!0) kills it)
+    SCE_TASK prim[13];     // 0x98  slots 5..17
+    SCE_TASK* pLadderTask; // 0x134  sceAtLadder task (SceEventStart(!0) kills it)
 
     void scheduler();
+    void setInitLoop(int flag) { m_init_loop_flag = flag; }
+    bool checkInitLoop() { return m_init_loop_flag; }
     int checkCTaskRange();
+    void setDrawDone(int flag) { m_draw_done = flag; }
+    int checkDrawDone() { return m_draw_done; }
+    void setChapterEnd(int chapter_no, int door)
+    {
+        m_chapter_end = 1;
+        m_chapter_no = chapter_no;
+        m_chapter_door = door;
+    }
+    void clearChapterEnd() { m_chapter_end = 0; }
+    int checkChapterEnd() { return m_chapter_end; }
 };
 
 extern cSceSys SceSys;
@@ -107,10 +130,10 @@ enum SCE_PRIORITY {
     SCE_PRIO_ATTACK_2 = 12
 };
 
-ScePrim* SceExec(int prio, TaskFunc func, int arg, u8 flag, int otPrio, void* model);
+SCE_TASK* SceExec(int prio, TaskFunc func, int arg, u8 flag, int otPrio, void* model);
 void SceSleep(int ctr);
 void SceExit();
-ScePrim* SceCTask();
+SCE_TASK* SceCTask();
 void SceExecInitCondition();
 int SceExecCheckCondition_sub(SceCond* pP);
 void SceExecCheckCondition();
@@ -123,7 +146,7 @@ int scenarioCheckEventCancel();
 }
 
 void SceKill(u32 level);
-void SceKill(ScePrim* p);
+void SceKill(SCE_TASK* p);
 void SceKill(TASK* t);
 void SceKill(void (*func)(int));
 

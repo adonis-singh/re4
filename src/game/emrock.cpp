@@ -78,7 +78,7 @@ static EmRockFunc EmRock_R1_move_tbl[9] = {
 static EmAtkInfo emRockAtk = { 1500.0f, PL_DM_AUTO, 9999, 0, 10, 0 };
 
 // Event camera of the escape / drop scenes (CamCtrl.x250 points at it while they run).
-static Camera emRockCam = { 0 };
+static CAMERA emRockCam = { 0 };
 
 // Creates a rolling rock enemy (id 0x4A, at the back of the pool) from a model / TPL at pos / rot.
 // type 0 the boulder El Gigante / room events throw, 1 the big (scale 4.2) rolling boulder of
@@ -141,15 +141,12 @@ cEmRock* SetRock(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type)
     // second block's literal zeros are the fresh post-label `li r30, 0` of the original.
     int zero;
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
     em->atari.setPriority(PRI_LV3);
-    em->atari.clrFlag100();
+    em->atari.offSca();
     em->be_flag &= ~0x10;
     w->alwaysWait = 4;
     w->seid_throw = zero;
@@ -241,7 +238,7 @@ void cEmRock::move()
 
     emRockDmCk(this);
     EmRock_R0_move_tbl[r_no_0](this);
-    if ((be_flag & 0x201) != 1) {
+    if (!isAlive()) {
         return;
     }
     EmAtCheck(this);
@@ -348,7 +345,7 @@ void emRock_R1_Parent(cEmRock* pEm)
     RotMatrix(pEm->mat, &pEm->ang);
     TransMatrix(pEm->mat, &pEm->pos);
     ScaleMatrix(pEm->mat, &pEm->scale);
-    if (parent && parent->pParts) {
+    if (parent && parent->pList) {
         PSMTXConcat(parent->getPartsPtr(w->oya_parts)->mat, pEm->mat, m);
         if (!(w->Be_flg & 1)) {
             v0.x = m[0][0];
@@ -1817,7 +1814,7 @@ void plemRockEscapeCamMove(cPlayer* pEm, f32 rate)
     Vec d;
     f32 len;
     GlobalWork* g = pG;
-    Camera* cam = &emRockCam;
+    CAMERA* cam = &emRockCam;
 
     cam->param.fovy = 27.0f;
     PSMTXMultVec(pEm->mat, &emRock_campos, &p0);
@@ -1838,7 +1835,7 @@ void plemRockEscapeCamMove(cPlayer* pEm, f32 rate)
         PSVECAdd(&emRockCam.param.at, &d, &emRockCam.param.pos);
     }
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &cam->param.pos;
         Vec* ca = &cam->param.at;
 
@@ -1848,7 +1845,7 @@ void plemRockEscapeCamMove(cPlayer* pEm, f32 rate)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -1861,7 +1858,7 @@ void plemRockEscapeCamMove2(cPlayer* pEm, int mode)
     Vec p1;
     Vec r;
     f32 len;
-    Camera* gcam = &pG->Camera;
+    CAMERA* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
     if (mode) {
@@ -1886,7 +1883,7 @@ void plemRockEscapeCamMove2(cPlayer* pEm, int mode)
     PSVECAdd(&emRockCam.param.pos, &r, &emRockCam.param.pos);
     PSVECAdd(&emRockCam.param.at, &r, &emRockCam.param.at);
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &emRockCam.param.pos;
         Vec* ca = &emRockCam.param.at;
 
@@ -1896,7 +1893,7 @@ void plemRockEscapeCamMove2(cPlayer* pEm, int mode)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -1905,8 +1902,8 @@ void plemRockDropDieCamMove(cEmRock* pEm)
 {
     Vec p;
     f32 len;
-    cModel* parts;
-    Camera* gcam = &pG->Camera;
+    cParts* parts;
+    CAMERA* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
     if (Muku(&pEm->pos, &pPL->pos, pEm->ang.y, 3.1415927f) < 0.0f) {
@@ -1923,7 +1920,7 @@ void plemRockDropDieCamMove(cEmRock* pEm)
     PosToPos(&gcam->param.at, &parts->world, &emRockCam.param.at, 0.1f);
     PosToPos(&gcam->param.pos, &p, &emRockCam.param.pos, 0.1f);
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &emRockCam.param.pos;
         Vec* ca = &emRockCam.param.at;
 
@@ -1933,7 +1930,7 @@ void plemRockDropDieCamMove(cEmRock* pEm)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -1942,8 +1939,8 @@ void emRockPushCamMove(cEmRock* pEm)
 {
     Vec p;
     f32 len;
-    cModel* parts;
-    Camera* gcam = &pG->Camera;
+    cParts* parts;
+    CAMERA* gcam = &pG->Camera;
 
     emRockCam.param.fovy = 50.0f;
     switch (pG->room_no) {
@@ -1973,7 +1970,7 @@ void emRockPushCamMove(cEmRock* pEm)
     PosToPos(&gcam->param.at, &parts->world, &emRockCam.param.at, 1.0f);
     emRockCam.param.pos = p;
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &emRockCam.param.pos;
         Vec* ca = &emRockCam.param.at;
 
@@ -1983,7 +1980,7 @@ void emRockPushCamMove(cEmRock* pEm)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -2025,7 +2022,7 @@ void emRockPushCamMove2(cEmRock* pEm)
     emRockCam.param.pos = p0;
     emRockCam.param.at = p1;
     {
-        Camera* cam = &emRockCam;
+        CAMERA* cam = &emRockCam;
         Vec* cp = &cam->param.pos;
         Vec* ca = &cam->param.at;
 
@@ -2035,7 +2032,7 @@ void emRockPushCamMove2(cEmRock* pEm)
         cam->Up.z = 0.0f;
         cam->Distance = SQRTF(len);
         CameraSetOrientationUp(cam);
-        CamCtrl.m_pExtraCamera = (s32) cam;
+        CamCtrl.SetExtraCamera(cam);
     }
 }
 
@@ -2045,7 +2042,7 @@ void emRockDropCamMove(cEmRock* em)
     Vec p0;
     Vec p1;
     f32 len;
-    Camera* cam = &emRockCam;
+    CAMERA* cam = &emRockCam;
     Vec* cp = &cam->param.pos;
     Vec* ca = &cam->param.at;
 
@@ -2067,14 +2064,14 @@ void emRockDropCamMove(cEmRock* em)
     len = (cp->x - ca->x) * (cp->x - ca->x) + (cp->y - ca->y) * (cp->y - ca->y) + (cp->z - ca->z) * (cp->z - ca->z);
     cam->Distance = SQRTF(len);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Enemies (ids 0x10..0x20) within 1.5 radii of the rock are knocked down (routine 3/4).
 void emRockRunDownCk(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p = pEm->getPartsPtr(0);
+    cParts* p = pEm->getPartsPtr(0);
     cEm* e;
     Vec v;
     f32 len;
@@ -2083,7 +2080,7 @@ void emRockRunDownCk(cEmRock* pEm)
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -2154,7 +2151,7 @@ void emRockPushCk(cEmRock* pEm, int frame)
     n = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -2225,7 +2222,7 @@ void cEmRock::setDropMot2(void* a, void* b, void* c, void* d, void* e, void* f, 
 int emRockDropHitCk(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p;
+    cParts* p;
     int dead;
     f32 len;
     f32 r;
@@ -2258,7 +2255,7 @@ int emRockDropHitCk(cEmRock* pEm)
 int emRockDropHitCkSub(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p;
+    cParts* p;
     int dead;
     f32 len;
     f32 r;
@@ -2294,16 +2291,16 @@ int emRockDropHitCkSub(cEmRock* pEm)
 int emRockDropHitCkEm2b(cEmRock* pEm)
 {
     EmRockWork* w = EMROCK_WK(pEm);
-    cModel* p = pEm->getPartsPtr(0);
+    cParts* p = pEm->getPartsPtr(0);
     cEm* e;
-    cModel* q;
+    cParts* q;
     f32 len;
     f32 r;
     u32 i;
 
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         e = EmMgr.fastAt(i);
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id != 0x2B) {
@@ -2407,7 +2404,7 @@ void emRockSatClear(cEmRock* pEm)
     if (w->pSat == 0) {
         return;
     }
-    w->pSat->m_Flag &= ~4;
+    w->pSat->setDisable();
 }
 
 // Room 11E type 3 rocks: keeps a scenario collision piece at the rock's parts 0 while visible
@@ -2434,7 +2431,7 @@ void emRockSatSet(cEmRock* pEm)
     rot.y = 0.0f;
     rot.z = 0.0f;
     if (w->pSat) {
-        w->pSat->m_Flag |= 4;
+        w->pSat->setEnable();
         w->pSat->setCoord(&pos, &rot);
     } else {
         w->pSat = EatMgr.create((void*) (((u32*) pG->pRoom)[5] + (u32) pG->pRoom), 0, &pos, &rot, 1);

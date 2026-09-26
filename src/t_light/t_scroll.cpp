@@ -13,6 +13,7 @@
 #include "cam_ctrl.h"
 #include "player.h"
 #include "obj.h"
+#include "obj02.h"
 #include "scroll.h"
 #include "dbmodule.h"
 #include "main_sub.h"
@@ -400,7 +401,7 @@ int move()
     {
         int x = (int) pWork->logX;
         int y = (int) pWork->logY;
-        cLog* l = pLog.p;
+        cLog* l = pLog;
 
         l->m_Bx = x;
         l->m_By = y;
@@ -658,7 +659,7 @@ static void edit_id_normal()
     }
     if (pWork->joy[0].rep & 0x100) {
         do {
-            memclr_asm(obj->work, 0xAF);
+            memclr_asm(((cObjScr*) obj)->free, 0xAF);
             if (pWork->id == 0xF) {
                 setMirrorModel(obj, 1);
             } else if (obj->type == 0xF) {
@@ -666,7 +667,7 @@ static void edit_id_normal()
             }
             obj->type = pWork->id;
             if (obj->type == 1) {
-                ((ScrRotateWork*) obj->work)->local = 1;
+                ((ScrRotateWork*) ((cObjScr*) obj)->free)->local = 1;
             }
             if (obj->type == 0) {
                 obj->be_flag &= ~0x20;
@@ -710,7 +711,7 @@ static void edit_id_rotate()
     case 1:
         obj = SmdGetGroupObjPtr(pWork->top + pWork->row);
         do {
-            w = (ScrRotateWork*) obj->work;
+            w = (ScrRotateWork*) ((cObjScr*) obj)->free;
             switch (pWork->axis) {
             case 0:
                 edit_id_normal();
@@ -760,7 +761,7 @@ static void edit_id_rotate()
         if (pWork->joy[0].rep & 0x900) {
             obj = SmdGetGroupObjPtr(pWork->top + pWork->row);
             do {
-                w = (ScrRotateWork*) obj->work;
+                w = (ScrRotateWork*) ((cObjScr*) obj)->free;
                 switch (pWork->subCursor) {
                 case 0:
                     switch (pWork->axis) {
@@ -825,7 +826,7 @@ static void edit_id_rotate()
         break;
     }
     obj = SmdGetGroupObjPtr(pWork->top + pWork->row);
-    w = (ScrRotateWork*) obj->work;
+    w = (ScrRotateWork*) ((cObjScr*) obj)->free;
     eprintf(0x40, 0xA8, 0, 0, "ROTATE X SPEED %3.5f", w->spd.x);
     eprintf(0x40, 0xB6, 0, 0, "ROTATE Y SPEED %3.5f", w->spd.y);
     eprintf(0x40, 0xC4, 0, 0, "ROTATE Z SPEED %3.5f", w->spd.z);
@@ -851,7 +852,7 @@ static void edit_id_swing_rot()
     ScrSwingWork* w;
     f32 step;
 
-    w = (ScrSwingWork*) SmdGetGroupObjPtr(pWork->top + pWork->row)->work;
+    w = (ScrSwingWork*) ((cObjScr*) SmdGetGroupObjPtr(pWork->top + pWork->row))->free;
     step = (pWork->joy[0].on & 0x100) ? 10.0f : 1.0f;
     switch (pWork->sub2) {
     case 0:
@@ -1104,7 +1105,7 @@ void edit_flag_core(cObj* obj)
         obj->be_flag ^= 0x8000;
         break;
     case 5:
-        obj->attr ^= 1;
+        ((cObjScr*) obj)->Attribute ^= 1;
         break;
     }
 }
@@ -1661,7 +1662,7 @@ int saveMain(const char* path)
         rec->color2[3] = 0;
         rec->uvScrollU = obj->pModelInfo->uvScrollU;
         rec->uvScrollV = obj->pModelInfo->uvScrollV;
-        memcpy((u32*) rec->work, (u32*) obj->work, sizeof(rec->work));
+        memcpy((u32*) rec->work, (u32*) ((cObjScr*) obj)->free, sizeof(rec->work));
         rec++;
         n++;
     }
@@ -1848,7 +1849,7 @@ static void printEditTable()
             col = 0x14;
         } else {
             col = 0;
-            if (obj->attr & 4) {
+            if (((cObjScr*) obj)->Attribute & 4) {
                 col = 5;
             }
         }

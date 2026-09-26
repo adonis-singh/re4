@@ -389,7 +389,7 @@ static void r205_PendulumMove()
             if (fabsf(rot) <= 0.8f) {
                 if (se[i] == 0) {
                     se[i] = 1;
-                    RoomSeCall((u16) (12 + i), &r205_work->hit[i]->pParts->world, 0, 0, 0);
+                    RoomSeCall((u16) (12 + i), &r205_work->hit[i]->pList->world, 0, 0, 0);
                 }
             } else {
                 se[i] = 0;
@@ -415,8 +415,8 @@ static void r205_PendulumMove()
 // The player is hit by blade `p`: the death demo with a camera that keeps looking at him.
 static void r205_ExecDieDemo(R205Pend* p)
 {
-    Camera cam;
-    cModel* parts;
+    CAMERA cam;
+    cParts* parts;
     Vec* wp;
     f32 d;
     int mot = 1;
@@ -458,7 +458,7 @@ static void r205_ExecDieDemo(R205Pend* p)
             cam.param.at = parts->world;
             i++;
             CameraSetOrientationUp(&cam);
-            CamCtrl.m_pExtraCamera = (s32) &cam;
+            CamCtrl.SetExtraCamera(&cam);
             SceSleep(1);
         } else {
             break;
@@ -471,7 +471,7 @@ static void r205_ExecDieDemo(R205Pend* p)
     CamCtrl.Disable();
     CamCtrl.camera = cam;
     CamCtrl.cur = cam.param;
-    CamSmth.m_ratio = 0.0f;
+    CamSmth.setRatio(0.0f);
     CamCtrl.m_Inter.frame = 0;
     CamCtrl.be_flag |= 4;
 }
@@ -484,7 +484,7 @@ static void r205_DrainEvent()
     SceEventStart(0);
     CamCtrl.CutCall(2);
     SceSleep(1);
-    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         void* zero;
 
@@ -565,9 +565,9 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r205_work->tex->m_Tex_no;
-        r205_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 1, r205_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r205_work->tex->GetTexNo();
+        r205_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 1, r205_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "R205Init() : Manager alloc failed!!");
     }

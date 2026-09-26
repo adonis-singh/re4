@@ -43,15 +43,15 @@ void cObjKnife::init()
         pLog->err(0, 0, "cObjKnife::init() failed.");
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = pPL->getPartsPtr(0xA);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = pPL->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = pPL;
+    m_pParent = pPL;
     resetMotion();
     MotionSetCore(this, &this->Motion, PL_ARC_PTR(pG->pPlayer, 0x1B), 0, 0, 0, 0);
 }

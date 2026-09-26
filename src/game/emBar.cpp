@@ -72,7 +72,7 @@ cEmBar* SetBar(void* bin, void* tpl, Vec* pos, Vec* rot, int flagNo)
     w->size.z = 10.0f;
     w->Eff_id = 0xFF;
     em->atari.init(0.0f, 0.0f, 0.0f, 700.0f, 400.0f, 500.0f, 500.0f, 0, 2, 0);
-    em->atari.throughOn();
+    em->atari.off();
     emBarYarareInit(em);
     em->hp_max = em->hp;
     {
@@ -81,10 +81,7 @@ cEmBar* SetBar(void* bin, void* tpl, Vec* pos, Vec* rot, int flagNo)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 0x10);
     }
-    em->lockParts = 0;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->hp = 1000;
@@ -376,7 +373,7 @@ void cEmBar::setMotion(void* mot)
 int emBarHitCk(cEmBar* pEm)
 {
     Vec v;
-    cModel* p;
+    cParts* p;
 
     if (pEm->hp <= 0) {
         return 0;

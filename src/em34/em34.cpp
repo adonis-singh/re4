@@ -128,7 +128,7 @@ void em34DmCk(cEm34* em)
     EmDmBloodSet(em);
     if (em->hp <= 0) {
         EmSetDie(em);
-        EmRoutineSet(em, 3, 0, 0, 0);
+        em->setRno(3, 0, 0, 0);
     }
 }
 
@@ -305,20 +305,17 @@ static void em34_R0_Init(cEm34* em)
         em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
         break;
     }
-    em->litArea.on(1);
+    em->State.SetLightIgnore();
     YarareInit(em, 0.0f, 0.0f, 0.0f, 400.0f, 200.0f, 1, YAT_FLAG_ON);
     one = 1;
     YarareAdd(em, &w->hit[0], 0.0f, 0.0f, 0.0f, 200.0f, 100.0f, 5, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[1], 0.0f, -100.0f, 0.0f, 200.0f, 200.0f, 0x14, YAT_FLAG_ON);
     YarareAdd(em, &w->hit[2], 0.0f, -100.0f, 0.0f, 200.0f, 200.0f, 0x18, YAT_FLAG_ON);
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(0x10), EFF_EM34, 0);
     w->Neck_dir_y = 0.0f;
     w->Be_flg = 0;
-    EmRoutineSet(em, one, 0, 0, 0);
+    em->setRno(one, 0, 0, 0);
     switch (em->type) {
     case 0:
     default:
@@ -367,8 +364,8 @@ static void em34_R1_Wait(cEm34* em)
         em->r_no_2++;
     case 1:
         MotionMove(em, 0);
-        if (EmDeadCk(em)) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+        if (em->dmg.isDamage()) {
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -403,11 +400,11 @@ static void em34_R1_Walk(cEm34* em)
         MotionMove(em, 0);
         if (em->type == 1 && em->hp < 500) {
             if (em->l_pl < 1000000.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         } else {
             if (em->l_pl < 4000000.0f) {
-                EmRoutineSet(em, 1, 0, 0, 0);
+                em->setRno(1, 0, 0, 0);
             }
         }
         break;
@@ -443,7 +440,7 @@ static void em34_R1_Atk(cEm34* em)
         em->ang.y += Muku(&em->pos, &w->Go_pos, em->ang.y, PI / 32.0f);
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             em34AtkCk(em, 0, 0xA);
         }
@@ -484,7 +481,7 @@ static void em34_R1_Dm_Normal(cEm34* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 1, 0, 10);
+            em->setRno(1, 1, 0, 10);
         }
         break;
     }
@@ -594,12 +591,12 @@ void em34RouteCk(cEm34* em)
 void em34NeckMove(cEm34* em)
 {
     Em34Work* w = EM34_WK(em);
-    cModel* p;
+    cParts* p;
     Vec v;
 
     p = em->getPartsPtr(4);
     {
-        cModel* h = pPL->getPartsPtr(4);
+        cParts* h = pPL->getPartsPtr(4);
 
         v.x = 0.0f;
         v.y = 250.0f;
@@ -630,7 +627,7 @@ int em34AtkCk(cEm34* em, int no, int parts)
     }
     {
         EmAtkInfo* atk = &em34_atk_tbl[no];
-        cModel* p = em->getPartsPtr(parts);
+        cParts* p = em->getPartsPtr(parts);
         int hit = EmAtkHitCk(atk, &p->world, &p->world_old, 0);
 
         if (hit) {

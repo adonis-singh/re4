@@ -26,7 +26,9 @@ struct TASK {
     u8 Status;                // 0x04
     u8 Priority;                 // 0x05  > 0xF: waits on the scheduler semaphore
     u8 Task_no;                    // 0x06
-    u8 flag;                  // 0x07  2: skip while flags_5010 bit 28, 4: skip while flags_500C bit 20
+private:
+    u8 kind;                  // 0x07  2: skip while flags_5010 bit 28, 4: skip while flags_500C bit 20
+public:
     u16 suspend_cnt;          // 0x08
     u16 SleepCtr;                // 0x0A
     u16 StackSize;           // 0x0C
@@ -39,6 +41,27 @@ struct TASK {
     void (*pFunc)(int);        // 0x33C
     void* pModel;              // 0x340
     u8 pad_344[4];
+
+    int isNoSuspend() { return (kind >> 1) & 1; }
+    void setNoSuspend(int on)
+    {
+        if (on) {
+            kind |= 2;
+        } else {
+            kind &= ~2;
+        }
+    }
+    int isDiedemoMove() { return (kind >> 2) & 1; }
+    void setDiedemoMove(int on)
+    {
+        if (on) {
+            kind |= 4;
+        } else {
+            kind &= ~4;
+        }
+    }
+    void setKind(u8 k) { kind = k; }
+    u8 getKind() { return kind; }
 };                            // 0x348
 
 extern TASK* CTASK_MAIN;  // sentinel "main thread" task (-1)

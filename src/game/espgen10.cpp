@@ -34,12 +34,7 @@ int EspgenDataSet(EspSeqData* head, int no, EspInfo* info, u32* seed, cModel* mo
     rec = (EspGenWork*) ((u32) head + list);
     if (info->Core_flg & 0x1000) {
         u32 no = rec->Parent_no;
-        list = (u32) EspEvModList;
-        if (no > 0x7F) {
-            model = NULL;
-        } else {
-            model = *(cModel**) (list + (no << 2));
-        }
+        model = EspEvModList.GetModelPtr(no);
     }
 
     switch (rec->Kind) {
@@ -105,7 +100,7 @@ void espgen10_Update(EspgenWork* pEspgen)
     cModel* model = p->pMod;
 
     if (model != NULL) {
-        if ((model->be_flag & 0x201) != 1 || model->guid != p->Guid_pMod) {
+        if (!model->isAlive() || model->guid != p->Guid_pMod) {
             PushEspgen(pEspgen);
             return;
         }
@@ -128,7 +123,7 @@ void espgen10_Update(EspgenWork* pEspgen)
             return;
         }
         if (!(p->Flg & 1)) {
-            cModel* part;
+            cParts* part;
             Vec ofs;
             Vec r;
 

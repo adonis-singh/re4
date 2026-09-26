@@ -77,7 +77,7 @@ struct R214Work {
     int bridgeFlag;          // 0x000  1: the bridge rotation started from the entrance
     cCatapult214 cat[3];     // 0x004
     int hitWait;             // 0x0D0  frames before another catapult may fire at the player
-    ScePrim* catTask;        // 0x0D4
+    SCE_TASK* catTask;        // 0x0D4
     cEm* barred[2];          // 0x0D8
     cEmPatrol patrol[4];     // 0x0E0
     IdBinocular* bino;       // 0x550
@@ -832,9 +832,9 @@ static void r214_setRock(cCatapult214* c)
         SceSleep(1);
     }
     c->setRock();
-    c->obj->pParts->ang.x = 0.0f;
+    c->obj->pList->ang.x = 0.0f;
     for (i = 0; i < 10; i++) {
-        c->obj->pParts->ang.x += -0.024137001f;
+        c->obj->pList->ang.x += -0.024137001f;
         SceSleep(1);
     }
     c->rockReady = 1;
@@ -861,9 +861,9 @@ static void r214_throwRock(cCatapult214* c)
     f32 spd;
     f32 lim;
 
-    c->obj->pParts->ang.x = -0.24137f;
+    c->obj->pList->ang.x = -0.24137f;
     for (i = 10; i > 0; i--) {
-        c->obj->pParts->ang.x += 0.13986999f;
+        c->obj->pList->ang.x += 0.13986999f;
         SceSleep(1);
     }
     c->throwRock();
@@ -875,10 +875,10 @@ static void r214_throwRock(cCatapult214* c)
     spd = -0.06981317f;
     lim = -0.24137f;
     for (;;) {
-        c->obj->pParts->ang.x += spd;
+        c->obj->pList->ang.x += spd;
         spd += acc;
-        if (c->obj->pParts->ang.x < lim) {
-            c->obj->pParts->ang.x = -0.24137f;
+        if (c->obj->pList->ang.x < lim) {
+            c->obj->pList->ang.x = -0.24137f;
             break;
         }
         SceSleep(1);
@@ -891,14 +891,14 @@ static void r214_throwRock(cCatapult214* c)
         lim *= 0.5f;
         spd *= -0.5f;
         for (;;) {
-            c->obj->pParts->ang.x += spd;
+            c->obj->pList->ang.x += spd;
             spd += -0.034906585f;
-            if (c->obj->pParts->ang.x < lim && spd < 0.0f) {
+            if (c->obj->pList->ang.x < lim && spd < 0.0f) {
                 break;
             }
             SceSleep(1);
         }
-        c->obj->pParts->ang.x = lim;
+        c->obj->pList->ang.x = lim;
     }
 }
 
@@ -909,9 +909,9 @@ void cCatapult214::throwRock()
     Vec to;
     Vec spd;
 
-    from.x = rock->pParts->mat[0][3];
-    from.y = rock->pParts->mat[1][3];
-    from.z = rock->pParts->mat[2][3];
+    from.x = rock->pList->mat[0][3];
+    from.y = rock->pList->mat[1][3];
+    from.z = rock->pList->mat[2][3];
     if (fixedTarget == 1) {
         to = target;
     } else if (atArea[hitIdx] >= 0) {

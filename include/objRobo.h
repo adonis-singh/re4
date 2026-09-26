@@ -144,12 +144,32 @@ enum HitNoEnum {
     HitNoMax = 14
 };
 
+// Giant robot statue work (game/objRobo.cpp `cObjRobo`): the Salazar statue that walks after the
+// player over the bridge; two scenario / effect collision pieces per side, 14 hit boxes.
+struct RoboWork {
+    s8 r_no_0;           // 0x00  R0Tbl index
+    s8 r_no_1;              // 0x01
+    u8 pad_2[6];
+    int ActBtnType;           // 0x08  r226: index of the bridge pillar being pushed over (playerPillarDownCk)
+    class cSat* pSat[2];   // 0x0C  scenario pieces (front / back)
+    class cSat* pEat[2];   // 0x14  effect pieces
+    class cEmHit* pEmHitTbl[14];  // 0x1C
+    class cSat* pEatBody;     // 0x54  effect piece at the model position
+    cObj* pObjScr[2];         // 0x58  scroll objects following the feet (SetObjSmd)
+    f32 FallSpdY;         // 0x60
+    int FallTimer;              // 0x64
+    int BridgeTimer[6];        // 0x68  frames each bridge piece has been hit
+    f32 BridgeFallPos;            // 0x80
+    int SndTimer;            // 0x84
+};
+
 // Giant statue (Salazar's robot) of room 4-2: waits on the gondola, walks the passage, waits at
 // the door, then chases the player over the bridge, breaking its pieces one by one.
 class cObjRobo : public cObj {
 public:
-    virtual void move();
+    u8 free[OBJ_WORK_SIZE - 0x328];   // 0x328  RoboWork
 
+    virtual void move();
     void SetBeginEvent(u32 a);
     void SetEndEvent(u32 a);
     static void R0Init(cObjRobo* pObj);
@@ -167,6 +187,8 @@ public:
     void SatMove(cObjRobo* pObj, Vec* pPosOld, int armNo);
     int SatMoveSub(cModel* pMod, Vec* pPosCenter, Vec* d);
 };
+
+#define ROBO_WK(o) ((RoboWork*) (o)->free)
 
 cObjRobo* SetObjRobo(void* bin, void* tpl, Vec* pos, Vec* rot);
 

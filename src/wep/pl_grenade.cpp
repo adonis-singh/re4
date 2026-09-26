@@ -1,3 +1,4 @@
+#include "objSubWep.h"
 // Grenade player routines (the pl_grenade object of the hand grenade modules wep19/30/41/42/45,
 // byte-identical in all five; real file name unknown): routine 2 of the player while a throwable is
 // equipped: ready (draw + aim, stance by the up/down keys), set (idle / turn), fire (throw), down
@@ -14,6 +15,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_wep.h"
 #include "global.h"
 #include "main.h"
@@ -24,12 +26,6 @@
 #include "snd.h"
 #include "item.h"
 #include "math_sub.h"
-
-// game/objSubWep.cpp: the thrown grenade / egg objects (init only, the module never touches the rest)
-class cSubWep : public cObj {
-public:
-    int init(Vec* rot, f32 power);
-};
 
 static void wep19_r2_ready(cPlayer* pl);
 static void wep19_r3_ready00(cPlayer* pl);
@@ -108,7 +104,7 @@ static void wep19_r2_ready(cPlayer* pl)
     }
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -148,20 +144,18 @@ static void wep19_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r[2] = 0.0f;
+    m3r.setDelay(0.0f);
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
+    m3r.reset(pitch);
     pl->m_Fwork0 = 0.0f;
     pl->Neck->init(0, 0, 0);
     pl->Wep->lockInit();
     mot = WEP_ARC_PTR(0xF);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
-    m3r[0] = 0.0f;
-    m3r[1] = 0.0f;
-    m3r[2] = 0.0f;
-    SndCall(1, 0x28, &pl->pParts->world, 0, 0, 0);
+    mot3.move(m3r);
+    m3r.reset(0.0f);
+    m3r.setDelay(0.0f);
+    SndCall(1, 0x28, &pl->pList->world, 0, 0, 0);
     lockCtr = 0;
     pl->r_no_3 = 1;
 }
@@ -183,8 +177,8 @@ static void wep19_r3_ready10(cPlayer* pl)
         pl->r_no_2 = 1;
         pl->r_no_3 = 4;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -198,23 +192,20 @@ static void wep19_r3_ready20(cPlayer* pl)
         pl->r_no_2 = 1;
         pl->r_no_3 = 4;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
 // ready step 3: the lock-on turn (PlWepLockCtrl's ready-turn request): turn towards `tgt` (PI/8
-// per frame), slide towards `pos`, aim the pitch target m3r[1] at the target's elevation in 0.05
-// steps (clamped -1..1); motion end -> set state step 0.
-// (the pl_handgun form: `t` is
-// assigned after the Muku call and lives across GetDistance3, m3r is walked through `r`, the
-// first m3r[0] store is a direct reference, the clamp bounds are variables).
+// per frame), slide towards `pos`, aim the pitch target at the target's elevation in 0.05
+// steps (clamped -1..1); motion end -> set state step 0. `t` is assigned after the Muku call and
+// lives across GetDistance3, as in pl_handgun.
 static void wep19_r3_ready30(cPlayer* pl)
 {
     f32 dist;
     f32 x;
     f64 a;
-    f32* r;
     Vec* t;
 
     if (MotionMove(pl, 0)) {
@@ -230,33 +221,17 @@ static void wep19_r3_ready30(cPlayer* pl)
     t = &tgt;
     dist = GetDistance3(&pos, t);
     a = atan2(t->y - pos.y, dist);
-    r = m3r;
-    x = a / (PI / 4.0f) - r[0];
+    x = a / (PI / 4.0f) - m3r;
     if (x > 0.05f) {
         x = 0.05f;
     }
     if (x < -0.05f) {
         x = -0.05f;
     }
-    r[1] += x;
-    if (r[2] == 0.0f) {
-        m3r[0] = r[1];
-    }
-    {
-        f32 lo = -1.0f;
-        f32 hi = 1.0f;
-
-        if (r[1] < lo) {
-            r[1] = lo;
-        } else if (r[1] > hi) {
-            r[1] = hi;
-        }
-    }
-    if (r[2] == 0.0f) {
-        r[0] = r[1];
-    }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r += x;
+    m3r.limit(-1.0f, 1.0f);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -279,7 +254,7 @@ static void wep19_r2_set(cPlayer* pl)
         lockCtr--;
     }
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -300,13 +275,13 @@ static void wep19_r2_set(cPlayer* pl)
     }
 }
 
-// set step 0: start the three-way aim idle (0x11 down / 0x14 level / 0x17 up on m3r[0]), step 1.
+// set step 0: start the three-way aim idle (0x11 down / 0x14 level / 0x17 up on m3r), step 1.
 static void wep19_r3_set00(cPlayer* pl)
 {
     PlArc* arc = pG->pWep;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0x11), PL_ARC_PTR(arc, 0x14), PL_ARC_PTR(arc, 0x17), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
 }
@@ -417,11 +392,11 @@ static void wep19_r3_fire00(cPlayer* pl)
         mot3.set(pl, PL_ARC_PTR(arc, 0x13), PL_ARC_PTR(arc, 0x16), PL_ARC_PTR(arc, 0x19), 0, 3, 0, 4, 0);
         pl->m_Work4 = 1;
     }
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     MotionMove(pl, 0);
-    SndCall(1, 1, &pl->pParts->world, 0, 0, 0);
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    SndCall(1, 1, &pl->pList->world, 0, 0, 0);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(pl->m_Fwork0, 0.4f);
     pl->r_no_3 = 1;
 }
@@ -446,7 +421,7 @@ static void wep19_r3_fire10(cPlayer* pl)
     if (pl->m_Work4 == 0) {
         if (pl->Motion.Seq_frame > 24.7f && pl->Motion.Seq_frame < 25.3f) {
             readyWeapon(pl);
-            SndCall(1, 0, &pl->pParts->world, 0, 0, 0);
+            SndCall(1, 0, &pl->pList->world, 0, 0, 0);
         }
         if (pl->Motion.Seq_frame >= 30.0f) {
             pl->r_no_0 = 0;
@@ -457,7 +432,7 @@ static void wep19_r3_fire10(cPlayer* pl)
     } else {
         if (pl->Motion.Seq_frame >= 15.0f) {
             pl->setRightHand(1);
-            if (pl->stat & 0x40) {
+            if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -540,7 +515,7 @@ static void wep19_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -568,7 +543,7 @@ void readyWeapon(cPlayer* pl)
 
 // Throws the equipped item: creates the sub weapon object of the weapon number (ObjMgr id 0x1A
 // hand grenade, 0x29 incendiary, 0x2A flash, 0x3A egg; obj->type 0..5 = the weapon) and launches
-// it from the player's angles along the aim pitch (m3r[0]); spends one item (ItemMgr.trigger).
+// it from the player's angles along the aim pitch (m3r); spends one item (ItemMgr.trigger).
 void itemThrow(cPlayer* pl)
 {
     cObj* obj;
@@ -619,7 +594,7 @@ void itemThrow(cPlayer* pl)
         obj->type = 5;
         break;
     }
-    if (((cSubWep*) obj)->init(&pl->ang, m3r[0]) == 0) {
+    if (((cSubWep*) obj)->init(&pl->ang, m3r) == 0) {
         pLog->err(0, 0, "itemThrow() init failed.");
     }
     ItemMgr.trigger();

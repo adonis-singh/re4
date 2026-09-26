@@ -13,6 +13,7 @@
 #include "model.h"
 #include "em.h"
 #include "obj.h"
+#include "obj02.h"
 #include "scroll.h"
 #include "etc_model.h"
 #include "view.h"
@@ -30,7 +31,6 @@ extern f32 lod_bias;
 
 // pointer to game memory (0x80000000 .. 0x82FFFFFF)
 #define IN_RANGE(p) ((u32) (p) - 0x80000000 <= 0x02FFFFFF)
-#define IS_ALIVE(p) (((p)->be_flag & 0x201) == 1)
 
 void funcDelCtrl(cCtrl* pCtr);
 
@@ -159,7 +159,7 @@ cLight* cLightMgr::create(cLightWork* pLw)
     if (l == 0) {
         return 0;
     }
-    if (!IS_ALIVE(l)) {
+    if (!l->isAlive()) {
         return 0;
     }
     *l = *pLw;
@@ -317,17 +317,10 @@ f32 cLightMgr::setElecPower(f32 d)
 int cLightMgr::setElecPower2(u8 id, u8 flag)
 {
     cCtrl* c;
-    cCtrl* n;
     LightCtrlWork* w;
     cLightPathData* path;
-    void (*func)(cCtrl*) = funcDelCtrl;
 
-    c = CtrlMgr.getActiveWork();
-    while (c) {
-        n = c;
-        c = (cCtrl*) c->pNext;
-        func(n);
-    }
+    CtrlMgr.applyFuncAll(funcDelCtrl);
     c = CtrlMgr.createBack(0);
     if (c == 0) {
         return 0;
@@ -413,10 +406,6 @@ int cLightMgr::roomLitCheck()
 // 0x200 (lights moved this frame).
 int cLightMgr::move()
 {
-    cLight* l;
-    cLight* n;
-    void (*func)(cLight*);
-
     if (ElecPower != 1.0f) {
         pLog->err(0, 0, "cLightMgr ElecPower != 1.0f");
     }
@@ -426,13 +415,7 @@ int cLightMgr::move()
     hokanMove();
     dieCheck();
     StaFlagOn(pG, STA_USE_CAST_SHADOW);
-    func = lightMove;
-    l = pAlive;
-    while (l) {
-        n = l;
-        l = (cLight*) l->pNext;
-        func(n);
-    }
+    applyFuncAll(lightMove);
     return 1;
 }
 
@@ -467,8 +450,8 @@ void lightMove(cLight* pLi)
     cModel* p = pLi->pParent;
     cModel* em;
 
-    if (p != 0 && !IS_ALIVE(p) && !DbgFlagChk(pG, DBG_TEST_MODE)) {
-        if (IS_ALIVE(pLi)) {
+    if (p != 0 && !p->isAlive() && !DbgFlagChk(pG, DBG_TEST_MODE)) {
+        if (pLi->isAlive()) {
             LightMgr.destroy(pLi);
         }
         return;
@@ -533,7 +516,7 @@ void cLightMgr::setModel2(cModel* pMod)
         if (!checkKind(l->Kind)) {
             continue;
         }
-        if (pMod->id == 2 && (((cObj*) pMod)->attr & 1) && (l->Attribute & 4)) {
+        if (pMod->id == 2 && (((cObjScr*) pMod)->Attribute & 1) && (l->Attribute & 4)) {
             continue;
         }
         if (i <= 31 && !((1 << i) & pMod->LightInfo.SelectMask) && !StaFlagChk(pG, STA_NO_LIGHTMASK)) {
@@ -629,7 +612,7 @@ void cLightMgr::setEsp(EspLightList* pEnv, u8 enableMask)
     }
 }
 
-// Does the light reach the model's light volume? Dispatches on LightInfo.Flag & 3 (0 cylinder, 1/3
+// Does the light reach the model's light volume? Dispatches on LightInfo.getType() (0 cylinder, 1/3
 // sphere, 2 box).
 int lightHitCheck(cModel* pMod, cLight* pLight)
 {
@@ -639,7 +622,7 @@ int lightHitCheck(cModel* pMod, cLight* pLight)
         lightHitCheckBBox,
         lightHitCheckSphere,
     };
-    return funcTbl[pMod->LightInfo.Flag & 3](pMod, pLight);
+    return funcTbl[pMod->LightInfo.getType()](pMod, pLight);
 }
 
 // Sphere volume (Size.x) vs light radius (0 = infinite).
@@ -665,7 +648,7 @@ int lightHitCheckCylinder(cModel* pMod, cLight* pLight)
     Vec tmp;
     Vec lpos;
     cLightInfo* li = &pMod->LightInfo;
-    cModel* c;
+    cCoord* c;
     f32 r;
 
     c = li->getPos(pMod, &pos);
@@ -1198,7 +1181,7 @@ cLightWork& cLightWork::operator=(cLight& l)
 // 1 when this is an alive room light (be_flag 4).
 int cLight::checkScr()
 {
-    if (IS_ALIVE(this)) {
+    if (isAlive()) {
         if (be_flag & 4) {
             return 1;
         }
@@ -1285,12 +1268,12 @@ cModel* cLight::calcParent()
 }
 
 // The parent's parts the light follows (0 when unattached or dead).
-cModel* cLight::getCoord()
+cCoord* cLight::getCoord()
 {
     cModel* p = pParent;
     int partsNo = parent.partsNo;
 
-    if (p != 0 && IS_ALIVE(p) && partsNo < p->nParts) {
+    if (p != 0 && p->isAlive() && partsNo < p->nParts) {
         return p->getPartsPtr(partsNo);
     }
     return 0;
@@ -1313,7 +1296,7 @@ int cLight::getPos2(Vec* pLiPos, Vec* pPos)
 int cLight::calcPos(Vec* pLiPos, Vec* pPos)
 {
     cModel* p;
-    cModel* c;
+    cCoord* c;
     int partsNo;
     int no;
 
@@ -1349,7 +1332,7 @@ int cLight::calcPos(Vec* pLiPos, Vec* pPos)
             if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "Lit:calcPos() %d-%d ETCMODEL PARENT NOT FOUND", no, partsNo);
             }
-        } else if (p != 0 && IS_ALIVE(p) && partsNo < p->nParts) {
+        } else if (p != 0 && p->isAlive() && partsNo < p->nParts) {
             PSMTXMultVec(p->getPartsPtr(partsNo)->mat, pLiPos, pPos);
         }
         break;
@@ -1378,7 +1361,7 @@ int cLight::getNormal(Vec* pInNorm, Vec* pNorm)
         u32 pid = ParentNo;
         partsNo = pid >> 16;
         p = EmMgr.getEmPtr((u8) pid, 0);
-        if (!(VALID_PTR(p) && IS_ALIVE(p) && partsNo < p->nParts)) {
+        if (!(VALID_PTR(p) && p->isAlive() && partsNo < p->nParts)) {
             if (!(ParentType == 1 && parent.no == 3)) {
                 if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                     pLog->err(0, 0, "cLight::getNormal() FAILED.");
@@ -1401,7 +1384,7 @@ int cLight::getNormal(Vec* pInNorm, Vec* pNorm)
             *pNorm = *pInNorm;
             return 0;
         }
-        if (IS_ALIVE(p) && partsNo < p->nParts) {
+        if (p->isAlive() && partsNo < p->nParts) {
             PSMTXMultVecSR(p->getPartsPtr(partsNo)->mat, pInNorm, pNorm);
             if (pNorm->x == 0.0f && pNorm->y == 0.0f && pNorm->z == 0.0f) {
                 pNorm->x = 0.001f;
@@ -1428,8 +1411,8 @@ int cLight::getNormal(Vec* pInNorm, Vec* pNorm)
         u32 pid = ParentNo;
         no = pid & 0xFFFF;
         partsNo = pid >> 16;
-        p = ObjMgrWork(no);
-        if (!(VALID_PTR(p) && IS_ALIVE(p) && partsNo < p->nParts)) {
+        p = ObjMgr.at(no);
+        if (!(VALID_PTR(p) && p->isAlive() && partsNo < p->nParts)) {
             if (!DbgFlagChk(pG, DBG_TEST_MODE)) {
                 pLog->err(0, 0, "cLight::getNormal() FAILED.");
             }

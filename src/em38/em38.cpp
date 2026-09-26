@@ -190,7 +190,7 @@ void em38DmCk(cEm38* em)
                 }
                 if (w->dmgCnt > 199) {
                     w->dmgCnt = 0;
-                    EmRoutineSet(em, 2, 0, 0, 0);
+                    em->setRno(2, 0, 0, 0);
                     return;
                 }
             } else {
@@ -204,7 +204,7 @@ void em38DmCk(cEm38* em)
             if (w->seWait == 0) {
                 Ctrl11SetSeEm38(w->pCtrl11, em, 0x23);
             }
-            EmRoutineSet(em, 2, 1, 0, 0);
+            em->setRno(2, 1, 0, 0);
         }
     }
 }
@@ -424,8 +424,8 @@ static void em38_R0_Init(cEm38* em)
         }
     }
     em->atari.init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
-    em->litArea.on(1);
-    em->atari.throughOn();
+    em->State.SetLightIgnore();
+    em->atari.off();
     switch (em->type) {
     case 0:
     default:
@@ -444,10 +444,7 @@ static void em38_R0_Init(cEm38* em)
         em38YarareInitLower(em);
         break;
     }
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(0xB), EFF_EM38, 0);
     w->espKind = EspPullCoreKind();
     w->espKind2 = EspPullCoreKind();
@@ -478,25 +475,25 @@ static void em38_R0_Init(cEm38* em)
         MotionMove(em, 0);
         break;
     case 1:
-        EmRoutineSet(em, 1, 5, 0, 0);
+        em->setRno(1, 5, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x2F), 0, 0, 5, 0);
         em->hp = 200;
         MotionMove(em, 0);
         break;
     case 2:
-        EmRoutineSet(em, 1, 5, 0, 0);
+        em->setRno(1, 5, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x2F), 0, 0, 5, 0);
         em->hp = 200;
         MotionMove(em, 0);
         break;
     case 3:
         em->setStatus(EM_STATUS_ACTIVE);
-        EmRoutineSet(em, 1, 0xE, 0, 0);
+        em->setRno(1, 0xE, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x29), 0, 0, 1, 0);
         MotionMove(em, 0);
         break;
     case 4:
-        EmRoutineSet(em, 1, 0x10, 0, 0);
+        em->setRno(1, 0x10, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0x50), 0, 0, 5, 0);
         MotionMove(em, 0);
         break;
@@ -524,7 +521,7 @@ static void em38_R1_br_Dummy(cEm38* em)
 static void em38_R1_Wait(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
     f32 t;
     f32 ang;
 
@@ -559,14 +556,14 @@ static void em38_R1_Wait(cEm38* em)
             }
             if (w->atkWait == 0 && fabsf(w->blendRate - ang) < 10.0f) {
                 if ((u8) (Rnd() % 10) > 3) {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                     return;
                 }
             }
             if (w->waitCnt) {
                 w->waitCnt--;
             } else {
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             }
         }
         break;
@@ -579,7 +576,7 @@ static void em38_R1_Wait(cEm38* em)
 static void em38_R1_HeadUp(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
     f32 t;
     f32 ang;
 
@@ -622,7 +619,7 @@ static void em38_R1_HeadUp(cEm38* em)
         if (MotionMove(em, 0)) {
             if (w->pTent[0] && w->pTent[1]) {
                 if (w->pTent[0]->ckIn() == 0 || w->pTent[1]->ckIn() == 0) {
-                    EmRoutineSet(em, 1, 2, 0, 0);
+                    em->setRno(1, 2, 0, 0);
                     return;
                 }
             }
@@ -650,7 +647,7 @@ static void em38_R1_HeadUp(cEm38* em)
         w->blendRate = w->blendRate * 0.98f + ang * 0.02f;
         em38BlendMotSet(em, w->mot[0], w->mot[1], w->mot[2], w->mot[3], 0, 0, w->blendKind);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -662,7 +659,7 @@ static void em38_R1_HeadUp(cEm38* em)
 static void em38_R1_HeadStamp(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
 
     switch (em->r_no_2) {
     case 0:
@@ -683,7 +680,7 @@ static void em38_R1_HeadStamp(cEm38* em)
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
             w->blendRate = 0.0f;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             em38AtkCk(em, 4, 0x17);
             em38AtkCk(em, 4, 0x18);
@@ -722,7 +719,7 @@ static void em38_R1_br_Atk(cEm38* em)
 static void em38_R1_Atk(cEm38* em)
 {
     Em38Work* w = EM38_WK(em);
-    cModel* p = em->getPartsPtr(4);
+    cParts* p = em->getPartsPtr(4);
     f32 t;
     f32 ang;
 
@@ -764,7 +761,7 @@ static void em38_R1_Atk(cEm38* em)
         if (MotionMove(em, 0)) {
             GameAddPoint(LVADD_ESCAPEATTACK);
             w->atkWait = 210;
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -803,7 +800,7 @@ static void plem38_AtkHit(cPlayer* pl)
     case 0: {
         Vec v;
 
-        pl->atari.throughOn();
+        pl->atari.off();
         v.x = -106.0f;
         v.y = -5817.0f;
         v.z = 13351.18f;
@@ -843,11 +840,11 @@ static void em38_R1_T_Wait(cEm38* em)
     case 1:
         MotionMove(em, 0);
         if (w->pBody && w->pBody->hp <= 0) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
             break;
         }
         if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
             break;
         }
         if (w->atkWait) {
@@ -856,18 +853,18 @@ static void em38_R1_T_Wait(cEm38* em)
         if (pPL->pos.y > 2000.0f) {
             if (w->pBody) {
                 if (w->pBody->ckHeadUp()) {
-                    EmRoutineSet(em, 1, 0xB, 0, 0);
+                    em->setRno(1, 0xB, 0, 0);
                     break;
                 }
                 if ((u8) (Rnd() % 10) <= 1 && w->pBody->ckCritical() == 0 && pG->Game_level > 1) {
-                    EmRoutineSet(em, 1, 0xA, 0, 0);
+                    em->setRno(1, 0xA, 0, 0);
                     break;
                 }
             }
-            EmRoutineSet(em, 1, 9, 0, 0);
+            em->setRno(1, 9, 0, 0);
         } else {
             if (pG->Game_level > 1) {
-                EmRoutineSet(em, 1, 0xC, 0, 0);
+                em->setRno(1, 0xC, 0, 0);
             }
         }
         break;
@@ -924,7 +921,7 @@ static void em38_R1_T_In(cEm38* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -954,7 +951,7 @@ static void em38_R1_T_Out(cEm38* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 6, 0, 0);
+            em->setRno(1, 6, 0, 0);
         }
         break;
     }
@@ -1056,9 +1053,9 @@ static void em38_R1_T_Atk(cEm38* em)
             if (w->atkHit == 0) {
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else {
             if (em->Motion.Seq_old.Free & 1) {
                 em38AtkCk(em, 0, 7);
@@ -1158,9 +1155,9 @@ static void em38_R1_T_MdlAtk(cEm38* em)
             if (w->atkHit == 0) {
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else {
             if (pPL->r_no_0 == 1 || pPL->r_no_0 == 2 || (StaFlagChk(pG, STA_PL_CATCHED))) {
                 w->escaped = 1;
@@ -1246,9 +1243,9 @@ static void em38_R1_T_BigAtk(cEm38* em)
         end = MotionMove(em, 0);
         if (end) {
             GameAddPoint(LVADD_ESCAPEATTACK);
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else {
             if (pPL->r_no_0 == 1 || pPL->r_no_0 == 2 || (StaFlagChk(pG, STA_PL_CATCHED))) {
                 w->escaped = 1;
@@ -1320,9 +1317,9 @@ static void em38_R1_T_DownAtk(cEm38* em)
             if (w->atkHit == 0) {
                 GameAddPoint(LVADD_ESCAPEATTACK);
             }
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         } else if (em->hp <= 1) {
-            EmRoutineSet(em, 1, 8, 0, 0);
+            em->setRno(1, 8, 0, 0);
         } else if (em->Motion.Seq_old.Free & 1) {
             em38AtkCk(em, 2, 7);
             em38AtkCk(em, 2, 8);
@@ -1371,7 +1368,7 @@ static void em38_R1_T_CatchHit(cEm38* em)
             SndCall(8, 0x26, &em->getPartsPtr(4)->world, em->id, 0, pPL);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 5, 0, 0);
+            em->setRno(1, 5, 0, 0);
         }
         break;
     }
@@ -1385,7 +1382,7 @@ static void plem38_CatchHit(cPlayer* pl)
     pl->subArc = pl->pEmCatch->subArc;
     switch (pl->r_no_2) {
     case 0:
-        pl->atari.throughOn();
+        pl->atari.off();
         if (pPL->r_no_3) {
             Vec v;
 
@@ -1478,7 +1475,7 @@ static void em38_R1_U_Critical(cEm38* em)
     case 1:
         em38UpperOnBody(em);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0xE, 0, 0);
+            em->setRno(1, 0xE, 0, 0);
         }
         break;
     }
@@ -1565,7 +1562,7 @@ static void em38_R1_Dm_Down(cEm38* em)
         em->r_no_2++;
     case 5:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0xA);
+            em->setRno(1, 0, 0, 0xA);
         }
         break;
     }
@@ -1586,7 +1583,7 @@ static void em38_R1_Dm_Upper(cEm38* em)
     case 1:
         em38UpperOnBody(em);
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0xE, 0, 0);
+            em->setRno(1, 0xE, 0, 0);
         }
         break;
     }
@@ -1614,7 +1611,7 @@ static void em38_R1_Die_Body(cEm38* em)
         EffectEspgenDelete(1, w->espKind2, em);
         EffectEfmDelete(1, w->espKind2, em);
         SndStrReq(1, 0x30, 0x80000003, 0, 0, 0.0f);
-        em->atari.throughOn();
+        em->atari.off();
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0) == 0) {
@@ -1734,7 +1731,7 @@ void em38SearchParts(cEm38* em)
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm38* p = (cEm38*) EmMgr.fastAt(i);
 
-        if ((p->be_flag & 0x201) == 1 && p->id == 0x38 && p != em) {
+        if (p->isAlive() && p->id == 0x38 && p != em) {
             switch (p->type) {
             case 0:
                 if (w->pBody == 0) {
@@ -1775,7 +1772,7 @@ void em38UpperOnBody(cEm38* em)
 
     em->Motion.Mot_flag &= ~0x40000000;
     if (em->type == 3 && w->pBody) {
-        cModel* p = w->pBody->getPartsPtr(4);
+        cParts* p = w->pBody->getPartsPtr(4);
 
         em->pos.x = 0.0f;
         em->pos.y = -128.0f;
@@ -1982,7 +1979,7 @@ void em38BlendMotSet(cEm38* em, void* m0, void* m1, void* m2, void* m3, int a, i
 void em38BloodSet(cEm38* em)
 {
     YARARE_INFO* part = em->dmg.m_pDamageYarare;
-    cModel* p;
+    cParts* p;
     int near;
 
     near = 0;
@@ -2215,7 +2212,7 @@ int em38SetDmVal(cEm38* em)
 // Tests attack `no` swept from part `parts`' previous to its current world position.
 int em38AtkCk(cEm38* em, int no, int parts)
 {
-    cModel* p = em->getPartsPtr(parts);
+    cParts* p = em->getPartsPtr(parts);
 
     return em38AtkCk2(em, no, &p->world, &p->world_old);
 }
@@ -2458,7 +2455,7 @@ void em38EscapeCamMove(cEm38* em)
     w->cam.Up.z = 0.0f;
     w->cam.Distance = VEC_DIST(&w->cam.param.pos, &w->cam.param.at);
     CameraSetOrientationUp(&w->cam);
-    CamCtrl.m_pExtraCamera = (s32) &w->cam;
+    CamCtrl.SetExtraCamera(&w->cam);
 }
 
 // Action button of em38_R1_T_MdlAtk / T_BigAtk: the player jumps back.
@@ -2699,7 +2696,7 @@ void em38RootMove(cEm38* em)
             f32 a1;
             f32 a2;
             f32 scale;
-            cModel* m;
+            cParts* m;
 
             if (rem > 14) {
                 a1 = 0.5235988f;
@@ -2742,7 +2739,7 @@ void cEm38::setIn()
     if (type == 1 || type == 2) {
         if (r_no_1 == 6) {
             hp = 200;
-            EmRoutineSet(this, 1, 7, 0, 0);
+            setRno(1, 7, 0, 0);
         }
     }
 }
@@ -2763,7 +2760,7 @@ int cEm38::ckIn()
 void cEm38::setCritical()
 {
     if (type == 3) {
-        EmRoutineSet(this, 1, 0xF, 0, 0);
+        setRno(1, 0xF, 0, 0);
     }
 }
 
@@ -2812,7 +2809,7 @@ void em38WeakInit(cEm38* em)
             w->pWeak->scale.z = 1.3f;
             w->pWeak->LightInfo.EnableMask = 0x80;
             OyaSetObj00(w->pWeak, em, 0x3A);
-            w->pWeak->atari.throughOn();
+            w->pWeak->atari.off();
         }
     }
 }

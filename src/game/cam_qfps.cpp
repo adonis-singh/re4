@@ -371,14 +371,6 @@ void CameraQuasiFPS::setPlayerLocation(Mtx mat, Vec* p_norm)
     m_p_floor_norm = p_norm;
 }
 
-
-// Builds a matrix from four column vectors (right, up, look, position), as cam_sys.
-// local copy: a header definition changes game/esp's allocation (static-local renumbering)
-static inline void setColumns(Mtx m, Vec* c0, Vec* c1, Vec* c2, Vec* c3)
-{
-    MTX_SET_COLUMNS(m, c0, c1, c2, c3);
-}
-
 // The player-space frame the shoulder offsets are applied in: the player's matrix (or the
 // stored one after the search delay), one-shot translation / look-direction overrides, the up
 // axis tilted toward the floor normal by the floor ratio while not aiming, and the crouch drop
@@ -425,7 +417,7 @@ void CameraQuasiFPS::calcBaseMatrix(Mtx mat)
 #line 650 "D:/Bio4/Prog/cam_qfps.cpp"
         VECNormalize(&v0, &v0);
         PSVECCrossProduct(&v0, &v1, &v3);
-        setColumns(mat, &v0, &v1, &v3, &v4);
+        MTXSetColumns(mat, v0, v1, v3, v4);
         memclr_asm(&m_pl_dir, sizeof(Vec));
     }
     if (!pl->isKamae() && m_p_floor_norm != NULL && !StaFlagChk(pG, STA_SUB_SCRN)) {
@@ -452,7 +444,7 @@ void CameraQuasiFPS::calcBaseMatrix(Mtx mat)
             break;
         }
         }
-        setColumns(mat, &v0, &v1, &v2, &v3);
+        MTXSetColumns(mat, v0, v1, v2, v3);
     }
 }
 
@@ -535,9 +527,9 @@ void CameraQuasiFPS::checkCameraType()
             break;
         }
     }
-    blend_dst = trans_tbl[m_trans_type];
+    m_p_trans_array = trans_tbl[m_trans_type];
     if (DbgFlagChk(pG, DBG_ADJUST_CAM)) {
-        blend_dst = g_transOfs[TRANS_DATA_AREA];
+        m_p_trans_array = g_transOfs[TRANS_DATA_AREA];
     }
     switch (m_trans_type) {
     case TRANS_CAM_LEON:
@@ -616,9 +608,9 @@ void CameraQuasiFPS::checkCameraType()
         }
         break;
     }
-    blend_src = ready_tbl[m_ready_type];
+    m_p_ready_array = ready_tbl[m_ready_type];
     if (DbgFlagChk(pG, DBG_ADJUST_CAM)) {
-        blend_src = g_readyOfs[14];
+        m_p_ready_array = g_readyOfs[14];
     }
 }
 
@@ -1183,7 +1175,7 @@ void CameraQuasiFPS::init()
     two = 2;
     zero = 0;
     m_walk_ratio = 0.8f;
-    CamSmth.m_ratio = 0.8f;
+    CamSmth.setRatio(0.8f);
     fz = 0.0f;  // after the 0.8 stores: pool order 0.8, 0.0
     (m_zoom_ratio = fz);
     { u8& r_ = m_init_flag; r_ = one; }
@@ -1213,7 +1205,7 @@ void CameraQuasiFPS::move()
     static f32 lr_rate = 0.6f;
     static ViewFrustum view_box[16];
     static int cnt = 0;
-    Camera c;
+    CAMERA c;
     Mtx m;
     CameraParam p2;
     QfpsOfs ofs;
@@ -1226,19 +1218,19 @@ void CameraQuasiFPS::move()
     }
     switch (m_site) {
     case 0:
-        cur = blend_src[0];
+        cur = m_p_ready_array[0];
         old = g_readyOfs[15][0];
         break;
     case 1:
-        cur = blend_src[2];
+        cur = m_p_ready_array[2];
         old = g_readyOfs[15][1];
         break;
     case 2:
-        cur = blend_dst[0];
+        cur = m_p_trans_array[0];
         old = g_transOfs[TRANS_DATA_BLEND][0];
         break;
     case 3:
-        cur = blend_dst[2];
+        cur = m_p_trans_array[2];
         old = g_transOfs[TRANS_DATA_BLEND][1];
         break;
     }
@@ -1269,11 +1261,11 @@ void CameraQuasiFPS::move()
     case 2:
     case 4:
     case 8:
-        CamSmth.m_ratio = m_walk_ratio;
+        CamSmth.setRatio(m_walk_ratio);
         break;
     }
     if (m_init_flag) {
-        CamSmth.m_flag |= 1;
+        CamSmth.setFlag();
     }
     if (pG->debug_mode == 0xF) {
         Vec poly[3];

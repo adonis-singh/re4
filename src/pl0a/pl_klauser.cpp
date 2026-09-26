@@ -47,9 +47,9 @@ extern "C" void setTexRender(cModelInfo* info)
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = pl0aTex->m_Tex_no;
-        pl0aTex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_PL00, 0xC, pl0aTex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = pl0aTex->GetTexNo();
+        pl0aTex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_PL00, 0xC, pl0aTex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "SetTexRender() : Manager alloc failed!!");
     }
@@ -238,13 +238,12 @@ int cPlKlauser::checkXbutton()
 
 // Builds the model set: the body (4/5) as the base model, the head (6/7, Body->pShape), the
 // normal arm (8/9, krModel[0], be_flag 0x20), the mutated arm (0xA/0xB, krModel[1], alpha 0 and
-// hidden), the face (0xE/9, Body->pFace with the blend weights zeroed), an extra part (0xF/0x10)
+// hidden), the face (0xE/9, Body->m_pKnife with the blend weights zeroed), an extra part (0xF/0x10)
 // and the glow model (0x18/0x19, krModel[2], hidden, invisible_factor 0.9999, tex-render
 // material); TEV scale group 1, bare right hand, left hand 1.
 void cPlKlauser::setModel()
 {
     cModelInfo* info;
-    cModelInfo* face;
 
     info = (cModelInfo*) modelInit(PL_ARC(4), PL_ARC(5));
     if (!VALID_PTR(info)) {
@@ -282,13 +281,8 @@ void cPlKlauser::setModel()
         return;
     }
     addModel(info);
-    Body->pFace = info;
-    face = Body->pFace;
-    if (VALID_PTR(face)) {
-        face->mat[2][2] = 0.0f;
-        face->mat[1][1] = 0.0f;
-        face->mat[0][0] = 0.0f;
-    }
+    Body->m_pKnife = info;
+    Body->setKnife(false);
     info = ModInfoMgr.create(PL_ARC(0xF), PL_ARC(0x10));
     if (!VALID_PTR(info)) {
         pLog->err(0, 0, "cPlLeon::setModel() failed.");
@@ -458,7 +452,7 @@ static void pl_R1_KlauserAttack(cPlayer* pl)
         pl->motionSet(PL_ARC(0x8A), 5, 0, 1, 0);
         pl->x890 = 10;
         StaFlagOn(pG, STA_KLAUSER_TRANSFORM);
-        pl->Neck->m_MotR = 0;
+        pl->Neck->clear();
         DmgMgr.set(DMG_TYPE_PUSH, 0x1E, &pl->pos, 1000.0f, 2000.0f);
         EffectEspDelete(0, ESP_CORE_KIND_MARK, pl, 0);
         EffectEspgenDelete(0, ESP_CORE_KIND_MARK, pl);

@@ -103,16 +103,16 @@ static void funcAshley(cEm* p)
     if (p->r_no_2 == 0) {
         cAtariInfo* at = &pSUB->atari;
 
-        AtariOffRaw(at, 0xFCFF);
+        at->off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x21), 0, 0, 1, 0);
         p->r_no_2 = 1;
     }
     if (p->motionMove()) {
         cAtariInfo* at;
 
-        EmRoutineSet(p, 0, 0, 0, 0);
+        p->setRno(0, 0, 0, 0);
         at = &pSUB->atari;
-        at->throughOff();
+        at->on();
         SubCharCtrl(1, 0);
     }
 }

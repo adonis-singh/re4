@@ -186,7 +186,7 @@ section	offset	size	unit	scope	name	demangled
 .text	0x00019538	0x478	t_camera/t_camera.cpp	local	tcLoad__Fv	tcLoad
 .text	0x000199B0	0x470	t_camera/t_camera.cpp	local	tcSave__Fv	tcSave
 .text	0x00019E20	0xF8	t_camera/t_camera.cpp	local	tcQuit__Fv	tcQuit
-.text	0x00019F18	0x334	t_camera/t_camera.cpp	global	tcToolCameraMove__FP6Camera	tcToolCameraMove
+.text	0x00019F18	0x334	t_camera/t_camera.cpp	global	tcToolCameraMove__FP6CAMERA	tcToolCameraMove
 .text	0x0001A24C	0x64	t_camera/t_camera.cpp	global	tcPreviewOnOff__Fi	tcPreviewOnOff
 .text	0x0001A2B0	0x14	t_camera/t_camera.cpp	global	tcCurrentCameraNo__Fv	tcCurrentCameraNo
 .text	0x0001A2C4	0x3B8	t_camera/t_camera.cpp	global	fn_t_camera_1A2C4	.

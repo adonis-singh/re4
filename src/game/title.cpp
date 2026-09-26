@@ -199,7 +199,7 @@ void titleWait(TitleWork* w)
             }
         }
         {
-            Camera* cam = &pG->Camera;
+            CAMERA* cam = &pG->Camera;
             C_MTXPerspective(cam->ProjMat, cam->param.fovy, 4.0f / 3.0f, ZNEAR, ZFAR);
             cam->Distance = PSVECDistance(&cam->param.pos, &cam->param.at);
             C_MTXLookAt(cam->v_mat, &cam->param.pos, &cam->Up, &cam->param.at);
@@ -613,7 +613,7 @@ void titleMain(TitleWork* w)
             IdTexRelease(TEX_OWNER_ID_TITLE);
             IdSys.kill(0xFF, IDC_TITLE);
             IdSys.kill(0xFF, IDC_TITLE_MENU);
-            MesData.ptr[2] = (u8*) G_ARC_PTR(ofs_28);
+            MesData.registData(2, (u8*) G_ARC_PTR(ofs_28));
             OptScrn.init(1);
             IdTexDataLoad(G_ARC_PTR(ofs_74), TEX_OWNER_ID_COCKPIT);
             IdTexDataLoad(TITLE_ARC_PTR(w->pIdDat, 0xC), TEX_OWNER_ID_EVENT);

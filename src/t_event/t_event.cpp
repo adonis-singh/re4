@@ -53,13 +53,7 @@ static inline u32 FlagBit(u32 f, u32 bit) { return f & bit; }
 
 #define CAM_MOTION_FLAGS(p) (*(u16*) ((u8*) (p) + 0x40))
 
-#define EVT_MES_Y (336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1)
-
-// 1 when the event's StatusFlag has `bit`.
-static inline int EvtStatusChk(Event* ev, u32 bit)
-{
-    return (ev->StatusFlag & bit) ? 1 : 0;
-}
+#define EVT_MES_Y (336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1)
 
 // One "Node" record of the message xml: the eleven text elements in file order.
 struct XmlNode {
@@ -377,12 +371,8 @@ ToolEvt::ToolEvt()
     CursolSub = 0;
     CursolFog = 0;
     CursolFocus = 0;
-    Cckpt.m_CountDown.m_state &= ~1;
-    {
-        CountDown* cd = &Cckpt.m_CountDown;
-        cd->frameOut();
-        cd->frameOut();
-    }
+    Cckpt.endCountDownTimer();
+    Cckpt.transCountDownTimer(0);
     LightMgr.roomLitSet(0);
     LightMgr.update(0, -1);
     pTl = new cLightTool;
@@ -407,17 +397,6 @@ void ToolEvt::Run()
     while (!(EtcFlag & TefBit(TefExit))) {
         runTbl[r_no_0](this);
         TaskSleep(1);
-    }
-}
-
-// Deletes every message slot.
-static inline void MessDeleteAll()
-{
-    MessageControl* mes = &cMes;
-    int i;
-
-    for (i = 0; i < 16; i++) {
-        mes->Delete(i);
     }
 }
 
@@ -452,10 +431,10 @@ void ToolEvt::RunStop(ToolEvt* t, Event* ev)
         EvtTaskSignal(0);
         ev->DebugDisp();
         if (t->pJoy1->trg & 0x400) {
-            MessDeleteAll();
+            cMes.Clear();
             ev->RunTool(2, 0);
         } else if (t->pJoy1->trg & 0x800) {
-            MessDeleteAll();
+            cMes.Clear();
             ev->RunTool(1, 0);
         } else if (t->pJoy1->on & 0x10000) {
             DbgFlagOn(pG, DBG_NO_EST_CALL);
@@ -583,7 +562,7 @@ void ToolEvt::MainPreview(ToolEvt* t)
         if (SysFlagChk(pG, SYS_SCREEN_STOP)) {
             SysFlagOff(pG, SYS_SCREEN_STOP);
         }
-        if (EvtMgr.GetEvt(&EvtMgr.NowExeEvtKey, (void**) &ev) == 0) {
+        if (EvtMgr.GetEvt(EvtMgr.GetNowExeEvtNamePtr(), (void**) &ev) == 0) {
             pLog->err(0, 0, "ToolEvt_Main_Preview : failed");
             t->r_no_0 = 1;
             t->r_no_1 = 4;
@@ -672,16 +651,16 @@ void ToolEvt::MainPreview(ToolEvt* t)
             if (t->EtcFlag & TefBit(TefStop)) {
                 t->EvtTaskSuspend(0);
                 EventMgr* m = &EvtMgr;
-                u32* pp = &m->NowExeEvtKey;
+                char* pp = m->GetNowExeEvtNamePtr();
 
                 m->EvtSndStrStop(pp, 1, 0);
                 m->EvtSndStrStop(pp, 0, 0);
             } else {
                 t->EvtTaskSignal(0);
                 if (!FlagBit(t->EtcFlag, TefBit(TefCaptureRun)) && !FlagBit(t->EtcFlag, TefBit(TefCaptureReq))) {
-                    if (EvtStatusChk(ev, 0x8000) == 0) {
+                    if (!ev->FlgCkStatus(EvtStfStartWait)) {
                         ev->StatusFlag |= EvtStfBit(EvtStfStrTime);
-                        EvtDebug.StfStrTimer = 60;
+                        EvtDebug.SetStfStrTimer(60);
                         SndAllStop();
                     }
                 }
@@ -709,7 +688,7 @@ void ToolEvt::MainPreview(ToolEvt* t)
         TaskSleep(2);
         t->EvtTaskSuspend(0);
         EventMgr* m = &EvtMgr;
-        u32* pp = &m->NowExeEvtKey;
+        char* pp = m->GetNowExeEvtNamePtr();
 
         m->EvtSndStrStop(pp, 1, 1);
         m->EvtSndStrStop(pp, 0, 1);
@@ -793,7 +772,7 @@ void ToolEvt::SubMenuMain(ToolEvt* t, Event* ev)
     case 2:
         ev->EspToolSetDat();
         t->EtcFlag |= TefBit(TefRemainEnd);
-        EvtDebug.FlagEtc |= 0x80000000;
+        EvtDebug.FlagOnEtc(FlagEvent2Esp);
         DbMenuSetExecTool("ESP TOOL");
         t->EventDel(ev);
         t->r_no_1 = 4;
@@ -1060,11 +1039,11 @@ void ToolEvt::SubToolLightInit(ToolEvt* t, int sw)
     int i;
 
     if (sw == 1) {
-        MessDeleteAll();
-        EvtDebug.FlagEtc |= 0x20000000;
+        cMes.Clear();
+        EvtDebug.FlagOnEtc(FlagLightTool);
         DbgFlagOn(pG, DBG_BACK_CLIP);
     } else {
-        EvtDebug.FlagEtc &= ~0x20000000;
+        EvtDebug.FlagOffEtc(FlagLightTool);
         SpfFlagOff(pG, SPF_CAMERA);
         DbgFlagOff(pG, DBG_BACK_CLIP);
         TaskSleep(1);
@@ -1114,7 +1093,7 @@ int ToolEvt::SubToolFogWkInit(ToolEvt* t, Event* ev)
 void ToolEvt::SubToolFogInit(ToolEvt* t, int sw, Event* ev, int which)
 {
     if (sw == 1) {
-        EvtDebug.FlagEtc |= 0x10000000;
+        EvtDebug.FlagOnEtc(FlagFogTool);
         if (ev->NowCut > 99) {
             return;
         }
@@ -1125,7 +1104,7 @@ void ToolEvt::SubToolFogInit(ToolEvt* t, int sw, Event* ev, int which)
         }
         t->CurveNo = which;
     } else {
-        EvtDebug.FlagEtc &= ~0x10000000;
+        EvtDebug.FlagOffEtc(FlagFogTool);
         TaskSleep(1);
     }
     SubToolIn(t, sw, TefToolFog);
@@ -1174,7 +1153,7 @@ void ToolEvt::SubToolFocusWkInit(ToolEvt* t, Event* ev)
 void ToolEvt::SubToolFocusInit(ToolEvt* t, int sw, Event* ev, int which)
 {
     if (sw == 1) {
-        EvtDebug.FlagEtc |= 0x08000000;
+        EvtDebug.FlagOnEtc(FlagFocusTool);
         if (ev->NowCut > 99) {
             return;
         }
@@ -1185,7 +1164,7 @@ void ToolEvt::SubToolFocusInit(ToolEvt* t, int sw, Event* ev, int which)
         }
         t->CurveNo = which;
     } else {
-        EvtDebug.FlagEtc &= ~0x08000000;
+        EvtDebug.FlagOffEtc(FlagFocusTool);
         TaskSleep(1);
     }
     SubToolIn(t, sw, TefToolFocus);
@@ -1215,8 +1194,8 @@ void ToolEvt::SubToolMessInit(ToolEvt* t, int sw)
     if (sw == 1) {
         char path[0x80];
 
-        EvtDebug.FlagEtc |= 0x04000000;
-        MessDeleteAll();
+        EvtDebug.FlagOnEtc(FlagMessTool);
+        cMes.Clear();
         sprintf(path, "%s/evt_%s%s_mes.xml", "x:/soft/room/event/evd", t->roomNo, t->eventNo);
         // COMPILER-DIFF: candidate (gcse table size): the edit-window ctor anchor (dbg_tool.h) is one
         // more insn at gcse entry (1219 -> 1220), which turns the expression hash table from 609 to
@@ -1254,8 +1233,8 @@ void ToolEvt::SubToolMessInit(ToolEvt* t, int sw)
         MessTool.p->InitAllWork();
         CallbackLoad(t);
     } else {
-        EvtDebug.FlagEtc &= ~0x04000000;
-        MessDeleteAll();
+        EvtDebug.FlagOffEtc(FlagMessTool);
+        cMes.Clear();
         if (MessTool.p) {
             delete MessTool.p;
         }
@@ -1334,42 +1313,22 @@ void ToolEvt::SubToolMessMove(ToolEvt* t, Event* ev)
     }
     {
         EventMessageData::MessElem* e;
-        // The mesCnt block of the original: a pointer to the struct address (`addi rB,rD,0xc4`) for
-        // mesCnt[2]/[1] (`4(rB)`, `0(rB)`) and a second one formed after the fourth eprintf for
-        // mesCnt[0] (`lwzu`, the same register carries it into the loop's `stwx no,rA,no`); the
-        // loop's mesCnt[1]/[2] stores go through a third, loop-fresh pointer (hoisted, `mr r26,r28`).
-        // Only a struct pointer with a leading array reproduces this: `p->v[k]` is an ARRAY_REF
-        // whose address stays inside the MEM (`(plus rB idx)`: cse leaves it, combine folds the
-        // zero index), a plain `s32*` computes the address as a value that cse rewrites to
-        // `0xc4(rD)`, and a reference/pointer to array is pointer arithmetic in this frontend.
-        // A struct pointer also keeps `&EvtDebug` the cse class head (a bare `&EvtDebug.mesCnt[1]`
-        // makes the `EvtDebug+0xc4` constant the head and derives `&EvtDebug` from it with a `subi`).
-        struct MesCntView { s32 v[3]; };
-        EventDebug* d = &EvtDebug;
-        MesCntView* m = (MesCntView*) &d->mesCnt[1];
-        MesCntView* x;
-
         i = 0;
-        eprintf(0x50, 0x90, 0, 0, "%3d", m->v[1]);
+        eprintf(0x50, 0x90, 0, 0, "%3d", EvtDebug.NumGet(DebugNumNumber));
         eprintf(0xA0, 0x90, 0, 0, "%3d", ev->NowCut);
         eprintf(0xF0, 0x90, 0, 0, "%3d", ev->NowFrame);
-        eprintf(0x140, 0x90, 0, 0, "%3d", m->v[i]);
-        x = (MesCntView*) &d->mesCnt[0];
-        eprintf(0x190, 0x90, 0, 0, "%3d", x->v[i]);
+        eprintf(0x140, 0x90, 0, 0, "%3d", EvtDebug.NumGet(DebugNumNoMes));
+        eprintf(0x190, 0x90, 0, 0, "%3d", EvtDebug.TimerGet(DebugTimerNoMes));
         e = t->PMesDat->elem;
         for (i = 0; i < XML_NODE_MAX; i++, e++) {
             if (IsWorkAlive(e) && ev->NowCut == e->CutNo && ev->NowFrame == e->Frame) {
-                int no = 0;
                 int mes;
-                MesCntView* y = (MesCntView*) &d->mesCnt[1];
 
                 ev->MesSet(e->MessNo, e->Timer, 100, EVT_MES_Y);
-                // the record's message number is re-read into a local before the three stores
-                // (sched1: the load ahead of `stwx no`, then the stores in statement order)
                 mes = e->MessNo;
-                x->v[no] = no;
-                y->v[no] = mes;
-                y->v[1] = i;
+                EvtDebug.TimerSet(DebugTimerNoMes, 0);
+                EvtDebug.NumSet(DebugNumNoMes, mes);
+                EvtDebug.NumSet(DebugNumNumber, i);
             }
         }
     }

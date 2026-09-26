@@ -138,7 +138,7 @@ void seAtInit()
 {
     GlobalWork* g = pG;
     int zero = 0;
-    Camera* cam = &g->Camera;
+    CAMERA* cam = &g->Camera;
 
     TutilInitDefault();
     pW->saveStop = pG->Stop_flg;
@@ -171,10 +171,9 @@ void seAtInit()
         Snd.pSeAtData = NULL;
         Snd.pSeAtHeader = NULL;
         // the original's `lwz pW` waits for the four stores (ours floats it to the block top:
-        // alias.c separates the symbol bases); codeless memory-input anchors give the load that
+        // alias.c separates the symbol bases); a codeless memory-input anchor gives the load that
         // dependence
         seAtSaveHead = head;
-        asm("" : "=m"(seAtWk) : "m"(seAtSaveHead)); // COMPILER-DIFF: #13 (memory anchor)
         seAtSaveList = list;
         asm("" : "=m"(seAtWk) : "m"(Snd.pSeAtHeader), "m"(Snd.pSeAtData)); // COMPILER-DIFF: #13 (memory anchor)
     }
@@ -256,7 +255,7 @@ static void seAtAreaEdit()
     eprintf(pW->x, pW->y, 4, 0, "AREA[ %d ]", pW->areaNo);
     if (pCur->flags & 1) {
         f32 dist;
-        Camera* cam = &pG->Camera;
+        CAMERA* cam = &pG->Camera;
         dist = cam->Distance;
         cam->param.at = pCur->pos;
         CameraSetOrientationRoll(cam);
@@ -278,7 +277,7 @@ static void seAtAreaEdit()
         v[1].z -= 200.0f;
         Draw_line3d(&v[0], &v[1], 0xFF00FFFF, 0);
     } else {
-        Camera* cam = &pG->Camera;
+        CAMERA* cam = &pG->Camera;
         cam->param.pos = pW->camPos;
         cam->param.at = pW->camAt;
         CameraSetOrientationRoll(cam);
@@ -361,7 +360,7 @@ static void seAtAreaEdit_AreaMove()
     Vec dir;
     Vec t;
     Vec d = {0.0f, 0.0f, 0.0f};
-    Camera* cam = &g->Camera;
+    CAMERA* cam = &g->Camera;
 
     {
         // written through a pointer: the original stores right.y/.z via `addi r9,r1,8` (cse keeps

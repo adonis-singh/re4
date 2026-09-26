@@ -257,7 +257,7 @@ extern "C" void r104_openBox_main(int no, int opened)
     if (obj != 0) {
         obj->be_flag |= 0x20;
         if (opened == 1) {
-            obj->pParts->ang.z = ang;
+            obj->pList->ang.z = ang;
         } else {
             int i;
 
@@ -265,7 +265,7 @@ extern "C" void r104_openBox_main(int no, int opened)
             SndCall(6, 0x5B, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
                 if (obj != 0) {
-                    obj->pParts->ang.z += ang;
+                    obj->pList->ang.z += ang;
                 }
                 SceSleep(1);
             }
@@ -313,7 +313,7 @@ extern "C" void r104_openShelf_main(int no, int opened)
     if (obj != 0) {
         obj->be_flag |= 0x20;
         if (opened == 1) {
-            obj->pParts->ang.y = ang;
+            obj->pList->ang.y = ang;
         } else {
             int i;
 
@@ -321,7 +321,7 @@ extern "C" void r104_openShelf_main(int no, int opened)
             SndCall(6, 0x1C, 0, 0, 0, 0);
             for (i = 30; i != 0; i--) {
                 if (obj != 0) {
-                    obj->pParts->ang.y += ang;
+                    obj->pList->ang.y += ang;
                 }
                 SceSleep(1);
             }
@@ -448,7 +448,7 @@ static void r104_checkDoor107KeyUse()
     SceSleep(20);
     SceAtSetEnable(0x97, 1);
     SndCall(6, 3, 0, 0, 0, 0);
-    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(1, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     KyfFlagOn(pG, KYF_R104_TO_R107_DOOR);
     SceAtDataReset(0);
     CamCtrl.Comeback(0);
@@ -786,7 +786,7 @@ static void Evt_R104S00_Func(Event* e)
     switch (e->FuncType) {
     case 0:
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 0x1E;
+        e->SetEvtCancelCut(0x1E);
         break;
     case 1:
         switch (e->NowCut) {
@@ -857,7 +857,7 @@ static void Evt_R104S00_Func(Event* e)
             fadeOn = 0;
         }
         if (fadeOn == 0) {
-            EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x86, 1, 0.0f);
+            EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x86, 1, 0.0f);
         }
         break;
     }

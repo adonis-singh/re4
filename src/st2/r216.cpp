@@ -88,7 +88,7 @@ struct R216Work {
     R216Em armor[4];     // 0x090  the display armors (0xE5..0xE8)
     cR216Door door;      // 0x0D0
     cR216Pole pole[3];   // 0x0FC
-    ScePrim* prim;       // 0x198  r216_ArmorAppearCamera task
+    SCE_TASK* prim;       // 0x198  r216_ArmorAppearCamera task
 };
 
 
@@ -155,7 +155,7 @@ static void r216_BattleStart()
     u32 i;
     R216Em* e;   // shared by both loops: a multi-block pseudo, so the work load is not tied into it
 
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 2) {
         SceExit();
     }
@@ -257,7 +257,7 @@ static void r216_2ndArmorAppear()
 {
     u32 i;
 
-    SceCTask()->task->flag &= ~2;
+    SceCTask()->setNoSuspend(0);
     r216_work->pole[0].setClose();
     r216_work->pole[1].setClose();
     r216_work->pole[2].setClose();

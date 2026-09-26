@@ -31,10 +31,10 @@
 // Scope camera on: the thermal light set for the infrared scope (weapon type 2 / weapon 0x1D).
 static inline void scopeOn(cPlayer* pl)
 {
-    pl->stat |= 0x10;
+    pl->stat.on(cPlayer::F_SCOPE);
     if (pG->weapon_type == 2 || pG->weapon_no == 0x1D) {
         StaFlagOn(pG, STA_THERMO_GRAPH);
-        pl->stat |= 0x200;
+        pl->stat.on(cPlayer::F_THERMO);
         LightMgr.setThermo();
     }
 }
@@ -83,11 +83,8 @@ static void wep09_r2_ready(cPlayer* pl)
 
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            pl->setRno(0, 0x11, 0, 0);
         } else {
             pl->r_no_0 = 0;
             pl->r_no_1 = 0;
@@ -107,7 +104,7 @@ static void wep09_r2_ready(cPlayer* pl)
         }
         if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->Wep->m_pWep->setDisp(1, 1);
             pl->m_Work0 = 1;
         }
@@ -128,7 +125,7 @@ static void wep09_r3_ready00(cPlayer* pl)
     pl->Wep->lockInit();
     mot = WEP_ARC_PTR(0x14);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
     pl->m_Work1 = 0;
@@ -146,7 +143,7 @@ static void wep09_r3_ready10(cPlayer* pl)
         pl->Wep->m_CamAdjY -= d;
     }
     if (pl->motionMove()) {
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
         pl->m_Work4 = 10;
     }
     pl->Waist->set(0.0f, 0.4f);
@@ -168,7 +165,7 @@ static void wep09_r2_set(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     pl->setLaserSight(0, 0);
     if (pl->m_Work1 == 0 && MotionCheckCrossFrame(&pl->Motion, 2.0f)) {
-        SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
+        SndCall(2, 9, &pl->pList->world, 0, 0, 0);
         pl->m_Work1 = 1;
     }
     if (pl->m_Work4 != 0) {
@@ -177,25 +174,22 @@ static void wep09_r2_set(cPlayer* pl)
     if (joyKamae() == 0) {
         Vec at;
 
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            pl->setRno(0, 0x11, 0, 0);
         } else {
             int md = 3;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
         pl->m_Work0 = 0;
         CamCtrl.getTrajectory(&pl->m_VecWork0, &at);
         PSVECSubtract(&at, &pl->m_VecWork0, &pl->m_VecWork0);
     } else if (joyFireOn() && pl->m_Work4 == 0 && pl->Wep->m_pWep->bulletNum()) {
-        EmRoutineSet(pl, 0, 6, 2, 0);
+        pl->setRno(0, 6, 2, 0);
     } else if (joyFireTrg() && pl->Wep->m_pWep->bulletNum() == 0) {
         if (pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->Wep->m_pWep->setDisp(1, 1);
             pl->m_Work0 = 0;
         } else {
@@ -207,7 +201,7 @@ static void wep09_r2_set(cPlayer* pl)
         if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_pWep->setDisp(1, 1);
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->m_Work0 = 1;
         }
     }
@@ -287,8 +281,8 @@ static void wep09_r3_fire00(cPlayer* pl)
     pl->m_Work4 = 0;
     if (pG->weapon_no == 0xA) {
         obj = pl->Wep->m_pWep;
-        obj->wep.mode = 2;
-        obj->wep.step = 0;
+        obj->r_no_0 = 2;
+        obj->r_no_1 = 0;
     }
     pl->Wep->m_pWep->setDisp(1, 0);
     CamCtrl.getTrajectory(&pl->m_VecWork0, &dir);
@@ -309,13 +303,13 @@ static void wep09_r3_fire10(cPlayer* pl)
     w = pl->Wep;
     if (pl->m_Work4 > (u8) PlShotFrameTbl[pG->weapon_no][pG->weapon_lv_speed]) {
         if (pG->weapon_no != 9 || w->m_pWep->bulletNum() == 0) {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
             pl->m_Work4 = 10;
         } else {
             pl->r_no_3 = 2;
         }
     } else if (pG->weapon_no != 9 && pl->m_Work4 > 10 && joyKamae() == 0) {
-        EmRoutineSet(pl, 0, 6, 3, 0);
+        pl->setRno(0, 6, 3, 0);
         pl->m_Work0 = 0;
     }
 }
@@ -326,16 +320,15 @@ static void wep09_r3_fire20(cPlayer* pl)
 {
     cObjWep* obj;
 
-    m3r[1] = 0.0f;
-    m3r[0] = 0.0f;
+    m3r.reset(0.0f);
     CamCtrl.saveScopeParam();
     pl->endCamera();
     pl->Wep->m_pWep->setDisp(1, 1);
     MotionSetCore(pl, &pl->Motion, WEP_ARC_PTR(0x1B), 0, 3, 5, 0);
     pl->motionMove();
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     pl->r_no_3 = 3;
 }
 
@@ -345,20 +338,11 @@ static void wep09_r3_fire20(cPlayer* pl)
 static void wep09_r3_fire30(cPlayer* pl)
 {
     if (joyKamae() == 0 && pl->Motion.Seq_frame >= 25.0f) {
-        if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
+            pl->setRno(0, 0x11, 0, 0);
         } else {
-            // store order brute-forced (x3E0 first, xFD last, the 3 through an int local)
-            int md = 3;
-
+            pl->setRno(0, 6, 3, 0);
             pl->m_Work0 = 1;
-            pl->r_no_0 = 0;
-            pl->r_no_2 = md;
-            pl->r_no_3 = 0;
-            pl->r_no_1 = 6;
         }
     } else if (pl->motionMove()) {
         if (joyKamae()) {
@@ -366,21 +350,12 @@ static void wep09_r3_fire30(cPlayer* pl)
             CamCtrl.loadScopeParam();
             CameraMove();
             scopeOn(pl);
-            EmRoutineSet(pl, 0, 6, 1, 0);
-        } else if (pl->stat & 0x40) {
-            pl->r_no_0 = 0;
-            pl->r_no_2 = 0;
-            pl->r_no_1 = 0x11;
-            pl->r_no_3 = 0;
+            pl->setRno(0, 6, 1, 0);
+        } else if (pl->stat.check(cPlayer::F_CROUCH)) {
+            pl->setRno(0, 0x11, 0, 0);
         } else {
-            // store order brute-forced (x3E0 first, xFD last, the 3 through an int local)
-            int md = 3;
-
+            pl->setRno(0, 6, 3, 0);
             pl->m_Work0 = 1;
-            pl->r_no_0 = 0;
-            pl->r_no_2 = md;
-            pl->r_no_3 = 0;
-            pl->r_no_1 = 6;
         }
     }
 }
@@ -396,9 +371,8 @@ static void wepDown(cPlayer* pl)
 
     pl->endCamera();
     e = VecElevation(&pl->m_VecWork0);
-    m3r[0] = e;
-    m3r[1] = e;
-    m3r[2] = 0.0f;
+    m3r.reset(e);
+    m3r.setDelay(0.0f);
     pl->Wep->m_pWep->setDisp(1, 1);
     if (dmMotCk()) {
         if (pG->weapon_no == 0xA) {
@@ -416,11 +390,11 @@ static void wepDown(cPlayer* pl)
             mot3.set(pl, mot, mot, mot, 0, 0, 0, 4, 0);
             obj = pl->Wep->m_pWep;
             obj->motionSet(WEP_ARC_PTR(0x24), 0, 0, 1, 0);
-            obj->wep.mode = 0;
-            obj->wep.step = 0;
+            obj->r_no_0 = 0;
+            obj->r_no_1 = 0;
         }
-        mot3.move(m3r[0]);
-        EmRoutineSet(pl, 0, 0, 2, 0);
+        mot3.move(m3r);
+        pl->setRno(0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
         pl->m_Hokan = 0xF;
@@ -443,8 +417,7 @@ static void wep09_r2_reload(cPlayer* pl)
         void* mot;
         cObjWep* obj;
 
-        m3r[1] = 0.0f;
-        m3r[0] = 0.0f;
+        m3r.reset(0.0f);
         pl->endCamera();
         switch (pG->weapon_lv_reload) {
         default:
@@ -462,13 +435,13 @@ static void wep09_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = pl->Wep->m_pWep;
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
         break;
     }
     case 1:
         if (joyKamae() == 0 && pl->Motion.Mot_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
-            if (pl->stat & 0x40) {
+            if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -476,7 +449,7 @@ static void wep09_r2_reload(cPlayer* pl)
             } else {
                 int md = 3;
 
-                EmRoutineSet(pl, 0, 6, md, 0);
+                pl->setRno(0, 6, md, 0);
                 pl->m_Work0 = 1;
             }
         }
@@ -484,8 +457,8 @@ static void wep09_r2_reload(cPlayer* pl)
             CamCtrl.startScope(0, 0);
             CameraMove();
             scopeOn(pl);
-            SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
-            EmRoutineSet(pl, 0, 6, 1, 2);
+            SndCall(2, 9, &pl->pList->world, 0, 0, 0);
+            pl->setRno(0, 6, 1, 2);
             pl->m_Work4 = 10;
         }
         MotionMove(pl, 0);
@@ -513,19 +486,19 @@ static void wep09_r2_next(cPlayer* pl)
             }
         }
         if ((int) pl->m_Work0++ > 9) {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         }
         break;
     }
     if (Key.trg & 0x20) {
         if (pl->Wep->lockNext()) {
-            EmRoutineSet(pl, 0, 6, 5, 0);
+            pl->setRno(0, 6, 5, 0);
         } else {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         }
     } else {
         if (joyKamae() == 0) {
-            if (pl->stat & 0x40) {
+            if (pl->stat.check(cPlayer::F_CROUCH)) {
                 pl->r_no_0 = 0;
                 pl->r_no_2 = 0;
                 pl->r_no_1 = 0x11;
@@ -533,7 +506,7 @@ static void wep09_r2_next(cPlayer* pl)
             } else {
                 int md = 1;
 
-                EmRoutineSet(pl, 0, 6, md, 0);
+                pl->setRno(0, 6, md, 0);
             }
         }
         CameraMove();

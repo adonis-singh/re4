@@ -128,7 +128,7 @@ struct R209Work {
     u32 seId;            // 0x620
     cEmWrap picEm[2];    // 0x624
     cR209Door door[7];   // 0x63C
-    ScePrim* task[4];    // 0x7FC
+    SCE_TASK* task[4];    // 0x7FC
 };
 
 
@@ -511,7 +511,7 @@ extern "C" int r209_GanadoSnipeCheck(cEmWrap* w)
     if (w->isActive()) {
         cEm* em = w->getPtr();
 
-        if (pPL->Wep->m_pWep->wep.m_SightEm == em) {
+        if (pPL->Wep->m_pWep->m_SightEm == em) {
             return 1;
         }
     }
@@ -813,7 +813,7 @@ static void r209_LeaderEscapeToD()
         obj->pos.y += 33.0f;
         obj->matUpdate();
         SceSleep(1);
-        wp->leader.getPtr()->atari.clrFlag200();
+        wp->leader.getPtr()->atari.offOba();
     }
     RoomSeCall(4, &obj->pos, 0, 0, 0);
     while (CamCtrl.IsMotionEnd() == 0) {
@@ -852,7 +852,7 @@ static void r209_LeaderEscapeToDEndProc()
     }
     CamCtrl.Comeback(0);
     RsfSet(G_ROOM_ID, 1);
-    w->getPtr()->atari.setFlag200();
+    w->getPtr()->atari.onOba();
     w->setNoSuspend(0);
     r209_work->head->setNoSuspend(0);
     SceAtDataSet_exec(0x1A, SCE_LEVEL10, 0, (TaskFunc) r209_DoorOpen1F, (void*) 0x1A, 1);
@@ -1025,7 +1025,7 @@ static void r209_2ndBattle()
     if (r209_work->evd->waitLoadOk() == 1) {
         MemorySwap(m->pArc, (u32) r209_work->evd->m_addr, r209_work->evd->m_size);
         EvtMgr.SetEvt(m->pArc, (u32*) 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
             SceSleep(1);
         }
         MemorySwap(m->pArc, (u32) r209_work->evd->m_addr, r209_work->evd->m_size);
@@ -1262,7 +1262,7 @@ static void r209_SwitchAppearCheck()
     cObj* objB7 = SmdGetObjPtr(0xB7);
 
     if (RsfCheck(G_ROOM_ID, 5) == 0) {
-        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() == 1) {
             RsfSet(G_ROOM_ID, 5);
             RoomSeCall(0x17, 0, 0, 0, 0);
@@ -1346,7 +1346,7 @@ static void r209_BridgeAppearCheck()
     cObj* obj = SmdGetObjPtr(0xAD);
 
     if (RsfCheck(G_ROOM_ID, 5) && RsfCheck(G_ROOM_ID, 8) == 0) {
-        SceMesSet(5, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(5, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         if (SceMesGetSelection() == 1) {
             RoomSeCall(0x17, 0, 0, 0, 0);
             RsfSet(G_ROOM_ID, 8);
@@ -1376,7 +1376,7 @@ static void r209_BridgeAppearCheck()
             r209_BridgeAppearCheckEnd();
         }
     } else {
-        SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
 }
 
@@ -1865,13 +1865,13 @@ static void r209_PanelPuzzle()
     SceEventStart(1);
     CamCtrl.CutCall(9);
     SceSleep(1);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     do {
         tbl[3] = 0;
         tbl[2] = 0;
         tbl[1] = 0;
         tbl[0] = 0;
-        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         switch (SceMesGetSelection()) {
         case 1:
             tbl[0] = r209_work->bridge[0];
@@ -1911,7 +1911,7 @@ static void r209_PanelPuzzle()
             return;
         }
     } else if (quit == 0) {
-        SceMesSet(7, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(7, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     }
     for (i = 0; i < 4; i++) {
         tbl[i] = 0;
@@ -2060,7 +2060,7 @@ static void r209_RotateDoor(int no)
     r209_work->em[em].snipe = 1;
     // Pointer-arithmetic element access: the address is formed as (W + d*64) + 0x674 (`add; lwz`);
     // door[d].sat folds the work offset first ((W + 0x674) + d*64: `addi; lwzx`).
-    (*(r209_work->door + d)).sat->m_Flag |= 4;
+    (*(r209_work->door + d)).sat->setEnable();
     SceSleep(0x1E);
     r209_work->door[d].setClose();
     while (r209_work->door[d].getStatus() != 0) {
@@ -2231,19 +2231,19 @@ void cR209Door::open()
             break;
         case 0xB3:
             se = 0x19;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         case 0xB4:
             se = 0x1B;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         case 0xB5:
             se = 0x1D;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         case 0xB6:
             se = 0x1F;
-            sat->m_Flag &= ~4;
+            sat->setDisable();
             break;
         default:
             se = -1;
@@ -2287,19 +2287,19 @@ void cR209Door::close()
             se = -1;
             break;
         case 0xB3:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x18;
             break;
         case 0xB4:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x1A;
             break;
         case 0xB5:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x1C;
             break;
         case 0xB6:
-            sat->m_Flag |= 4;
+            sat->setEnable();
             se = 0x1E;
             break;
         default:
@@ -2427,7 +2427,7 @@ void cR209Door::setOpened()
         break;
     default:
         obj->ang.y = -PI;
-        sat->m_Flag &= ~4;
+        sat->setDisable();
         break;
     }
     SndStop(se, 0);
@@ -2457,7 +2457,7 @@ void cR209Door::setClosed()
         break;
     default:
         obj->ang.y = 0.0f;
-        sat->m_Flag |= 4;
+        sat->setEnable();
         break;
     }
     SndStop(se, 0);

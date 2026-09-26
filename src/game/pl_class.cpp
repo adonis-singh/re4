@@ -6,6 +6,7 @@
 #include "dmg.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_push.h"
 #include "pl_npc.h"
 #include "global.h"
@@ -54,9 +55,9 @@ u32 upDownCk(cPlayer* pl);
 // inline member of the class whose vtable this unit owns: emitted here after the destructor.
 inline void cPlayer::subCharLiveCheck()
 {
-    cEm* sub = pSubEm;
+    cEm* sub = pSUB;
     if (sub && sub->id == 3 && sub->hp <= 0 && r_no_0 == 0) {
-        EmRoutineSet(this, 6, 0, 0, 0);
+        setRno(6, 0, 0, 0);
         dmg.set(0, 0x80);
         Wep->m_pWep->interrupt();
     }
@@ -358,9 +359,9 @@ void fanceOn()
 
     if (pl->m_Work0) {
         PlFanceFlag = 0;
-        EmRoutineSet(pl, 0, 0xC, 0, 0);
+        pl->setRno(0, 0xC, 0, 0);
     } else {
-        EmRoutineSet(pl, 0, 0xC, 0, 5);
+        pl->setRno(0, 0xC, 0, 5);
         PlFanceFlag = 1;
     }
     pl->dmg.set(0, 10);
@@ -390,7 +391,7 @@ void fallOn()
 {
     cPlayer* pl = pPL;
 
-    EmRoutineSet(pl, 0, 0xE, 0, 0);
+    pl->setRno(0, 0xE, 0, 0);
     pPL->dmg.set(0, 0x80);
 }
 
@@ -399,7 +400,7 @@ void levelUpOn()
 {
     cPlayer* pl = pPL;
 
-    EmRoutineSet(pl, 0, 7, 0, 0);
+    pl->setRno(0, 7, 0, 0);
     pPL->m_Work0 = 0;
     pPL->dmg.set(0, 10);
 }
@@ -409,7 +410,7 @@ void levelDownOn()
 {
     cPlayer* pl = pPL;
 
-    EmRoutineSet(pl, 0, 8, 0, 0);
+    pl->setRno(0, 8, 0, 0);
     pPL->m_Work0 = 0;
     pPL->dmg.set(0, 10);
 }
@@ -419,7 +420,7 @@ void level2UpOn()
 {
     cPlayer* pl = pPL;
 
-    EmRoutineSet(pl, 0, 7, 0, 0);
+    pl->setRno(0, 7, 0, 0);
     pPL->m_Work0 = 1;
     pPL->dmg.set(0, 10);
 }
@@ -429,7 +430,7 @@ void level2DownOn()
 {
     cPlayer* pl = pPL;
 
-    EmRoutineSet(pl, 0, 8, 0, 0);
+    pl->setRno(0, 8, 0, 0);
     pPL->m_Work0 = 1;
     pPL->dmg.set(0, 10);
 }
@@ -439,7 +440,7 @@ void holdOn()
 {
     cPlayer* pl = pPL;
 
-    EmRoutineSet(pl, 0, 9, 0, 0);
+    pl->setRno(0, 9, 0, 0);
 }
 
 // Wall (attribute bit19) 600 ahead at both shoulders the player may jump over: jumpDir = -normal,
@@ -505,7 +506,7 @@ void jumpFallOn()
 {
     cPlayer* pl = pPL;
 
-    EmRoutineSet(pl, 0, 0x13, 0, 0);
+    pl->setRno(0, 0x13, 0, 0);
     pPL->ang.y = pPL->ang.y + Muku3(pPL->ang.y, &pl->m_JumpVec, 3.1415927f);
     pPL->dmg.set(0, 0x80);
 }
@@ -562,31 +563,31 @@ int cPlayer::actionSelect()
 
             StaFlagOn(pG, STA_SSCRN_ENABLE);
             if (joyKamae()) {
-                EmRoutineSet(this, zero, 6, zero, zero);
+                setRno(zero, 6, zero, zero);
                 return 1;
             }
     if (joyLKamae()) {
-        EmRoutineSet(this, 0, 0xB, 0, 0);
+        setRno(0, 0xB, 0, 0);
         return 1;
     }
     if (r_no_1 != 5 && (Key.trg & 0x100)) {
-        EmRoutineSet(this, 0, 5, 0, 0);
+        setRno(0, 5, 0, 0);
         return 1;
     }
     if (r_no_1 == 0 && ((Key.on & 4) || (Key.on & 8))) {
-        EmRoutineSet(this, 0, 4, 0, 0);
+        setRno(0, 4, 0, 0);
         return 1;
     }
     if (r_no_1 != 1 && r_no_1 != 3 && (Key.on & 1)) {
-        EmRoutineSet(this, 0, 1, 0, 0);
+        setRno(0, 1, 0, 0);
         return 1;
     }
     if (r_no_1 != 2 && (Key.on & 2)) {
-        EmRoutineSet(this, 0, 2, 0, 0);
+        setRno(0, 2, 0, 0);
         return 1;
     }
     if (keyReload() && Wep->m_pWep && Wep->m_pWep->reloadable()) {
-        EmRoutineSet(this, 0, 6, 4, 0);
+        setRno(0, 6, 4, 0);
         m_Work0 = 1;
         return 1;
     }
@@ -720,14 +721,14 @@ void cPlayer::setDamage(u8 kind, int arg, f32 ang, int a, int b)
         }
         switch (kind) {
         default:
-            EmRoutineSet(this, 1, 0, 0, kind);
+            setRno(1, 0, 0, kind);
             break;
         case 7:
         case 8:
-            EmRoutineSet(this, 1, 1, 0, 0);
+            setRno(1, 1, 0, 0);
             break;
         case 9:
-            EmRoutineSet(this, 1, 2, 0, 0);
+            setRno(1, 2, 0, 0);
             break;
         }
         m_ConDmTimer = 0;
@@ -853,14 +854,14 @@ void cPlayer::seqSeCtrl()
         switch (no) {
         case 0:
         case 1:
-            SndCall(1, 0x2A, &pParts->world, id, 0, 0);
+            SndCall(1, 0x2A, &pList->world, id, 0, 0);
             break;
         case 2:
         case 3:
         case 0xD:
         case 0xE:
         case 0x14:
-            SndCall(1, 0x2F, &pParts->world, id, 0, 0);
+            SndCall(1, 0x2F, &pList->world, id, 0, 0);
             break;
         }
     }
@@ -986,7 +987,7 @@ void cPlayer::keyConfigTypeA()
 // 1 when an action button may be taken in the current routine.
 int cPlayer::actCheck()
 {
-    if (stat & 4) {
+    if (stat.check(F_BINOCULAR)) {
         return 0;
     }
     if (r_no_0 != 0) {
@@ -1008,7 +1009,7 @@ int cPlayer::actCheck()
 // Damage start: ends a running event (stat bit1) and interrupts the weapon / neck.
 void cPlayer::beginDamage()
 {
-    if (stat & 2) {
+    if (stat.check(F_EVENT)) {
         this->endEvent(0);
     }
     interrupt();
@@ -1070,12 +1071,12 @@ int cPlayer::getLifeLevel()
 void cPlayer::beginEvent(u32 flag)
 {
     interrupt();
-    Neck->m_MotR = 0;
+    Neck->clear();
     switch (flag) {
     case 0:
-        EmRoutineSet(this, 5, 0, 0, 0);
+        setRno(5, 0, 0, 0);
         MotionBlendOff(this);
-        atari.throughOn();
+        atari.off();
         be_flag |= 0x04000000;
         if (Wep->m_pWep) {
             Wep->m_pWep->resetMotion();
@@ -1084,25 +1085,24 @@ void cPlayer::beginEvent(u32 flag)
         m_Flag &= ~0x100;
         break;
     case 1:
-        EmRoutineSet(this, 5, 2, 0, 0);
+        setRno(5, 2, 0, 0);
         break;
     }
-    stat |= 2;
+    stat.on(F_EVENT);
 }
 
 // Stop everything the routines left running: cameras, neck, motion speed, weapon, face, sounds.
 void cPlayer::interrupt()
 {
-    cModelInfo* face;
 
     endCamera();
-    stat |= 0x800;
+    stat.on(F_SHADOW);
     m_BbtnCnt = 0;
     Neck->m_Mode = 1;
     MOTION(this)->Seq_speed = 1.0f;
-    stat &= ~0x40;
-    ang.y += pParts->ang.y;
-    pParts->ang.y = 0.0f;
+    stat.off(F_CROUCH);
+    ang.y += pList->ang.y;
+    pList->ang.y = 0.0f;
     if (Wep->m_pWep) {
         if (Wep->m_pWepHand) {
             Wep->m_pWepHand->setDisp(1, 1);
@@ -1120,12 +1120,7 @@ void cPlayer::interrupt()
             break;
         }
     }
-    face = Body->pFace;
-    if (VALID_PTR(face)) {
-        face->mat[2][2] = 0.0f;
-        face->mat[1][1] = 0.0f;
-        face->mat[0][0] = 0.0f;
-    }
+    Body->setKnife(false);
     if (pG->pl_type == 4 && (StaFlagChk(pG, STA_KLAUSER_TRANSFORM))) {
         StaFlagOff(pG, STA_KLAUSER_TRANSFORM);
         x890 = 0;
@@ -1144,37 +1139,37 @@ int cPlayer::endCamera()
 {
     int ret = 0;
 
-    if (stat & 0x200) {
-        stat &= ~0x200;
+    if (stat.check(F_THERMO)) {
+        stat.off(F_THERMO);
         StaFlagOff(pG, STA_THERMO_GRAPH);
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             LightMgr.update(CamCtrl.areaNo, 0);
         }
     }
-    if (stat & 0x10) {
+    if (stat.check(F_SCOPE)) {
         CamCtrl.endScope();
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             CameraMove();
         }
-        stat &= ~0x10;
+        stat.off(F_SCOPE);
         be_flag |= 2;
         ret = 1;
     }
-    if (stat & 4) {
+    if (stat.check(F_BINOCULAR)) {
         CamCtrl.LowerBinocular();
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             CameraMove();
         }
-        stat &= ~4;
+        stat.off(F_BINOCULAR);
         SpfFlagOff(pG, SPF_KEY);
         ret = 1;
     }
-    if (stat & 8) {
+    if (stat.check(F_OBJPUSH)) {
         CamCtrl.endPushObject();
         if (StaFlagChk(pG, STA_SUB_SCRN)) {
             CameraMove();
         }
-        stat &= ~8;
+        stat.off(F_OBJPUSH);
         ret = 1;
     }
     return ret;
@@ -1193,11 +1188,11 @@ void cPlayer::endEvent0(u32 mode)
 {
     int one = 1;
 
-    if (!(stat & 2)) {
+    if (!(stat.check(F_EVENT))) {
         return;
     }
     be_flag |= 2;
-    atari.throughOff();
+    atari.on();
     be_flag |= 0x200000;
     be_flag &= ~0x04000000;
     setNoSuspend(0);
@@ -1208,20 +1203,20 @@ void cPlayer::endEvent0(u32 mode)
         case 0:
             m_Hokan = 0;
             m_Frame = 0;
-            EmRoutineSet(this, 0, 0, 0, one);
+            setRno(0, 0, 0, one);
             break;
         case 1:
             m_Flag |= 0x100;
             break;
         case 2:
-            EmRoutineSet(this, 0, 0, 0, 0);
+            setRno(0, 0, 0, 0);
             break;
         default:
             pLog->err(0, 0, "PL::endEvent() UNKNOWN MODE.");
             break;
         }
     }
-    stat &= ~2;
+    stat.off(F_EVENT);
 }
 
 // 1 while the player is in routine 0 (normal control) and an event may take him.
@@ -1234,13 +1229,13 @@ int cPlayer::checkEvent()
 void cPlayer::beginAction()
 {
     endCamera();
-    EmRoutineSet(this, 5, 0, 0, 0);
+    setRno(5, 0, 0, 0);
     MotionBlendOff(this);
     if (Wep->m_pWep) {
         Wep->m_pWep->resetMotion();
     }
     setFootwork();
-    stat |= 2;
+    stat.on(F_EVENT);
 }
 
 // Action end: back to routine 0 with sub routine `routine` pending (m_Hokan).
@@ -1250,13 +1245,13 @@ void cPlayer::endAction(int hokan)
 {
     int one = 1;
 
-    if (stat & 2) {
+    if (stat.check(F_EVENT)) {
         be_flag |= 2;
         setNoSuspend(0);
         m_Hokan = hokan;
-        stat &= ~2;
+        stat.off(F_EVENT);
         m_Frame = 0;
-        EmRoutineSet(this, 0, 0, 0, one);
+        setRno(0, 0, 0, one);
     }
 }
 
@@ -1292,22 +1287,13 @@ void cPlayer::moveEye()
     }
 }
 
-// Eye direction state of moveEyeNormal: a class with a constructor, so the static local gets the
-// `_.tmp_0` guard and three float stores the original has.
-struct PlEyeDir {
-    f32 x;   // current
-    f32 y;   // target
-    f32 z;   // mix
-    PlEyeDir() { x = y = z = 0.0f; }
-};
-
-// Eyelid (parts 0x1C) blink sequence on `timer` and the eye direction (parts 0x20/0x21) wander:
-// eyeDir = { current, target, mix }.
+// Eyelid (parts 0x1C) blink sequence on `timer` and the eye direction (parts 0x20/0x21) wander
+// (eyeDir).
 void cPlayer::moveEyeNormal()
 {
-    static PlEyeDir eyeDir;
+    static cDelayF eyeDir;
     static int timer;
-    cModel* p;
+    cParts* p;
 
     p = getPartsPtr(0x1C);
     // Every case written out separately in ascending order: jump2 cross-jumps the identical
@@ -1318,11 +1304,7 @@ void cPlayer::moveEyeNormal()
         p->ang.x = 0.0f;
         break;
     case 0: {
-        f32 y = ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 3.1415927f * 0.1f;
-        eyeDir.y = y;
-        if (eyeDir.z == 0.0f) {
-            eyeDir.x = y;
-        }
+        eyeDir = ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 3.1415927f * 0.1f;
         p->ang.x = 0.0872664600610733f;
         break;
     }
@@ -1345,10 +1327,7 @@ void cPlayer::moveEyeNormal()
         p->ang.x = 0.0872664600610733f;
         break;
     case 0x1E:
-        eyeDir.y = 0.0f;
-        if (eyeDir.z == 0.0f) {
-            eyeDir.x = 0.0f;
-        }
+        eyeDir = 0.0f;
         break;
     case 0x58:
         if (Rnd() & 3) {
@@ -1391,34 +1370,18 @@ void cPlayer::moveEyeNormal()
         static int eyetime = 0;
 
         if (--eyetime < 0) {
-            f32 d = ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 0.03141592815518379f;
-            eyeDir.y += d;
-            if (eyeDir.z == 0.0f) {
-                eyeDir.x = eyeDir.y;
-            }
+            eyeDir += ((f32) (Rnd() % 200) * 0.01f - 1.0f) * 0.03141592815518379f;
             eyetime = Rnd() % 3 + 2;
         }
     }
-    {
-        PlEyeDir* e = &eyeDir;
-        f32 mn = -0.3141592741012573f;
-        f32 mx = 0.3141592741012573f;
-        if (e->y < mn) {
-            e->y = mn;
-        } else if (e->y > mx) {
-            e->y = mx;
-        }
-        if (e->z == 0.0f) {
-            e->x = e->y;
-        }
-    }
+    eyeDir.limit(-0.3141592741012573f, 0.3141592741012573f);
     p = getPartsPtr(0x20);
-    p->ang.y = eyeDir.x;
+    p->ang.y = eyeDir;
     p->matUpdate();
     p = getPartsPtr(0x21);
-    p->ang.y = eyeDir.x;
+    p->ang.y = eyeDir;
     p->matUpdate();
-    eyeDir.x = eyeDir.x * eyeDir.z + eyeDir.y * (1.0f - eyeDir.z);
+    eyeDir.move();
 }
 
 int lbl_80314CDC = 0;   // unreferenced 4-byte .sdata word between moveEyeNormal's statics and the neck
@@ -1426,8 +1389,8 @@ int lbl_80314CDC = 0;   // unreferenced 4-byte .sdata word between moveEyeNormal
 // Eyes driven by the motion: parts 0x21 follows parts 0x20.
 void cPlayer::moveEyeMotion()
 {
-    cModel* a;
-    cModel* b;
+    cParts* a;
+    cParts* b;
 
     a = getPartsPtr(0x20);
     b = getPartsPtr(0x21);
@@ -1435,13 +1398,13 @@ void cPlayer::moveEyeMotion()
     b->matUpdate();
 }
 
-// Updates the body / weapon matrices and lets the weapon object draw its laser (wep.disp bit1).
+// Updates the body / weapon matrices and lets the weapon object draw its laser (flag bit1).
 void cPlayer::setLaserSight(int draw, int noCalc)
 {
     Body->move();
     partsWorldCalc();
     Wep->m_pWep->partsWorldCalc();
-    Wep->m_pWep->wep.disp |= 2;
+    Wep->m_pWep->flag.on(cObjWep::F_ON_LASER_SIGHT_D);
     Wep->m_pWep->drawLaserSight(draw, noCalc);
 }
 
@@ -1472,7 +1435,7 @@ void cPlayer::shadowCtrl()
 {
     int on;
 
-    if (!(stat & 0x800) || pG->Camera.param.pos.y < pos.y || !pFloor_norm || pFloor_norm->y < 0.8f) {
+    if (!(stat.check(F_SHADOW)) || pG->Camera.param.pos.y < pos.y || !pFloor_norm || pFloor_norm->y < 0.8f) {
         on = 0;
     } else {
         on = 1;
@@ -1556,7 +1519,7 @@ void cPlNeck::init(void* motR, void* motL, int frame)
 // motion at the centre; the blend rate is the angle over 45 degrees.
 void cPlNeck::move()
 {
-    cModel* head;
+    cParts* head;
     cEm* em;
 
     if (m_Mode == 0) {
@@ -1677,7 +1640,7 @@ cEm* cPlNeck::getTarget()
         if (em == pPL) {
             continue;
         }
-        if (em == pSubEm) {
+        if (em == pSUB) {
             continue;
         }
         Vec* to = &em->getPartsPtr(em->lockParts)->world;

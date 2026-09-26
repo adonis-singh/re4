@@ -132,19 +132,19 @@ void R20fInit()
                 obj1->setAng(pv);
             }
             if (r20f_work->sat[0]) {
-                r20f_work->sat[0]->m_Flag |= 4;
+                r20f_work->sat[0]->setEnable();
             }
             if (r20f_work->sat[1]) {
-                r20f_work->sat[1]->m_Flag &= ~4;
+                r20f_work->sat[1]->setDisable();
             }
             if (r20f_work->sat[2]) {
-                r20f_work->sat[2]->m_Flag &= ~4;
+                r20f_work->sat[2]->setDisable();
             }
             if (r20f_work->eat[1]) {
-                r20f_work->eat[1]->m_Flag &= ~4;
+                r20f_work->eat[1]->setDisable();
             }
             if (r20f_work->eat[2]) {
-                r20f_work->eat[2]->m_Flag &= ~4;
+                r20f_work->eat[2]->setDisable();
             }
             SceAtDataSet_exec(5, SCE_LEVEL10, 0, (TaskFunc) R20fSwitchMain, 0, 1);
         }
@@ -283,19 +283,19 @@ static void R20fSwitchEnd(int evt)
         obj1->setAng(&rot);
     }
     if (r20f_work->sat[0]) {
-        r20f_work->sat[0]->m_Flag &= ~4;
+        r20f_work->sat[0]->setDisable();
     }
     if (r20f_work->sat[1]) {
-        r20f_work->sat[1]->m_Flag |= 4;
+        r20f_work->sat[1]->setEnable();
     }
     if (r20f_work->sat[2]) {
-        r20f_work->sat[2]->m_Flag |= 4;
+        r20f_work->sat[2]->setEnable();
     }
     if (r20f_work->eat[1]) {
-        r20f_work->eat[1]->m_Flag |= 4;
+        r20f_work->eat[1]->setEnable();
     }
     if (r20f_work->eat[2]) {
-        r20f_work->eat[2]->m_Flag |= 4;
+        r20f_work->eat[2]->setEnable();
     }
     if (evt) {
         CamCtrl.Comeback(0);

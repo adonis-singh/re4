@@ -223,30 +223,20 @@ int cEmMgr::arrayAlloc(u32 workNum)
 // not when Stop_flg 0x1000 freezes her too.
 void cEmMgr::move()
 {
-    cEm* p;
-    void (*func)(cEm*);
-
     dieCheck();
     RouteCk();
     if (!SpfFlagChk(pG, SPF_EM)) {
-        p = pAlive;
-        func = emMove;
-        while (p) {
-            cEm* cur = p;
-
-            p = (cEm*) p->pNext;
-            func(cur);
-        }
+        applyFuncAll(emMove);
     } else if (pSUB && !SpfFlagChk(pG, SPF_SUBCHAR)) {
         emMove(pSUB);
     }
 }
 
-// Releases a character work: validates the pointer and its live flags (be_flag 0x201 == 1),
+// Releases a character work: validates the pointer and that the work is alive,
 // runs the work's push() cleanup and returns it to the pool.
 void cEmMgr::destroy(cEm* pEm)
 {
-    if ((u32) pEm < 0x80000000 || (u32) pEm > 0x82FFFFFF || (pEm->be_flag & 0x201) != 1) {
+    if ((u32) pEm < 0x80000000 || (u32) pEm > 0x82FFFFFF || !pEm->isAlive()) {
         pLog->err(0, 0, "cEmMgr::destroy() WORK IS ALREADY DEAD. %08X", pEm);
         return;
     }
@@ -258,19 +248,8 @@ void cEmMgr::destroy(cEm* pEm)
 // prompt rules).
 int cEmMgr::isBattle()
 {
-    cEm* p;
-    void (*func)(cEm*);
-
-    // reference store: keeps the pAlive load below it (global.h BitSet)
-    (battleCheckFlag = 0);
-    func = battleCheck;
-    p = pAlive;
-    while (p) {
-        cEm* cur = p;
-
-        p = (cEm*) p->pNext;
-        func(cur);
-    }
+    battleCheckFlag = 0;
+    applyFuncAll(battleCheck);
     return battleCheckFlag;
 }
 
@@ -293,17 +272,7 @@ void killEm(cEm* pEm)
 // Destroys every live character except the player (room change).
 void cEmMgr::destroyAll()
 {
-    cEm* p;
-    void (*func)(cEm*);
-
-    p = pAlive;
-    func = killEm;
-    while (p) {
-        cEm* cur = p;
-
-        p = (cEm*) p->pNext;
-        func(cur);
-    }
+    applyFuncAll(killEm);
 }
 
 // Next live character with `id` after `start` (from the head when start is NULL); NULL when none.
@@ -313,15 +282,15 @@ cEm* cEmMgr::getEmPtr(int id, cEm* pEm)
 
     p = pEm;
     if (p) {
-        p = (cEm*) p->pNext;
+        p = getNext(p);
     } else {
-        p = pAlive;
+        p = getActiveWork();
     }
     while (p) {
         if (p->id == id) {
             return p;
         }
-        p = (cEm*) p->pNext;
+        p = getNext(p);
     }
     return 0;
 }
@@ -390,7 +359,7 @@ void emMove(cEm* pEm)
     f32 dx;
     f32 dz;
 
-    if ((pEm->be_flag & 0x201) != 1) {
+    if (!pEm->isAlive()) {
         pLog->err(2, 0, "emMove() DEAD WORK CALLED %08X(ID:%02X)", pEm, pEm->id);
         EmMgr.destroy(pEm);
         return;
@@ -410,14 +379,14 @@ void emMove(cEm* pEm)
     pEm->l_sub = 1e16f;
     pEm->dmg.move();
     pEm->move();
-    if ((pEm->be_flag & 0x201) != 1) {
+    if (!pEm->isAlive()) {
         return;
     }
     pEm->be_flag &= ~0x20000000;
     ShapeMove(pEm->pModelInfo);
     if (pEm->Motion.Seq_old.Se) {
         int no = pEm->Motion.Seq_old.Se - 1;
-        cModel* parts = pEm->getPartsPtr(0);
+        cParts* parts = pEm->getPartsPtr(0);
 
         SndCall(8, no, &parts->world, pEm->id, 0, pEm);
         pEm->Motion.Seq_old.Se = 0;

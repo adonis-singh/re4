@@ -2,7 +2,7 @@
 // weapon type, fire with cartridge ejection, reload by tune level.
 //
 // cObjFn57 is the cObjWep (game/objWep.cpp) of the Blacktail, hanging on the player's right hand
-// (parts 10) and driven by wep.mode / wep.step from the handgun routines (wep/pl_handgun.cpp):
+// (parts 10) and driven by r_no_0 / r_no_1 from the handgun routines (wep/pl_handgun.cpp):
 // mode 2 -> moveFire (slide motion, SEs, flash, cartridge), mode 4 -> moveReload (motion by tune
 // level, ItemMgr.reload at its frame). weapon_type 1 is the upgraded model 0x7 (weapon list id
 // 0x22). setMotion installs the handgun footwork motions into the player's table.
@@ -26,7 +26,7 @@ public:
     void setCartridge();
 };
 
-// wep.shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
+// shotFrame[0..2] of the object (an extern-linkage const: emitted here, before init's string)
 extern const u8 fn57_tbl[3];
 const u8 fn57_tbl[3] = { 0xE, 0xC, 0xA };
 
@@ -37,7 +37,7 @@ void ObjFn57_init(cObj* obj)
 }
 
 // cObjWep::init override (Wep01_init, parent = the player): model 0x6 / 0x7 by weapon_type
-// (weapon list id wep.itemId 0x21 / 0x22), a 100-unit box atari with bits 8/9 off, hung on the right
+// (weapon list id itemId 0x21 / 0x22), a 100-unit box atari with bits 8/9 off, hung on the right
 // hand, light area, idle motions 0x34 (normal) / 0x39 (empty), the fn57_tbl bytes, default lock spread.
 void cObjFn57::init(cModel* parent)
 {
@@ -45,11 +45,11 @@ void cObjFn57::init(cModel* parent)
 
     switch (pG->weapon_type) {
     case 0:
-        wep.itemId = 0x21;
+        itemId = 0x21;
         bin = WEP_ARC_PTR(0x6);
         break;
     case 1:
-        wep.itemId = 0x22;
+        itemId = 0x22;
         bin = WEP_ARC_PTR(0x7);
         break;
     }
@@ -57,32 +57,32 @@ void cObjFn57::init(cModel* parent)
         pLog->err(0, 0, "cObjFn57::init() failed.");
         return;
     }
-    sub2B4.atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    atari.init(0.0f, 100.0f, 0.0f, 0.0f, 100.0f, 100.0f, 100.0f, 1, 0, 0);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x34);
-    wep.motReset[1] = WEP_ARC_PTR(0x39);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x34);
+    motReset[1] = WEP_ARC_PTR(0x39);
     resetMotion();
-    wep.shotFrame[0] = fn57_tbl[0];
-    wep.shotFrame[1] = fn57_tbl[1];
-    wep.shotFrame[2] = fn57_tbl[2];
+    shotFrame[0] = fn57_tbl[0];
+    shotFrame[1] = fn57_tbl[1];
+    shotFrame[2] = fn57_tbl[2];
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire, set by the handgun fire00): step 0 starts the slide motion (0x32, 0x37 on
+// mode == 2 (fire, set by the handgun fire00): step 0 starts the slide motion (0x32, 0x37 on
 // the last round), plays the shot SEs, sets Status_flg[0] bit23 (shot noise), spawns the muzzle
 // flash 0x35 (type 1 for the upgraded model), a cartridge and the pad vibration; the motion's end
 // returns to mode 0.
 void cObjFn57::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         int type;
         int zero;
@@ -104,22 +104,22 @@ void cObjFn57::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP01, type, 0, ESP_CORE_KIND_PL_WEP, (void*) zero, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        r_no_1 = 1;
     }
     if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the reload tune level (0x36/0x3C/
+// mode == 4 (reload): step 0 starts the reload motion of the reload tune level (0x36/0x3C/
 // 0x3D, or 0x33/0x3A/0x3B from an empty magazine) with the level's SE (0x16/0x20/0x21); at the
 // level's frame (31/26/17) ItemMgr.reload refills the magazine. The player routine ends the mode.
 void cObjFn57::moveReload()
 {
     static const f32 reloadEnd[3] = { 31.0f, 26.0f, 17.0f };
 
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -160,8 +160,8 @@ void cObjFn57::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
@@ -172,7 +172,7 @@ void cObjFn57::moveReload()
 // offset (-109, -22, 90) with a random +-15 spread, gravity 10, 30 frames, landing effect 0x13.
 void cObjFn57::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

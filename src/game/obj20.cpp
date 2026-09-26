@@ -5,17 +5,11 @@
 #include "light.h"
 #include "dmg.h"
 #include "obj.h"
+#include "obj20.h"
 #include "global.h"
 #include "math_sub.h"
 #include "at_mod.h"
 
-
-// Obstacle model (Oba): an invisible collision model attached to a parent object (type 0: to
-// one of its parts, type 1: to the object itself) or standing alone.
-class cObjObaModel : public cObj {
-public:
-    virtual void move();
-};
 
 // Creates the obstacle on `parent` (parts partsNo + ofs for type 0, parent origin + ofs for type 1),
 // collision radius rad / height h, priority level 1, not drawn.
@@ -28,7 +22,7 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
     if (obj == 0) {
         return 0;
     }
-    w = &obj->obaModel;
+    w = OBAMODEL_WK((cObjObaModel*) obj);
     if (obj->modelInit((void*) (pG->pCore->ofs_20 + (u32) pG->pCore),
                        (void*) (pG->pCore->ofs_24 + (u32) pG->pCore)) == 0) {
         pLog->err(0, 0, "SetObaModel() failed.");
@@ -40,13 +34,13 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
 
     obj->type = type;
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
-    obj->sub2B4.atari.init(0.0f, 0.0f, 0.0f, rad, rad, rad, h, 0, 0x2000, 10);
-    obj->sub2B4.atari.clrFlag100();
-    obj->sub2B4.atari.setPriority(PRI_LV1);
+    obj->atari.init(0.0f, 0.0f, 0.0f, rad, rad, rad, h, 0, 0x2000, 10);
+    obj->atari.offSca();
+    obj->atari.setPriority(PRI_LV1);
     obj->be_flag &= ~2;
-    w->parent = parent;
-    w->ofs = *ofs;
-    w->partsNo = partsNo;
+    w->pEm = parent;
+    w->Offset = *ofs;
+    w->Parts_no = partsNo;
     obj->move();
     return obj;
 }
@@ -56,27 +50,27 @@ extern "C" cObj* SetObaModel(cObj* parent, int partsNo, Vec* ofs, f32 rad, f32 h
 // collision update.
 void cObjObaModel::move()
 {
-    ObaModelWork* w = &obaModel;
+    ObaModelWork* w = OBAMODEL_WK(this);
 
-    if (w->parent) {
-        if ((w->parent->be_flag & 0x201) != 1) {
+    if (w->pEm) {
+        if (!w->pEm->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }
         if (type == 0) {
-            cModel* parts = w->parent->getPartsPtr(w->partsNo);
-            PSMTXMultVec(parts->mat, &w->ofs, &pos);
-            if (pos.y < w->parent->pos.y + 2000.0f) {
-                pos.y = w->parent->pos.y;
+            cParts* parts = w->pEm->getPartsPtr(w->Parts_no);
+            PSMTXMultVec(parts->mat, &w->Offset, &pos);
+            if (pos.y < w->pEm->pos.y + 2000.0f) {
+                pos.y = w->pEm->pos.y;
             }
         }
         if (type == 1) {
-            PSMTXMultVec(w->parent->mat, &w->ofs, &pos);
+            PSMTXMultVec(w->pEm->mat, &w->Offset, &pos);
         }
-        if (w->parent->sub2B4.atari.m_flag & 0x200) {
-            sub2B4.atari.m_flag |= 0x200;
+        if (w->pEm->atari.m_flag & 0x200) {
+            atari.m_flag |= 0x200;
         } else {
-            sub2B4.atari.m_flag &= ~0x200;
+            atari.m_flag &= ~0x200;
         }
     }
     RotMatrix(mat, &ang);
@@ -84,5 +78,5 @@ void cObjObaModel::move()
     ScaleMatrix(mat, &scale);
     matUpdate();
     EmAtCheck(this);
-    sub2B4.atari.move();
+    atari.move();
 }

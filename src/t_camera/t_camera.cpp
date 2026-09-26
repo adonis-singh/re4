@@ -48,7 +48,7 @@ int head_suffix(s8 area);
 int tail_suffix(s8 area);
 int next_suffix(s8 cam, int dir);
 void tcCameraPullPoint(TcCdat* c);
-void tcToolCameraMove(Camera* cam);
+void tcToolCameraMove(CAMERA* cam);
 void tcPreviewOnOff(int on);
 
 // camera type names (tcTypeTbl[..][0]) and the on/off pair
@@ -967,7 +967,7 @@ void tcCdatDel(TcCdat* c)
 // pos / at / roll / fovy, frames 0.
 void tcCdatInit(TcCdat* c, int cam_no)
 {
-    Camera* cam = &pTc->cam;
+    CAMERA* cam = &pTc->cam;
     int i;
 
     c->type = 2;
@@ -2287,7 +2287,7 @@ void tcMoveOffsetPoint()
         }
         {
             TcWork* w = pTc;
-            Camera* cam = &w->cam;
+            CAMERA* cam = &w->cam;
             cPlayer* pl = pPL;
             PSMTXMultVec(pl->mat, &tcCdatPtr(pTc->cdatNo)->aim_ofs, &cam->param.pos);
             PSMTXMultVec(pl->mat, &tcCdatPtr(pTc->cdatNo)->u44.dir, &cam->param.at);
@@ -2372,7 +2372,7 @@ void tcCameraSetPoint(TcCdat* c)
 // move the current key by the pad: mode 0 campos, 1 target, 2 roll, 3 fovy
 void tcCameraMovePoint(TcCdat* c, int mode)
 {
-    Camera* cam = &pTc->cam;
+    CAMERA* cam = &pTc->cam;
     Vec d = {0.0f, 0.0f, 0.0f};
 
     switch (mode) {
@@ -2418,7 +2418,7 @@ void tcCameraMovePoint(TcCdat* c, int mode)
 #line 3204 "D:/Bio4/Prog/t_camera.cpp"
             VECNormalize(&fwd, &fwd);
             PSVECCrossProduct(&axis, &fwd, &right);
-            MTX_SET_COLUMNS(m, &right, &axis, &fwd, &zero);
+            MTXSetColumns(m, right, axis, fwd, zero);
             PSMTXMultVecSR(m, &d, &d);
         }
         break;
@@ -2973,7 +2973,7 @@ static f32 tcDollyDummy = 0.0f;
 // Tool camera control (pad 1): L/R triggers dolly along the view axis, sub stick pans, main stick
 // orbits the camera around the target (or the target around the camera when distTarget), Z
 // modifies; the tool camera is the game camera while the tool runs.
-void tcToolCameraMove(Camera* cam)
+void tcToolCameraMove(CAMERA* cam)
 {
     Vec d = {0.0f, 0.0f, 0.0f};
     f32 z;

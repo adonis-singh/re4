@@ -96,10 +96,7 @@ cEmMine* SetMine(void* bin, void* tpl, Vec* pos, Vec* spd, int type)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 4);
     }
-    LockPartsSet(em, 0);
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(0, 0.0f, 0.0f, 0.0f);
     em->be_flag &= ~0x01000000;
     at->setPriority(PRI_LV3);
     at->m_flag &= ~0x300;
@@ -140,7 +137,7 @@ cEmMine* SetMine(void* bin, void* tpl, Vec* pos, Vec* spd, int type)
     TransMatrix(em->mat, &em->pos);
     em->partsWorldCalc();
     if (em->type == 1) {
-        cEm* target = pPL->Wep->m_pWep->wep.m_SightEm;
+        cEm* target = pPL->Wep->m_pWep->m_SightEm;
 
         if (target) {
             w->pEm_homing = target;
@@ -575,9 +572,9 @@ void emMineSearchEm(cEmMine* pEm, int mode)
     }
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* e = EmMgr.fastAt(i);
-        cModel* parts;
+        cParts* parts;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->hp <= 0) {
@@ -644,7 +641,7 @@ void emMineHomingEm(cEmMine* pEm)
     Mtx m;
     Vec dir;
     Vec to;
-    cModel* parts;
+    cParts* parts;
     f32 ang;
 
     if (w->pEm_homing == 0) {
@@ -781,7 +778,7 @@ void emMine_R1_Parent(cEmMine* pEm)
     EmMineWork* w = EMMINE_WK(pEm);
     cEm* parent = w->pEm_oya;
 
-    if ((parent->be_flag & 0x201) != 1) {
+    if (!parent->isAlive()) {
         w->pEm_oya = 0;
         parent = 0;
     }
@@ -846,7 +843,7 @@ void emMine_R1_Parent(cEmMine* pEm)
                 w->Bomb_wait = 30;
             }
         }
-        if (parent->pParts) {
+        if (parent->pList) {
             Mtx m;
             Vec v0;
             Vec v1;

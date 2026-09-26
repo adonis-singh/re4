@@ -15,6 +15,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "emdoor.h"
 #include "em_wrap.h"
@@ -370,7 +371,7 @@ static void r117_EventAshleyFind()
     if (W->evd0->waitLoadOk() == 1) {
         MemorySwap(W->mod->pArc, (u32) W->evd0->m_addr, W->evd0->m_size);
         EvtMgr.SetEvt(W->mod->pArc, (u32*) 0);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         SysFlagOn(pG, SYS_SCREEN_STOP);
@@ -413,7 +414,7 @@ static void r117_EventSaddlerAppear()
         if (EvtMgr.SetEvt(W->mod->pArc, (u32*) &ev)) {
             ev->StatusFlag |= EvtStfBit(EvtStfFadeOut);
         }
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         MemorySwap(W->mod->pArc, (u32) W->evd1->m_addr, W->evd1->m_size);
@@ -495,7 +496,7 @@ static void r117_LightMechanismMove()
 
     switch (W->mode) {
     case 0:
-        cMes.MesSet(3, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x100012, 0, 0, 4);
+        cMes.MesSet(3, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x100012, 0, 0, 4);
         sel = SceMesGetSelection();
         switch (sel) {
         case -1:
@@ -517,7 +518,7 @@ static void r117_LightMechanismMove()
         s8 oldCur = W->cur[W->sel];
         s8 oldTgt = W->tgt[W->sel];
 
-        cMes.MesSet(4, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 0x100012, 0, 0, 4);
+        cMes.MesSet(4, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 0x100012, 0, 0, 4);
         if (SceMesGetSelection() != 1) {
             W->mode--;
         } else {
@@ -556,7 +557,7 @@ static void r117_LightMechanismMove()
             W->mode++;
         } else {
             SceSleep(15);
-            SceMesSet(5, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(5, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             CamCtrl.CutCall(7);
             r117_LightSet(3);
             EstSet(0, -1, 0, 0, EFF_ROOM, 0x11, 1, ESP_CORE_KIND_ROOM01, 0, 0);
@@ -854,7 +855,7 @@ extern "C" void Evt_R117S00_Func(Event* e)
 
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag |= 0x40;
                 }
             }
             break;
@@ -864,7 +865,7 @@ extern "C" void Evt_R117S00_Func(Event* e)
 
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod, "pl0100", 0, 0) == 1) {
-                    ((cObj*) mod)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod)->be_flag &= ~0x40;
                 }
             }
             break;

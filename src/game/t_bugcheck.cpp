@@ -42,7 +42,7 @@ public:
 
 cToolBugcheck BC;
 
-#define ROUND_TO_INT(x) ((int) ((x) + 0.5f))
+static inline int RoundToInt(f32 x) { return (int) (x + 0.5f); }
 
 // Debug menu entry: runs the bug-check menu until B.
 void ToolBugcheck()
@@ -99,7 +99,6 @@ void cToolBugcheck::menuPosMove()
 {
     f32 speed;
     f32 floor;
-    cModel* pl;
 
     pG->Stop_flg &= ~0x10000000;
     pG->Stop_flg &= ~0x40000000;
@@ -127,23 +126,7 @@ void cToolBugcheck::menuPosMove()
             v.y = v.y + speed * (f32) (int) Joy[0].triggerRight - speed * (f32) (int) Joy[0].triggerLeft;
         }
         PSVECAdd(&pPL->pos, &v, &pPL->pos);
-        pl = pPL;
-        pl->setPos(&pl->pos);
-        {
-            // COMPILER-DIFF: candidate (combine): the `&pl->rot` pseudo must reach sched1 uncombined
-            // (target `addi r4,r30,160; mr r3,r30`). A non-volatile asm that reads it and launders
-            // `pl` is a second use that blocks combine, is issued before the r4 move (so P is tied to
-            // r4) and leaves sched2's dependent counts of the setPos arg moves equal; it is also the
-            // extra loop insn at global-alloc time that orders the 14 hoisted highs r14-r25.
-            Vec* pr = &pl->ang;
-            asm("" : "+r"(pl) : "r"(pr));
-            pl->setAng(pr);
-        }
-        {
-            // COMPILER-DIFF: candidate (gcse hash bucket of the .LC label name): one more constant
-            // pool label before "X:%.0f" gives the target's hoisted-high pseudo order.
-            f32 lc0 = 1.0f;
-        }
+        pPL->setPosAng(&pPL->pos, &pPL->ang);
         eprintf(32, 56, 0, 0, "X:%.0f", pPL->pos.x);
         eprintf(32, 70, 0, 0, "Y:%.0f", pPL->pos.y);
         eprintf(32, 84, 0, 0, "Z:%.0f", pPL->pos.z);
@@ -237,7 +220,7 @@ void cToolBugcheck::menuLife()
                     lv = 0;
                 }
                 pG->pl_life_max = 1200;
-                pG->pl_life_max = pG->pl_life_max + ROUND_TO_INT((f32) (lv * 60));
+                pG->pl_life_max = pG->pl_life_max + RoundToInt((f32) (lv * 60));
                 pG->pl_life = pG->pl_life_max;
             }
             break;
@@ -266,7 +249,7 @@ void cToolBugcheck::menuLife()
                     lv = 0;
                 }
                 pG->ashley_life_max = 600;
-                pG->ashley_life_max = pG->ashley_life_max + ROUND_TO_INT((f32) (lv * 120));
+                pG->ashley_life_max = pG->ashley_life_max + RoundToInt((f32) (lv * 120));
                 pG->ashley_life = pG->ashley_life_max;
             }
             break;

@@ -84,7 +84,7 @@ void em21DmCk(cEm21* em)
     Vec hitPos;
     u8 mode;
 
-    if (EmDeadCk(em) == 0) {
+    if (em->dmg.isDamage() == 0) {
         switch (DmgMgr.hitCheck(&em->pos, &hitPos)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -108,7 +108,7 @@ void em21DmCk(cEm21* em)
                     em->r_no_2 = 0;
                     em->r_no_3 = 1;
                 } else {
-                    EmRoutineSet(em, 1, 3, 0, 0);
+                    em->setRno(1, 3, 0, 0);
                 }
             }
             return;
@@ -133,7 +133,7 @@ void em21DmCk(cEm21* em)
         em->r_no_3 = 1;
     } else {
         em->dmg.m_Timer = 0x3C;
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
     }
 }
 
@@ -166,11 +166,11 @@ static u16 em21_flip_tbl[50] = {
 
 // The camera plemTrapCancel installs (the trap release cut): explicitly zero-initialised so it
 // stays in .data.
-static Camera em21_trap_cam = { 0 };
+static CAMERA em21_trap_cam = { 0 };
 // COMPILER-DIFF: candidate #12 (cse related-value): `cam = &em21_trap_cam` after the `&em21_trap_cam.param.pos/at`
 // pointers are known is a fresh `lis/addi` pair in the original; our cse rewrites it as `at - 0xB0`.
 // An asm-labelled alias declaration gives cse a distinct SYMBOL_REF and keeps the fresh pair.
-extern Camera em21_trap_cam_v asm("em21_trap_cam");
+extern CAMERA em21_trap_cam_v asm("em21_trap_cam");
 // .data is padded to 8 bytes before the linker's BSS tag word.
 asm(".section .data\n\t.balign 8\n\t.text");
 
@@ -249,10 +249,7 @@ static void em21_R0_Init(cEm21* em)
 
         em->LightInfo.init2(0, 1, &ofs, &size, 2);
     }
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     at->init(0.0f, -500.0f, 0.0f, 450.0f, 400.0f, 400.0f, 1000.0f, 3, 0x2000, 10);
     em21YarareInit(em);
     w->tilt = 0.0f;
@@ -264,14 +261,14 @@ static void em21_R0_Init(cEm21* em)
     w->sndId = zero;
     switch (em->set) {
     default:
-        EmRoutineSet(em, 1, 0, 0, 0);
+        em->setRno(1, 0, 0, 0);
         break;
     case 1:
         at->setPriority(PRI_LV1);
-        EmRoutineSet(em, 1, 5, 0, 0);
+        em->setRno(1, 5, 0, 0);
         break;
     case 2:
-        EmRoutineSet(em, 1, 8, 0, 0);
+        em->setRno(1, 8, 0, 0);
         break;
     }
     MotionSetCore(em, MOTION(em), ARC(0xB), 0, 0, 5, 0);
@@ -312,7 +309,7 @@ static void em21_R1_Wait(cEm21* em)
         if (MotionMove(em, 0)) {
             if (Rnd() & 1) {
                 em21SetWanderPos(em);
-                EmRoutineSet(em, 1, 1, 0, 0);
+                em->setRno(1, 1, 0, 0);
             } else {
                 em->r_no_2 = 0;
             }
@@ -321,7 +318,7 @@ static void em21_R1_Wait(cEm21* em)
     }
     if (em21WakeCk(em)) {
         w->escTimer = 2;
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
     }
 }
 
@@ -344,13 +341,13 @@ static void em21_R1_Wander(cEm21* em)
         MotionMove(em, 0);
         if ((em->pos.x - w->wanderPos.x) * (em->pos.x - w->wanderPos.x) + (em->pos.z - w->wanderPos.z) * (em->pos.z - w->wanderPos.z)
             < 640000.0f) {
-            EmRoutineSet(em, 1, 0, 2, 0);
+            em->setRno(1, 0, 2, 0);
         }
         break;
     }
     if (em21WakeCk(em)) {
         w->escTimer = 2;
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
     }
 }
 
@@ -372,10 +369,10 @@ static void em21_R1_Turn(cEm21* em)
         break;
     }
     if (em->l_pl < 16000000.0f) {
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
         w->escTimer = 2;
     } else if (w->routeAngAbs < PI / 8.0f) {
-        EmRoutineSet(em, 1, 4, 0, 0);
+        em->setRno(1, 4, 0, 0);
     }
 }
 
@@ -455,7 +452,7 @@ static void em21_R1_Escape(cEm21* em)
             if (w->timer) {
                 w->timer--;
             } else {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             }
         }
         break;
@@ -503,7 +500,7 @@ static void em21_R1_Bark(cEm21* em)
 
             em->r_no_2 = zero;
             if (w->routeAngAbs > PI / 4.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
                 break;
             }
         }
@@ -536,7 +533,7 @@ static void em21_R1_Bark(cEm21* em)
 
             em->r_no_2 = zero;
             if (w->routeAngAbs > PI / 4.0f) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
             } else {
                 ang = fabsf(Muku(&pPL->pos, &em->pos, pPL->ang.y, PI));
                 if (ang > 1.0471976f || em->l_pl > 144000000.0f) {
@@ -548,7 +545,7 @@ static void em21_R1_Bark(cEm21* em)
     }
     if (em->l_pl < 25000000.0f) {
         w->escTimer = 2;
-        EmRoutineSet(em, 1, 3, 0, 0);
+        em->setRno(1, 3, 0, 0);
     }
 }
 
@@ -577,7 +574,7 @@ static void em21_R1_R100TrapWait(cEm21* em)
         em21TrapSearch(em);
         if (w->pTrap && (w->pTrap->r_no_0 == 1 && w->pTrap->r_no_1 == 4)) {
             em->dmg.m_Timer = 0x3C;
-            EmRoutineSet(em, 1, 7, 0, 1);
+            em->setRno(1, 7, 0, 1);
             return;
         }
         break;
@@ -607,7 +604,7 @@ static void em21_R1_R100TrapCancel(cEm21* em)
     case 1:
         em->dmg.m_Timer = 2;
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 7, 0, 0);
+            em->setRno(1, 7, 0, 0);
         }
         break;
     }
@@ -733,7 +730,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 6;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         } else {
             ang = fabsf(Muku(&em->pos, &g->pos, em->ang.y, PI));
@@ -770,7 +767,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 6;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         } else {
             ang = fabsf(Muku(&em->pos, &g->pos, em->ang.y, PI));
@@ -832,7 +829,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 0xC;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -844,7 +841,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 8;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -856,7 +853,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 2;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -878,7 +875,7 @@ static void em21_R1_VsElgigante(cEm21* em)
             em->r_no_2 = 6;
             break;
         }
-        if (EmDeadCk(em)) {
+        if (em->dmg.isDamage()) {
             em->r_no_2 = 6;
         }
         break;
@@ -929,7 +926,7 @@ static void em21TrapCancelAction(cEm21* em)
     pPL->dmg.m_Timer = 2;
     em->dmg.m_Timer = 2;
     SetPlDamage(em, plemTrapCancel);
-    EmRoutineSet(em, 1, 6, 0, 0);
+    em->setRno(1, 6, 0, 0);
 }
 
 // Player damage routine of the trap release: the kneel-and-open motion (player archive 0x1B) with the
@@ -964,8 +961,8 @@ static void plemTrapCancel(cPlayer* pl)
 // Installs the trap release cut camera (em21_trap_cam) beside the player looking at the dog.
 void plem21TrapCamMove(cModel* m)
 {
-    Camera* c = &pG->Camera;
-    Camera* cam;
+    CAMERA* c = &pG->Camera;
+    CAMERA* cam;
     Vec v;
     Vec a;
 
@@ -995,7 +992,7 @@ void plem21TrapCamMove(cModel* m)
     }
     cam->param.fovy = 55.0f;
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Per frame: the route point / angle to the player (routePos, routeAng, flag bit0 = reachable), to
@@ -1092,7 +1089,7 @@ void em21NeckMove(cEm21* em)
     Em21Work* w = EM21_WK(em);
     Mtx m;
     Vec d;
-    cModel* tp;
+    cParts* tp;
     cParts* p;
     f32 f;
     f32 len;
@@ -1244,7 +1241,7 @@ void em21EscapeWithYou(cEm21* em)
             if ((em->pos.x - e->pos.x) * (em->pos.x - e->pos.x) + (em->pos.z - e->pos.z) * (em->pos.z - e->pos.z) > 9000000.0f) {
                 continue;
             }
-            EmRoutineSet(e, 1, 3, 0, 0);
+            e->setRno(1, 3, 0, 0);
         }
     }
 }

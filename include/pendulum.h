@@ -5,6 +5,7 @@
 #include "vec.h"
 
 class cModel;
+class cParts;
 struct CLOTH_AT_SET;
 
 // Pendulum / cloth chain work (game/pendulum.cpp), 0x60 bytes (same object as pl_cloth.h's
@@ -32,29 +33,9 @@ struct PenCloth {
     f32 WindSin;             // 0x48  wind phase
     f32 Stretchy;             // 0x4C  constraint stiffness (Move2 / Move3)
     f32 Move_rate;             // 0x50  parent speed rate
-    cModel** pPtbl;        // 0x54  parts pointer table (NULL: cModel::getPartsPtr)
+    cParts** pPtbl;        // 0x54  parts pointer table (NULL: cModel::getPartsPtr)
     cModel* pEm_at;         // 0x58  model the collision volumes hang on (NULL: the chain model)
     u32 Flag;           // 0x5C  (0x100)
-};
-
-// Per-link work the pendulum keeps in the parts' cModel from 0x128 on.
-struct PenParts {
-    Vec dir;             // 0x128  link vector in parts space (0, -len, 0)
-    Vec nrm;             // 0x134  unit link direction in parts space
-    f32 distL;           // 0x140  half distance to the left neighbour
-    f32 distR;           // 0x144  right
-    f32 distUL;          // 0x148  third
-    f32 distUR;          // 0x14C  fourth
-    Vec speed;           // 0x150
-    Vec pos;             // 0x15C  world position of the link end
-    Vec oldPos;          // 0x168
-    f32 len;             // 0x174  link length
-    u8 pad_178[0x18C - 0x178];
-    Vec fixPos;          // 0x18C  PenClothFixSet position
-    u8 hit;              // 0x198  bit0: collided this frame
-    u8 flags;            // 0x199  bit0: fixed at fixPos
-    u8 pad_19A[0x1C0 - 0x19A];
-    u32 x1C0;            // 0x1C0  |= 0x06000000 by PenClothSet
 };
 
 // One collision volume in world space (penClothAtMake), 0x84 bytes.

@@ -227,8 +227,38 @@ void EspgenIncCallNo();
 int EspSeqSet(EspGenWork* rec, EspInfo* info, u32* seed, cModel* model, Mtx* mtx, int flg, f32 f, cEsp** out,
               EspSeqOpt* pSct, Vec* pos);
 
-// game/est.cpp
-extern cModel* EspEvModList[0x80];
+// game/est.cpp: event model number -> model (Event::EspSetModelPtr fills it, effect records with Core_flg 0x1000 read it)
+class cEspEventModelList {
+private:
+    cModel* pModTbl[0x80];
+public:
+    void Clear()
+    {
+        u32 i;
+
+        for (i = 0; i < 0x80; i++) {
+            pModTbl[i] = 0;
+        }
+    }
+    void SetModelPtr(u32 no, cModel* pMod)
+    {
+        if (no < 0x80) {
+            pModTbl[no] = pMod;
+        }
+    }
+    cModel* GetModelPtr(u32 no)
+    {
+        cModel* p;
+
+        if (no > 0x7F) {
+            p = 0;
+        } else {
+            p = pModTbl[no];
+        }
+        return p;
+    }
+};
+extern cEspEventModelList EspEvModList;
 
 // game/espgen10.cpp
 int EspgenDataSet(EspSeqData* head, int no, EspInfo* info, u32* seed, cModel* model, u16 parts, Mtx* mtx, Vec* pos,

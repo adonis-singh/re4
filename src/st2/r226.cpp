@@ -84,7 +84,7 @@ struct SceElevatorData {
 
 
 static R226Work* r226_work;
-static Camera r226_cam;
+static CAMERA r226_cam;
 
 static SceElevatorData r226_elvArrive = {0, 0, {0.0f, 0.0f, 0.0f}, {-3300.0f, 5000.0f, 22200.0f}, {0.0f, 3.14f, 0.0f}, -1, 0, 0xE, 0, 0xF, {80130.0f, 1500.0f, -22530.0f}, {0.0f, -1.6f, 0.0f}, 0x225};
 static SceElevatorData r226_elvLeave = {1, 0, {0.0f, 0.0f, 0.0f}, {-3300.0f, 5000.0f, 22200.0f}, {0.0f, 3.14f, 0.0f}, 0xE, 0, 0xD, 0, 0xF, {80130.0f, 1500.0f, -22530.0f}, {0.0f, -1.6f, 0.0f}, 0x225};
@@ -230,24 +230,24 @@ void R226Init()
                 return;
             }
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag |= 4;
+                r226_work->eat[3]->setEnable();
             }
         } else {
             SmdSetTrans(0x35, 0);
             if (r226_work->sat[0]) {
-                r226_work->sat[0]->m_Flag &= ~4;
+                r226_work->sat[0]->setDisable();
             }
             if (r226_work->eat[0]) {
-                r226_work->eat[0]->m_Flag &= ~4;
+                r226_work->eat[0]->setDisable();
             }
             if (r226_work->eat[1]) {
-                r226_work->eat[1]->m_Flag |= 4;
+                r226_work->eat[1]->setEnable();
             }
             if (r226_work->eat[2]) {
-                r226_work->eat[2]->m_Flag |= 4;
+                r226_work->eat[2]->setEnable();
             }
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag &= ~4;
+                r226_work->eat[3]->setDisable();
             }
             SmdSetTrans(0x1B, 0);
             SmdSetTrans(0x1C, 0);
@@ -260,7 +260,7 @@ void R226Init()
             EstSet(0, -1, 0, 0, EFF_ROOM, 0x10, 1, ESP_CORE_KIND_NONE, 0, 0);
             EstSet(0, -1, 0, 0, EFF_ROOM, 0xE, 1, ESP_CORE_KIND_NONE, 0, 0);
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag &= ~4;
+                r226_work->eat[3]->setDisable();
             }
         }
     }
@@ -272,7 +272,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE00, 1);
         if (r226_work->eat[1]) {
-            r226_work->eat[1]->m_Flag &= ~4;
+            r226_work->eat[1]->setDisable();
         }
     } else {
         o = SmdGetObjPtr(0x3B);
@@ -281,7 +281,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE00, 0);
         if (r226_work->eat[1]) {
-            r226_work->eat[1]->m_Flag |= 4;
+            r226_work->eat[1]->setEnable();
         }
     }
     if (RsfCheck(G_ROOM_ID, 8) == 0) {
@@ -292,7 +292,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE01, 1);
         if (r226_work->eat[2]) {
-            r226_work->eat[2]->m_Flag &= ~4;
+            r226_work->eat[2]->setDisable();
         }
     } else {
         o = SmdGetObjPtr(0x3C);
@@ -301,7 +301,7 @@ void R226Init()
         }
         SceAtSetEnable(SCEAT_SCRAT_PASSAGE01, 0);
         if (r226_work->eat[2]) {
-            r226_work->eat[2]->m_Flag |= 4;
+            r226_work->eat[2]->setEnable();
         }
         o = SmdGetObjPtr(0x4C);
         if (o) {
@@ -390,7 +390,7 @@ static void R226EventRoboWatchMain()
 {
     cObjRobo* robo = r226_work->robo;
 
-    if (pPL->stat & 0x100) {
+    if (pPL->stat.check(cPlayer::F_FALLING)) {
         return;
     }
     if (RsfCheck(G_ROOM_ID, 10)) {
@@ -529,7 +529,7 @@ static void R226EventRoboStartMainSub(int id)
 static void R226EventRoboStartEnd()
 {
     cObjRobo* robo = r226_work->robo;
-    RoboWork* rw = &robo->robo;
+    RoboWork* rw = ROBO_WK(robo);
     cObj* o;
 
     if (r226_work->str) {
@@ -711,7 +711,7 @@ static void R226EventPassageSwitchEnd(int side)
     }
     SceAtSetEnable(atNo, 0);
     if (r226_work->eat[eatNo]) {
-        r226_work->eat[eatNo]->m_Flag |= 4;
+        r226_work->eat[eatNo]->setEnable();
     }
     if (side == 1) {
         o = SmdGetObjPtr(0x4C);
@@ -763,7 +763,7 @@ static void R226EventPassageSwitchEnd(int side)
 static void R226EventRoboWalkPassageStart()
 {
     cObjRobo* robo = r226_work->robo;
-    RoboWork* rw = &robo->robo;
+    RoboWork* rw = ROBO_WK(robo);
     int i;
 
     if (RsfCheck(G_ROOM_ID, 7) == 0) {
@@ -787,10 +787,10 @@ static void R226EventRoboWalkPassageStart()
     EstSet(0, -1, 0, 0, EFF_ROOM, 2, 1, ESP_CORE_KIND_ROOM00, 0, 0);
     EstSet(robo, -1, 0, 0, EFF_ROOM, 0xA, 1, ESP_CORE_KIND_ROOM00, 0, 0);
     if (r226_work->sat[0]) {
-        r226_work->sat[0]->m_Flag &= ~4;
+        r226_work->sat[0]->setDisable();
     }
     if (r226_work->eat[0]) {
-        r226_work->eat[0]->m_Flag &= ~4;
+        r226_work->eat[0]->setDisable();
     }
     robo->SetBeginEvent(0);
     i = 0;
@@ -813,7 +813,7 @@ static void R226EventRoboWalkPassageStart()
 static void R226EventRoboWalkPassageGoal()
 {
     cObjRobo* robo = r226_work->robo;
-    RoboWork* rw = &robo->robo;
+    RoboWork* rw = ROBO_WK(robo);
 
     if (RsfCheck(G_ROOM_ID, 3)) {
         return;
@@ -909,7 +909,7 @@ static void R226EventRoboWalkDoorDie()
 static void R226EventRoboWalkBridgeStart()
 {
     cObjRobo* robo = r226_work->robo;
-    RoboWork* rw = &robo->robo;
+    RoboWork* rw = ROBO_WK(robo);
     int i;
 
     if (RsfCheck(G_ROOM_ID, 5)) {
@@ -1080,7 +1080,7 @@ static void SceBgmCheck()
 static void playerRunMovePassage(cPlayer* pl)
 {
     cObjRobo* robo = (cObjRobo*) pl->pEmCatch;
-    RoboWork* rw = &robo->robo;
+    RoboWork* rw = ROBO_WK(robo);
     void* data = ROOM_ARC_PTR(pG->pRoom, 0x2C);
     void* mot[8] = {ROOM_ARC_PTR(pG->pRoom, 0x2D), ROOM_ARC_PTR(pG->pRoom, 0x2E), ROOM_ARC_PTR(pG->pRoom, 0x2F), ROOM_ARC_PTR(pG->pRoom, 0x30),
                     ROOM_ARC_PTR(pG->pRoom, 0x31), ROOM_ARC_PTR(pG->pRoom, 0x32), ROOM_ARC_PTR(pG->pRoom, 0x33), ROOM_ARC_PTR(pG->pRoom, 0x34)};
@@ -1115,7 +1115,7 @@ static void playerRunMovePassage(cPlayer* pl)
         } else {
             int hit = 0;
 
-            switch ((u32) rw->pillar) {
+            switch ((u32) rw->ActBtnType) {
             case 0:
             default:
                 ActBtn.set(ACT_GUARD, 5, 0, 0, ACTCTR_ENFORCE_EXEC | ACTCTR_EXACT_KEY, DISP_L_R, ACT_FUNC_SCE, 0);
@@ -1181,7 +1181,7 @@ static void playerRunMoveBridge(cPlayer* pl)
     case 0:
         pl->m_Work0 = 0x55;
         Cckpt.lifeMeterDisp(0);
-        AtariOffV(&pPL->atari, 0xFEFF);
+        pPL->atari.offSca();
         pPL->pos.x = -70500.0f;
         pPL->pos.y = 1000.0f;
         pPL->pos.z = -16430.0f;
@@ -1276,7 +1276,7 @@ static void playerRunMoveBridge(cPlayer* pl)
                 pl->r_no_2 = 6;
             } else {
                 pG->pl_life = 0;
-                AtariOffV(&pl->atari, 0xFCFF);
+                pl->atari.off();
                 MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x6C), 0, 3, 0x201, 0);
                 SndCall(1, 0x4A, &pPL->pos, 0, 0, 0);
                 MotionMove(pl, 0);
@@ -1293,9 +1293,9 @@ static void playerRunMoveBridge(cPlayer* pl)
             pl->r_no_2 = 8;
             SceAtSetEnable(SCEAT_SCRAT_BRIDGE_BREAK, 1);
             if (r226_work->eat[3]) {
-                r226_work->eat[3]->m_Flag &= ~4;
+                r226_work->eat[3]->setDisable();
             }
-            pPL->atari.setFlag100();
+            pPL->atari.onSca();
             SceEventStart(0);
             SceEventEnd(0);
             EndPlDamage();
@@ -1351,7 +1351,7 @@ static void playerRunDieBridge(cPlayer* pl)
         MotionSetCore(pl, &pl->Motion, ROOM_ARC_PTR(pG->pRoom, 0x36), 0, 3, 1, 0);
         CamCtrl.MotionSet(ROOM_ARC_PTR(pG->pRoom, 0x60), 0, 0.0f);
         pG->pl_life = 0;
-        pl->atari.throughOn();
+        pl->atari.off();
         PlSetDamageSe(0xA);
         r226_work->dieY = start;
         pl->r_no_2++;
@@ -1376,7 +1376,7 @@ void playerRunCamInitBridge()
 // The chase camera: the player's frame offsets blended towards the current camera.
 void playerRunCamMovePassage(cPlayer* pl, f32 t)
 {
-    Camera* cam = &r226_cam;
+    CAMERA* cam = &r226_cam;
     GlobalWork* g = pG;
     Vec pos;
     Vec at;
@@ -1391,13 +1391,13 @@ void playerRunCamMovePassage(cPlayer* pl, f32 t)
     cam->Up.z = 0.0f;
     cam->Distance = VEC_DIST(&r226_cam.param.pos, &r226_cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // The bridge chase camera: offsets chased towards r226_camOfsPos/At at r226_camSpd*, FOV r226_fovyBridge.
 void playerRunCamMoveBridge(cPlayer* pl, f32 t)
 {
-    Camera* cam = &r226_cam;
+    CAMERA* cam = &r226_cam;
     GlobalWork* g = pG;
     Vec pos;
     Vec at;
@@ -1420,15 +1420,15 @@ void playerRunCamMoveBridge(cPlayer* pl, f32 t)
     cam->Up.z = 0.0f;
     cam->Distance = VEC_DIST(&r226_cam.param.pos, &r226_cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // The death camera in the passage: a fixed view (FOV r226_fovyDie) looking at the crushed player.
 void playerRunCamDiePassage(cPlayer* pl)
 {
-    Camera* cam = &r226_cam;
+    CAMERA* cam = &r226_cam;
     GlobalWork* g = pG;
-    cModel* parts;
+    cParts* parts;
 
     cam->param.fovy = r226_fovyDie;
     parts = pl->getPartsPtr(0);
@@ -1439,20 +1439,20 @@ void playerRunCamDiePassage(cPlayer* pl)
     cam->Up.z = 0.0f;
     cam->Distance = VEC_DIST(&r226_cam.param.pos, &r226_cam.param.at);
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // Starts the pillar `smdNo` falling once the player passed it by `dist`.
 extern "C" void playerPillarDownCk__FP8cObjRoboiUlif(cObjRobo* robo, int smdNo, u32 flagNo, f32 dist, int idx)
 {
-    RoboWork* rw = &robo->robo;
+    RoboWork* rw = ROBO_WK(robo);
 
     if (!FlagChkVar(&pG->Room_flg, (u32) flagNo)) {
         cObj* o = SmdGetObjPtr(smdNo);
 
         if (o) {
             if (pPL->pos.x < o->pos.x + dist) {
-                rw->pillar = idx;
+                rw->ActBtnType = idx;
                 SceExec(0x12, (TaskFunc) playerPillarDownTask, smdNo, 6, SCE_PRIO_DEF_2, 0);
                 FlagOnVar(&pG->Room_flg, (u32) flagNo);
             }

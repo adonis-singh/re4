@@ -79,7 +79,7 @@ int cEsp41::SetFreeWork(EspGenWork* pSeq, u32* pRand_seed)
     w->Dist = (f32)(s8)pSeq->Work8[0] * 100.0f;
     w->Pow = (f32)(s8)pSeq->Work8[1] * 0.00005f;
     w->Type = pSeq->WorkSp8[0];
-    w->Offset = *(Vec*)&pSeq->Vec0.x;
+    w->Offset = pSeq->Vec0;
     if (w->Type != 0) {
         pLog->err(0, 0, "ESP41 : Type[%x] invalid.", w->Type);
         return 0;

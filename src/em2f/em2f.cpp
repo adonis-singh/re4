@@ -1,3 +1,4 @@
+#include "obj1c.h"
 // em2f module (D:/Bio4/Prog/em2f.cpp): the lake monster. It swims along the room's EMI route points
 // (em2fSetNextRoute / em2fChangeRoute), dives and surfaces (em2fWaterEffSet), rams the boat from
 // below (em2f_R1_RisingDragon), swallows the player (em2f_R1_Packman), hides until the harpoons hit
@@ -41,13 +42,6 @@
 // object, merged into .bss by the REL link.
 asm(".comm common_em2f,52,4");
 
-
-// Floating island (game/obj1c.cpp): only what the crash check calls.
-class cObj1c : public cObj {
-public:
-    void setCrashBig(Vec* from);
-    int ckCrash();
-};
 
 typedef void (*Em2fFunc)(cEm2f*);
 
@@ -223,7 +217,7 @@ static Vec em2f_die_pos = { -46800.0f, -734.0f, 22157.0f };
 
 // The camera em2fCriCamMove installs (the drowning cut): explicitly zero-initialised so it stays
 // in .data.
-static Camera em2f_cri_cam = { 0 };
+static CAMERA em2f_cri_cam = { 0 };
 
 // Per-frame update: damage check, waitTimer countdown, clears the per-frame flags, the route check,
 // the R0 table (Init / Move / Damage / Die), then collision, scenario check, the island crash test,
@@ -323,10 +317,7 @@ static void em2f_R0_Init(cEm2f* em)
     YarareAdd(em, &w->hit[6], 0.0f, 0.0f, -600.0f, 500.0f, 600.0f, 0x1D, YAT_FLAG_ON | YAT_FLAG_Z_AXIS);
     em->hp = 1000;
     em->Motion.flip = em2f_flip_tbl;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(8), EFF_EM2F, 0);
     w->flags = zero;
     w->x580 = em->pos.y;
@@ -373,7 +364,7 @@ static void em2f_R0_Init(cEm2f* em)
         em->scale.x = 2.0f;
         em->scale.y = 2.0f;
         em->scale.z = 2.0f;
-        EmRoutineSet(em, 1, 2, 0, 0);
+        em->setRno(1, 2, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0xA), 0, 0, 0x401, 0);
         MotionMove(em, 0);
         break;
@@ -385,7 +376,7 @@ static void em2f_R0_Init(cEm2f* em)
         em->setStatus(EM_STATUS_IK_OFF);
         em->atari.m_flag &= ~0x300;
         em->atari.m_flag |= 8;
-        EmRoutineSet(em, 1, 0xA, 0, 0);
+        em->setRno(1, 0xA, 0, 0);
         MotionSetCore(em, MOTION(em), ARC(0xA), 0, 0, 0x401, 0);
         MotionMove(em, 0);
         break;
@@ -437,7 +428,7 @@ static void em2f_R1_Walk(cEm2f* em)
         em->ang.y = LIMIT_ANGLE(em->ang.y);
         MotionMove(em, 0);
         if (em->l_pl < 1000000.0f) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -459,7 +450,7 @@ static void em2f_R1_SwimWait(cEm2f* em)
     case 1:
         if (StaFlagChk(pG, STA_PL_BOAT)) {
             em->be_flag |= 2;
-            EmRoutineSet(em, one, 3, 0, 0);
+            em->setRno(one, 3, 0, 0);
         }
         break;
     }
@@ -538,7 +529,7 @@ static void em2f_R1_Swim(cEm2f* em)
         w->timer--;
     }
     {
-        cModel* p = em->getPartsPtr(8);
+        cParts* p = em->getPartsPtr(8);
 
         d = (p->world.x - w->nextPos.x) * (p->world.x - w->nextPos.x)
             + (p->world.z - w->nextPos.z) * (p->world.z - w->nextPos.z);
@@ -551,9 +542,9 @@ static void em2f_R1_Swim(cEm2f* em)
                     return;
                 }
                 if (w->atkCnt) {
-                    EmRoutineSet(em, 1, 6, 0, 0);
+                    em->setRno(1, 6, 0, 0);
                 } else {
-                    EmRoutineSet(em, 1, 9, 0, 0);
+                    em->setRno(1, 9, 0, 0);
                 }
                 return;
             }
@@ -569,11 +560,11 @@ static void em2f_R1_Swim(cEm2f* em)
                 return;
             }
             if (ang > 2.3561945f) {
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
                 return;
             }
             if (ang > 1.0471976f) {
-                EmRoutineSet(em, 1, 4, 0, 0);
+                em->setRno(1, 4, 0, 0);
                 return;
             }
         }
@@ -629,7 +620,7 @@ static void em2f_R1_SwimTurn90(cEm2f* em)
             em->ang.y = LIMIT_ANGLE(em->ang.y);
         }
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -661,7 +652,7 @@ static void em2f_R1_SwimTurn180(cEm2f* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -703,7 +694,7 @@ static void em2f_R1_SwimTurn180Atk(cEm2f* em)
     case 1:
         if (MotionMove(em, 0)) {
             w->flags &= ~0x10;
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -742,7 +733,7 @@ static void em2f_R1_RisingDragon(cEm2f* em)
         if (w->timer == 0) {
             hide = StaFlagChk(pG, STA_PL_SWIM);
             if (hide == 0) {
-                EmRoutineSet(em, one, 3, 0, 0);
+                em->setRno(one, 3, 0, 0);
                 break;
             }
             em->r_no_2++;
@@ -790,11 +781,11 @@ static void em2f_R1_RisingDragon(cEm2f* em)
         r = MotionMove(em, 0);
         if (r) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         } else {
             if (em->Motion.Seq_old.Free & 1) {
                 if (StaFlagChk(pG, STA_PL_SWIM)) {
-                    EmRoutineSet(pPL, r, 0xF, 9, r);
+                    pPL->setRno(r, 0xF, 9, r);
                     SndCall(8, 0x1E, &em->pos, em->id, 0, em);
                     SndCall(8, 0x1F, &pPL->pos, em->id, 0, pPL);
                 }
@@ -847,7 +838,7 @@ static void em2f_R1_Packman(cEm2f* em)
         if (w->timer == 0) {
             hide = StaFlagChk(pG, STA_PL_SWIM);
             if (hide == 0) {
-                EmRoutineSet(em, one, 3, 0, 0);
+                em->setRno(one, 3, 0, 0);
                 break;
             }
             em->r_no_2++;
@@ -899,14 +890,14 @@ static void em2f_R1_Packman(cEm2f* em)
         if (r) {
             if ((s16) pG->pl_life > 0) {
                 em2fChangeRoute(em);
-                EmRoutineSet(em, 1, 3, 0, 0);
+                em->setRno(1, 3, 0, 0);
             } else {
                 em->r_no_2++;
             }
         } else {
             if (em->Motion.Seq_old.Free & 1) {
                 if (StaFlagChk(pG, STA_PL_SWIM)) {
-                    EmRoutineSet(pPL, r, 0xF, 9, r);
+                    pPL->setRno(r, 0xF, 9, r);
                     pPL->be_flag &= ~2;
                     SndCall(8, 0x1E, &em->pos, em->id, 0, em);
                 }
@@ -928,7 +919,7 @@ static void em2f_R1_Packman(cEm2f* em)
     case 7:
         if (MotionMove(em, 0)) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -1045,7 +1036,7 @@ static void em2f_R1_HideMode(cEm2f* em)
         }
         if (MotionMove(em, 0)) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     case 0xA:
@@ -1061,7 +1052,7 @@ static void em2f_R1_HideMode(cEm2f* em)
         }
         if (MotionMove(em, 0)) {
             em2fChangeRoute(em);
-            EmRoutineSet(em, 1, 3, 0, 0);
+            em->setRno(1, 3, 0, 0);
         }
         break;
     }
@@ -1170,8 +1161,8 @@ static void em2f_R1_Critical(cEm2f* em)
 void em2fCriCamMove(cEm2f* em)
 {
     Em2fWork* w = EM2F_WK(em);
-    Camera* c = &pG->Camera;
-    Camera* cam;
+    CAMERA* c = &pG->Camera;
+    CAMERA* cam;
     Vec v;
 
     PosToPos(&c->param.pos, &w->camPos, &em2f_cri_cam.param.pos, 0.1f);
@@ -1201,7 +1192,7 @@ void em2fCriCamMove(cEm2f* em)
         cam->Distance = SQRTF(dx * dx + dy * dy + dz * dz);
     }
     CameraSetOrientationUp(cam);
-    CamCtrl.m_pExtraCamera = (s32) cam;
+    CamCtrl.SetExtraCamera(cam);
 }
 
 // R0 == 2: damage (flag bit3), runs Em2f_R2_move_tbl (Dm_Normal).
@@ -1222,7 +1213,7 @@ static void em2f_R1_Dm_Normal(cEm2f* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 0, 0, 0);
+            em->setRno(1, 0, 0, 0);
         }
         break;
     }
@@ -1345,7 +1336,7 @@ static void em2fScaleSet(cEm2f* em)
 // Water splash on the parts `no`.
 static inline void em2fWaterPower(cEm2f* em, int no)
 {
-    cModel* p = em->getPartsPtr(no);
+    cParts* p = em->getPartsPtr(no);
 
     AddWaterPower(p->world, fRand0_1() * 0.3f + 0.3f);
 }
@@ -1612,12 +1603,12 @@ int em2fRisingDragonCk(cEm2f* em)
             if (Rnd() & 3) {
                 w->rndFlag = 0;
             }
-            EmRoutineSet(em, one, 7, 0, 0);
+            em->setRno(one, 7, 0, 0);
         } else {
             if (Rnd() & 3) {
                 w->rndFlag = one;
             }
-            EmRoutineSet(em, one, 8, 0, 0);
+            em->setRno(one, 8, 0, 0);
         }
         return 1;
     }
@@ -1703,7 +1694,7 @@ void em2fIslandCrashCk(cEm2f* em)
 
     for (i = 0; i < ObjMgr.getArrayNum(); i++) {
         cObj1c* o = (cObj1c*) ObjMgr.fastAt(i);
-        cModel* p;
+        cParts* p;
         f32 r;
         f32 d;
 

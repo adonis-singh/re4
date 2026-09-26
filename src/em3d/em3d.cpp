@@ -54,18 +54,11 @@ static void em3d_R1_WarpMove(cEm3d* em);
 
 
 
-// math_sub.h's VECNormalize with the log pointer read as a plain struct member (em27.cpp).
-#define VECNormalizeP(src, dst)                                                         \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 // Radio message `no` at the bottom of the screen, held for 90 frames.
 static inline void em3dMesSet(Em3dWork* w, int no)
 {
-    SceMesSet(no, 0xB2, 1, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(no, 0xB2, 1, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     w->Se_wait = 90;
 }
 
@@ -301,16 +294,13 @@ static void em3d_R0_Init(cEm3d* em)
     at = &em->atari;
     at->init(0.0f, 0.0f, 0.0f, 800.0f, 700.0f, 700.0f, 3000.0f, 1, 0x2000, 10);
     zero = 0;
-    AtariOff(at, 0xFCFF);
+    at->off();
     em->setStatus(EM_STATUS_LOCKOFF);
     em->be_flag &= ~0x01000000;
     em->be_flag &= ~0x10;
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     YarareInit(em, 0.0f, 750.0f, -3000.0f, 1500.0f, 6000.0f, 1, YAT_FLAG_ON | YAT_FLAG_Z_AXIS | YAT_FLAG_NO_MARK);
-    em->lockParts = 2;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->cEm::setTarget(2, 0.0f, 0.0f, 0.0f);
     EspDataLoad((u32) ARC(4), EFF_EM3D, 0);
     w->Be_flg = zero;
     w->Fire_wait = zero;
@@ -345,7 +335,7 @@ static void em3d_R0_Init(cEm3d* em)
     w->Patrol_pos = Em3d_pos_tbl[0];
     EstSet(em, -1, 0, 0, EFF_EM3D, 0, 1, ESP_CORE_KIND_NONE, em, 0);
     EstSet(em, -1, 0, 0, EFF_EM3D, 3, 1, ESP_CORE_KIND_NONE, em, 0);
-    EmRoutineSet(em, 1, 0, 0, 0);
+    em->setRno(1, 0, 0, 0);
     SndCall(6, 0, &em->pos, 0, 0, em);
     em3d_R0_Move(em);
 }
@@ -482,7 +472,7 @@ static void em3d_R1_TargetMove(cEm3d* em)
         EM3D_HOVER_MOVE(em, w, 0.95f);
         if ((em->pos.x - pos.x) * (em->pos.x - pos.x) + (em->pos.z - pos.z) * (em->pos.z - pos.z) < 9000000.0f) {
             w->pTargetEm = 0;
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -578,7 +568,7 @@ static void em3d_R1_Atk(cEm3d* em)
                 em3dMesSet(w, 5);
             }
         }
-        EmRoutineSet(em, 1, 0, 0, 1);
+        em->setRno(1, 0, 0, 1);
         break;
     }
     em3dMatCalc(em);
@@ -612,7 +602,7 @@ static void em3d_R1_WarpMove(cEm3d* em)
         if (w->Timer) {
             w->Timer--;
         } else {
-            EmRoutineSet(em, 1, 2, 0, 0);
+            em->setRno(1, 2, 0, 0);
         }
         break;
     }
@@ -626,7 +616,7 @@ static void em3d_R1_WarpMove(cEm3d* em)
 // Spins the main rotor (parts 0xA, yaw) and the tail rotor (parts 0xB, pitch) 35 degrees per frame.
 void em3dRoterMove(cEm3d* em)
 {
-    cModel* p;
+    cParts* p;
 
     p = em->getPartsPtr(0xA);
     p->ang.y += 0.61086524f;
@@ -722,7 +712,7 @@ void em3dChainGunMove(cEm3d* em)
     Vec rot;
     f32 rotX;
     f32 rotY;
-    cModel* p;
+    cParts* p;
     f32 len;
     f32 angX;
     f32 angY;
@@ -773,7 +763,7 @@ void em3dChainGunMove(cEm3d* em)
 void em3dHeliPitchMove(cEm3d* em)
 {
     Em3dWork* w = EM3D_WK(em);
-    cModel* p;
+    cParts* p;
     f32 v;
     f32 ang;
 
@@ -814,7 +804,7 @@ int em3dGetTargetEm(cEm3d* em)
 
     PSVECSubtract(&target, &em->pos, &dir);
 #line 1218 "D:/Bio4/Prog/em3d.cpp"
-    VECNormalizeP(&dir, &dir);
+    VECNormalize(&dir, &dir);
     a = em->pos;
     w->pTargetEm = 0;
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
@@ -846,7 +836,7 @@ int em3dGetTargetEm(cEm3d* em)
         }
         PSVECSubtract(&e->pos, &em->pos, &d);
 #line 1240 "D:/Bio4/Prog/em3d.cpp"
-        VECNormalizeP(&d, &d);
+        VECNormalize(&d, &d);
         if (acosf(PSVECDotProduct(&dir, &d)) > 0.5235988f) {
             continue;
         }

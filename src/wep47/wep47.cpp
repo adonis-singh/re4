@@ -1,8 +1,8 @@
 // wep47 module: Wesker's semi-auto rifle (own copy of the cObjHkSniper class, object id 0x30;
 // routines wep/pl_rifle.cpp).
 //
-// Wesker's cObjHkSniper: the wep10 object without the wep.shotFrame[0..2] table, hanging on the player's
-// right hand (parts 10), driven by wep.mode / wep.step from the rifle routines (mode 2 fire: SEs
+// Wesker's cObjHkSniper: the wep10 object without the shotFrame[0..2] table, hanging on the player's
+// right hand (parts 10), driven by r_no_0 / r_no_1 from the rifle routines (mode 2 fire: SEs
 // and vibration only, mode 4 reload by tune level, ItemMgr.reload at frame 34; both ended by the
 // player routine). Wep47_init is the WeaponInitFunc, PlRifleMove the WeaponMoveFunc.
 
@@ -56,39 +56,39 @@ void cObjHkSniper::init(cModel* parent)
         ObjMgr.destroy(this);
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x22);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x22);
     resetMotion();
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire, set by the rifle fire00): step 0 drops the gun's motion, plays the shot
+// mode == 2 (fire, set by the rifle fire00): step 0 drops the gun's motion, plays the shot
 // SEs, sets Status_flg[0] bit23 (shot noise) and vibrates the pad; step 1 waits.
 void cObjHkSniper::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         Motion.pMot = 0;
-        SndCall(2, 0, &pParts->world, 0, 0, 0);
-        SndCall(2, 4, &pParts->world, 0, 0, 0);
+        SndCall(2, 0, &pList->world, 0, 0, 0);
+        SndCall(2, 4, &pList->world, 0, 0, 0);
         StaFlagOn(pG, STA_PL_FIRE);
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        r_no_1 = 1;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the gun's reload motion of the tune level (0x21/0x25/
+// mode == 4 (reload): step 0 starts the gun's reload motion of the tune level (0x21/0x25/
 // 0x26) with the level's SE (2/0x20/0x21); at frame 34 ItemMgr.reload refills the magazine.
 void cObjHkSniper::moveReload()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -115,8 +115,8 @@ void cObjHkSniper::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
+        r_no_1 = 1;
     }
     if (MotionCheckCrossFrame(&Motion, 34.0f)) {
         ItemMgr.reload();

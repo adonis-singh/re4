@@ -151,48 +151,10 @@ extern "C" int symbol_check(char** pp, const char* sym);
 extern "C" void sp_PosRand_trans_1a(EspSeqData* head, EspGenWork* gen);
 // COMPILER-DIFF: #1 (the original moves the cModel* argument before the f32 one: `mr r4; fmr f1`)
 
-// 1 when the effect tool was entered from the event tool (EvtDebug.FlagEtc bit 30).
-static inline int evtToolOn()
-{
-    int on = 1;
-    if ((EvtDebug.FlagEtc & 0x40000000) == 0) {
-        on = 0;
-    }
-    return on;
-}
-
-// the same `on` shape for another flag word (EspToolInit: `li 1; cmp; bcc; li 0; cmpwi; beq`)
-static inline int flagOn(u32 f, u32 bit)
-{
-    int on = 1;
-    if ((f & bit) == 0) {
-        on = 0;
-    }
-    return on;
-}
-
-// the event's cut number as written in the debug data (two ascii digits) through the caller's buffer
 // the room id read through the struct view of pG (global.h pG) right after the "x:/soft/room/" template copy: the
 // pG load then depends on the copy's stores and the target's store order (word 1 last, `stw r9,4(r30)` right before
 // `lwz r9,pG`) follows; the plain G_ROOM_ID read is a fixed scalar the stores do not order
 #define G_ROOM_ID_S (*(u16*) &pG->stage_no)
-// COMPILER-DIFF: #13 -- the j loop's `&EvtDebug` is a fresh `lis/addi` in the target (a REG_EQUIV lo_sum pseudo that the
-// original never allocated, re-materialised at its copy); a distinct SYMBOL_REF ("*EvtDebug" string, so cse/gcse do not
-// merge it with the pScr block's lo_sum) gives that with a symbol-based alias base for the loop's loads
-extern EventDebug EvtDebug_j asm("EvtDebug");
-#define EVT_CUT_NO_J(buf) ((buf)[0] = EvtDebug_j.pad_0[0x49], (buf)[1] = EvtDebug_j.pad_0[0x4A], (buf)[2] = 0, atoi(buf))
-#define EVT_CUT_NO(buf) ((buf)[0] = EvtDebug.pad_0[0x49], (buf)[1] = EvtDebug.pad_0[0x4A], (buf)[2] = 0, atoi(buf))
-
-// the event's cut number as written in the debug data (two ascii digits)
-static inline int evtCutNo()
-{
-    char buf[3];
-
-    buf[0] = EvtDebug.pad_0[0x49];
-    buf[1] = EvtDebug.pad_0[0x4A];
-    buf[2] = 0;
-    return atoi(buf);
-}
 
 // The model an effect generator hangs on: the db_mod slot of its Parent_no, else the viewer's
 // model 0.
@@ -200,7 +162,7 @@ extern "C" cModel* GetActiveModel(EspGenWork* gen)
 {
     cModel* m;
 
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         return dbModGetEmPtr(gen->Parent_no);
     }
     m = dbModGetEmPtr(db_modelNo);
@@ -447,13 +409,6 @@ extern "C" void SeqSet(EspSeqData* head, int mode)
 {
     cModel* m;
     u16 f;
-    // COMPILER-DIFF: #13 (int shape, em27DmCk): the EstSet stack zero is a function-scope constant with
-    // one use in another block, so update_equiv_regs moves the `li` next to the store (r0). It is assigned
-    // right before the evtToolOn() test: for sched1 the set is a free insn of that block and takes the t1 slot
-    // next to the `lis`, so the inline's `on = 1` slips to t2 behind the flags load (the target's
-    // reload-materialised `li`), out of the high's r9 range, and `on` reuses r9.
-    int zero;
-
     m = dbModGetEmPtr(db_modelNo);
     if (m == 0) {
         m = EmMgr.at(db_modelNo);
@@ -466,11 +421,10 @@ extern "C" void SeqSet(EspSeqData* head, int mode)
     } else {
         f = (u16) (8 << (mode - 1));
     }
-    zero = 0;
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         f |= 0x1000;
     }
-    EstSet(m, -1, 0, 0, head, f | 1, ESP_CORE_KIND_NONE, m, EFF_DEBUG, (void*) zero);
+    EstSet(m, -1, 0, 0, head, f | 1, ESP_CORE_KIND_NONE, m, EFF_DEBUG, 0);
 }
 
 // Loads the event's camera data for the event-tool preview (EvtDebug camName).
@@ -644,7 +598,7 @@ extern "C" void DB_WorkPop(int flags, int emArray)
 // Hides parts `no` of a model.
 static inline void carPartsClear(cModel* m, int no)
 {
-    cModel* p = m->getPartsPtr(no);
+    cParts* p = m->getPartsPtr(no);
     if (p) {
         p->scale.z = p->scale.y = p->scale.x = 0.0f;
     }
@@ -683,7 +637,7 @@ static inline void texBlendTbl(u8* tbl, TexRenderMng* t)
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = t->m_Tex_no;
+    tbl[5] = t->GetTexNo();
 }
 
 #define INFO0(m) ((m)->pModelInfo)
@@ -697,30 +651,12 @@ static inline void texBlendTbl(u8* tbl, TexRenderMng* t)
 #define INFO8(m) (INFO7(m)->pList)
 #define INFO9(m) (INFO8(m)->pList)
 
-// the name copies: an inline wrapper gives strcpy's destination as a fresh `addi r3,r1,0x110` per call (integrate
-// substitutes `&name` into the hard-register argument set) while strcat's `name` stays the PRE'd pseudo; the source
-// goes through a `char*` local so the element address is `pModel + ofs` (base first) like the target
-static inline void StrCpy(char* d, const char* s) { strcpy(d, s); }
-#define NAME_SET(src_) { char* src = (src_); StrCpy(name, src); }
-// every model field is re-read as EvtDebug.pModel[i].field (no `m` pointer: the target reloads pModel per use)
-// every model field is read as pModel + rr (the target reloads pModel per use and keeps only the product copy `rr`):
-// field reads sum `rr + pModel` (`add rX,r26,rP`), the name/bin/tpl addresses `pModel + rr` (`add r4,r4,r26`, the natural
-// EXPAND_SUM order of `&pModel[i].name`); M0 is the pScr block's view through its own `lis/addi` (#13, see ed0), MJ the
-// j loop's (EvtDebug_j)
-#define M (*(EvtDebugModel*) (rr + (u32) EvtDebug.PMod))
-#define MA ((EvtDebugModel*) ((u32) EvtDebug.PMod + rr))
-#define M0 ((EvtDebugModel*) (rr + (u32) ed0->PMod))
-#define MJ ((EvtDebugModel*) ((u32) EvtDebug_j.PMod + rr))
-
 // Effect tool start: tool flags, viewer started; when entered from the event tool, loads the
 // event's stage / cut numbers (from EvtDebug), its .eff, camera and model set (every event model
 // with its parents through dbModelLoad / LoadModelSetName, special-cased ev3001 / kizu files), else
 // waits for a model set from the config. `out` gets the entry mode.
-extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
+void EspToolInit(bool& out, u8& stage, u8& cut)
 {
-    char buf3[3];
-    char path[0x100];
-    char name[0x30];
     void* buf;
     int parent;
     int nModel;
@@ -770,45 +706,45 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
     SetLoopFlag(0, 2);
     SetLoopFlag(0, 3);
     SetLoopFlag(0, 4);
-    if (flagOn(EvtDebug.FlagEtc, 0x80000000)) {
+    if (EvtDebug.FlagCkEtc(FlagEvent2Esp)) {
         int n;
         u8 c;
         u8 hi;
         u32 nLit;
         int k;
-        cModel** list;
 
-        EvtDebug.FlagEtc = (EvtDebug.FlagEtc & 0x7FFFFFFF) | 0x40000000;
+        EvtDebug.FlagOffEtc(FlagEvent2Esp);
+        EvtDebug.FlagOnEtc(FlagEsp2Event);
         StaFlagOn(pG, STA_SUSPEND);
         StaFlagOn(pG, STA_EVENT_SYSYTEM);
         StaFlagOn(pG, STA_EFFAREA_USE_CAM);
-        list = EspEvModList;
-        for (room = 0; room < 0x80; room++) {
-            list[room] = 0;
-        }
-        n = EVT_CUT_NO(buf3);
+        EspEvModList.Clear();
+        n = EvtDebug.GetEventNoNum();
+        // declared after GetEventNoNum(): its digit buffer takes the lowest frame slot, below these
+        char path[0x100];
+        char name[0x30];
         c = n;
         // `hi` is set twice: a single-set quotient has nonzero_bits <= 0x1F and combine drops the target's `clrlslwi` mask
         hi = c / 10;
-        *pStage = (hi << 4) + c % 10;
-        c = EvtDebug.pad_0[0xDB];
+        stage = (hi << 4) + c % 10;
+        c = EvtDebug.GetNowCut();
         hi = c / 10;
-        *pCut = (hi << 4) + c % 10;
-        db_cutNo = *pCut;
-        sprintf(path, "x:/soft/room/esp/r%03xs%02x.eff", G_ROOM_ID, *pStage);
+        cut = (hi << 4) + c % 10;
+        db_cutNo = cut;
+        sprintf(path, "x:/soft/room/esp/r%03xs%02x.eff", G_ROOM_ID, stage);
         if (HDReadDebugAlloc(path, &buf, 1)) {
             db_effLoaded = 1;
             EspDataLoad((u32) buf, db_effOwner, 0);
         }
-        *out = 0;
+        out = false;
         DB_WorkPop(3, db_emArray);
-        StrCpy(name, EvtDebug.evName);
+        EvtDebug.GetNameCam(name);
         strcpy(path, "x:/soft/room/");
         strcat(path, name);
         if (HDReadDebugAlloc(path, &db_camMotion, 1) == 0) {
             db_camMotion = 0;
         }
-        StrCpy(name, EvtDebug.camName);
+        EvtDebug.GetNameLit(name);
         strcpy(path, "x:/soft/room/");
         strcat(path, name);
         if (HDReadDebugAlloc(path, &db_litData, 1) == 0) {
@@ -825,10 +761,8 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 l->be_flag &= 2; // sic: the original masks with 2, not ~2 (`rlwinm 0,30,30`)
             }
         }
-        nModel = EvtDebug.NumMod;
+        nModel = EvtDebug.GetNumMod();
         for (i = 0; i < nModel; i++) {
-            // set before the static guards: a set after their `bne`s is `maybe_never` for loop.c and stays in the body
-            int* pParent = &parent;
             static DB_MODEL_FILES bin;
             static DB_MODEL_FILES tpl;
             static DB_MODEL_FILES xtra;
@@ -838,63 +772,43 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
             int nBin;
             TexRenderMng* t;
             cModel* s;
-            u32 prod;
-            u32 rr;
-            EventDebug* ed0;
 
             bin.init();
             tpl.init();
             xtra.init();
-            // COMPILER-DIFF: candidate #12 (AROUND form) -- the target's parent/else arms recompute `pModel + i*0x644` from
-            // gcse's reaching-reg copy of the product (`mr r26,r9`) although the flags test is on cse's AROUND path (ours
-            // folds the sum into the test's pseudo). The tied codeless asm is that copy (regmove splits it into `rr = prod`
-            // + the asm); its `"=m"(buf3[2])` output makes the flags load a dependent, so sched1 issues the copy before
-            // the add (priority 6 > 5) and `prod` dies at the add (tied into the sum's r9 like the target).
-            prod = i * sizeof(EvtDebugModel);
-            asm("" : "=r"(rr), "=m"(buf3[2]) : "0"(prod));
-            if (flagOn(*(u32*) (prod + (u32) EvtDebug.PMod + 0x63C), 0x20000000)) {
+            if (EvtDebug.EtcFlgCkMod(i, OyaRide)) {
                 int idx;
-                int parentModel;
 
-                idx = (s8) M.pad_63A[0];
-                parent = (s8) M.pad_63A[1];
+                EvtDebug.GetModOya(i, &idx, &parent);
                 Vec ofs = {0.0f, 0.0f, 0.0f};
-                // an int local: `(s8)` of the field itself narrows the load to `lbz 0x637`
-                parentModel = (int) EvtDebug.PMod[idx].pModel;
-                dbModelParentChild((s8) i, (s8) parentModel, ((s8*) pParent)[3], &ofs, &ofs);
+                dbModelParentChild(i, EvtDebug.GetModWorkNo(idx), parent, &ofs, &ofs);
             } else {
-                NAME_SET(MA->name);
+                EvtDebug.GetNameMot(i, name);
                 strcpy(path, "x:/soft/room/");
                 strcat(path, name);
                 xtra.append(path);
             }
-            // COMPILER-DIFF: #13 -- the pScr block's `&EvtDebug` is a REG_EQUIV symbol pseudo the original never allocated:
-            // re-materialised here as `lis r9; addi r9,r9; lwz 0xe0(r9)` (the offset stays outside the @l because the
-            // equivalence is the bare symbol) and again in the j loop (EvtDebug_j). The plain pointer local gives the
-            // same: loop.c hoists the lo_sum to the i preheader and leaves `ed0 = copy` with REG_EQUIV EvtDebug; the copy
-            // spans the whole body (96 calls), global.c spills it and reload re-materialises the symbol at the use.
-            ed0 = &EvtDebug;
-            s = M0->pScr;
+            s = EvtDebug.GetModPtr(i);
             if (s) {
                 bin.append(s->pModelInfo->model_addr);
                 tpl.append(s->pModelInfo->tpl_addr);
             } else {
-                nBin = M0->nBin;
+                nBin = EvtDebug.GetNumBin(i);
                 for (j = 0; j < nBin; j++) {
-                    NAME_SET(MJ->bin[j]);
+                    EvtDebug.GetNameBin(i, j, name);
                     strcpy(path, "x:/soft/room/");
-                    if (G_ROOM_ID_S == 0x332 && EVT_CUT_NO_J(buf3) == 0 && db_cutNo == 0x19 &&
+                    if (G_ROOM_ID_S == 0x332 && EvtDebug.GetEventNoNum() == 0 && db_cutNo == 0x19 &&
                         strcmp(name, "event/model/ev3000/ev3001.bin") == 0) {
                         strcat(path, "event/model/ev3000/ev3001a.bin");
                     } else {
                         strcat(path, name);
                     }
                     bin.append(path);
-                    NAME_SET(MJ->tpl[j]);
+                    EvtDebug.GetNameTpl(i, j, name);
                     strcpy(path, "x:/soft/room/");
                     if (G_ROOM_ID_S == 0x317 && strcmp(name, "event/model/ev0000/ev0001.tpl") == 0) {
                         strcat(path, "event/model/ev0000/ev0001_kizu.tpl ");
-                    } else if (G_ROOM_ID == 0x332 && EVT_CUT_NO_J(buf3) == 0 && db_cutNo == 0x19 &&
+                    } else if (G_ROOM_ID == 0x332 && EvtDebug.GetEventNoNum() == 0 && db_cutNo == 0x19 &&
                                strcmp(name, "event/model/ev3000/ev3001.tpl") == 0) {
                         strcat(path, "event/model/ev3000/ev3001a.tpl");
                     } else {
@@ -903,7 +817,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                     tpl.append(path);
                 }
             }
-            NAME_SET(MA->name);
+            EvtDebug.GetNameMot(i, name);
             if (G_ROOM_ID == 0x11B && nameIs4(name, 'p', 'l', '0', '0')) {
                 strcpy(path, "x:/soft/room/event/model/ev0000/ev0001a.bin");
                 bin.append(path);
@@ -918,7 +832,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 strcpy(path, "x:/soft/room/event/model/ev0000/ev000b.tpl");
                 tpl.append(path);
             }
-            NAME_SET(MA->name);
+            EvtDebug.GetNameMot(i, name);
             if (G_ROOM_ID == 0x11C) {
                 if (nameIs4(name, 'p', 'l', '0', '0')) {
                     strcpy(path, "x:/soft/room/event/model/ev0000/ev000c.bin");
@@ -933,7 +847,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                     tpl.append(path);
                 }
             }
-            NAME_SET(MA->name);
+            EvtDebug.GetNameMot(i, name);
             if (G_ROOM_ID == 0x325) {
                 if (db_cutNo == 4 && nameIs4(name, 'p', 'l', '0', '0')) {
                     strcpy(path, "x:/soft/room/event/model/ev0000/ev000f.bin");
@@ -948,7 +862,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                     tpl.append(path);
                 }
             }
-            slot = (int) M.pModel;
+            slot = EvtDebug.GetModWorkNo(i);
             dbModelLoad(slot, &bin, &tpl, &xtra);
             SetLoopFlag(0, slot);
             em = dbModGetEmPtr(slot);
@@ -956,51 +870,44 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 Vec size;
                 Vec center;
                 cModel* p;
-                u32 la;
                 cModelInfo* info;
                 ModelBound* b;
                 u8 lit;
 
                 em->setNoSuspend(1);
                 p = dbModGetEmPtr(slot);
-                // an integer address variable: with `cModel** list` the REGNO_POINTER_FLAG makes `list` the base and
-                // the index takes r0 (target: both unflagged -> the index is BASE_REGS r9, the sum global r11); the shift
-                // keeps `la` first in the PLUS (EXPAND_SUM moves a MULT operand first)
-                la = (u32) EspEvModList;
-                if ((u32) slot <= 0x7F) {
-                    *(cModel**) (la + ((u32) slot << 2)) = p;
-                }
-                em->ot_type = M.otType;
-                if (flagOn(M.flags, 0x80000000)) {
+                EspEvModList.SetModelPtr(slot, p);
+                em->ot_type = EvtDebug.GetModOtType(i);
+                if (EvtDebug.EtcFlgCkMod(i, ZmodeNoWrite)) {
                     em->z_mode = 1;
                 }
-                if (flagOn(M.flags, 0x40000000)) {
+                if (EvtDebug.EtcFlgCkMod(i, NoClip)) {
                     em->be_flag |= 0x1000;
                 }
                 info = em->pModelInfo;
                 b = &info->bound;
-                lit = M.lightMask;
+                lit = EvtDebug.GetModLightMask(i);
                 size.x = b->size.x;
                 size.y = b->size.y;
                 size.z = b->size.z;
-                PSVECSubtract(&b->center, &em->pParts->pos, &center);
+                PSVECSubtract(&b->center, &em->pList->pos, &center);
                 em->LightInfo.init2(2, 1, &center, &size, lit);
             }
-            NAME_SET(MA->name);
+            EvtDebug.GetNameMot(i, name);
             if (nameIs4(name, 'o', 'b', 'm', '1') && name[0x13] == 'a') {
                 DbModCarSet(em);
             }
             if (G_ROOM_ID == 0x10B && nameIs4(name, 'p', 'l', '0', 'f')) {
-                cModel* p = em->getPartsPtr(3);
+                cParts* p = em->getPartsPtr(3);
                 p->scale.z = p->scale.y = p->scale.x = 0.0f;
             }
-            NAME_SET(MA->name);
+            EvtDebug.GetNameMot(i, name);
             if (G_ROOM_ID == 0x11B && nameIs4(name, 'p', 'l', '0', '0')) {
                 static u8 tbl0[0x20];
                 static u8 tbl1[0x20];
 
                 t = GetTexRenderMgrAddr(0);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl0, t);
                     texBlendSet(INFO6(em), tbl0);
                     INFO0(em)->be_flag |= 4;
@@ -1014,7 +921,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                     em->Refract_ratio = 0x90;
                 }
                 t = GetTexRenderMgrAddr(1);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl1, t);
                     texBlendSet(INFO7(em), tbl1);
                     texBlendSet(INFO8(em), tbl1);
@@ -1039,21 +946,21 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                     db_nearClip = 1;
                 }
             }
-            NAME_SET(MA->name);
+            EvtDebug.GetNameMot(i, name);
             if (G_ROOM_ID == 0x11C) {
                 static u8 tbl2[0x20];
                 static u8 tbl3[0x20];
 
                 if (nameIs4(name, 'p', 'l', '0', '0')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl2, t);
                         texBlendSet(INFO6(em), tbl2);
                     }
                 }
                 if (G_ROOM_ID == 0x11C && nameIs4(name, 'p', 'l', '0', '4')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl3, t);
                         texBlendSet(INFO4(em), tbl3);
                     }
@@ -1064,7 +971,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 static u8 tbl4[0x20];
 
                 t = GetTexRenderMgrAddr(0);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl4, t);
                     texBlendSet(em->pModelInfo, tbl4);
                 }
@@ -1074,12 +981,12 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 static u8 tbl5[0x20];
 
                 t = GetTexRenderMgrAddr(2);
-                if (t->used) {
+                if (t->IsAlive()) {
                     texBlendTbl(tbl5, t);
                     texBlendSet(em->pModelInfo->pList, tbl5);
                 }
             }
-            if (G_ROOM_ID == 0x317 && *pStage == 3 && (u32) db_cutNo > 0x10 && nameIs4(name, 'e', 'm', '3', '9') &&
+            if (G_ROOM_ID == 0x317 && stage == 3 && (u32) db_cutNo > 0x10 && nameIs4(name, 'e', 'm', '3', '9') &&
                 name[0x13] == '0' && name[0x14] == '0' && name[0x15] == '/') {
                 ModelInfoSetTrans(em, 0, 0);
             }
@@ -1089,14 +996,14 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
 
                 if (db_cutNo == 4 && nameIs4(name, 'p', 'l', '0', '0')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl6, t);
                         texBlendSet(INFO6(em), tbl6);
                     }
                 }
                 if (G_ROOM_ID == 0x325 && db_cutNo == 7 && nameIs4(name, 'p', 'l', '0', '0')) {
                     t = GetTexRenderMgrAddr(0);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl7, t);
                         texBlendSet(INFO6(em), tbl7);
                     }
@@ -1108,7 +1015,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
                 if ((db_cutNo == 0x33 || db_cutNo == 0x36) && nameIs4(name, 'e', 'v', 'm', 'a') && name[0x13] == '1' &&
                     name[0x14] == '0' && name[0x15] == '0' && name[0x16] == 'a') {
                     t = GetTexRenderMgrAddr(2);
-                    if (t->used) {
+                    if (t->IsAlive()) {
                         texBlendTbl(tbl8, t);
                         texBlendSet(em->pModelInfo, tbl8);
                         em->pModelInfo->blend_mode = 1;
@@ -1122,7 +1029,7 @@ extern "C" void EspToolInit(int* out, u8* pStage, u8* pCut)
             }
         }
     }
-    if (G_ROOM_ID == 0x332 && *pStage == 0 && db_cutNo == 0x19) {
+    if (G_ROOM_ID == 0x332 && stage == 0 && db_cutNo == 0x19) {
         HDReadDebugAlloc("X:\\Soft\\Room\\Event\\r332\\s00\\em3000a\\face\\ev3001_s00_019.fcv", &db_fcvData, 1);
     }
 }
@@ -1164,7 +1071,7 @@ extern "C" void EspToolExit()
     LightMgr.setFog();
     LightToolEnd();
     Block.dispAllBlock(0);
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         DbMenuSetExecTool("EVENT TOOL");
         StaFlagOff(pG, STA_SUSPEND);
         StaFlagOff(pG, STA_EVENT_SYSYTEM);
@@ -1185,7 +1092,7 @@ extern "C" void EspToolExit()
 // 1 when the tool was started from the event tool.
 extern "C" int DB_isGetComeEventTool()
 {
-    if (evtToolOn()) {
+    if (EvtDebug.FlagCkEtc(FlagEsp2Event)) {
         return 1;
     }
     return 0;
@@ -1285,14 +1192,14 @@ extern "C" void EspToolUpdate(DbToolWk* wk, int texNo)
         db_motionOn = 1;
         db_frameCnt = 0;
         dbModelSetCamera(0, &pG->Camera);
-        if (G_ROOM_ID == 0x332 && evtCutNo() == 0 && db_cutNo == 0x19 && db_fcvData) {
+        if (G_ROOM_ID == 0x332 && EvtDebug.GetEventNoNum() == 0 && db_cutNo == 0x19 && db_fcvData) {
             ShapeSet(INFO5(dbModSlot[0].pModel), 0, db_fcvData, 2);
         }
     }
     if (texNo) {
         TexRenderMng* t = GetTexRenderMgrAddr(texNo - 1);
-        if (t->used) {
-            drawTexture2(&t->m_Tex_obj, 0x14C, 0x36, 0, 0xA0, 0xA0);
+        if (t->IsAlive()) {
+            drawTexture2(t->GetTexObj(), 0x14C, 0x36, 0, 0xA0, 0xA0);
         }
     }
     if (db_nearClip == 1) {
@@ -1424,7 +1331,7 @@ extern "C" void DB_VecNullPartsPos(EspSeqData* head, Vec* in, Vec* out, Mtx* m)
             out->z = in->z + head->pos.z;
             SET_MTX_POS;
         } else if (parts < em->nParts) {
-            cModel* p = em->getPartsPtr(parts);
+            cParts* p = em->getPartsPtr(parts);
             zero.x = 0.0f;
             zero.y = 0.0f;
             zero.z = 0.0f;
@@ -1469,22 +1376,7 @@ extern "C" void DB_VecMulEmPartsMat(u32 parts, Vec* in, Vec* out, Mtx* m, EspGen
     Vec v;
 
     if (DB_isGetComeEventTool() == 1) {
-        // COMPILER-DIFF: #13 (the original never allocates the REG_EQUIV `high` pseudo, so the table address
-        // carries no r9 preference and `p` takes r9 in global-alloc pass 0). Same bytes from C: the address is a
-        // u32 local set before the test (`lis r9; addi r11` in the compare block) and the element address an
-        // unflagged `la + (no << 2)` sum, so regclass makes both operands BASE_REGS and the index is local-alloc'd
-        // r9 (not r0, not tied to `no`); the index lives while `la` does, which prunes `la`'s r9 preference and
-        // leaves r9 to `p` (`la` r11). The `li r9,0` before the `bgt` is jump2's post-reload
-        // "if (c) { x = a; goto l; } x = b" hoist: the else arm's first insn `slwi r9,r0,2` sets `p`'s register.
-        u32 no = gen->Parent_no;
-        u32 la = (u32) EspEvModList;
-        cModel* p;
-        if (no > 0x7F) {
-            p = 0;
-        } else {
-            p = *(cModel**) (la + (no << 2));
-        }
-        em = p;
+        em = EspEvModList.GetModelPtr(gen->Parent_no);
         if (em == 0) {
             NONE_BODY;
             return;
@@ -1505,7 +1397,7 @@ extern "C" void DB_VecMulEmPartsMat(u32 parts, Vec* in, Vec* out, Mtx* m, EspGen
         goto none;
     }
     if (gen->Tool_flg & 0x20) {
-        cModel* p = em->getPartsPtr(parts);
+        cParts* p = em->getPartsPtr(parts);
         PSMTXIdentity(*m);
         RotMatrix(*m, &em->ang);
         PSMTXMultVecSR(*m, in, &v);
@@ -1517,7 +1409,7 @@ extern "C" void DB_VecMulEmPartsMat(u32 parts, Vec* in, Vec* out, Mtx* m, EspGen
         v.z = 0.0f;
         PSMTXMultVec(*m, &v, out);
     } else {
-        cModel* p = em->getPartsPtr(parts);
+        cParts* p = em->getPartsPtr(parts);
         MtxPtr pm = p->mat;
         PSMTXMultVec(pm, in, out);
         PSMTXCopy(pm, *m);
@@ -1609,7 +1501,7 @@ extern "C" void DB_GetCamFrontPos(f32 dist, f32* x, f32* y, f32* z)
 {
     Vec dir;
     Vec pos;
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
 
     dir.x = cam->param.at.x - cam->param.pos.x;
     dir.y = cam->param.at.y - cam->param.pos.y;
@@ -1931,8 +1823,8 @@ extern "C" void sp_nobigenkai_trans(EspSeqData* head, EspGenWork* gen)
 extern "C" void sp_PosRand_trans_1a(EspSeqData* head, EspGenWork* gen)
 {
     cModel* em = GetActiveModel(gen);
-    cModel* p0;
-    cModel* p1;
+    cParts* p0;
+    cParts* p1;
     Vec a;
     Vec b;
     Vec ofs;

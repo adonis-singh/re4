@@ -15,6 +15,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj02.h"
 #include "em.h"
 #include "emhit.h"
 #include "em_wrap.h"
@@ -89,7 +90,7 @@ extern "C" int SwitchExec(cObj* obj, f32* spd, int no, f32 lim, f32 cur);
 
 
 // The scaffold objects keep their scale in the first Vec of the object work.
-#define R217_OBJ_VEC(o) ((Vec*) (o)->work)
+#define R217_OBJ_VEC(o) ((Vec*) ((cObjScr*) (o))->free)
 
 // Upper 16 bits of cEm::flags_324 set = dead.
 static inline int r217_emDead(cEm* e)
@@ -135,7 +136,7 @@ void R217Init()
         EmReadSearch(0x11, 0, 0);
     } else {
         SmdGetObjPtr(0x88)->be_flag |= 0x20;
-        SmdGetObjPtr(0x88)->pParts->ang.x = 1.6f;
+        SmdGetObjPtr(0x88)->pList->ang.x = 1.6f;
         SceAtSetEnable(5, 0);
         SceAtDataSet_exec(9, SCE_LEVEL10, 0, (TaskFunc) r217_3rd_set, 0, 1);
         for (u32 n = 0; n < 3; n++) {
@@ -365,7 +366,7 @@ static void r217_3rd_set()
 // Area 1 before the drop: message 2 (the door will not open).
 static void r217_close_door()
 {
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // The door rises (cut 10).
@@ -478,8 +479,8 @@ static void r217_Puzzle()
         while (CamCtrl.IsMotionEnd() == 0) {
             SceSleep(1);
         }
-        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-        SmdGetObjPtr(0x88)->pParts->ang.x = 0.0f;
+        SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
+        SmdGetObjPtr(0x88)->pList->ang.x = 0.0f;
     } else {
         ScfFlagOn(pG, SCF_R217_PUZZLE_CLEAR);
         SceSetEventCancel(1, (TaskFunc) r217_Puzzle_exit, 0, -1, 1);
@@ -571,18 +572,18 @@ extern "C" int SwitchExec(cObj* obj, f32* spd, int no, f32 lim, f32 cur)
     int dir;
 
     if (lim > cur) {
-        obj->pParts->ang.x += *spd;
+        obj->pList->ang.x += *spd;
         dir = 1;
     } else {
-        obj->pParts->ang.x -= *spd;
+        obj->pList->ang.x -= *spd;
         dir = 0;
     }
     if (*spd >= 0.0f) {
-        if (dir ? (obj->pParts->ang.x < lim) : (obj->pParts->ang.x > lim)) {
+        if (dir ? (obj->pList->ang.x < lim) : (obj->pList->ang.x > lim)) {
             *spd += r217_switchAcc * 1.85f;
         } else {
             *spd = -r217_switchAcc;
-            obj->pParts->ang.x = lim;
+            obj->pList->ang.x = lim;
             return 1;
         }
     }

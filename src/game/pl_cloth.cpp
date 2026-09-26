@@ -2,6 +2,7 @@
 // sweater / ribbon (Ashley), hair (Luis), dress / hair / ribbon (Ada). The chain tables give each
 // link its model part and neighbours; PenCloth* (pendulum.cpp) does the simulation.
 
+#include "obj1d.h"
 #include "event.h"
 #include "atari.h"
 #include "pl_cloth.h"
@@ -711,9 +712,9 @@ void girlLapelMove(cModel* pl)
     Vec v;
     Vec axis;
     Vec rot;
-    cModel* p;
-    cModel* a;
-    cModel* b;
+    cParts* p;
+    cParts* a;
+    cParts* b;
     f32 (*pm1)[4] = m1;
     f32 (*pinv)[4] = inv;
     Vec* pv = &v;

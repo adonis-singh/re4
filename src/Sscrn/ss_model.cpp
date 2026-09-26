@@ -198,13 +198,13 @@ void hunniganModelInit(cModel* m, void* data, u32 type)
 }
 
 // Builds the sub screen's character (MapMgr work 0) and weapon (work 1) models for the equipped
-// weapon (ItemMgr.m_wep_id -> number / type) by pl_type; called at screen entry and by
+// weapon (ItemMgr.weaponId() -> number / type) by pl_type; called at screen entry and by
 // weaponChangeTask after a re-equip.
 void playerModelInit()
 {
     cItemMgr* im = &ItemMgr;
-    u16 no = WeaponId2WeaponNo(im->m_wep_id);
-    u16 type = WeaponId2WeaponType(im->m_wep_id);
+    u16 no = WeaponId2WeaponNo(im->weaponId());
+    u16 type = WeaponId2WeaponType(im->weaponId());
 
     ssPlModel = MapMgr.getWork(0);
     ssWepModel = MapMgr.getWork(1);
@@ -361,10 +361,10 @@ void wep34Init(int no)
 
 // Weapon held in the right hand (parts 10): the weapon model hangs off the hand with an offset.
 #define SS_WEP_HANG(m, wep, parts, px, py, pz, s)   \
-    (wep)->pParts->pParent = (m)->getPartsPtr(parts); \
-    (wep)->pParts->pos.x = px;                        \
-    (wep)->pParts->pos.y = py;                        \
-    (wep)->pParts->pos.z = pz;                        \
+    (wep)->pList->pParent = (m)->getPartsPtr(parts); \
+    (wep)->pList->pos.x = px;                        \
+    (wep)->pList->pos.y = py;                        \
+    (wep)->pList->pos.z = pz;                        \
     (wep)->scale.z = s;                               \
     (wep)->scale.y = s;                               \
     (wep)->scale.x = s
@@ -410,7 +410,7 @@ void wep40Init(int no)
     m->addModel(ssModInfoMgr.create(WEP_ARC(wk, 6), PL_ARC(5)));
     m->addModel(ssModInfoMgr.create(PL_ARC(20), PL_ARC(5)));
     wep->modelInit(WEP_ARC(wk, 5), WEP_ARC(wk, 4));
-    wep->pParts->pParent = m->getPartsPtr(10);
+    wep->pList->pParent = m->getPartsPtr(10);
     wep->scale.z = 1.0f;
     wep->scale.y = 1.0f;
     wep->scale.x = 1.0f;
@@ -460,13 +460,13 @@ void wep30Init(int no, int type)
         break;
     }
     wep->modelInit(bin, tpl);
-    wep->pParts->pParent = m->getPartsPtr(10);
-    wep->pParts->pos.x = -70.0f;
-    wep->pParts->pos.y = -6.0f;
-    wep->pParts->pos.z = 0.0f;
-    wep->pParts->ang.x = 1.5707964f;
-    wep->pParts->ang.y = 0.0f;
-    wep->pParts->ang.z = 0.0f;
+    wep->pList->pParent = m->getPartsPtr(10);
+    wep->pList->pos.x = -70.0f;
+    wep->pList->pos.y = -6.0f;
+    wep->pList->pos.z = 0.0f;
+    wep->pList->ang.x = 1.5707964f;
+    wep->pList->ang.y = 0.0f;
+    wep->pList->ang.z = 0.0f;
     switch (no) {
     case 0x13:
     case 0x16:
@@ -475,7 +475,7 @@ void wep30Init(int no, int type)
     case 0x19:
     case 0x1F:
     case 0x20: {
-        cModel* p = wep->pParts;
+        cParts* p = wep->pList;
         p->scale.z = 0.5f;
         p->scale.y = 0.5f;
         p->scale.x = 0.5f;
@@ -585,7 +585,7 @@ void wep28Init(int no)
 
     m->addModel(ssModInfoMgr.create(WEP_ARC(wk, 6), PL_ARC(17)));
     wep->modelInit(WEP_ARC(wk, 4), WEP_ARC(wk, 5));
-    wep->pParts->pParent = m->getPartsPtr(16);
+    wep->pList->pParent = m->getPartsPtr(16);
     wep->scale.z = 1.0f;
     wep->scale.y = 1.0f;
     wep->scale.x = 1.0f;
@@ -632,13 +632,13 @@ void wep42Init(int no, int type)
         break;
     }
     wep->modelInit(bin, tpl);
-    wep->pParts->pParent = m->getPartsPtr(10);
-    wep->pParts->pos.x = -95.0f;
-    wep->pParts->pos.y = -30.0f;
-    wep->pParts->pos.z = -5.0f;
-    wep->pParts->ang.x = 1.5707964f;
-    wep->pParts->ang.y = 0.0f;
-    wep->pParts->ang.z = 0.0f;
+    wep->pList->pParent = m->getPartsPtr(10);
+    wep->pList->pos.x = -95.0f;
+    wep->pList->pos.y = -30.0f;
+    wep->pList->pos.z = -5.0f;
+    wep->pList->ang.x = 1.5707964f;
+    wep->pList->ang.y = 0.0f;
+    wep->pList->ang.z = 0.0f;
     switch (no) {
     case 0x13:
     case 0x16:
@@ -647,7 +647,7 @@ void wep42Init(int no, int type)
     case 0x19:
     case 0x1F:
     case 0x20: {
-        cModel* p = wep->pParts;
+        cParts* p = wep->pList;
         p->scale.z = 0.5f;
         p->scale.y = 0.5f;
         p->scale.x = 0.5f;
@@ -753,7 +753,7 @@ void wep29Init(int no)
 
     m->addModel(ssModInfoMgr.create(WEP_ARC(wk, 6), PL_ARC(17)));
     wep->modelInit(WEP_ARC(wk, 5), WEP_ARC(wk, 4));
-    wep->pParts->pParent = m->getPartsPtr(10);
+    wep->pList->pParent = m->getPartsPtr(10);
     wep->scale.z = 1.0f;
     wep->scale.y = 1.0f;
     wep->scale.x = 1.0f;
@@ -799,13 +799,13 @@ void wep41Init(int no, int type)
         break;
     }
     wep->modelInit(bin, tpl);
-    wep->pParts->pParent = m->getPartsPtr(10);
-    wep->pParts->pos.x = -95.0f;
-    wep->pParts->pos.y = -30.0f;
-    wep->pParts->pos.z = -5.0f;
-    wep->pParts->ang.x = 1.5707964f;
-    wep->pParts->ang.y = 0.0f;
-    wep->pParts->ang.z = 0.0f;
+    wep->pList->pParent = m->getPartsPtr(10);
+    wep->pList->pos.x = -95.0f;
+    wep->pList->pos.y = -30.0f;
+    wep->pList->pos.z = -5.0f;
+    wep->pList->ang.x = 1.5707964f;
+    wep->pList->ang.y = 0.0f;
+    wep->pList->ang.z = 0.0f;
     switch (no) {
     case 0x13:
     case 0x16:
@@ -814,7 +814,7 @@ void wep41Init(int no, int type)
     case 0x19:
     case 0x1F:
     case 0x20: {
-        cModel* p = wep->pParts;
+        cParts* p = wep->pList;
         p->scale.z = 0.5f;
         p->scale.y = 0.5f;
         p->scale.x = 0.5f;
@@ -933,7 +933,7 @@ void wep43Init(int no)
     } else {
         wep->modelInit(WEP_ARC(wk, 6), WEP_ARC(wk, 4));
     }
-    wep->pParts->pParent = m->getPartsPtr(10);
+    wep->pList->pParent = m->getPartsPtr(10);
     wep->scale.z = 1.0f;
     wep->scale.y = 1.0f;
     wep->scale.x = 1.0f;
@@ -951,7 +951,7 @@ void wep44Init(int no)
     m->addModel(ssModInfoMgr.create(PL_ARC(18), PL_ARC(17)));
     m->addModel(ssModInfoMgr.create(PL_ARC(24), PL_ARC(17)));
     wep->modelInit(WEP_ARC(wk, 5), WEP_ARC(wk, 4));
-    wep->pParts->pParent = m->getPartsPtr(10);
+    wep->pList->pParent = m->getPartsPtr(10);
     wep->scale.z = 1.0f;
     wep->scale.y = 1.0f;
     wep->scale.x = 1.0f;
@@ -998,13 +998,13 @@ void wep45Init(int no, int type)
         break;
     }
     wep->modelInit(bin, tpl);
-    wep->pParts->pParent = m->getPartsPtr(10);
-    wep->pParts->pos.x = -95.0f;
-    wep->pParts->pos.y = -30.0f;
-    wep->pParts->pos.z = -5.0f;
-    wep->pParts->ang.x = 1.5707964f;
-    wep->pParts->ang.y = 0.0f;
-    wep->pParts->ang.z = 0.0f;
+    wep->pList->pParent = m->getPartsPtr(10);
+    wep->pList->pos.x = -95.0f;
+    wep->pList->pos.y = -30.0f;
+    wep->pList->pos.z = -5.0f;
+    wep->pList->ang.x = 1.5707964f;
+    wep->pList->ang.y = 0.0f;
+    wep->pList->ang.z = 0.0f;
     switch (no) {
     case 0x13:
     case 0x16:
@@ -1013,7 +1013,7 @@ void wep45Init(int no, int type)
     case 0x19:
     case 0x1F:
     case 0x20: {
-        cModel* p = wep->pParts;
+        cParts* p = wep->pList;
         p->scale.z = 0.5f;
         p->scale.y = 0.5f;
         p->scale.x = 0.5f;
@@ -1051,7 +1051,7 @@ void wep47Init(int no)
     m->addModel(ssModInfoMgr.create(WEP_ARC(wk, 6), PL_ARC(17)));
     m->addModel(ssModInfoMgr.create(PL_ARC(22), PL_ARC(17)));
     wep->modelInit(WEP_ARC(wk, 5), WEP_ARC(wk, 4));
-    wep->pParts->pParent = m->getPartsPtr(10);
+    wep->pList->pParent = m->getPartsPtr(10);
     wep->scale.z = 1.0f;
     wep->scale.y = 1.0f;
     wep->scale.x = 1.0f;
@@ -1170,7 +1170,7 @@ void leonModelInit(u16 no, u16 type)
 
 // The weapon model hangs off the right hand (parts 10), unscaled.
 #define SS_WEP_HAND(m, wep)                          \
-    (wep)->pParts->pParent = (m)->getPartsPtr(10);   \
+    (wep)->pList->pParent = (m)->getPartsPtr(10);   \
     (wep)->scale.z = 1.0f;                           \
     (wep)->scale.y = 1.0f;                           \
     (wep)->scale.x = 1.0f
@@ -1185,7 +1185,7 @@ void wep00Init(int type)
     m->addModel(ssModInfoMgr.create(PL_ARC(18), PL_ARC(17)));
     m->addModel(ssModInfoMgr.create(PL_ARC(20), PL_ARC(17)));
     wep->modelInit(WEP_ARC(wk, 5), WEP_ARC(wk, 4));
-    wep->pParts->pParent = m->getPartsPtr(10);
+    wep->pList->pParent = m->getPartsPtr(10);
     wep->be_flag &= ~2;
     wep->scale.z = 0.0f;
     wep->scale.y = 0.0f;
@@ -1457,7 +1457,7 @@ void wep13Init(int type)
         info->color[2] = 0xE0;
         info->color[3] = 0xFF;
     }
-    wep->pParts->pParent = m->getPartsPtr(10);
+    wep->pList->pParent = m->getPartsPtr(10);
     info = ssModInfoMgr.create(PL_ARC(0x70), PL_ARC(0x71));
     {
         f32(*mat)[4] = info->mat;
@@ -1494,7 +1494,7 @@ void wep14Init(int type)
     SUB_SCREEN* wk = &SubScreenWk;
     cModel* m = ssPlModel;
     cModel* wep = ssWepModel;
-    cModel* p;
+    cParts* p;
 
     m->addModel(ssModInfoMgr.create(WEP_ARC(wk, 7), PL_ARC(17)));
     m->addModel(ssModInfoMgr.create(PL_ARC(24), PL_ARC(17)));
@@ -1633,13 +1633,13 @@ void wep19Init(int no, int type)
         break;
     }
     wep->modelInit(bin, tpl);
-    wep->pParts->pParent = m->getPartsPtr(10);
-    wep->pParts->pos.x = -95.0f;
-    wep->pParts->pos.y = -30.0f;
-    wep->pParts->pos.z = -5.0f;
-    wep->pParts->ang.x = 1.5707964f;
-    wep->pParts->ang.y = 0.0f;
-    wep->pParts->ang.z = 0.0f;
+    wep->pList->pParent = m->getPartsPtr(10);
+    wep->pList->pos.x = -95.0f;
+    wep->pList->pos.y = -30.0f;
+    wep->pList->pos.z = -5.0f;
+    wep->pList->ang.x = 1.5707964f;
+    wep->pList->ang.y = 0.0f;
+    wep->pList->ang.z = 0.0f;
     switch (no) {
     case 0x13:
     case 0x16:
@@ -1648,7 +1648,7 @@ void wep19Init(int no, int type)
     case 0x19:
     case 0x1F:
     case 0x20: {
-        cModel* p = wep->pParts;
+        cParts* p = wep->pList;
         p->scale.z = 0.5f;
         p->scale.y = 0.5f;
         p->scale.x = 0.5f;

@@ -83,7 +83,7 @@ struct Em2bWork {
     cEmRock* pRock;       // 0x50C (0x8EC)  rock held
     struct EmiEntry* pHouse;   // 0x510 (0x8F0)  EMI entry (embarrel.h) of the house being broken (em2bPlInHouseCk, type 3; state: 0 intact, 1 hit, 3 broken)  (PS2 EMINFO_WK* pHouse)
     struct EmiEntry* pGoto;    // 0x514 (0x8F4)  rock spot walked to (em2bSearchRockCk, type 4); type 0xD = a catch spot (rotY)
-    Camera Cam;           // 0x518 (0x8F8)  event camera of the catch / escape scenes
+    CAMERA Cam;           // 0x518 (0x8F8)  event camera of the catch / escape scenes
     int Total_damage;         // 0x610 (0x9F0)
     int Rock_wait;         // 0x614 (0x9F4)
     int Atk_wait;         // 0x618 (0x9F8)

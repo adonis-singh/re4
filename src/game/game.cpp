@@ -303,17 +303,15 @@ void gameStageInit()
         if (!SysFlagChk(pG, SYS_OMAKE_ADA_GAME)) {
             if (!SysFlagChk(pG, SYS_OMAKE_ETC_GAME) && pG->room_id == 0x120 &&
                 (SysFlagChk(pG, SYS_NEW_GAME) || pG->SaveKind == 3)) {
-                Message* m;
                 int res;
 
                 DpfFlagOff(pG, DPF_MESSAGE);
                 cMes.setLayout(0, 0);
-                m = cMes.getMes(0);
-                cMes.MesSet(150, 100, 336 - m->lineSpace - m->m_font_h - 1, 1, 0, 0, 4);
-                if ((res = m->m_sel) == 0) {
+                cMes.MesSet(150, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
+                if ((res = cMes.GetSelectMessage(0)) == 0) {
                     do {
                         TaskSleep(1);
-                    } while ((res = cMes.getMes(0)->m_sel) == 0);
+                    } while ((res = cMes.GetSelectMessage(0)) == 0);
                 }
                 switch (res) {
                 case 1:
@@ -364,7 +362,7 @@ void gameRoomInit()
     int n;
     void* p;
 
-    DC.m_nblock_read_stop = 1;
+    DC.setNBlkStop(1);
     SndReadAddrInit();
     gameRoomMemInit();
     if (pG->shooting_mode != 0) {
@@ -561,7 +559,7 @@ void gameRoomInit()
     fadeSetG(0x80000000, 20, 0, 0);
     SubScreenWait(15);
     SysFlagOff(pG, SYS_TRANS_STOP);
-    DC.m_nblock_read_stop = 0;
+    DC.setNBlkStop(0);
     pG->Rno0 = 3;
     pG->SaveKind = 0;
 }
@@ -1056,8 +1054,7 @@ void DiedemoExec(int time, int type)
     SpfFlagOn(pG, SPF_SCE_AT);
     SpfFlagOn(pG, SPF_ACTBTN);
     IdSys.kill(0xFF, IDC_ACT_BUTTON);
-    Cckpt.getCountDown()->m_state &= ~1;
-    Cckpt.getCountDown()->frameOut();
+    Cckpt.endCountDownTimer();
     PlEndCamera();
     TaskExec(1, (TaskFunc) gameDiedemo, (int) &diedemo_work);
 }
@@ -1853,7 +1850,7 @@ int cManager<T>::dispWorkNum(int x, int y, int col, int sub)
     n = 0;
     for (i = 0; i < nArray; i++) {
         T* p = fastAt(i);
-        if (p->be_flag & 0x601) {
+        if (!p->isEmpty()) {
             n++;
         }
     }

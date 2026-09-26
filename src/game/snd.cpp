@@ -2080,7 +2080,7 @@ void SndSetOutputMode(int mode, int flg)
 // position aligned with the camera, and the distance from the camera.
 void getCam2SndAngle(f32* h_angle, f32* v_angle, f32* dist, Vec* pos)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     Vec out;
     Vec fwd;
 
@@ -2095,21 +2095,7 @@ void getCam2SndAngle(f32* h_angle, f32* v_angle, f32* dist, Vec* pos)
     fwd.y = pG->Camera.mat[1][0];
     fwd.z = pG->Camera.mat[2][0];
     PSVECCrossProduct(&fwd, &up, &right);
-    m[0][0] = fwd.x;
-    m[1][0] = fwd.y;
-    m[2][0] = fwd.z;
-    m[0][1] = up.x;
-    m[1][1] = up.y;
-    m[2][1] = up.z;
-    m[0][2] = right.x;
-    m[1][2] = right.y;
-    m[2][2] = right.z;
-    {
-        Vec* pp = &pPL->pos;
-        m[0][3] = pp->x;
-        m[1][3] = pp->y;
-        m[2][3] = pp->z;
-    }
+    MTXSetColumns(m, fwd, up, right, pPL->pos);
     PSMTXInverse(m, inv);
     PSMTXMultVec(inv, pos, &out);
     if (h_angle != NULL) {
@@ -2157,7 +2143,7 @@ void sndSurroundCalc()
         case 1:
             sit = Snd_get_sit_adrs(w->blk, w->no);
             if (w->obj != NULL) {
-                if ((w->obj->be_flag & 0x201) == 0x1) {
+                if (w->obj->isAlive()) {
                     getCam2SndAngle(&pan, 0, &dist, w->ppos);
                     w->pos.x = w->ppos->x;
                     w->pos.y = w->ppos->y;

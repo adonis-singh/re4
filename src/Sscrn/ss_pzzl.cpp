@@ -101,7 +101,7 @@ void drawCursorInit(SUB_SCREEN* wk, PzzlCursor* c);
 void cmpVer(PzzlCursor* c, Vec* v);
 void drawCursor(SUB_SCREEN* wk, pzlBoard* b, int x, int y, PzzlCursor* c, int line);
 void drawGridLine(SUB_SCREEN* wk);
-void puzzleCameraInit(SUB_SCREEN* wk, Camera* cam);
+void puzzleCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 int puzzlePos2screenPos(Vec* pos, Vec* out);
 void screenPos2puzzlePos(Vec* pos, Vec* out);
 void pieceTblInit(SUB_SCREEN* wk);
@@ -200,10 +200,10 @@ int back2PieceSelect(SUB_SCREEN* wk)
 {
     int ret;
 
-    if (wk->puzzlePlayer->m_space->getPieceNum() != 0) {
+    if (wk->puzzlePlayer->spacePtr()->getPieceNum() != 0) {
         ret = 0;
     } else {
-        Cckpt.m_LifeMeter.frameIn();
+        Cckpt.lifeMeterFrameIn();
         IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag &= 0xF0;
         tempSpaceDisp(0);
         idMainMenuFade(wk, 1);
@@ -223,7 +223,6 @@ void pzzlEquipDisp(SUB_SCREEN* wk, int sw)
     u8 unused0[0x20];  // two unused 0x20-byte locals keep the original frame (0x38 / 0x68)
     Vec pos;
     u8 unused1[0x20];
-    ItemInfo info;
     pzlPiece* arm;
     int i;
 
@@ -236,17 +235,16 @@ void pzzlEquipDisp(SUB_SCREEN* wk, int sw)
     id[2] = IdSub.unitPtr(0x50, IDC_SSCRN_ETC);
     id2[2] = IdSub.unitPtr(0x51, IDC_SSCRN_ETC);
     id2[2]->be_flag &= ~8;
-    itemInfo(ItemMgr.m_wep_id, &info);
-    switch (info.type) {
+    switch (itemType(ItemMgr.weaponId())) {
     case 1:
-        arm = pl->piecePtr(ItemMgr.pArm);
+        arm = pl->piecePtr(ItemMgr.weapon());
         break;
     case 3:
     case 6:
-        if (ItemMgr.num(ItemMgr.pArm) != 0 && ItemMgr.m_wep_id == ItemMgr.pArm->id) {
-            arm = pl->piecePtr(ItemMgr.pArm);
+        if (ItemMgr.num(ItemMgr.weapon()) != 0 && ItemMgr.weaponId() == ItemMgr.weapon()->id) {
+            arm = pl->piecePtr(ItemMgr.weapon());
         } else {
-            arm = pl->piecePtr(ItemMgr.minimumSearch(ItemMgr.m_wep_id));
+            arm = pl->piecePtr(ItemMgr.minimumSearch(ItemMgr.weaponId()));
         }
         break;
     default:
@@ -254,7 +252,7 @@ void pzzlEquipDisp(SUB_SCREEN* wk, int sw)
         break;
     }
     if (sw && arm) {
-        if (arm == pl->m_inhand) {
+        if (arm == pl->pieceInHand()) {
             id[0]->be_flag &= ~8;
         } else {
             u32 col;
@@ -269,14 +267,14 @@ void pzzlEquipDisp(SUB_SCREEN* wk, int sw)
         id[1]->be_flag &= ~8;
         id[2]->be_flag &= ~8;
         for (i = 0; i < 2; i++) {
-            ItemWork* w = ItemMgr.weaponParts(ItemMgr.pArm, i);
+            ItemWork* w = ItemMgr.weaponParts(ItemMgr.weapon(), i);
             pzlPiece* p;
 
             if (w == 0) {
                 break;
             }
             p = pl->piecePtr(w);
-            if (p != pl->m_inhand) {
+            if (p != pl->pieceInHand()) {
                 u32 col;
 
                 getPieceVertex(p, &pos, 1);
@@ -383,8 +381,8 @@ void drawCursorInit(SUB_SCREEN* wk, PzzlCursor* c)
 {
     const f32 big = 1000.0f;
 
-    wk->puzzlePlayer->m_board->clearState(0x80);
-    wk->puzzlePlayer->m_space->clearState(0x80);
+    wk->puzzlePlayer->boardPtr()->clearState(0x80);
+    wk->puzzlePlayer->spacePtr()->clearState(0x80);
     memclr_asm(c, sizeof(PzzlCursor));
     c->v[0].x = big;
     c->v[0].y = -big;
@@ -445,7 +443,7 @@ void drawCursor(SUB_SCREEN* wk, pzlBoard* b, int x, int y, PzzlCursor* c, int li
     pzlPiece* piece;
     Vec e;
 
-    MTX_COPY_DO(b->m_mat, mat);
+    MTX_COPY_DO(*b->orientation(), mat);
     g = pzlGrid::size;
     if (b->cellState((s8) x, (s8) y) & 0x82) {
         return;
@@ -551,9 +549,9 @@ void drawGridLine(SUB_SCREEN* wk)
     u16 ot;
     u16 prio;
 
-    MTX_COPY_DO(wk->puzzlePlayer->m_board->m_mat, mat);
-    h = wk->puzzlePlayer->m_board->m_size_y;
-    w = wk->puzzlePlayer->m_board->m_size_x;
+    MTX_COPY_DO(*wk->puzzlePlayer->boardPtr()->orientation(), mat);
+    h = wk->puzzlePlayer->boardPtr()->size_y();
+    w = wk->puzzlePlayer->boardPtr()->size_x();
     a.x = 0.0f;
     a.y = 0.0f;
     a.z = 0.0f;
@@ -581,9 +579,9 @@ void drawGridLine(SUB_SCREEN* wk)
         a.y -= g;
         b.y -= g;
     }
-    MTX_COPY_DO(wk->puzzlePlayer->m_space->m_mat, mat);
-    h = wk->puzzlePlayer->m_space->m_size_y;
-    w = wk->puzzlePlayer->m_space->m_size_x;
+    MTX_COPY_DO(*wk->puzzlePlayer->spacePtr()->orientation(), mat);
+    h = wk->puzzlePlayer->spacePtr()->size_y();
+    w = wk->puzzlePlayer->spacePtr()->size_x();
     a.x = 0.0f;
     a.y = 0.0f;
     a.z = 0.0f;
@@ -614,7 +612,7 @@ void drawGridLine(SUB_SCREEN* wk)
 }
 
 // The case screen uses the common sub screen camera.
-void puzzleCameraInit(SUB_SCREEN* wk, Camera* cam)
+void puzzleCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     sscrnCameraInit(wk, cam);
 }
@@ -647,7 +645,7 @@ int puzzlePos2screenPos(Vec* pos, Vec* out)
 // case).
 void screenPos2puzzlePos(Vec* pos, Vec* out)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     f32 pz = cam->param.pos.z;
     f32 h = fabsf((f32) (pz * tan(cam->param.fovy * 0.5f * 3.1415927f / 180.0f)));
 
@@ -814,14 +812,14 @@ void pieceModelOrientation(SUB_SCREEN* wk, pzlPiece* p)
         m->ang.z = -1.5707964f;
         break;
     }
-    if (!(p->m_place & 2)) {
-        if (wk->puzzlePlayer->m_board->search(p)) {
-            b = wk->puzzlePlayer->m_board;
+    if (!p->isInHand()) {
+        if (wk->puzzlePlayer->boardPtr()->search(p)) {
+            b = wk->puzzlePlayer->boardPtr();
         } else {
-            if (!wk->puzzlePlayer->m_space->search(p)) {
+            if (!wk->puzzlePlayer->spacePtr()->search(p)) {
                 pLog->err(0, 0, "pieceModelOrientation(): lost piece");
             }
-            b = wk->puzzlePlayer->m_space;
+            b = wk->puzzlePlayer->spacePtr();
         }
     } else {
         b = wk->puzzlePlayer->m_p_active_board;
@@ -829,20 +827,10 @@ void pieceModelOrientation(SUB_SCREEN* wk, pzlPiece* p)
     m->pos.x = pzlGrid::size * (p->m_pos_x + 0.5f);
     m->pos.y = -pzlGrid::size * (p->m_pos_y + 0.5f);
     m->matUpdate();
-    PSMTXConcat(b->m_mat, m->mat, m->mat);
+    PSMTXConcat(*b->orientation(), m->mat, m->mat);
     m->partsWorldCalc();
 }
 
-// math_sub.h's VECNormalize with the log pointer read as a plain struct member (the pl0f/em27
-// form): the inline `cLogPtr::operator->` puts block notes between `high(pLog)` and its load, which
-// gives the high a loop.c lifetime of 3 and a pass-1 hoist; with lifetime 1 it is a pass-2 movable
-// emitted after the `&c` copy (`mr r30,r24; lis r20,pLog@ha` in the line loop's preheader).
-#define VECNormalizeP(src, dst)                                                         \
-    if (0.0f == (src)->x && 0.0f == (src)->y && 0.0f == (src)->z) {                    \
-        pLog.p->err(0, 0, "VECNormalize:[%s/%d]", __FILE__, __LINE__);                  \
-        (dst)->x = (dst)->y = (dst)->z = 0.0f;                                          \
-    } else                                                                              \
-        PSVECNormalize(src, dst)
 
 // Frame around a piece model: type 0 corner lines, 1..3 tiles, 4 the whole piece (scaled).
 void pieceFrameDisp(cModel* m, u32 color, int type)
@@ -916,7 +904,7 @@ void pieceFrameDisp(cModel* m, u32 color, int type)
 
                 PSVECSubtract(&v[k], &v[i], &c);
 #line 1158 "D:/Bio4/Prog/ss_pzzl.cpp"
-                VECNormalizeP(&c, &c);
+                VECNormalize(&c, &c);
                 PSVECScale(&c, &c, frame_line_len);
                 PSVECAdd(&c, &v[i], &c);
                 ss_Draw_line3d(&v[i], &c, frame_line_col, frame_line_blend, 0, 1, frame_line_w_ot, frame_line_w_prio);
@@ -998,7 +986,7 @@ void pieceModelDisp(SUB_SCREEN* wk)
         numDisp(0x40 + i, 0, 0, 0);
     }
     pl = wk->puzzlePlayer;
-    hand = pl->m_inhand;
+    hand = pl->pieceInHand();
     for (int i = 0; i < wk->puzzlePlayer->pieceNum(); i++) {
         pzlPiece* p = wk->puzzlePlayer->piecePtr(i);
         cModel* m = p->model;
@@ -1008,12 +996,12 @@ void pieceModelDisp(SUB_SCREEN* wk)
         ItemWork* item;
         int id;
 
-        if (wk->puzzlePlayer->m_space->search(p)) {
+        if (wk->puzzlePlayer->spacePtr()->search(p)) {
             m->ot_type = 1;
         } else {
             m->ot_type = 3;
         }
-        if ((p->m_place & 1) || (hand && hand == p)) {
+        if (p->isOnBoard() || (hand && hand == p)) {
             m->be_flag |= 2;
             id = 0x41 + no;
             if (hand && p == hand) {
@@ -1078,12 +1066,12 @@ void pieceModelInit(SUB_SCREEN* wk)
     int i;
 
     pieceTblInit(wk);
-    for (i = 0; i < pl->m_piece_max; i++) {
-        pzlPiece* p = &pl->m_piece[i];
+    for (i = 0; i < pl->pieceMax(); i++) {
+        pzlPiece* p = pl->pieceAt(i);
         pzlPiece* q;
 
         p->model = MapMgr.getWork(i + 4);
-        q = &pl->m_piece[i];
+        q = pl->pieceAt(i);
         q->model->be_flag &= ~2;
     }
     for (i = 0; i < pl->pieceNum(); i++) {
@@ -1146,7 +1134,7 @@ void caseModelMove(int sw)
     IdUnit* u = IdSub.unitPtr(0xFE, IDC_SSCRN_BACK_GROUND);
     IdUnit* u2 = IdSub.unitPtr(0xFD, IDC_SSCRN_BACK_GROUND);
     cModel* m = MapMgr.getWork(3);
-    cModel* parts = m->getPartsPtr(1);
+    cParts* parts = m->getPartsPtr(1);
     Vec scr;
     Vec q;
     pzlBoard* b;
@@ -1163,14 +1151,14 @@ void caseModelMove(int sw)
     m->pos.z = pzzlDbgPos;
     m->matUpdate();
     pzlGrid::size = size;
-    b = wk->puzzlePlayer->m_board;
+    b = wk->puzzlePlayer->boardPtr();
     {
         Mtx tmp;
         Vec p;
         Vec ax;
         Vec ay;
         Vec az;
-        int w = b->m_size_x;
+        int w = b->size_x();
 
         p.x = (f32) w * -0.5f * pzlGrid::size;
         p.y = -0.0f;
@@ -1201,10 +1189,10 @@ void caseModelMove(int sw)
         tmp[0][3] = p.x;
         tmp[1][3] = p.y;
         tmp[2][3] = p.z;
-        MTX_COPY_DO(tmp, b->m_mat);
+        MTX_COPY_DO(tmp, *b->orientation());
     }
     u = IdSub.unitPtr(0, IDC_SSCRN_NEAR_0);
-    b = wk->puzzlePlayer->m_space;
+    b = wk->puzzlePlayer->spacePtr();
     screenPos2puzzlePos(&u->pos, &q);
     if (sw) {
         q = ofsB;
@@ -1216,7 +1204,7 @@ void caseModelMove(int sw)
         Vec p;
         Mtx mat2;
 
-        MTX_COPY_DO(wk->puzzlePlayer->m_board->m_mat, mat2);
+        MTX_COPY_DO(*wk->puzzlePlayer->boardPtr()->orientation(), mat2);
         p.x = 0.0f;
         p.y = pzlGrid::size + pzlGrid::size;
         p.z = 0.0f;
@@ -1229,7 +1217,7 @@ void caseModelMove(int sw)
         mat[0][3] = q.x;
         mat[1][3] = t.y;
         mat[2][3] = t.z;
-        MTX_COPY_DO(mat, b->m_mat);
+        MTX_COPY_DO(mat, *b->orientation());
         puzzlePos2screenPos(&q, &scr2);
         u->pos0.y = scr2.y;
     }
@@ -1275,12 +1263,8 @@ void SsPzzlInit::move(SUB_SCREEN* wk)
             generalModelAlloc(wk);
             playerModelInit();
             sscrnLightClear(wk);
-            {
-                LifeMeter* life = &Cckpt.m_LifeMeter;
-
-                life->fix(1);
-                life->frameIn();
-            }
+            Cckpt.lifeMeterFix(1);
+            Cckpt.lifeMeterFrameIn();
         } else {
             sscrnModelClear(wk);
         }
@@ -1324,7 +1308,7 @@ void tempSpaceDisp(int sw)
 // 1 when the equipped weapon changed (or ran dry: unarmed).
 int checkWeaponChange(int id, int bullets)
 {
-    if (id != ItemMgr.m_wep_id) {
+    if (id != ItemMgr.weaponId()) {
         return 1;
     }
     if (bullets && ItemMgr.bulletNum() == 0) {
@@ -1431,21 +1415,21 @@ void SsPzzlMain::init(SUB_SCREEN* wk)
         int y;
 
         ItemMgr.get(wk->get_item_id, wk->get_item_num);
-        ItemWork* last = ItemMgr.pLast;  // local: `mr r4,r0` for the argument instead of a re-read after the store
+        ItemWork* last = ItemMgr.newbie();  // local: `mr r4,r0` for the argument instead of a re-read after the store
 
         wk->p_get_item = last;
         wk->puzzlePlayer->appendExtraPiece(last);
         wk->puzzlePlayer->inHandExtraPiece();
         wk->get_item_num = wk->p_get_item->num;
         pl = wk->puzzlePlayer;
-        p = pl->m_extra;
-        h = pl->m_space->m_size_y;
-        w = pl->m_space->m_size_x;
+        p = pl->pieceExtra();
+        h = pl->spacePtr()->size_y();
+        w = pl->spacePtr()->size_x();
         for (y = 0; y < h; y++) {
             for (x = 0; x < w; x++) {
-                p->m_pos_x = (f32) x + p->m_center_x;
-                p->m_pos_y = (f32) y + p->m_center_y;
-                if (pl->putPiece(pl->m_space)) {
+                p->set_ver0_x((f32) x);
+                p->set_ver0_y((f32) y);
+                if (pl->putPiece(pl->spacePtr())) {
                     goto PUT;
                 }
             }
@@ -1453,22 +1437,22 @@ void SsPzzlMain::init(SUB_SCREEN* wk)
         p->orientation(1);
         for (y = 0; y < h; y++) {
             for (x = 0; x < w; x++) {
-                p->m_pos_x = (f32) x + p->m_center_x;
-                p->m_pos_y = (f32) y + p->m_center_y;
-                if (pl->putPiece(pl->m_space)) {
+                p->set_ver0_x((f32) x);
+                p->set_ver0_y((f32) y);
+                if (pl->putPiece(pl->spacePtr())) {
                     goto PUT;
                 }
             }
         }
     PUT:
-        pl->m_p_active_board = pl->m_space;
-        pl->getPiece(pl->m_space);
-        pieceModelSet(wk->puzzlePlayer->m_extra);
+        pl->m_p_active_board = pl->spacePtr();
+        pl->getPiece(pl->spacePtr());
+        pieceModelSet(wk->puzzlePlayer->pieceExtra());
         cur = thinking;
         cur->init(wk);
     } else {
-        if ((wk->flags & 4) && wk->puzzlePlayer->m_space->getPieceNum() != 0) {
-            wk->puzzlePlayer->m_p_active_board = wk->puzzlePlayer->m_space;
+        if ((wk->flags & 4) && wk->puzzlePlayer->spacePtr()->getPieceNum() != 0) {
+            wk->puzzlePlayer->m_p_active_board = wk->puzzlePlayer->spacePtr();
             thinking->init(wk);
         }
         cur = select;
@@ -1479,8 +1463,8 @@ void SsPzzlMain::init(SUB_SCREEN* wk)
     sscrn_pzzl_in_init(wk);
     // setPtr(0) / setPtr(2): `stwx r0,r11,rZERO` with the `state = 0` zero pseudo (r30, live across the
     // sscrn_pzzl_in_init call) as the index, then `stw 8(r11)`.
-    MesData.setPtr(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
-    MesData.setPtr(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
+    MesData.registData(0, (u8*) SS_ARC_PTR(wk->pCmmn, 5));
+    MesData.registData(2, (u8*) SS_ARC_PTR(wk->pPzzlDat, 0x1A4));
     pzzl_dbg.init(wk);
     SndCall(0, 0x1E, 0, 0, 0, 0);
 }
@@ -1508,28 +1492,28 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
         pzlPlayer* pl = wk->puzzlePlayer;
         ItemWork* item;
 
-        if (pl->m_inhand) {
-            item = pl->m_inhand->item;
+        if (pl->pieceInHand()) {
+            item = pl->pieceInHand()->item;
             on = 1;
             id = item->id;
-        } else if (pl->ptrPiece(pl->m_p_active_board)) {
+        } else if (pl->ptrPiece()) {
             on = 1;
-            item = wk->puzzlePlayer->ptrPiece(wk->puzzlePlayer->m_p_active_board)->item;
+            item = wk->puzzlePlayer->ptrPiece()->item;
             id = item->id;
         }
         x = (int) ((u->pos.x + 320.0f) * 0.8f);
         y = (int) ((240.0f - u->pos.y) * 0.8f);
-        y -= cMes.getMes(0)->m_font_h / 2;
+        y -= cMes.getFontHeight(0) / 2;
         if (on && caseMove == 0) {
             cMes.setFontSize(0, pzzl_font_w[1], pzzl_font_h[1]);
-            cMes.getMes(0)->m_line_gap = 0;
-            cMes.getMes(0)->m_char_gap = pzzl_font_space[3];
+            cMes.setLineGap(0, 0);
+            cMes.setFontGap(0, pzzl_font_space[3]);
             cMes.MesSet(id, x, y, 0x20088, 0, 0, 4);
         } else {
             cMes.Delete(0);
         }
     }
-    armId = ItemMgr.m_wep_id;
+    armId = ItemMgr.weaponId();
     bullets = ItemMgr.bulletNum();
     old = state;
     wk->cursor_mode = 0;
@@ -1554,7 +1538,7 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
                     transit(4, wk);
                     break;
                 default:
-                    if (wk->open_flag != 4 && next == cur && wk->puzzlePlayer->m_space->getPieceNum() == 0 &&
+                    if (wk->open_flag != 4 && next == cur && wk->puzzlePlayer->spacePtr()->getPieceNum() == 0 &&
                         (Key.trg & 0x00400000)) {
                         wk->close_flag = 0;
                         wk->menu_old = 1;
@@ -1594,13 +1578,13 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
                 select->mode = 0;
                 sscrnMainMenuInit(wk, 0);
                 state = 0;
-                wk->puzzlePlayer->m_p_active_board = wk->puzzlePlayer->m_board;
+                wk->puzzlePlayer->m_p_active_board = wk->puzzlePlayer->boardPtr();
                 if (Key.trg & 0x01000000) {
-                    int h = wk->puzzlePlayer->m_board->m_size_y;
+                    int h = wk->puzzlePlayer->boardPtr()->size_y();
 
-                    wk->puzzlePlayer->m_board->m_cur_y = h - 1;
+                    wk->puzzlePlayer->boardPtr()->m_cur_y = h - 1;
                 } else {
-                    wk->puzzlePlayer->m_board->m_cur_y = 0;
+                    wk->puzzlePlayer->boardPtr()->m_cur_y = 0;
                 }
                 SndCall(0, 6, 0, 0, 0, 0);
             }
@@ -1609,8 +1593,8 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
     }
     if (checkWeaponChange(armId, bullets)) {
         // COMPILER-DIFF: 4 (the u8 results assigned to u16 locals are masked with `clrlwi 16`)
-        u16 no = WeaponId2WeaponNo(ItemMgr.m_wep_id);
-        u16 type = WeaponId2WeaponType(ItemMgr.m_wep_id);
+        u16 no = WeaponId2WeaponNo(ItemMgr.weaponId());
+        u16 type = WeaponId2WeaponType(ItemMgr.weaponId());
 
         weaponChangeRequest(no, type);
     }
@@ -1628,7 +1612,7 @@ void SsPzzlMain::move(SUB_SCREEN* wk)
             }
         }
     }
-    if (wk->puzzlePlayer->m_inhand == 0 && (Joy[0].trg & 0x10)) {
+    if (wk->puzzlePlayer->pieceInHand() == 0 && (Joy[0].trg & 0x10)) {
         if (!SysFlagChk(pG, SYS_PUBLICITY_VER) || PadCheckStatus(&Joy[1]) == 1) {
             wk->pzzl_debug_open = wk->pzzl_debug_open == 0;
         }
@@ -1653,10 +1637,10 @@ void SsPzzlMain::quit(SUB_SCREEN* wk)
     if (wk->open_flag & 4) {
         pzlPlayer* pl = wk->puzzlePlayer;
 
-        if (pl->m_extra && pl->m_space->search(pl->m_extra)) {
+        if (pl->pieceExtra() && pl->spacePtr()->search(pl->pieceExtra())) {
             wk->puzzlePlayer->removeExtraPiece();
             ItemMgr.dumpAll(wk->p_get_item);
-            if (wk->p_get_item == ItemMgr.pArm) {
+            if (wk->p_get_item == ItemMgr.weapon()) {
                 ItemMgr.arm(0);
             }
             // x300 first: with x40 first the arm's tail is the else arm's `stw x40` insn, which our
@@ -1696,7 +1680,7 @@ void sscrn_pzzl_out_init(SUB_SCREEN* wk)
     u = IdSub.unitPtr(1, IDC_SSCRN_CKPT_2);
     u->rev_flag |= 1;
     if (wk->menu_next == 2) {
-        Cckpt.m_LifeMeter.frameOut();
+        Cckpt.lifeMeterFrameOut();
         wk->alpha_flag = 1;
     }
 }
@@ -1751,7 +1735,7 @@ void PiecePopDown::move(SUB_SCREEN* wk)
 // and dims the main menu.
 void PzzlThinking::init(SUB_SCREEN* wk)
 {
-    Cckpt.m_LifeMeter.frameOut();
+    Cckpt.lifeMeterFrameOut();
     IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag |= 0xF;
     tempSpaceDisp(1);
     idMainMenuFade(wk, 0);
@@ -1765,7 +1749,7 @@ void PzzlThinking::move(SUB_SCREEN* wk)
     pzlPlayer* pl;
 
     if (Key.trg & 0x80020000) {
-        if (wk->puzzlePlayer->putPiece(wk->puzzlePlayer->m_p_active_board)) {
+        if (wk->puzzlePlayer->putPiece()) {
             transit(0, wk);
             SndCall(0, 0xC, 0, 0, 0, 0);
         } else {
@@ -1777,7 +1761,7 @@ void PzzlThinking::move(SUB_SCREEN* wk)
                 pieceModelSet(p);
                 pieceModelOrientation(wk, p);
                 wk->puzzlePlayer->rehash();
-                if (wk->puzzlePlayer->m_inhand == 0) {
+                if (wk->puzzlePlayer->pieceInHand() == 0) {
                     transit(0, wk);
                 }
                 itemInfo(p->item->id, &info);
@@ -1804,7 +1788,7 @@ void PzzlThinking::move(SUB_SCREEN* wk)
             }
         }
     } else if (Key.trg & 0x40000000) {
-        if (wk->puzzlePlayer->relPiece(wk->puzzlePlayer->m_p_active_board)) {
+        if (wk->puzzlePlayer->relPiece()) {
             transit(0, wk);
             SndCall(0, 0xC, 0, 0, 0, 0);
         }
@@ -1830,11 +1814,11 @@ void PzzlThinking::quit(SUB_SCREEN* wk)
 int isTerminable(SUB_SCREEN* wk)
 {
     pzlPlayer* pl = wk->puzzlePlayer;
-    int n = pl->m_space->getPieceNum();
+    int n = pl->spacePtr()->getPieceNum();
     int ret;
 
     if (n != 0) {
-        if (n == 1 && pl->m_space->search(pl->m_extra)) {
+        if (n == 1 && pl->spacePtr()->search(pl->pieceExtra())) {
             ret = 1;
         } else {
             ret = 0;
@@ -1894,12 +1878,12 @@ void PieceSelect::move(SUB_SCREEN* wk)
     {
         pzlPlayer* pl = wk->puzzlePlayer;
         b = pl->m_p_active_board;
-        if (b == pl->m_board) {
-            other = pl->m_space;
+        if (b == pl->boardPtr()) {
+            other = pl->spacePtr();
         } else {
-            other = pl->m_board;
+            other = pl->boardPtr();
         }
-        space = pl->m_space;
+        space = pl->spacePtr();
     }
     if (wk->board_size != wk->board_next) {
         transit(2, wk);
@@ -1926,7 +1910,7 @@ void PieceSelect::move(SUB_SCREEN* wk)
                     state = 1;
                     SndCall(0, 0x2A, 0, 0, 0, 0);
                 } else {
-                    Cckpt.m_LifeMeter.frameIn();
+                    Cckpt.lifeMeterFrameIn();
                     IdSub.unitPtr(0, IDC_SSCRN_PESETA)->rev_flag &= 0xF0;
                 }
             } else if (link[3] == 0) {
@@ -1953,20 +1937,20 @@ void PieceSelect::move(SUB_SCREEN* wk)
                 }
             }
         } else if (Key.trg & 0x80000000) {
-            if (wk->puzzlePlayer->ptrPiece(wk->puzzlePlayer->m_p_active_board) && link[0]) {
+            if (wk->puzzlePlayer->ptrPiece() && link[0]) {
                 pzlPiece** psel = &pzzl_sel;
 
-                *psel = wk->puzzlePlayer->ptrPiece(wk->puzzlePlayer->m_p_active_board);
+                *psel = wk->puzzlePlayer->ptrPiece();
                 transit(0, wk);
             }
         } else if (Key.trg & 0x00020000) {
-            if (wk->puzzlePlayer->ptrPiece(wk->puzzlePlayer->m_p_active_board)) {
-                wk->puzzlePlayer->getPiece(wk->puzzlePlayer->m_p_active_board);
+            if (wk->puzzlePlayer->ptrPiece()) {
+                wk->puzzlePlayer->getPiece();
                 transit(1, wk);
                 SndCall(0, 0xD, 0, 0, 0, 0);
             }
         } else {
-            int r = wk->puzzlePlayer->selPiece(wk->puzzlePlayer->m_p_active_board);
+            int r = wk->puzzlePlayer->selPiece();
             int n;
 
             if (r == 5) {
@@ -1981,7 +1965,7 @@ void PieceSelect::move(SUB_SCREEN* wk)
                     wk->menu_no = 0;
                     SndCall(0, 0xA, 0, 0, 0, 0);
                 } else {
-                    int h = b->m_size_y;
+                    int h = b->size_y();
 
                     b->m_cur_y = h - 1;
                     SndCall(0, 6, 0, 0, 0, 0);
@@ -2004,10 +1988,10 @@ void PieceSelect::move(SUB_SCREEN* wk)
 
                     wk->puzzlePlayer->m_p_active_board = other;
                     b = wk->puzzlePlayer->m_p_active_board;
-                    w = b->m_size_x;
+                    w = b->size_x();
                     b->m_cur_x = w - 1;
                 } else {
-                    int w = b->m_size_x;
+                    int w = b->size_x();
 
                     b->m_cur_x = w - 1;
                 }
@@ -2042,7 +2026,7 @@ void PieceSelect::move(SUB_SCREEN* wk)
         closeMsgWindow(wk);
         if (r == 1) {
             if (wk->open_flag & 4) {
-                if (wk->puzzlePlayer->m_extra) {
+                if (wk->puzzlePlayer->pieceExtra()) {
                     ItemMgr.offboardDump(wk->p_get_item);
                 } else {
                     ItemMgr.offboardDump(0);
@@ -2125,27 +2109,27 @@ void PieceCombine::move(SUB_SCREEN* wk)
 
     wk->cursor_mode = 2;
     b = pl->m_p_active_board;
-    if (b == pl->m_board) {
-        other = pl->m_space;
+    if (b == pl->boardPtr()) {
+        other = pl->spacePtr();
     } else {
-        other = pl->m_board;
+        other = pl->boardPtr();
     }
     switch (state) {
     case 0:
         if (Key.trg & 0x40000000) {
             pzlPiece** psel = &pzzl_sel;
             wk->puzzlePlayer->loadCursor();
-            *psel = wk->puzzlePlayer->ptrPiece(wk->puzzlePlayer->m_p_active_board);
+            *psel = wk->puzzlePlayer->ptrPiece();
             transit(1, wk);
         } else if (Key.trg & 0x80000000) {
             if (wk->puzzlePlayer->ptrPiece(b)) {
-                pzlPiece* p = wk->puzzlePlayer->ptrPiece(wk->puzzlePlayer->m_p_active_board);
+                pzlPiece* p = wk->puzzlePlayer->ptrPiece();
                 pzlPiece* sel = pzzl_sel;
-                int extra = p == wk->puzzlePlayer->m_extra;
+                int extra = p == wk->puzzlePlayer->pieceExtra();
                 u16 idA;
                 u16 idB;
 
-                if (sel == wk->puzzlePlayer->m_extra) {
+                if (sel == wk->puzzlePlayer->pieceExtra()) {
                     extra = 1;
                 }
                 idA = p->item->id;
@@ -2212,7 +2196,7 @@ void PieceCombine::move(SUB_SCREEN* wk)
             }
             switch (r) {
             case 1: {
-                int h = b->m_size_y;
+                int h = b->size_y();
                 b->m_cur_y = h - 1;
                 break;
             }
@@ -2225,7 +2209,7 @@ void PieceCombine::move(SUB_SCREEN* wk)
                     wk->puzzlePlayer->m_p_active_board = other;
                     b = wk->puzzlePlayer->m_p_active_board;
                 }
-                w = b->m_size_x;
+                w = b->size_x();
                 b->m_cur_x = w - 1;
                 break;
             }
@@ -2271,11 +2255,11 @@ void PieceCommand::init(SUB_SCREEN* wk)
     int i;
     int corner;
 
-    half.x = (f32) pl->m_p_active_board->m_size_x * 0.5f;
-    half.y = (f32) pl->m_p_active_board->m_size_y * 0.5f;
+    half.x = (f32) pl->m_p_active_board->size_x() * 0.5f;
+    half.y = (f32) pl->m_p_active_board->size_y() * 0.5f;
     pc.x = pzzl_sel->m_pos_x;
     pc.y = pzzl_sel->m_pos_y;
-    if (pl->m_board->search(pzzl_sel)) {
+    if (pl->boardPtr()->search(pzzl_sel)) {
         inSpace = 0;
     } else {
         inSpace = 1;
@@ -2508,12 +2492,12 @@ void PieceCommand::move(SUB_SCREEN* wk)
                 int extraNum = 0;
                 pzlPiece* extra = 0;
 
-                if (wk->puzzlePlayer->m_extra) {
-                    extra = wk->puzzlePlayer->m_extra;
+                if (wk->puzzlePlayer->pieceExtra()) {
+                    extra = wk->puzzlePlayer->pieceExtra();
                     extraNum = extra->item->num;
                 }
                 used = ItemMgr.reload(pzzl_sel->item, 1);
-                if (wk->puzzlePlayer->m_extra && extraNum != extra->item->num) {
+                if (wk->puzzlePlayer->pieceExtra() && extraNum != extra->item->num) {
                     wk->puzzlePlayer->giveupExtraPiece();
                 }
                 break;
@@ -2523,13 +2507,11 @@ void PieceCommand::move(SUB_SCREEN* wk)
                 SndCall(0, 9, 0, 0, 0, 0);
                 return;
             case 3: {
-                ItemInfo info;
 
                 pzzl_sel->item->lv = 0;
                 used = 1;
-                itemInfo(ItemMgr.m_wep_id, &info);
-                if (info.type == 1) {
-                    ItemMgr.arm(ItemMgr.pArm);
+                if (itemType(ItemMgr.weaponId()) == 1) {
+                    ItemMgr.arm(ItemMgr.weapon());
                 }
                 break;
             }
@@ -2540,7 +2522,7 @@ void PieceCommand::move(SUB_SCREEN* wk)
                     SndCall(0, 4, 0, 0, 0, 0);
                     return;
                 }
-                ItemMgr.m_to_whom = 0;
+                ItemMgr.setToWhom(0);
                 used = ItemMgr.use(pzzl_sel->item);
                 if (used) {
                     PlMotionReset();
@@ -2639,11 +2621,11 @@ void PieceCommand::move(SUB_SCREEN* wk)
             switch (command_id) {
             case 4:
                 if (subSel == 0) {
-                    ItemMgr.m_to_whom = 0;
+                    ItemMgr.setToWhom(0);
                 } else {
-                    ItemMgr.m_to_whom = 1;
+                    ItemMgr.setToWhom(1);
                 }
-                if (ItemMgr.m_to_whom == 1) {
+                if (ItemMgr.getToWhom() == 1) {
                     switch (wk->sub_cure_flag) {
                     case -1:
                         mode = 3;
@@ -2665,7 +2647,7 @@ void PieceCommand::move(SUB_SCREEN* wk)
                     used = ItemMgr.use(pzzl_sel->item);
                 }
                 if (used) {
-                    if (ItemMgr.m_to_whom == 0) {
+                    if (ItemMgr.getToWhom() == 0) {
                         PlMotionReset();
                     } else {
                         SubCharMotionReset();
@@ -2692,7 +2674,7 @@ void PieceCommand::move(SUB_SCREEN* wk)
             }
             if (used) {
                 wk->puzzlePlayer->rehash();
-                if (wk->puzzlePlayer->m_space->getPieceNum() == 0) {
+                if (wk->puzzlePlayer->spacePtr()->getPieceNum() == 0) {
                     wk->puzzlePlayer->salvCursor();
                 }
             }
@@ -2773,10 +2755,7 @@ void CaseChange::quit(SUB_SCREEN* wk)
 // part, 7 key, 8 herb, 9 file.
 int itemCommandType(ItemWork* item)
 {
-    ItemInfo info;
-
-    itemInfo(item->id, &info);
-    switch (info.type) {
+    switch (itemType(item->id)) {
     case 1:
     case 3:
         return 0;

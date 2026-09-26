@@ -15,6 +15,7 @@
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj02.h"
 #include "em.h"
 #include "emhit.h"
 #include "em_set.h"
@@ -130,7 +131,7 @@ void R10cInit()
         SceAtDataSet_exec(5, SCE_LEVEL10, 0, (TaskFunc) chkSwitchA, 0, 1);
     } else {
         SmdGetObjPtr(0xC)->be_flag |= 0x20;
-        SmdGetObjPtr(0xC)->pParts->ang.z = -1.6f;
+        SmdGetObjPtr(0xC)->pList->ang.z = -1.6f;
     }
     if (RsfCheck(G_ROOM_ID, 1) == 0) {
         SceAtDataSet_exec(1, SCE_LEVEL10, 0, (TaskFunc) r10c_EmEvent, 0, 1);
@@ -504,10 +505,10 @@ extern "C" void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r10c_work->tex->m_Tex_no;
-        r10c_work->tex->m_Rep_type = 1;
-        r10c_work->tex->m_H_size = r10c_work->tex->m_W_size = 0x40;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r10c_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r10c_work->tex->GetTexNo();
+        r10c_work->tex->SetRepeatType(1);
+        r10c_work->tex->SetWHSize(0x40, 0x40);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r10c_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "R10cInit() : Manager alloc failed!!");
     }
@@ -532,18 +533,18 @@ extern "C" int SwitchExec(cObj* obj, f32* spd, int no, f32 lim, f32 cur)
     int dir;
 
     if (lim > cur) {
-        obj->pParts->ang.z += *spd;
+        obj->pList->ang.z += *spd;
         dir = 1;
     } else {
-        obj->pParts->ang.z -= *spd;
+        obj->pList->ang.z -= *spd;
         dir = 0;
     }
     if (*spd >= 0.0f) {
-        if (dir ? (obj->pParts->ang.z < lim) : (obj->pParts->ang.z > lim)) {
+        if (dir ? (obj->pList->ang.z < lim) : (obj->pList->ang.z > lim)) {
             *spd += r10c_switchAcc * 1.85f;
         } else {
             *spd = -r10c_switchAcc;
-            obj->pParts->ang.z = lim;
+            obj->pList->ang.z = lim;
             return 1;
         }
     }
@@ -614,7 +615,7 @@ static void chkSwitchA()
 {
     SceEventStart(0);
     CamCtrl.CutCall(0x14);
-    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 1) {
         f32 spd;
 
@@ -757,11 +758,11 @@ static void moveWheel()
     f32 spdA = 0.0f;
     f32 gateSpd = 0.0f;
     f32 poolSpd = 30.0f;
-    R10cRotWork* wheelA = (R10cRotWork*) SmdGetObjPtr(6)->work;
-    R10cRotWork* wheelA2 = (R10cRotWork*) SmdGetObjPtr(0xA)->work;
+    R10cRotWork* wheelA = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(6))->free;
+    R10cRotWork* wheelA2 = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(0xA))->free;
     R10cRotWork* wheelB;
-    R10cRotWork* wheelA3 = (R10cRotWork*) SmdGetObjPtr(0x33)->work;
-    wheelB = (R10cRotWork*) SmdGetObjPtr(8)->work;
+    R10cRotWork* wheelA3 = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(0x33))->free;
+    wheelB = (R10cRotWork*) ((cObjScr*) SmdGetObjPtr(8))->free;
     cObj* cogA;
     cObj* cogB;
     cObj* gate;
@@ -1235,7 +1236,7 @@ static void hako_down(cObj* obj)
 // Area 0x80: the key item on the gate; the gate rises and Leon is put on the far side.
 static void r10c_ItemGet()
 {
-    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (SceMesGetSelection() == 2) {
         SceExit();
     }

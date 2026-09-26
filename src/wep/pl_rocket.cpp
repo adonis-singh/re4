@@ -8,7 +8,7 @@
 // grip()/gripBack() move the launcher between the back and the shoulder, launch happens in its
 // moveFire (mode 2) along launcher.from/to = the scope camera trajectory stored by the set state.
 // weapon_type 2 is the infinite launcher (kept after a shot, back to the scope or down); any other
-// type is the single-shot one, thrown away (r_no_2 6, wep.mode 5, stat bit10 = tube gone).
+// type is the single-shot one, thrown away (r_no_2 6, r_no_0 5, stat bit10 = tube gone).
 // The knife routine (0xB) shares the launcher grip: down step 3 / ready step 2 use the player
 // motion table 0x55..0x58 for the launcher <-> knife transitions. Weapon archive slots: 0x18
 // shoulder, 0xF/0x12/0x14 aim idle, 0x11/0x13/0x15 fire, 0x16 throw away, 0x19 unshoulder,
@@ -17,6 +17,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_wep.h"
 #include "global.h"
 #include "main.h"
@@ -88,7 +89,7 @@ static void wep13_r2_ready(cPlayer* pl)
     if (joyKamae() == 0 && pl->r_no_3 != 3) {
         LAUNCHER(pl)->grip(0);
         pl->Wep->m_pWep->resetMotion();
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -128,24 +129,22 @@ static void wep13_r3_ready00(cPlayer* pl)
         pitch += pitch;
     }
     pl->Wep->pitch = pitch;
-    m3r[2] = 0.0f;
+    m3r.setDelay(0.0f);
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
+    m3r.reset(pitch);
     pl->m_Fwork0 = 0.0f;
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     pl->Neck->init(0, 0, 0);
     pl->Wep->lockInit();
     mot = WEP_ARC_PTR(0x18);
     mot3.set(pl, mot, mot, mot, 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
-    m3r[0] = 0.0f;
-    m3r[1] = 0.0f;
-    m3r[2] = 0.0f;
+    mot3.move(m3r);
+    m3r.reset(0.0f);
+    m3r.setDelay(0.0f);
     lockCtr = 0;
-    if (pl->stat & 0x400) {
+    if (pl->stat.check(cPlayer::F_NO_LAUNCHER)) {
         pl->Wep->m_pWep->setDisp(0, 1);
-        pl->stat &= ~0x400;
+        pl->stat.off(cPlayer::F_NO_LAUNCHER);
         pl->Wep->m_pWep->setMotion(pl);
     }
     if (pG->weapon_type != 2) {
@@ -165,8 +164,8 @@ static void wep13_r3_ready10(cPlayer* pl)
         pl->ang.y += d;
         pl->Wep->m_CamAdjY -= d;
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
     pl->motionMove();
     if (MotionCheckCrossFrame(&pl->Motion, 11.0f)) {
@@ -195,7 +194,7 @@ static void wep13_r3_ready20(cPlayer* pl)
 static void wep13_r3_ready30(cPlayer* pl)
 {
     if (MotionCheckCrossFrame(&pl->Motion, 5.0f)) {
-        FACE_SET(pl, 0.0f);
+        pl->Body->setKnife(false);
     }
     if (MotionCheckCrossFrame(&pl->Motion, 14.0f)) {
         LAUNCHER(pl)->grip(1);
@@ -210,7 +209,7 @@ static void wep13_r3_ready30(cPlayer* pl)
 }
 
 // r2_set: the launcher line copy of `to` reads the frame directly (`lwz 0x18(r1)..0x20(r1)`) while
-// `from` (frame offset 0) goes through an address register; a plain `obj->launcher.to = to` after
+// `from` (frame offset 0) goes through an address register; a plain `obj->hpos = to` after
 // `getTrajectory(&from, &to)` makes cse reuse the call's `&to` pseudo for the copy and gcse PRE
 // hoists it into a callee-saved register. The copy through an inline taking the address by pointer
 // keeps the frame-relative loads.
@@ -235,7 +234,7 @@ static void wep13_r2_set(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     pl->setLaserSight(0, 0);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -243,7 +242,7 @@ static void wep13_r2_set(cPlayer* pl)
         } else {
             int md = 3;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
     } else if (joyFireOn() && pl->Wep->m_pWep->bulletNum()) {
         Vec from;
@@ -253,8 +252,8 @@ static void wep13_r2_set(cPlayer* pl)
         CameraMove();
         CamCtrl.getTrajectory(&from, &to);
         obj = LAUNCHER(pl);
-        obj->launcher.from = from;
-        VecCopy(&obj->launcher.to, &to);
+        obj->lpos = from;
+        VecCopy(&obj->hpos, &to);
         pl->endCamera();
         pl->r_no_0 = 0;
         pl->r_no_1 = 6;
@@ -271,13 +270,13 @@ static void wep13_r3_set00(cPlayer* pl)
     PlArc* arc = pG->pWep;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0xF), PL_ARC_PTR(arc, 0x12), PL_ARC_PTR(arc, 0x14), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->Wep->m_pWep->setDisp(1, 0);
-    SndCall(2, 9, &pl->pParts->world, 0, 0, 0);
-    if (!(pl->stat & 0x10)) {
+    SndCall(2, 9, &pl->pList->world, 0, 0, 0);
+    if (!(pl->stat.check(cPlayer::F_SCOPE))) {
         CamCtrl.startScope(0, 0);
-        pl->stat |= 0x10;
+        pl->stat.on(cPlayer::F_SCOPE);
     }
     pl->r_no_3 = 1;
 }
@@ -349,25 +348,20 @@ static void wep13_r3_fire00(cPlayer* pl)
     f32 pitch;
 
     pl->Wep->m_pWep->trigger();
-    m3r[1] = 0.0f;
-    m3r[0] = 0.0f;
+    m3r.reset(0.0f);
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x11), PL_ARC_PTR(arc, 0x13), PL_ARC_PTR(arc, 0x15), 0, 0, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     MotionMove(pl, 0);
     pl->Wep->m_pWep->setDisp(1, 1);
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
     VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-    pitch = m3r[0];
+    pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r[1] = pitch;
-    if (m3r[2] == 0.0f) {
-        m3r[0] = pitch;
-    }
-    m3r[1] = 0.0f;
-    m3r[0] = 0.0f;
+    m3r = pitch;
+    m3r.reset(0.0f);
     pl->r_no_3 = 1;
 }
 
@@ -396,7 +390,7 @@ static void wep13_r3_fire10(cPlayer* pl)
         if (joyKamae()) {
             CamCtrl.startScope(0, 0);
             CameraMove();
-            pl->stat |= 0x10;
+            pl->stat.on(cPlayer::F_SCOPE);
             pl->r_no_0 = 0;
             pl->r_no_1 = 6;
             pl->r_no_2 = 1;
@@ -435,24 +429,11 @@ static void wep13_r3_down00(cPlayer* pl)
 {
     CamCtrl.endScope();
     CameraMove();
-    pl->stat &= ~0x10;
+    pl->stat.off(cPlayer::F_SCOPE);
     pl->Wep->m_pWep->setDisp(1, 1);
     if (joyLKamae()) {
-        // `li r9,3` before the stack-argument `stw r0,8(r1)`: the two tie in sched2 (equal
-        // priority and dependents), so sched1's issue order decides. A constant in a local
-        // makes the r9 argument a copy of a dying pseudo (weight 0) that sched1 issues before
-        // the `mr r4,pl` copy (+1) and before the stack store, which waits for its
-        // anti-dependence on the m_MotTbl loads; reload ties the pseudo to r9.
-        u8 hokan = 3;
-        void* mot0 = pl->m_MotTbl[0x55];
-        void* mot1 = pl->m_MotTbl[0x56];
-
-        mot3.set(pl, mot0, mot0, mot0, mot1, hokan, 0, 4, 0);
-        mot3.move(m3r[0]);
-        // The dead loop's NOTE_INSN_LOOP_END ends cse's extended block, so the QImode store
-        // below gets its own `li r0,3` instead of a subreg of `hokan` (which would keep the
-        // constant in a callee-saved register across the calls).
-        do { } while (0);
+        mot3.set(pl, pl->m_MotTbl[0x55], pl->m_MotTbl[0x55], pl->m_MotTbl[0x55], pl->m_MotTbl[0x56], 3, 0, 4, 0);
+        mot3.move(m3r);
         pl->r_no_3 = 3;
     } else {
 
@@ -490,7 +471,7 @@ static void wep13_r3_down10(cPlayer* pl)
         LAUNCHER(pl)->grip(0);
     }
     if (MotionCheckCrossFrame(&pl->Motion, seFrame)) {
-        SndCall(2, 2, &pl->pParts->world, 0, 0, 0);
+        SndCall(2, 2, &pl->pList->world, 0, 0, 0);
     }
     if (joyLKamae()) {
         LAUNCHER(pl)->grip(0);
@@ -533,7 +514,7 @@ static void wep13_r3_down30(cPlayer* pl)
         }
     }
     if (MotionCheckCrossFrame(&pl->Motion, 13.0f)) {
-        FACE_SET(pl, 1.0f);
+        pl->Body->setKnife(true);
     }
     if (joyLKamae() == 0) {
         LAUNCHER(pl)->grip(0);
@@ -552,7 +533,7 @@ static void wep13_r3_down30(cPlayer* pl)
 }
 
 // r_no_2 == 6: throw the empty single-shot tube away: motion 0x16 with SE 2/2; at frame 18 the
-// launcher object drops (wep.mode 5, cObjLauncher::moveDrop), stat bit10 marks it gone, the
+// launcher object drops (r_no_0 5, cObjLauncher::moveDrop), stat bit10 marks it gone, the
 // player's motion table gets the hand motions back (setMotion) and the routine leaves to footwork
 // sub-routine 2.
 static void wep13_r2_throw(cPlayer* pl)
@@ -560,18 +541,18 @@ static void wep13_r2_throw(cPlayer* pl)
     switch (pl->r_no_3) {
     case 0:
         pl->motionSet(WEP_ARC_PTR(0x16), 7, 0, 1, 0);
-        SndCall(2, 2, &pl->pParts->world, 0, 0, 0);
+        SndCall(2, 2, &pl->pList->world, 0, 0, 0);
         pl->r_no_3 = 1;
     case 1:
         if (MotionCheckCrossFrame(&pl->Motion, 18.0f)) {
             cObjWep* obj;
 
-            pl->stat |= 0x400;
+            pl->stat.on(cPlayer::F_NO_LAUNCHER);
             obj = pl->Wep->m_pWep;
-            obj->wep.mode = 5;
-            obj->wep.step = 0;
+            obj->r_no_0 = 5;
+            obj->r_no_1 = 0;
             pl->Wep->m_pWep->setMotion(pl);
-            EmRoutineSet(pl, 0, 0, 2, 0);
+            pl->setRno(0, 0, 2, 0);
         }
         pl->motionMove();
         break;
@@ -621,7 +602,7 @@ static void wep13_r2_next(cPlayer* pl)
             pl->r_no_3 = 0;
         }
     } else if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -629,7 +610,7 @@ static void wep13_r2_next(cPlayer* pl)
         } else {
             int md = 1;
 
-            EmRoutineSet(pl, 0, 6, md, 0);
+            pl->setRno(0, 6, md, 0);
         }
     }
 }

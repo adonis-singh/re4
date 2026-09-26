@@ -5,7 +5,7 @@
 //
 // Entry: PlShotgunMove is the module's WeaponMoveFunc (pl_R1_Weapon, r_no_1 == 6). r_no_2 is the
 // weapon state (0 ready, 1 set, 2 fire, 4 reload), r_no_3 the step, mirrored into the weapon
-// object's wep.mode / wep.step. Weapon archive slots (pG->pWep): 0x18 draw, 0x1A/0x20/0x22 aim
+// object's r_no_0 / r_no_1. Weapon archive slots (pG->pWep): 0x18 draw, 0x1A/0x20/0x22 aim
 // idle down/level/up (mot3 pitch blend on m3r), 0x1E/0x21/0x23 fire, 0x1F holster, 0x2A/0x2C/0x2E
 // reload by weapon_lv_reload. weapon_no 7 is the shotgun, 8 the Striker (faster draw, shorter
 // recoil, 19 pellets instead of 13), 0x21 the wep33 pump shotgun.
@@ -13,6 +13,7 @@
 #include "atari.h"
 #include "light.h"
 #include "player.h"
+#include "pl_body.h"
 #include "pl_wep.h"
 #include "global.h"
 #include "main.h"
@@ -76,7 +77,7 @@ static void wep07_r2_ready(cPlayer* pl)
     func_tbl[pl->r_no_3](pl);
     if (joyKamae() == 0) {
         pl->Motion.Seq_speed = 1.0f;
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -90,7 +91,7 @@ static void wep07_r2_ready(cPlayer* pl)
     } else if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
         pl->Motion.Seq_speed = 1.0f;
         pl->Wep->m_Flag |= 1;
-        EmRoutineSet(pl, 0, 6, 4, 0);
+        pl->setRno(0, 6, 4, 0);
         pl->m_Work0 = 1;
     } else if (pl->m_pEm) {
         CamCtrlShoulderSetAim(&pl->m_pEm->pos);
@@ -123,15 +124,14 @@ static void wep07_r3_ready00(cPlayer* pl)
     }
     pl->Wep->pitch = pitch;
     pitch *= 2.0f / PI;
-    m3r[1] = pitch;
-    m3r[0] = pitch;
-    m3r[2] = 0.0f;
+    m3r.reset(pitch);
+    m3r.setDelay(0.0f);
     pl->m_Fwork0 = 0.0f;
     pl->Neck->init(0, 0, 0);
     pl->Wep->m_CamAdjY = CamCtrl.getCameraDirection();
     pl->Wep->lockInit();
     hokan = 4;
-    if (!(pl->stat & 0x40)) {
+    if (!(pl->stat.check(cPlayer::F_CROUCH))) {
         hokan = 5;
     }
     mot = WEP_ARC_PTR(0x18);
@@ -139,7 +139,7 @@ static void wep07_r3_ready00(cPlayer* pl)
     if (pG->weapon_no == 8) {
         pl->Motion.Seq_speed = 1.4f;
     }
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->r_no_3 = 1;
 }
 
@@ -176,10 +176,10 @@ static void wep07_r3_ready10(cPlayer* pl)
     if (pl->Motion.Seq_frame >= endFrame) {
         pl->Motion.Seq_speed = 1.0f;
         SndCall(2, 9, &pl->getPartsPtr(0xA)->world, 0, 0, 0);
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -188,10 +188,10 @@ static void wep07_r3_ready20(cPlayer* pl)
 {
     if (MotionMove(pl, 0)) {
         SndCall(5, 0, &pl->getPartsPtr(0x14)->world, 0, 0, 0);
-        EmRoutineSet(pl, 0, 6, 1, 0);
+        pl->setRno(0, 6, 1, 0);
     }
-    m3r[0] = m3r[0] * m3r[2] + m3r[1] * (1.0f - m3r[2]);
-    mot3.move(m3r[0]);
+    m3r.move();
+    mot3.move(m3r);
     pl->Waist->set(0.0f, 0.4f);
 }
 
@@ -213,7 +213,7 @@ static void wep07_r2_set(cPlayer* pl)
     PlWepLockCtrl(pl);
     pl->setLaserSight(1, 0);
     if (joyKamae() == 0) {
-        if (pl->stat & 0x40) {
+        if (pl->stat.check(cPlayer::F_CROUCH)) {
             pl->r_no_0 = 0;
             pl->r_no_2 = 0;
             pl->r_no_1 = 0x11;
@@ -223,34 +223,34 @@ static void wep07_r2_set(cPlayer* pl)
         }
     } else if (joyFireTrg()) {
         if (pl->Wep->m_pWep->bulletNum()) {
-            EmRoutineSet(pl, 0, 6, 2, 0);
+            pl->setRno(0, 6, 2, 0);
         } else if (pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->m_Work0 = 0;
         } else {
             SndCall(2, 3, &pl->getPartsPtr(4)->world, 0, 0, 0);
             goto reload;
         }
     } else if (joyFireOn() && pl->Wep->m_pWep->bulletNum()) {
-        EmRoutineSet(pl, 0, 6, 2, 0);
+        pl->setRno(0, 6, 2, 0);
     } else {
     reload:
         if (pl->keyReload() && pl->Wep->m_pWep->reloadable()) {
             pl->Wep->m_Flag |= 1;
-            EmRoutineSet(pl, 0, 6, 4, 0);
+            pl->setRno(0, 6, 4, 0);
             pl->m_Work0 = 1;
         }
     }
 }
 
-// set step 0: start the three-way aim idle (0x1A down / 0x20 level / 0x22 up on m3r[0]), step 1.
+// set step 0: start the three-way aim idle (0x1A down / 0x20 level / 0x22 up on m3r), step 1.
 static void wep07_r3_set00(cPlayer* pl)
 {
     PlArc* arc = pG->pWep;
 
     mot3.set(pl, PL_ARC_PTR(arc, 0x1A), PL_ARC_PTR(arc, 0x20), PL_ARC_PTR(arc, 0x22), 0, 3, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     pl->motionMove();
     pl->r_no_3 = 1;
 }
@@ -336,7 +336,7 @@ static void wep07_r3_fire00(cPlayer* pl)
     pl->Wep->m_pWep->trigger();
     arc = pG->pWep;
     mot3.set(pl, PL_ARC_PTR(arc, 0x1E), PL_ARC_PTR(arc, 0x21), PL_ARC_PTR(arc, 0x23), 0, 0, 0, 4, 0);
-    mot3.move(m3r[0]);
+    mot3.move(m3r);
     MotionMove(pl, 0);
     pl->Body->waistMove();
     pl->partsWorldCalc();
@@ -345,7 +345,7 @@ static void wep07_r3_fire00(cPlayer* pl)
         n = 0x13;
     }
     for (i = 0; i < n; i++) {
-        cModel* parts = pl->getPartsPtr(0xA);
+        cParts* parts = pl->getPartsPtr(0xA);
         u32 flag;
 
         if (i == 0) {
@@ -409,7 +409,7 @@ static void wep07_r3_fire00(cPlayer* pl)
 
             p1.y += fRand1_1() * 100.0f;
             p1.z += fRand1_1() * 100.0f;
-            mk = &pl->Wep->m_pWep->wep.m_ShotPos;
+            mk = &pl->Wep->m_pWep->m_ShotPos;
             if (GetWaterHeight(mk, &wh) && mk->y <= wh) {
                 SndCall(2, 0xB, mk, 0, 0, 0);
             }
@@ -429,22 +429,11 @@ static void wep07_r3_fire00(cPlayer* pl)
     pl->m_Work5 = 1;
     pl->m_Work4 = 1;
     obj = pl->Wep->m_pWep;
-    obj->wep.mode = 2;
-    obj->wep.step = 0;
-    pitch = m3r[0];
+    obj->r_no_0 = 2;
+    obj->r_no_1 = 0;
+    pitch = m3r;
     PlWepLockRand(pl, 2, &pitch, &pl->m_Fwork0);
-    m3r[1] = pitch;
-    {
-        // COMPILER-DIFF: #13: the original never allocates the REG_EQUIV 0.0 pseudo; reload
-        // re-materialises `lis/lfs` for the compare in the first free FPR (f0, so m3r[2] takes f13)
-        // and sched2 issues it before the m3r[2] load. Ours would local-alloc the shorter m3r[2]
-        // load to f0 and keep the RTL order (m3r[2] first).
-        register f32 zero asm("fr0"); // COMPILER-DIFF: #13
-        zero = 0.0f;
-        if (m3r[2] == zero) {
-            m3r[0] = pitch;
-        }
-    }
+    m3r = pitch;
     pl->r_no_3 = 1;
 }
 
@@ -496,7 +485,7 @@ void wepDown(cPlayer* pl)
 {
     if (dmMotCk()) {
         MotionSetCore(pl, &pl->Motion, WEP_ARC_PTR(0x1F), 0, 3, 5, 0);
-        EmRoutineSet(pl, 0, 0, 2, 0);
+        pl->setRno(0, 0, 2, 0);
     } else {
         pl->r_no_3 = 1;
         pl->m_Hokan = 0xF;
@@ -511,7 +500,7 @@ void wepDown(cPlayer* pl)
 // r_no_2 == 4: the reload state. Step 0 starts the reload motion of the reload-speed level
 // (0x2A/0x2C/0x2E), clears m_ShotCancelCtr, knifeStance = 1, weapon object mode 4 (the object
 // loads the shells on its motion). Step 1 waits for PlReloadEndTbl's frame: aiming -> step 2; else
-// footwork sub-routine 2 with m_Hokan = 9 (or crouch 0x11); a level aim (|m3r[0]| <= 0.1) that runs
+// footwork sub-routine 2 with m_Hokan = 9 (or crouch 0x11); a level aim (|m3r| <= 0.1) that runs
 // the motion out returns to set step 0. Steps 2/3 blend the aim idle back over 8 frames (m_Work0).
 static void wep07_r2_reload(cPlayer* pl)
 {
@@ -537,17 +526,17 @@ static void wep07_r2_reload(cPlayer* pl)
         pl->Wep->m_WepUd = 1;
         pl->r_no_3 = 1;
         obj = pl->Wep->m_pWep;
-        obj->wep.mode = 4;
-        obj->wep.step = 0;
+        obj->r_no_0 = 4;
+        obj->r_no_1 = 0;
         break;
     }
     case 1:
         pl->motionMove();
-        if (m3r[0] < -0.1f || m3r[0] > 0.1f) {
+        if (m3r < -0.1f || m3r > 0.1f) {
             if (pl->Motion.Seq_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
                 if (joyKamae()) {
                     pl->r_no_3 = 2;
-                } else if (pl->stat & 0x40) {
+                } else if (pl->stat.check(cPlayer::F_CROUCH)) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;
@@ -563,7 +552,7 @@ static void wep07_r2_reload(cPlayer* pl)
             }
         } else {
             if (joyKamae() == 0 && pl->Motion.Seq_frame >= PlReloadEndTbl[pG->weapon_no][pG->weapon_lv_reload]) {
-                if (pl->stat & 0x40) {
+                if (pl->stat.check(cPlayer::F_CROUCH)) {
                     pl->r_no_0 = 0;
                     pl->r_no_2 = 0;
                     pl->r_no_1 = 0x11;
@@ -578,7 +567,7 @@ static void wep07_r2_reload(cPlayer* pl)
                 }
             }
             if (pl->Motion.Seq_frame >= (f32) (pl->Motion.Seq_frame_num - 1)) {
-                EmRoutineSet(pl, 0, 6, 1, 0);
+                pl->setRno(0, 6, 1, 0);
             }
         }
         break;
@@ -591,9 +580,9 @@ static void wep07_r2_reload(cPlayer* pl)
     }
     case 3:
         if ((int) ++pl->m_Work0 > 8) {
-            EmRoutineSet(pl, 0, 6, 1, 0);
+            pl->setRno(0, 6, 1, 0);
         }
-        mot3.move(m3r[0]);
+        mot3.move(m3r);
         pl->motionMove();
         break;
     }

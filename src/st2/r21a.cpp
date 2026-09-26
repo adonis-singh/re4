@@ -317,7 +317,7 @@ static void R21aDoorMain()
         if (obj) {
             SndCall(6, 7, &obj->pos, 0, 0, 0);
         }
-        SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SceSetEventCancel(1, (TaskFunc) R21aDoorEnd, 0, -1, 1);
         CamCtrl.CutCall(3);
         obj = SmdGetObjPtr(0x19);

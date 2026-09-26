@@ -23,7 +23,7 @@ void Light08_Move(cLight* pLi)
     if (w->type == 0) {
         cEm* em = EmMgr.getEmPtr(w->emId, 0);
         if (em) {
-            cModel* parts = em->getPartsPtr(w->partsNo);
+            cParts* parts = em->getPartsPtr(w->partsNo);
             if (parts) {
                 pLi->setSpotTarget(&parts->world);
             }

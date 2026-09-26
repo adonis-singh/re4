@@ -300,7 +300,7 @@ void PathGetVtxMat(Mtx pMat, cModel* pMod, PathVtx* pPunit)
     int i;
     f32 w;
     f32 wsum;
-    cModel* p;
+    cParts* p;
 
     memclr_asm(m, sizeof(Mtx));
     memclr_asm(m2, sizeof(Mtx));
@@ -316,7 +316,7 @@ void PathGetVtxMat(Mtx pMat, cModel* pMod, PathVtx* pPunit)
         if (i == pPunit->nWeight - 1) w = 1.0f - wsum;
         wsum += w;
         MAT_ACC(m, p->mat, w);
-        MAT_ACC(m2, IK_PARTS(p)->bindMat, w);
+        MAT_ACC(m2, p->lt_inv_mat, w);
     }
     PSMTXConcat(m, m2, pMat);
 }

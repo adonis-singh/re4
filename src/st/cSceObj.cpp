@@ -44,7 +44,7 @@ inline void cSceObj::addRot(Vec* d)
         return;
     }
     if (flags & 4) {
-        r = obj->pParts->ang;
+        r = obj->pList->ang;
     } else {
         r = obj->ang;
     }
@@ -53,7 +53,7 @@ inline void cSceObj::addRot(Vec* d)
     out.y = LIMIT_ANGLE(out.y);
     out.z = LIMIT_ANGLE(out.z);
     if (flags & 4) {
-        obj->pParts->ang = out;
+        obj->pList->ang = out;
     } else {
         obj->ang = out;
     }
@@ -64,7 +64,7 @@ inline void cSceObj::addRot(Vec* d)
             Vec d2;
 
             if (flags & 4) {
-                MTX_COPY(obj->pParts->mat, m);
+                MTX_COPY(obj->pList->mat, m);
             } else {
                 MTX_COPY(obj->mat, m);
             }
@@ -92,7 +92,7 @@ inline void cSceObj::setRotTo(Vec* target)
 
     if (obj) {
         if (flags & 4) {
-            PSVECSubtract(target, &obj->pParts->ang, &d);
+            PSVECSubtract(target, &obj->pList->ang, &d);
         } else {
             PSVECSubtract(target, &obj->ang, &d);
         }
@@ -114,7 +114,7 @@ inline void cSceObj::moveTo(Vec* tp, Vec* tr)
 
         if (o) {
             if (flags & 4) {
-                PSVECSubtract(tr, &o->pParts->ang, &d);
+                PSVECSubtract(tr, &o->pList->ang, &d);
             } else {
                 PSVECSubtract(tr, &o->ang, &d);
             }
@@ -402,7 +402,7 @@ void cSceObj::initMove1_ang(cModel* o, u32 nFrame, Vec* dr, f32 acc, f32 dec, in
         obj = o;
         basePos = o->pos;
         if (flg & 4) {
-            baseRot = o->pParts->ang;
+            baseRot = o->pList->ang;
         } else {
             baseRot = o->ang;
         }
@@ -424,7 +424,7 @@ void cSceObj::initMove1_all(cModel* o, u32 nFrame, Vec* dp, Vec* dr, f32 acc, f3
         obj = o;
         basePos = o->pos;
         if (flg & 4) {
-            baseRot = o->pParts->ang;
+            baseRot = o->pList->ang;
         } else {
             baseRot = o->ang;
         }

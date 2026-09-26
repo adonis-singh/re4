@@ -64,9 +64,9 @@ struct R11cWork {
     u8 texTbl[0x80];         // 0x50  TexRenderModSet parts table
     cObjLadder* ladder[4];   // 0xD0  etc ladders 6..9
     f32 gateY[2];            // 0xE0  rest pos.y of the two gates (smd 0x33 / 0x34)
-    ScePrim* closeGate;      // 0xE8  r11c_closeGate task
-    ScePrim* gear;           // 0xEC  r11c_moveGear task
-    ScePrim* chain;          // 0xF0  r11c_moveChain task
+    SCE_TASK* closeGate;      // 0xE8  r11c_closeGate task
+    SCE_TASK* gear;           // 0xEC  r11c_moveGear task
+    SCE_TASK* chain;          // 0xF0  r11c_moveChain task
     int eff;                 // 0xF4  EspPullCoreKind of the room ambience
     int effGear;             // 0xF8  EspPullCoreKind of the gear effect
     int effGate;             // 0xFC  EspPullCoreKind of the gate effect
@@ -347,7 +347,7 @@ static void r11c_EventBesiegedStart()
         EvtMgr.SetEvt(mod->pArc, (u32*) 0);
         SceSleep(2);
         SceSleep(2);
-        while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0) != 0) {
+        while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
             SceSleep(1);
         }
         MemorySwap(mod->pArc, (u32) W->evd0->m_addr, W->evd0->m_size);
@@ -549,7 +549,7 @@ static void r11c_EventBesiegedStart()
     err2 = W->evd1->waitLoadOk() == 0;
     for (i = 0; i < n; i++) {
         e = em[i];
-        if ((e->be_flag & 0x201) == 1) {
+        if (e->isAlive()) {
             EmMgr.destroy(e);
         }
     }
@@ -566,7 +566,7 @@ static void r11c_EventBesiegedStart()
             if (EvtMgr.SetEvt(mod2->pArc, (u32*) &ev)) {
                 ev->StatusFlag |= EvtStfBit(EvtStfFadeOut);
             }
-            while (EvtMgr.IsAliveEvt(evtKey(&EvtMgr), 0, 0) != 0) {
+            while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0) != 0) {
                 SceSleep(1);
             }
             MemorySwap(mod2->pArc, (u32) W->evd1->m_addr, W->evd1->m_size);
@@ -800,13 +800,13 @@ static void r11c_moveGear(int dir)
     g2->be_flag |= 0x20;
     W->seGear = SndCall(6, 0x56, 0, 0, 0, 0);
     d = (f32) dir;
-    g0->pParts->ang.z += d * DEG(0.2f);
+    g0->pList->ang.z += d * DEG(0.2f);
     SceSleep(1);
-    g0->pParts->ang.z += d * DEG(0.4f);
+    g0->pList->ang.z += d * DEG(0.4f);
     SceSleep(1);
     d *= DEG(0.6f);
-    g0->pParts->ang.z += d;
-    g1->pParts->ang.y += d;
+    g0->pList->ang.z += d;
+    g1->pList->ang.y += d;
     SceSleep(1);
     EstSet(0, -1, 0, 0, EFF_ROOM, 5, 1, (u8) W->effGear, 0, 0);
     while (!RmfFlagChk(pG, RMF_GATE_OPEN)) {
@@ -817,9 +817,9 @@ static void r11c_moveGear(int dir)
             t = max;
         }
         a = t * DEG(1.0f) * (f32) dir;
-        g0->pParts->ang.z += a;
-        g1->pParts->ang.y += -a * t0 / t1;
-        g2->pParts->ang.z += -a * t0 / t1 * t2 / t0;
+        g0->pList->ang.z += a;
+        g1->pList->ang.y += -a * t0 / t1;
+        g2->pList->ang.z += -a * t0 / t1 * t2 / t0;
         SceSleep(1);
     }
     EffectEspDelete(0, (u8) W->effGear, 0, 0);
@@ -867,15 +867,15 @@ static void r11c_moveLever2(int dir)
     lv = SmdGetObjPtr(0x35);
     spd = (f32) dir * DEG(5.5f);
     for (i = 0; i < 10; i++) {
-        lv->pParts->ang.z -= spd;
+        lv->pList->ang.z -= spd;
         SceSleep(1);
     }
     spd = (f32) dir * DEG(1.0f);
     for (i = 0; i < 3; i++) {
-        lv->pParts->ang.z += spd;
+        lv->pList->ang.z += spd;
         SceSleep(1);
     }
-    lv->pParts->ang.z = 0.0f;
+    lv->pList->ang.z = 0.0f;
 }
 
 // The lever is pulled; unless `noGear`, the gear and chain tasks start.
@@ -889,22 +889,22 @@ extern "C" void r11c_moveLever(int dir, int noGear)
 
     lv = SmdGetObjPtr(0x35);
     lv->be_flag |= 0x20;
-    lv->pParts->ang.z = 0.0f;
+    lv->pList->ang.z = 0.0f;
     d = (f32) dir;
     spd = d * DEG(5.5f);
     SndCall(6, 0xA, 0, 0, 0, 0);
     d2 = d * DEG(1.0f);
     for (i = 0; i < 3; i++) {
-        lv->pParts->ang.z += d2;
+        lv->pList->ang.z += d2;
         SceSleep(1);
     }
     for (i = 0; i < 10; i++) {
-        lv->pParts->ang.z += spd;
+        lv->pList->ang.z += spd;
         SceSleep(1);
     }
     d2 = (f32) dir * DEG(1.0f);
     for (i = 0; i < 3; i++) {
-        lv->pParts->ang.z -= d2;
+        lv->pList->ang.z -= d2;
         SceSleep(1);
     }
     if (noGear == 0) {
@@ -923,7 +923,7 @@ static void r11c_selectRoute_end(int sel)
 
     if (RmfFlagChk(pG, RMF_ROUTE_EVT_CANCEL)) {
         if (lv) {
-            lv->pParts->ang.z = 0.0f;
+            lv->pList->ang.z = 0.0f;
         }
         if (W->closeGate) {
             SceKill(W->closeGate);
@@ -996,7 +996,7 @@ static void r11c_selectRoute()
     RmfFlagOff(pG, RMF_GATE_OPEN);
     SceEventStart(0);
     CamCtrl.CutCall(3);
-    SceMesSet(0, 0x220, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0x220, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case 1:
         if ((r11c_save()->flags & 0x40000000) && !(r11c_save()->flags & 0x20000000)) {
@@ -1231,10 +1231,10 @@ extern "C" void Evt_R11CS10_Func(Event* e)
 static inline void r11c_evtEsp(Event* e, u8 no)
 {
     if (e->NowFrame == 0) {
-        EffectEspDelete(W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-        EffectEspgenDelete(W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-        EffectEfmDelete(W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-        EstSet(0, -1, 0, 0, EFF_ROOM, no, W->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+        EffectEspDelete(W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+        EffectEspgenDelete(W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+        EffectEfmDelete(W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+        EstSet(0, -1, 0, 0, EFF_ROOM, no, W->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
     }
 }
 

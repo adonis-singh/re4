@@ -20,13 +20,13 @@ static inline void logHalt()
     HALT();
 }
 
-cLogPtr pLog;
+cLog* pLog;
 
 // Allocates the log from the debug heap and initialises it (boot).
 void LogInit()
 {
     cLog* p = (cLog*) Debug_alloc(sizeof(cLog), 1);
-    pLog.p = p;
+    pLog = p;
     p->init();
 }
 
@@ -114,7 +114,7 @@ int cLog::modeReset()
 // Window position, display duration (frames, 0xFF = always) and visible line count.
 int cLog::modeSet(int x, int y, int dispTime, int dispNum)
 {
-    cLog* l = pLog.p;
+    cLog* l = pLog;
     l->m_Bx = x;
     l->m_By = y;
     this->m_DispTime = dispTime;

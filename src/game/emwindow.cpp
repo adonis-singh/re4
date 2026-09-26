@@ -207,10 +207,7 @@ int cEmWindow::init(void* bin, void* tpl, Vec* pos_, Vec* rot_, int type_, u8 et
     if (rot_) {
         ang = *rot_;
     }
-    RotMatrix(l_mat, &ang);
-    TransMatrix(l_mat, &pos);
-    ScaleMatrix(l_mat, &scale);
-    PSMTXCopy(l_mat, mat);
+    matCalc();
     type = type_;
     if (WindowData[type_].field == 0) {
         SetEnableFence(0, 0);
@@ -263,11 +260,8 @@ int cEmWindow::init(void* bin, void* tpl, Vec* pos_, Vec* rot_, int type_, u8 et
     setStatus(EM_STATUS_LOCKOFF);
     setStatus(EM_STATUS_ASHLEY_NO_HELP);
     atari.setPriority(PRI_LV3);
-    atari.throughOn();
-    lockParts = 0;
-    lockOfs.x = 0.0f;
-    lockOfs.y = 0.0f;
-    lockOfs.z = 0.0f;
+    atari.off();
+    setTarget(0, 0.0f, 0.0f, 0.0f);
     be_flag &= ~0x10;
     ot_type = WindowData[type].type2;
     setNoSuspend(1);
@@ -749,7 +743,7 @@ int cEmWindow::SetBreakModel()
         bin = GetEtcAddr(w->arc, WindowData[type].bin);
         SetChangeModel(bin, GetEtcAddr(w->arc, WindowData[type].tpl));
     } else {
-        be_flag &= ~2;
+        setTrans(0);
     }
     if (WindowData[type].breakEff2 == 1) {
         EstSet(0, -1, &pos, &ang, w->eff, 9, 1, ESP_CORE_KIND_NONE, 0, 0);

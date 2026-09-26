@@ -55,7 +55,7 @@ extern void (*_dtors[])(void);
 extern "C" {
 void SubScreenTask();
 void clearZbuffer();
-void sscrnCameraInit(SUB_SCREEN* wk, Camera* cam);
+void sscrnCameraInit(SUB_SCREEN* wk, CAMERA* cam);
 int sscrnKey2Game(SUB_SCREEN* wk);
 void dispScrollBar(u32 top, u32 n, u32 num, IdUnit* bar, IdUnit* up, IdUnit* down);
 void generalModelAlloc(SUB_SCREEN* wk);
@@ -105,7 +105,7 @@ extern "C" void _unresolved()
 
 // Sets the sub screen's fixed camera: eye at (0, 0, 5000) looking at the origin, y up, 20 degree fov,
 // 4:3 aspect; rebuilds its projection and view matrices. Every screen's Init widget calls it.
-void sscrnCameraInit(SUB_SCREEN* wk, Camera* cam)
+void sscrnCameraInit(SUB_SCREEN* wk, CAMERA* cam)
 {
     const f32 zero = 0.0f;  // pool order: 0.0 first
 
@@ -261,7 +261,7 @@ void SubScreenTask()
         if (pG->pl_type != 1) {
             char name[0x40];
             int req;
-            weaponFilename(name, WeaponId2WeaponNo(ItemMgr.m_wep_id));
+            weaponFilename(name, WeaponId2WeaponNo(ItemMgr.weaponId()));
 #line 412 "D:/Bio4/Prog/ss_main.cpp"
             req = DVD_READ_N(name, wk->pWepDat, 0, 0, 0, 0x11);
             Dvd.ReadCheck(req, 0, 0, 0);
@@ -333,7 +333,7 @@ void SubScreenTask()
                 }
             }
             if (ssWepModel2 && ssWepModel) {
-                switch (WeaponId2WeaponNo(ItemMgr.m_wep_id)) {
+                switch (WeaponId2WeaponNo(ItemMgr.weaponId())) {
                 case 0x19:
                 case 0x1F:
                 case 0x20:
@@ -397,14 +397,14 @@ void SubScreenTask()
             m = mgr->getActiveWork();
             while (m) {
                 cModel* p = m;
-                m = (cModel*) m->pNext;
+                m = (cModel*) m->getNext();
                 func(p);
             }
             func = LightSetModel2;
             m = mgr->getActiveWork();
             while (m) {
                 cModel* p = m;
-                m = (cModel*) m->pNext;
+                m = (cModel*) m->getNext();
                 func(p);
             }
         }

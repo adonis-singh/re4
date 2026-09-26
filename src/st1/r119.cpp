@@ -265,7 +265,7 @@ static void r119_EventGolemAppear()
     EvtMgr.EvtReadAram("event/evd/r119s30.evd", 0, 0, 0, 0);
     r119_work->golem = (cEmGolem*) EmSetFromList2(0x28, 0);
     GamePointBossReset();
-    Cckpt.m_LifeMeter.flags = (u32) r119_work->golem;
+    Cckpt.lifeMeterBoss(r119_work->golem);
     StaFlagOff(pG, STA_CAMERA_SET_ROOM);
     {
         Vec v;

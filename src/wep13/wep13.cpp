@@ -19,7 +19,7 @@ void Wep13_init(cModel* m)
     cPlayer* pl = (cPlayer*) m;
     cObjWep* obj;
 
-    pl->stat &= ~0x400;
+    pl->stat.off(cPlayer::F_NO_LAUNCHER);
     obj = (cObjWep*) ObjMgr.createBack(cObjMgr::ID_WEP_LAUNCHER);
     if (obj == 0) {
         pLog->err(0, 0, "Wep13_init() cObjWep CREATE FAILED");

@@ -135,7 +135,9 @@ public:
     void* pFrame;    // 0x10
     void* pLoadDat;  // 0x14  load frame
     void* pBg;       // 0x18  message background
+private:
     s32 m_act_flag;      // 0x1C  1 up, 2 down, 4 decided, 8 moving
+public:
     IDSystem m_IdSave;  // 0x20
     s32 m_mode;        // 0x70
     s8 rno0;        // 0x74
@@ -153,6 +155,7 @@ public:
     void save(cCard* c);
     void quit();
     void setAction(int a);
+    s32 getAction() { return m_act_flag; }
 };
 
 void dispSaveInfo(int no, SaveInfo* info, int type, int broken);
@@ -224,16 +227,6 @@ static void* g_p_spln_org[1];
 
 // Free blocks of a slot (free bytes rounded up to the sector size).
 #define FREE_BLOCKS(s) (((s).sectorSize ? ROUNDUP((s).freeBytes, (s).sectorSize) : 0) / (s).sectorSize)
-
-// Removes every message window.
-static inline void deleteAllMes()
-{
-    MessageControl* m = &cMes;
-    int i;
-    for (i = 0; i < 16; i++) {
-        m->Delete(i);
-    }
-}
 
 // Dev mode: prints the slot list (CARD SLOT A / HARD DISK) with the selected one highlighted.
 void debugInfoDisp(int slot_no, int type)
@@ -503,13 +496,13 @@ void cCard::dataSelect()
             }
         }
         m_Rno1++;
-        m_Status |= 2;
+        setStatus(2);
         setMsgWindow(1, 0);
-        deleteAllMes();
+        cMes.Clear();
     }
         // fallthrough
     case 1:
-        if (g_id->m_act_flag != 0) {
+        if (g_id->getAction() != 0) {
             break;
         }
         if (Key.rep & (KEY_UP | KEY_DOWN)) {
@@ -588,26 +581,26 @@ void cCard::dataSelect()
     case 3:
         setMsgWindow(1, 1);
         cardMesSet(MES_OVERWRITE_CONFIRM, 0, 0);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1 = 6;
         break;
     case 4:
         setMsgWindow(1, 1);
         cardMesSet(MES_SAVEFILE_CONFIRM, 0, 0);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1 = 6;
         break;
     case 5:
         setMsgWindow(1, 1);
         cardMesSet(MES_LOADFILE_CONFIRM, 0, 0);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1 = 6;
         break;
     case 6:
         if (Key.trg & KEY_B) {
             sel = 2;
         } else {
-            sel = cMes.m_Msg[0].m_sel;
+            sel = cMes.GetSelectMessage(0);
         }
         switch (sel) {
         case 1:
@@ -624,12 +617,12 @@ void cCard::dataSelect()
 /*/BF*/
             pG->CardLastSelNo = m_SaveNo;
             pG->card_serial = m_Slot[m_SlotNo].serial;
-            deleteAllMes();
+            cMes.Clear();
             break;
         case 2:
             CoreSeCall(5, 0, 0, 0, 0);
             m_Rno1 = 1;
-            deleteAllMes();
+            cMes.Clear();
             setMsgWindow(1, 0);
             break;
         }
@@ -971,7 +964,7 @@ void cCard::saveMain()
             m_Slot[m_SlotNo].fileFlag[m_SaveNo] = 1;
             memcpy(m_pSaveInfo[m_SaveNo], pSaveBuf + 0x2000, 0x200);
             g_id->setAction(4);
-            m_Status &= ~1;
+            resetStatus(1);
         }
         m_Rno1++;
         // fallthrough
@@ -1066,11 +1059,11 @@ void cCard::saveMain()
         }
         break;
     case 10:
-        m_Status |= 1;
+        setStatus(1);
         SysFlagOff(pG, SYS_CARD_ACCESS);
         cardMesSet(MES_SAVE_DONE, 0, 0);
         if (Key.trg & (KEY_START | KEY_Z)) {
-            deleteAllMes();
+            cMes.Clear();
             setMsgWindow(1, 0);
             m_Rno0 = nextMode;
             m_Rno1 = 0;
@@ -1081,7 +1074,7 @@ void cCard::saveMain()
     case 11:
         cardMesSet(MES_SYS_SAVE_DONE, 0, 0);
         if (m_Timer == 0) {
-            deleteAllMes();
+            cMes.Clear();
             setMsgWindow(1, 0);
             SysFlagOff(pG, SYS_CARD_ACCESS);
             m_Rno0 = 4;
@@ -1110,7 +1103,7 @@ void cCard::exit()
         }
         break;
     case 1:
-        deleteAllMes();
+        cMes.Clear();
         if (m_aMode == 2) {
             pG->CardStatus |= 0x80000000;
             systemVISetBlack(1);
@@ -1156,7 +1149,7 @@ void cCard::exit()
             }
         }
         pG->CardStatus &= ~0x7FFFFFF8;
-        MesData.ptr[0] = (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore);
+        MesData.registData(0, (u8*) (pG->pCore->ofs_28 + (u32) pG->pCore));
         exitFlag = 1;
         break;
     }
@@ -1216,7 +1209,7 @@ void cCard::format()
     case 1:
         setMsgWindow(0, 1);
         cardMesSet(MES_NEED_FORMAT, 0, 0x800000);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 2:
@@ -1224,7 +1217,7 @@ void cCard::format()
             noCard = 1;
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -1241,7 +1234,7 @@ void cCard::format()
         break;
     case 3:
         cardMesSet(MES_FORMAT_CONFIRM, 0, 0x800000);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 4:
@@ -1249,7 +1242,7 @@ void cCard::format()
             noCard = 1;
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -1264,7 +1257,7 @@ void cCard::format()
             m_Rno1 = sel;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         }
         break;
@@ -1301,7 +1294,7 @@ void cCard::format()
             break;
         }
         if (Key.trg & KEY_A) {
-            deleteAllMes();
+            cMes.Clear();
             if (m_aMode == 2) {
                 m_Rno0 = 0;
             } else {
@@ -1343,7 +1336,7 @@ void cCard::fileDelete()
             cardMesSet(MES_DATA_DELETE, 0, 0x800000);
             sprintf(m_Name, "bh4_data%02d", m_SaveNo);
         }
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 1:
@@ -1358,7 +1351,7 @@ void cCard::fileDelete()
             }
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -1406,7 +1399,7 @@ void cCard::fileDelete()
         }
         cardMesSet(MES_DELETE_DONE, 0, 0);
         if (Key.trg & KEY_A) {
-            deleteAllMes();
+            cMes.Clear();
             if (m_aMode == 2) {
                 m_Rno0 = 0;
             } else {
@@ -1491,7 +1484,7 @@ void cCard::errorDisp()
             eprintf2(10, 16, 80, 170, 0, 0, "The Memory Card in Slot %c is not supported.", m_SlotNo + 'A');
             break;
         case -0x201:
-            cMes.getWork()->setNumber(m_SaveSize + m_SysSize, 2);
+            cMes.MesSetNumber(0, m_SaveSize + m_SysSize, 2);
             if (m_aMode == 2) {
                 mesNo = MES_NO_CAPA_START;
             } else {
@@ -1559,7 +1552,7 @@ void cCard::errorDisp()
             m_Rno1 = 1;
         } else {
             m_Rno1 = 3;
-            cMes.m_Msg[0].m_cur = 1;
+            cMes.SetCursor(0, 1);
         }
         m_Rno2 = 0;
         m_Rno3 = 0;
@@ -1588,19 +1581,20 @@ void cCard::errorDisp()
             m_Rno1 = 0;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             return;
         }
         cardMesSet(mesNo, 0, 0x800000);
         if (pG->CardStatus & 0x80) {
-            cMes.m_Msg[0].m_cur = 0;
+            // SetCursor(0, 0) does not fold the address of cMes.m_Msg[0] into the store.
+            cMes.getWork()->setCursor(0);
         } else {
-            cMes.m_Msg[0].m_cur = 1;
+            cMes.SetCursor(0, 1);
         }
         m_Rno1++;
         break;
     case 3:
-        switch (cMes.m_Msg[0].m_sel) {
+        switch (cMes.GetSelectMessage(0)) {
         case 1:
             if (m_aMode == 2) {
                 CoreSeCall(4, 0, 0, 0, 0);
@@ -1615,7 +1609,7 @@ void cCard::errorDisp()
             m_Rno1 = 0;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         case 2:
             if (m_aMode == 2) {
@@ -1631,11 +1625,11 @@ void cCard::errorDisp()
             m_Rno1 = 0;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         case 3:
             CoreSeCall(4, 0, 0, 0, 0);
-            deleteAllMes();
+            cMes.Clear();
             switch (m_ErrCode) {
             case -0x201:
             case -0x20A:
@@ -1659,7 +1653,7 @@ void cCard::errorDisp()
         switch (probe) {
         case -3:
             if (!(m_Slot[m_SlotNo].flags & 2)) {
-                deleteAllMes();
+                cMes.Clear();
                 if (m_aMode == 2) {
                     m_Rno0 = 0;
                 } else {
@@ -1675,7 +1669,7 @@ void cCard::errorDisp()
         case -2:
         case 0:
             if (m_Slot[m_SlotNo].flags & 2) {
-                deleteAllMes();
+                cMes.Clear();
                 if (m_aMode == 2) {
                     m_Rno0 = 0;
                 } else {
@@ -1818,7 +1812,7 @@ int cCard::initSub()
         }
         m_IdDataAddr = addr;
     }
-    MesData.ptr[0] = (u8*) (pSubData->ofs[1] + (u32) pSubData);
+    MesData.registData(0, (u8*) (pSubData->ofs[1] + (u32) pSubData));
     return 1;
 }
 
@@ -2058,7 +2052,7 @@ void cCard::firstCheck10()
         break;
     case 3:
         if (m_Timer == 0) {
-            deleteAllMes();
+            cMes.Clear();
             if (m_SlotNo == 2) {
                 m_Rno0 = 3;
             } else {
@@ -2901,7 +2895,7 @@ void cCard::createSysfile()
     switch (m_Rno1) {
     case 0:
         cardMesSet(MES_SYS_MAKE_CONFIRM, 0, 0x800000);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 1:
@@ -2909,7 +2903,7 @@ void cCard::createSysfile()
             noCard = 1;
             break;
         }
-        sel = cMes.m_Msg[0].m_sel;
+        sel = cMes.GetSelectMessage(0);
         switch (sel) {
         case 1:
             CoreSeCall(4, 0, 0, 0, 0);
@@ -2924,7 +2918,7 @@ void cCard::createSysfile()
             m_Rno1 = sel;
             m_Rno2 = 0;
             m_Rno3 = 0;
-            deleteAllMes();
+            cMes.Clear();
             break;
         }
         break;
@@ -3014,7 +3008,7 @@ void cCard::createSysfile()
         break;
     case 10:
         if (m_Timer == 0) {
-            deleteAllMes();
+            cMes.Clear();
             SysFlagOff(pG, SYS_CARD_ACCESS);
             m_Rno0 = 4;
             m_Rno1 = 0;
@@ -3339,8 +3333,8 @@ void CardID::updateSaveInfo(cCard* pCard)
 
     for (i = 0; i < 7; i++) {
         int type = 0x40 + i;
-        s8 sl = pCard->m_SlotNo;
-        int base = pCard->m_SaveNo - 3;
+        s8 sl = pCard->getSlotNo();
+        int base = pCard->getSaveNo() - 3;
         int no = base + i;
         u32 f;
         // The original loop body spans more than 100 insn slots (notes included), so haifa never
@@ -3353,12 +3347,12 @@ void CardID::updateSaveInfo(cCard* pCard)
             no -= 20;
         }
         g_id->m_IdSave.unitPtr(0x15, type)->be_flag |= 8;
-        f = (&pCard->m_Slot[sl])->fileFlag[no];
+        f = pCard->getSlotInfo(sl)->fileFlag[no];
         if (f & 1) {
             if (f & 2) {
-                dispSaveInfo(no, (SaveInfo*) pCard->m_pSaveInfo[(s8) no], type, 1);
+                dispSaveInfo(no, (SaveInfo*) pCard->getSaveInfo((s8) no), type, 1);
             } else {
-                dispSaveInfo(no, (SaveInfo*) pCard->m_pSaveInfo[(s8) no], type, 0);
+                dispSaveInfo(no, (SaveInfo*) pCard->getSaveInfo((s8) no), type, 0);
             }
         } else {
             dispSaveInfo(no, 0, type, 0);
@@ -3459,7 +3453,7 @@ void CardID::move(cCard* pCard)
         m_IdSave.unitPtr(1, IDC_SSCRN_FAR_0)->be_flag |= 8;
         m_IdSave.unitPtr(0x15, IDC_NUM_00)->be_flag |= 8;
     }
-    if (pCard->m_Rno0 == 5) {
+    if (pCard->getRno0() == 5) {
         a = m_IdSave.unitPtr(0, IDC_SSCRN_FAR_0);
         b = m_IdSave.unitPtr(0xA, IDC_SSCRN_FAR_0);
         if ((a->rev_flag & 0xF) == 0) {
@@ -3483,13 +3477,9 @@ void CardID::wait(cCard* pCard)
 {
     IdUnit* a;
     IdUnit* b;
-    int v = 1;
 
-    if (!(pCard->m_Status & 2)) {
-        v = 0;
-    }
-    if (v) {
-        pCard->m_Status &= ~2;
+    if (pCard->ckStatus(2)) {
+        pCard->resetStatus(2);
         a = g_id->m_IdSave.unitPtr(0, IDC_SSCRN_FAR_0);
         b = g_id->m_IdSave.unitPtr(0xA, IDC_SSCRN_FAR_0);
         a->path0 = b->path0;
@@ -3520,17 +3510,17 @@ void CardID::normal(cCard* pCard)
 {
     IdUnit* u;
 
-    if (m_act_flag & 4) {
+    if (getAction() & 4) {
         u = IdSys.unitPtr(1, IDC_SSCRN_NEAR_0);
         u->rev_flag &= ~0xF;
         IdSys.setTime(u, 0);
         rno0 = 5;
         SndCall(0, 0x2D, 0, 0, 0, 0);
-    } else if (m_act_flag & 1) {
+    } else if (getAction() & 1) {
         rno0 = 3;
         updateSaveInfo(pCard);
         up_down(pCard);
-    } else if (m_act_flag & 2) {
+    } else if (getAction() & 2) {
         rno0 = 4;
         updateSaveInfo(pCard);
         up_down(pCard);
@@ -3596,10 +3586,10 @@ void CardID::up_down(cCard* pCard)
             rno0 = 2;
             rno1 = 0;
         } else {
-            if (m_act_flag & 1) {
+            if (getAction() & 1) {
                 rno0 = 3;
                 rno1 = 0;
-            } else if (m_act_flag & 2) {
+            } else if (getAction() & 2) {
                 rno0 = 4;
                 rno1 = 0;
             }
@@ -3623,7 +3613,7 @@ void CardID::save(cCard* pCard)
     int n = ((s8*) h)[3];
     int i;
 
-    if (pCard->m_Rno0 == 5) {
+    if (pCard->getRno0() == 5) {
         u->rev_flag |= 0xF;
         return;
     }

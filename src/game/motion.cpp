@@ -66,16 +66,16 @@ void dummy(u8* d, int i0, int i1, f32* v, f32* t);
 // computation (Pos_world), without recomputing the pose (cheap follow after setPos-style moves).
 void PartsWorldPosCalc(cModel* pMod)
 {
-    cModel* p;
+    cParts* p;
     Vec d;
 
-    p = pMod->pParts;
+    p = pMod->pList;
     PSVECSubtract(&pMod->pos, &MOTION(pMod)->Pos_world, &d);
     pMod->mat[0][3] += d.x;
     pMod->mat[1][3] += d.y;
     pMod->mat[2][3] += d.z;
     if (PSVECMag(&d) != 0.0f) {
-        for (; p != 0; p = p->pParts) {
+        for (; p != 0; p = p->pList) {
             PSVECAdd(&p->world, &d, &p->world);
             p->mat[0][3] += d.x;
             p->mat[1][3] += d.y;
@@ -102,18 +102,18 @@ void MotionPause(cModel* pEm)
 void MotionClear(cModel* pEm, int flag)
 {
     MotionWork* w = MOTION(pEm);
-    cModel* p;
+    cParts* p;
     Mtx tmp;
     Mtx inv;
     int i;
     int j;
 
-    for (p = pEm->pParts; p != 0; p = p->pParts) {
+    for (p = pEm->pList; p != 0; p = p->pList) {
         if (pEm != p->pParent) {
-            PSMTXInverse(PARTS_BIND_MAT(p), tmp);
-            PSMTXConcat(PARTS_BIND_MAT(p->pParent), tmp, inv);
+            PSMTXInverse(p->lt_inv_mat, tmp);
+            PSMTXConcat(((cParts*) p->pParent)->lt_inv_mat, tmp, inv);
         } else {
-            PSMTXInverse(PARTS_BIND_MAT(p), inv);
+            PSMTXInverse(p->lt_inv_mat, inv);
         }
         p->pos.x = inv[0][3];
         p->pos.y = inv[1][3];
@@ -160,7 +160,7 @@ void MotionSetCore(cModel* m, void* w_, void* data_, void* seq_, int hokan, int 
     Vec v1;
     Vec v2;
     u32* tbl;
-    cModel* p;
+    cParts* p;
     AttachCamera* cam;
     int f;
     int i;
@@ -296,16 +296,16 @@ void MotionSetCore(cModel* m, void* w_, void* data_, void* seq_, int hokan, int 
             }
         }
     }
-    for (p = m->pParts; p != 0; p = p->pParts) {
-        if (MOTION_PARTS(p)->flags & 0x04000000) {
+    for (p = m->pList; p != 0; p = p->pList) {
+        if (p->motParts.flags & 0x04000000) {
             continue;
         }
-        memclr_asm(MOTION_PARTS(p)->hist[0], 6);
-        memclr_asm(MOTION_PARTS(p)->hist[1], 6);
-        memclr_asm(MOTION_PARTS(p)->hist[2], 6);
-        memclr_asm(MOTION_PARTS(p)->hist[3], 6);
-        memclr_asm(MOTION_PARTS(p)->hist[4], 6);
-        memclr_asm(MOTION_PARTS(p)->hist[5], 6);
+        memclr_asm(p->getKeyHist()[0], 6);
+        memclr_asm(p->getKeyHist()[1], 6);
+        memclr_asm(p->getKeyHist()[2], 6);
+        memclr_asm(p->getKeyHist()[3], 6);
+        memclr_asm(p->getKeyHist()[4], 6);
+        memclr_asm(p->getKeyHist()[5], 6);
     }
     w->Key_hist[0][0][0] = w->Key_hist[0][0][1] = w->Key_hist[0][0][2] = 0;
     w->Key_hist[0][1][0] = w->Key_hist[0][1][1] = w->Key_hist[0][1][2] = 0;
@@ -321,7 +321,7 @@ void MotionSetCore(cModel* m, void* w_, void* data_, void* seq_, int hokan, int 
     if (hokan != 0) {
         w->Hokan_frame = hokan;
         w->Hokan_cnt = hokan;
-        for (p = m->pParts; p != 0; p = p->pParts) {
+        for (p = m->pList; p != 0; p = p->pList) {
             PSMTXCopy(p->l_mat, p->prevMat);
         }
     } else {
@@ -431,10 +431,10 @@ void MotionSetCore(cModel* m, void* w_, void* data_, void* seq_, int hokan, int 
 // an additive pose; runs the leg IK on the unscaled model, the hokan interpolation and the
 // quaternion blend table (blendTbl: dst = slerp(c, a, percent)). Returns Mot_state (1/2 looped,
 // 4/8 ended).
-u32 MotionMove(cModel* pEm, Camera* pCamera)
+u32 MotionMove(cModel* pEm, CAMERA* pCamera)
 {
     static int new_add = 1;
-    cModel* p;
+    cParts* p;
     Vec spd;
     Vec rot;
     Vec spd2;
@@ -486,13 +486,13 @@ u32 MotionMove(cModel* pEm, Camera* pCamera)
             }
         } else {
             MOTION(pEm)->Mot_attr |= 0x2000;
-            for (p = pEm->pParts; p != 0; p = p->pParts) {
-                if (MOTION_PARTS(p)->flags & 0x03000000) {
+            for (p = pEm->pList; p != 0; p = p->pList) {
+                if (p->motParts.flags & 0x03000000) {
                     continue;
                 }
-                MOTION_PARTS(p)->pos = p->pos;
-                MOTION_PARTS(p)->rot = p->ang;
-                MOTION_PARTS(p)->scale = p->scale;
+                p->motParts.pos = p->pos;
+                p->motParts.rot = p->ang;
+                p->motParts.scale = p->scale;
                 memclr_asm(&p->ang, sizeof(Vec));
                 memclr_asm(&p->pos, sizeof(Vec));
                 if (new_add) {
@@ -501,14 +501,14 @@ u32 MotionMove(cModel* pEm, Camera* pCamera)
             }
             MotionMoveCore(pEm, MOTION(pEm)->blend, 0);
             MotionSequenceCtrl(MOTION(pEm)->blend);
-            for (p = pEm->pParts; p != 0; p = p->pParts) {
-                if (MOTION_PARTS(p)->flags & 0x03000000) {
+            for (p = pEm->pList; p != 0; p = p->pList) {
+                if (p->motParts.flags & 0x03000000) {
                     continue;
                 }
                 if (new_add) {
-                    PSVECAdd(&MOTION_PARTS(p)->pos, &p->pos, &p->pos);
-                    PSVECAdd(&MOTION_PARTS(p)->rot, &p->ang, &p->ang);
-                    PSVECAdd(&MOTION_PARTS(p)->scale, &p->scale, &p->scale);
+                    PSVECAdd(&p->motParts.pos, &p->pos, &p->pos);
+                    PSVECAdd(&p->motParts.rot, &p->ang, &p->ang);
+                    PSVECAdd(&p->motParts.scale, &p->scale, &p->scale);
                 } else {
                     Vec rotAdd;
                     Vec rotScl;
@@ -517,14 +517,11 @@ u32 MotionMove(cModel* pEm, Camera* pCamera)
 
                     PSVECScale(&p->ang, &rotScl, rate);
                     PSVECScale(&p->pos, &posScl, rate);
-                    PSVECAdd(&MOTION_PARTS(p)->pos, &posScl, &posAdd);
-                    PSVECAdd(&MOTION_PARTS(p)->rot, &rotScl, &rotAdd);
+                    PSVECAdd(&p->motParts.pos, &posScl, &posAdd);
+                    PSVECAdd(&p->motParts.rot, &rotScl, &rotAdd);
                     p->pos = posAdd;
                     p->ang = rotAdd;
-                    RotMatrix(p->l_mat, &p->ang);
-                    TransMatrix(p->l_mat, &p->pos);
-                    ScaleMatrix(p->l_mat, &p->scale);
-                    PSMTXCopy(p->l_mat, p->mat);
+                    p->matCalc();
                 }
             }
             if (new_add) {
@@ -566,9 +563,9 @@ u32 MotionMove(cModel* pEm, Camera* pCamera)
             Quaternion q1;
             Quaternion q2;
             Mtx inv;
-            cModel* dst;
-            cModel* a;
-            cModel* c;
+            cParts* dst;
+            cParts* a;
+            cParts* c;
             int per;
             f32 r;
 
@@ -578,11 +575,11 @@ u32 MotionMove(cModel* pEm, Camera* pCamera)
                 c = pEm->getPartsPtr(*tbl++);
                 per = *tbl++;
                 r = (f32) per / 100.0f;
-                if (MOTION_PARTS(dst)->flags & 0x10000) {
-                    MOTION_PARTS(dst)->flags &= ~0x10000;
+                if (dst->motParts.flags & 0x10000) {
+                    dst->motParts.flags &= ~0x10000;
                     continue;
                 }
-                MOTION_PARTS(dst)->flags &= ~0x10000000;
+                dst->motParts.flags &= ~0x10000000;
                 PSMTXIdentity(m0);
                 m0[0][0] = a->mat[0][0];
                 m0[0][1] = a->mat[0][1];
@@ -645,12 +642,12 @@ u16 MotionMoveSub(cModel* pEm, MotionWorkSub* w)
 // ang/pos/scale (with the left/right flip remap and mirroring when Mot_attr 0x40), skipping parts
 // flagged 0x20000000; attach-camera channels 6/7 go to the AttachCamera outputs. Rebuilds the
 // model matrix unless Mot_flag 0x40000000.
-void MotionMoveCore(cModel* pEm, MotionWorkSub* w, Camera* pCamera)
+void MotionMoveCore(cModel* pEm, MotionWorkSub* w, CAMERA* pCamera)
 {
     HermitePrm prm;
     HermitePrm* pp = &prm;
     AttachCamera* cam;
-    cModel* p;
+    cParts* p;
     u16* flipTbl = MOTION(pEm)->flip;
     int n = w->Joint_num;
     int i = 0;
@@ -760,36 +757,36 @@ void MotionMoveCore(cModel* pEm, MotionWorkSub* w, Camera* pCamera)
         if (p == 0) {
             continue;
         }
-        if (MOTION_PARTS(p)->flags & 0x20000000) {
+        if (p->motParts.flags & 0x20000000) {
             continue;
         }
-        MOTION_PARTS(p)->flags |= 0x10010000;
+        p->motParts.flags |= 0x10010000;
         if (w->Mot_flag & 0x80000000) {
-            MOTION_PARTS(p)->flags |= 0x80000000;
+            p->motParts.flags |= 0x80000000;
         }
         pp->type = w->pJoint_kind[i] >> 12;
         pp->key = (u8*) w->pHermite_data[i];
-        if (MOTION_PARTS(p)->flags & 0x04000000) {
+        if (p->motParts.flags & 0x04000000) {
             pp->flags |= 8;
         } else {
             pp->flags &= ~8;
         }
         if (kind & 2) {
-            HermiteInterpolation(pp, &p->ang, flip ? MOTION_PARTS(p)->hist[3] : MOTION_PARTS(p)->hist[0]);
+            HermiteInterpolation(pp, &p->ang, p->getKeyHist()[flip ? 3 : 0]);
             VecRadLimit(&p->ang);
             if (w->Mot_attr & 0x40) {
                 p->ang.y = -p->ang.y;
                 p->ang.z = -p->ang.z;
             }
         } else if (kind & 4) {
-            HermiteInterpolation(pp, &p->pos, flip ? MOTION_PARTS(p)->hist[4] : MOTION_PARTS(p)->hist[1]);
+            HermiteInterpolation(pp, &p->pos, p->getKeyHist()[flip ? 4 : 1]);
             if (w->Mot_attr & 0x40) {
                 p->pos.x = -p->pos.x;
             }
         } else if (kind & 8) {
-            HermiteInterpolation(pp, &p->scale, flip ? MOTION_PARTS(p)->hist[5] : MOTION_PARTS(p)->hist[2]);
+            HermiteInterpolation(pp, &p->scale, p->getKeyHist()[flip ? 5 : 2]);
         } else if (kind & 0x30) {
-            HermiteInterpolation(pp, &p->ang, flip ? MOTION_PARTS(p)->hist[3] : MOTION_PARTS(p)->hist[0]);
+            HermiteInterpolation(pp, &p->ang, p->getKeyHist()[flip ? 3 : 0]);
             VecRadLimit(&p->ang);
             if (w->Mot_attr & 0x40) {
                 p->ang.y = -p->ang.y;
@@ -818,7 +815,7 @@ void MotionHokan(cModel* m, MotionWorkSub* w)
     static int g_scale_cancel = 1;
     static f32 epsilon = 0.00002f;
     static f32 EPS = 0.1f;
-    cModel* p;
+    cParts* p;
     Vec pos;
     Quaternion q0;
     Quaternion q1;
@@ -838,14 +835,14 @@ void MotionHokan(cModel* m, MotionWorkSub* w)
     t = (f32) (w->Hokan_frame - w->Hokan_cnt);
     t /= (f32) w->Hokan_frame;
     u = 1.0f - t;
-    for (p = m->pParts; p != 0; p = p->pParts) {
+    for (p = m->pList; p != 0; p = p->pList) {
         if (!(MOTION(m)->Mot_attr & 0x2000)) {
-            if (!(MOTION_PARTS(p)->flags & 0x10000000)) {
+            if (!(p->motParts.flags & 0x10000000)) {
                 continue;
             }
-            MOTION_PARTS(p)->flags &= ~0x10000000;
+            p->motParts.flags &= ~0x10000000;
         } else {
-            if (!(MOTION_PARTS(p)->flags & 0x80000000)) {
+            if (!(p->motParts.flags & 0x80000000)) {
                 continue;
             }
         }
@@ -922,13 +919,13 @@ void MotionHokan(cModel* m, MotionWorkSub* w)
             if (!(nearZero(one - p->scale.x, epsilon) && nearZero(one - p->scale.y, epsilon) && nearZero(one - p->scale.z, epsilon))) {
                 if (nearZero(1.0f - p->pParent->r_scale.x * p->scale.x, EPS) && nearZero(1.0f - p->pParent->r_scale.y * p->scale.y, EPS) &&
                     nearZero(1.0f - p->pParent->r_scale.z * p->scale.z, EPS)) {
-                    MOTION_PARTS(p)->flags |= 0x20000;
+                    p->motParts.flags |= 0x20000;
                 }
             }
         } else {
-            MOTION_PARTS(p)->flags &= ~0x20000;
+            p->motParts.flags &= ~0x20000;
         }
-        if (MOTION_PARTS(p)->flags & 0x20000) {
+        if (p->motParts.flags & 0x20000) {
             // Source order x, y, z: sched1 issues first the load where the pParent pointer dies (the last one).
             sx = 1.0f / p->pParent->scale.x;
             sy = 1.0f / p->pParent->scale.y;
@@ -939,7 +936,7 @@ void MotionHokan(cModel* m, MotionWorkSub* w)
             sz = s2 * u + n2 * t;
         }
         // Before the products: the store is ready early and wins the LSU slot on LUID (equal priority).
-        MOTION_PARTS(p)->flags &= ~0x20000;
+        p->motParts.flags &= ~0x20000;
         p->l_mat[0][0] *= sx;
         p->l_mat[1][0] *= sx;
         p->l_mat[2][0] *= sx;

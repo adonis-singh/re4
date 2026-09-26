@@ -124,7 +124,7 @@ extern "C" void Evt_R215S00_Func(Event* e)
     switch (e->FuncType) {
     case 0:
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 9;
+        e->SetEvtCancelCut(9);
         break;
     case 1:
         switch (e->NowCut) {
@@ -177,8 +177,8 @@ extern "C" void Evt_R215S00_Func(Event* e)
         ResetShadowCamMoveSize();
         break;
     case 3:
-        if (EvtStatusCk(e, 0x4000) == 0) {
-            EvtMgr.EvtSndStrPlay(evtKey(&EvtMgr), 1, 0x89, 1, 0.0f);
+        if (e->FlgCkStatus(EvtStfEvtCancelSet) == 0) {
+            EvtMgr.EvtSndStrPlay(EvtMgr.GetNowExeEvtNamePtr(), 1, 0x89, 1, 0.0f);
         }
         break;
     }
@@ -237,7 +237,7 @@ extern "C" void Evt_R215S01_Func(Event* e)
             break;
         case 0x12:
             if (e->NowFrame == 0x5A) {
-                if (EvtStatusCk(e, 0x40000000) == 0) {
+                if (e->FlgCkStatus(EvtStfToolFrontExec) == 0) {
                     FadeSetW(2, 30, 0, 0);
                 }
             }

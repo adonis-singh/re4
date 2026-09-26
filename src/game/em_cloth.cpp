@@ -1,6 +1,7 @@
 // game/em_cloth.cpp: cloth / hair chain tables of the enemy costume models (obj18 type 34, 18,
 // 37, 33, 30) and the em2b short rope; PenCloth* (pendulum.cpp) does the simulation.
 
+#include "obj1d.h"
 #include "pl_cloth.h"
 #include "pendulum.h"
 #include "model.h"
@@ -492,7 +493,7 @@ void Em33ClothSet2(cModel* pEm, PlCloth* pCloth, int mode)
 // Per-frame simulation of enemy 33 cloth 2.
 void Em33ClothMove2(cModel* pEm, PlCloth* pCloth)
 {
-    cModel* p;
+    cParts* p;
 
     p = pEm->getPartsPtr(0xA9);
     p->ang.z = pEm->getPartsPtr(7)->ang.z;

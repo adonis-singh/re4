@@ -89,7 +89,7 @@ void em3bDmCkTruck(cEm3b* em)
     int wep;
     int dmg;
     Vec* pos;
-    cModel* p;
+    cParts* p;
 
     if (em->dmg.m_Flag == 0) {
         return;
@@ -168,7 +168,7 @@ void em3bDmCkCart(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
 
-    if ((em->be_flag & 2) && !EmDeadCk(em) && em->hp > 0) {
+    if ((em->be_flag & 2) && !em->dmg.isDamage() && em->hp > 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -178,7 +178,7 @@ void em3bDmCkCart(cEm3b* em)
             // later one; each copy stores the dmgWait register cse knows to be 0)
             if (w->dmgWait == 0) {
                 w->dmgWait = 150;
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
                 EstSet(em, -1, 0, 0, EFF_OBM34, 1, 0, w->espKind, em, 0);
                 w->dmgWait = 150;
                 return;
@@ -239,7 +239,7 @@ void em3bDmCkCart(cEm3b* em)
         stop_ck:   // laid out after the default arm: the blood arm reaches it through the goto
             if (w->dmgWait == 0) {
                 w->dmgWait = 150;
-                EmRoutineSet(em, 1, 5, 0, 0);
+                em->setRno(1, 5, 0, 0);
                 EstSet(em, -1, 0, 0, EFF_OBM34, 1, 0, w->espKind, em, 0);
                 w->dmgWait = 150;
             }
@@ -254,7 +254,7 @@ void em3bDmCkStopCart(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
 
-    if ((em->be_flag & 2) && !EmDeadCk(em) && em->hp > 0) {
+    if ((em->be_flag & 2) && !em->dmg.isDamage() && em->hp > 0) {
         switch (DmgMgr.hitCheck(&em->pos, 0)) {
         case DMG_TYPE_FIRE:
         case DMG_TYPE_FLAME:
@@ -264,7 +264,7 @@ void em3bDmCkStopCart(cEm3b* em)
             // later one; each copy stores the dmgWait register cse knows to be 0)
             if (w->dmgWait == 0) {
                 em->hp = 0;
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
                 return;
             }
         }
@@ -323,7 +323,7 @@ void em3bDmCkStopCart(cEm3b* em)
         stop_ck:   // laid out after the default arm: the blood arm reaches it through the goto
             if (w->dmgWait == 0) {
                 em->hp = 0;
-                EmRoutineSet(em, 1, 7, 0, 0);
+                em->setRno(1, 7, 0, 0);
             }
             break;
         }
@@ -449,10 +449,7 @@ static void em3b_R0_Init(cEm3b* em)
         break;
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_ACTIVE);
     EspDataLoad((u32) ARC(6), EFF_EM3B, 0);
     w->espKind = EspPullCoreKind();
@@ -463,11 +460,11 @@ static void em3b_R0_Init(cEm3b* em)
     switch (em->type) {
     case 0:
     default:
-        EmRoutineSet(em, 1, 0, 0, 0);
+        em->setRno(1, 0, 0, 0);
         break;
     case 1:
     case 2:
-        EmRoutineSet(em, 1, 3, zero, zero);
+        em->setRno(1, 3, zero, zero);
         break;
     }
     em3b_R0_Move(em);
@@ -512,7 +509,7 @@ static void em3b_R1_Truck_Wait(cEm3b* em)
         if (w->timer) {
             w->timer--;
         } else if (em->flag & 1) {
-            EmRoutineSet(em, 1, 1, 0, 0);
+            em->setRno(1, 1, 0, 0);
         }
         break;
     }
@@ -525,7 +522,7 @@ static void em3b_R1_Truck_Wait(cEm3b* em)
 static void em3b_R1_Truck_Run(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
-    cModel* p = em->getPartsPtr(0);
+    cParts* p = em->getPartsPtr(0);
     f32 f;
 
     switch (em->r_no_2) {
@@ -559,18 +556,18 @@ static void em3b_R1_Truck_Run(cEm3b* em)
             // second test's label has two uses (pDriver == 0 and the `&&` false path), so cse does not
             // carry the known zero into it and its literal zero is a fresh `li` — two copies survive
             if (w->pDriver && w->pDriver->hp <= 0) {
-                EmRoutineSet(em, 1, 2, end, end);
+                em->setRno(1, 2, end, end);
                 break;
             }
             if (em->hp <= 1) {
-                EmRoutineSet(em, 1, 2, 0, 0);
+                em->setRno(1, 2, 0, 0);
                 break;
             }
         }
         f = em->Motion.Seq_frame;
         if (f > 319.7f && f < 320.3f) {
             if ((w->pDriver && w->pDriver->hp <= 0) || em->hp <= 1) {
-                EmRoutineSet(em, 1, 2, 0, 1);
+                em->setRno(1, 2, 0, 1);
                 break;
             }
         }
@@ -608,7 +605,7 @@ static void em3b_R1_Truck_Run(cEm3b* em)
 static void em3b_R1_Truck_RunInto(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
-    cModel* p = em->getPartsPtr(0);
+    cParts* p = em->getPartsPtr(0);
     int st = em->r_no_2;
     f32 f;
 
@@ -716,7 +713,7 @@ static void em3b_R1_Cart_Run(cEm3b* em)
             w->dmgWait = 150;
             SndStop(w->sndId2, 0);
             SndCall(6, 0xA, &em->pos, 0, 0, em);
-            EmRoutineSet(em, 1, 6, zero, zero);
+            em->setRno(1, 6, zero, zero);
         }
         em3bRunDownCkCart(em);
         break;
@@ -738,7 +735,7 @@ static void em3b_R1_Cart_Damage(cEm3b* em)
         em->r_no_2++;
     case 1:
         if (MotionMove(em, 0)) {
-            EmRoutineSet(em, 1, 4, 0, 0);
+            em->setRno(1, 4, 0, 0);
         }
         break;
     }
@@ -776,7 +773,7 @@ static void em3b_R1_StopCart_Damage(cEm3b* em)
             StaFlagOn(pG, STA_PL_FIRE);
             SndStop(w->sndId2, 0);
             SndCall(6, 0xA, &em->pos, 0, 0, em);
-            EmRoutineSet(em, 1, 6, t, t);
+            em->setRno(1, 6, t, t);
         }
         break;
     }
@@ -800,7 +797,7 @@ static void em3b_R1_Cart_Lost(cEm3b* em)
 // Run over the player, the partner and the Ganados in front of the truck.
 // x/z squared distance: the temp computed BEFORE d fuses dx into d's register and keeps dz*dz standalone
 // (em21 VsElgigante rule).
-static inline f32 em3bDistXZ(cModel* p, Vec* q)
+static inline f32 em3bDistXZ(cParts* p, Vec* q)
 {
     f32 t;
     f32 d;
@@ -818,7 +815,7 @@ void em3bRunDownCkTruck(cEm3b* em)
 {
     Em3bWork* w = EM3B_WK(em);
     int parts[3] = { 0, 1, 4 };
-    cModel* p;
+    cParts* p;
     u32 i;
 
     if ((s16) pG->pl_life > 0) {
@@ -857,7 +854,7 @@ void em3bRunDownCkTruck(cEm3b* em)
         cEm* e = EmMgr.fastAt(i);
         int zero = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -877,7 +874,7 @@ void em3bRunDownCkTruck(cEm3b* em)
         }
         if (em3bDistXZ(p, &e->pos) < 20250000.0f) {
             e->hp = zero;
-            EmRoutineSet(e, 3, 4, zero, zero);
+            e->setRno(3, 4, zero, zero);
             SndCall(1, 0x4B, &em->pos, 0, 0, 0);
         }
     }
@@ -888,10 +885,10 @@ void em3bRunDownCkTruck(cEm3b* em)
 // motion 8; Ganados (ids 0x10..0x20) within 1.7 m die (routine 3/4).
 void em3bRunDownCkCart(cEm3b* em)
 {
-    cModel* p;
+    cParts* p;
     u32 i;
 
-    if ((s16) pG->pl_life > 0 && !EmDeadCk(pPL)) {
+    if ((s16) pG->pl_life > 0 && !pPL->dmg.isDamage()) {
         for (i = 0; i < 2; i++) {
             p = em->getPartsPtr(1);
             if (em3bDistXZ(p, &pPL->pos) < 2250000.0f) {
@@ -908,7 +905,7 @@ void em3bRunDownCkCart(cEm3b* em)
         cEm* e = EmMgr.fastAt(i);
         int zero = 0;
 
-        if ((e->be_flag & 0x201) != 1) {
+        if (!e->isAlive()) {
             continue;
         }
         if (e->id <= 0xF) {
@@ -926,7 +923,7 @@ void em3bRunDownCkCart(cEm3b* em)
         if ((p->world.x - e->pos.x) * (p->world.x - e->pos.x) + (p->world.y - e->pos.y) * (p->world.y - e->pos.y)
             + (p->world.z - e->pos.z) * (p->world.z - e->pos.z) < 2890000.0f) {
             e->hp = zero;
-            EmRoutineSet(e, 3, 4, zero, zero);   // the ff store is the zero's last use: issued first
+            e->setRno(3, 4, zero, zero);   // the ff store is the zero's last use: issued first
         }
     }
 }
@@ -934,7 +931,7 @@ void em3bRunDownCkCart(cEm3b* em)
 // Partner damage routine (SetSubDamage callback): the run-over motion from the truck's archive.
 static void subem3bRunDown()
 {
-    cSubChar* sub = pSUB;
+    cSubChar* sub = SUB_CHAR();
     int st = sub->r_no_2;
     PlArc* arc = sub->pEmCatch->subArc;
 

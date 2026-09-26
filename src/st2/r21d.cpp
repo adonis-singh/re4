@@ -571,7 +571,7 @@ static void r21d_operateSwitch(int no)
         break;
     }
     SceAtSetEnable(atNo, 0);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case -1:
     case 0:
@@ -706,7 +706,7 @@ void r21d_moveFence()
 // Area 0x13: the fence switch.
 static void r21d_checkFence()
 {
-    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case -1:
     case 0:
@@ -1009,7 +1009,7 @@ static void r21d_checkDeathTrapSwitch_end()
 // Area 0x15: the lever that stops the pistons of the second switch.
 static void r21d_checkDeathTrapSwitch()
 {
-    SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(4, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     switch (SceMesGetSelection()) {
     case -1:
     case 0:
@@ -1067,9 +1067,9 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r21d_work->tex->m_Tex_no;
-        r21d_work->tex->m_Rep_type = 1;
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0x12, r21d_work->tex->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        tbl[5] = r21d_work->tex->GetTexNo();
+        r21d_work->tex->SetRepeatType(1);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0x12, r21d_work->tex->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
     } else {
         pLog->err(0, 0, "setTexRender() : Manager alloc failed!!");
     }

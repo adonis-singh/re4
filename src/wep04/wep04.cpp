@@ -2,7 +2,7 @@
 // the entry points and the handgun routine registration (wep/pl_handgun.cpp).
 //
 // cObjXd9 is the cObjWep (game/objWep.cpp) hanging on the player's right hand (parts 10), driven
-// by wep.mode / wep.step from the handgun routines: mode 2 -> moveFire (slide motion by weapon
+// by r_no_0 / r_no_1 from the handgun routines: mode 2 -> moveFire (slide motion by weapon
 // type, SEs, flash, cartridge), mode 4 -> moveReload (motion by reload tune level, ItemMgr.reload
 // at its frame). weapon_type 1 is the upgraded model 0x7 (weapon list id 0x28). Wep04_init is the
 // module's WeaponInitFunc, PlHandgunMove its WeaponMoveFunc.
@@ -30,7 +30,7 @@ public:
     void setCartridge();
 };
 
-// wep.shotFrame of the object (an extern-linkage const: emitted here, before Wep04_init's strings)
+// shotFrame of the object (an extern-linkage const: emitted here, before Wep04_init's strings)
 extern const u8 xd9_tbl[4];
 const u8 xd9_tbl[4] = { 0xE, 0xC, 0x8, 0x8 };
 
@@ -82,40 +82,40 @@ void cObjXd9::init(cModel* parent)
 
     if (pG->weapon_type != 1) {
         bin = WEP_ARC_PTR(0x6);
-        wep.itemId = 0x27;
+        itemId = 0x27;
     } else {
         bin = WEP_ARC_PTR(0x7);
-        wep.itemId = 0x28;
+        itemId = 0x28;
     }
     if (modelInit(bin, WEP_ARC_PTR(0x5)) == 0) {
         pLog->err(0, 0, "cObjWep::init() failed.");
         return;
     }
-    AtariFlagsAnd(&sub2B4.atari, 0xFCFF);
-    pParts->pParent = parent->getPartsPtr(0xA);
+    AtariFlagsAnd(&atari, 0xFCFF);
+    pList->pParent = parent->getPartsPtr(0xA);
     {
         static const Vec p0 = { 0.0f, 0.0f, 0.0f };
         static const Vec p1 = { 500.0f, 0.0f, 0.0f };
 
         LightInfo.init2(1, 1, &p0, &p1, 1);
     }
-    wep.parent = parent;
-    wep.motReset[0] = WEP_ARC_PTR(0x34);
-    wep.motReset[1] = WEP_ARC_PTR(0x39);
+    m_pParent = parent;
+    motReset[0] = WEP_ARC_PTR(0x34);
+    motReset[1] = WEP_ARC_PTR(0x39);
     resetMotion();
-    wep.shotFrame[0] = xd9_tbl[0];
-    wep.shotFrame[1] = xd9_tbl[1];
-    wep.shotFrame[2] = xd9_tbl[2];
-    wep.shotFrame[3] = xd9_tbl[3];
+    shotFrame[0] = xd9_tbl[0];
+    shotFrame[1] = xd9_tbl[1];
+    shotFrame[2] = xd9_tbl[2];
+    shotFrame[3] = xd9_tbl[3];
     setAbility(5.73f, 2.86f, 0.2864f, 0.2864f);
 }
 
-// wep.mode == 2 (fire): step 0 starts the slide motion (0x32 / 0x35 by type, 0x37 / 0x38 on the
+// mode == 2 (fire): step 0 starts the slide motion (0x32 / 0x35 by type, 0x37 / 0x38 on the
 // last round), plays the shot SEs, sets Status_flg[0] bit23 (shot noise), muzzle flash 0x38 (type
 // 1 for the upgraded model), a cartridge and the pad vibration; the motion's end returns to mode 0.
 void cObjXd9::moveFire()
 {
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         int type;
         int zero;
@@ -154,21 +154,21 @@ void cObjXd9::moveFire()
         EstSet(this, -1, 0, 0, EFF_WEP04, type, 0, ESP_CORE_KIND_PL_WEP, 0, 0);
         setCartridge();
         VibSetData((VibDataTbl*) (pG->pCore->ofs_1C + (u32) pG->pCore), 0, 1);
-        wep.step = 1;
+        r_no_1 = 1;
     } else if (MotionGetState(this)) {
-        wep.mode = 0;
-        wep.step = 0;
+        r_no_0 = 0;
+        r_no_1 = 0;
     }
 }
 
-// wep.mode == 4 (reload): step 0 starts the reload motion of the tune level (0x36/0x3C/0x3D, or
+// mode == 4 (reload): step 0 starts the reload motion of the tune level (0x36/0x3C/0x3D, or
 // 0x33/0x3A/0x3B from an empty magazine) with the level's SE (0x16/0x20/0x21); at the level's
 // frame (32/27/17) ItemMgr.reload refills the magazine. The player routine ends the mode.
 void cObjXd9::moveReload()
 {
     static const f32 reloadEnd[3] = { 32.0f, 27.0f, 17.0f };
 
-    if (wep.step == 0) {
+    if (r_no_1 == 0) {
         void* m;
         u16 se;
 
@@ -209,8 +209,8 @@ void cObjXd9::moveReload()
             se = 0x21;
             break;
         }
-        wep.m_StopSeId = SndCall(2, se, &pParts->world, 0, 0, 0);
-        wep.step = 1;
+        m_StopSeId = SndCall(2, se, &pList->world, 0, 0, 0);
+        r_no_1 = 1;
     } else if (MotionCheckCrossFrame(&Motion, reloadEnd[pG->weapon_lv_reload])) {
         ItemMgr.reload();
     }
@@ -220,7 +220,7 @@ void cObjXd9::moveReload()
 // offset (-109, -22, 90) with a random +-15 spread, gravity 10, 30 frames, landing effect 0x13.
 void cObjXd9::setCartridge()
 {
-    cModel* parts = pPL->getPartsPtr(0xA);
+    cParts* parts = pPL->getPartsPtr(0xA);
     Vec pos;
     Vec rot;
     Vec spd;

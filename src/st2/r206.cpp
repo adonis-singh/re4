@@ -355,10 +355,10 @@ static void Evt_R206S00_Func(Event* e)
                     ((cModel*) mod)->ot_type = 1;
                     TexRenderModSet((cModel*) mod, 0, r206_work->texTbl, r206_work->tex, 0, 1, 1, 1, 1.0f);
                 }
-                EffectEspDelete(r206_work->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_ROOM00, 0, 0);
-                EffectEspgenDelete(r206_work->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_ROOM00, 0);
-                EffectEfmDelete(r206_work->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_ROOM00, 0);
-                EstSet(0, -1, 0, 0, EFF_ROOM, 2, r206_work->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_ROOM00, 0, 0);
+                EffectEspDelete(r206_work->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_ROOM00, 0, 0);
+                EffectEspgenDelete(r206_work->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_ROOM00, 0);
+                EffectEfmDelete(r206_work->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_ROOM00, 0);
+                EstSet(0, -1, 0, 0, EFF_ROOM, 2, r206_work->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_ROOM00, 0, 0);
             }
             break;
         default:
@@ -366,9 +366,9 @@ static void Evt_R206S00_Func(Event* e)
                 if (e->GetMod(&mod, "evmc800", 0, 0) == 1) {
                     TexRenderModRes((cModel*) mod, 0);
                 }
-                EffectEspDelete(r206_work->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_ROOM00, 0, 0);
-                EffectEspgenDelete(r206_work->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_ROOM00, 0);
-                EffectEfmDelete(r206_work->tex->m_Core_flg | 0x3001, ESP_CORE_KIND_ROOM00, 0);
+                EffectEspDelete(r206_work->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_ROOM00, 0, 0);
+                EffectEspgenDelete(r206_work->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_ROOM00, 0);
+                EffectEfmDelete(r206_work->tex->GetCoreFlg() | 0x3001, ESP_CORE_KIND_ROOM00, 0);
             }
             break;
         }
@@ -426,7 +426,7 @@ static void funcAshley(cEm* p)
     pSUB->setPos(&d);
     switch (p->r_no_2) {
     case 0:
-        AtariOff(&pSUB->atari, 0xFCFF);
+        pSUB->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x21), 0xA, 0, 1, 0);
         SndCall(6, 0xD, &pSUB->pos, 0, 0, 0);
         p->r_no_2 = 1;
@@ -448,8 +448,8 @@ static void funcAshley(cEm* p)
         p->r_no_2 = 5;
     default:
         if (p->motionMove() != 0) {
-            EmRoutineSet(p, 0, 0, 0, 0);
-            AtariOn(&pSUB->atari, 0x300);
+            p->setRno(0, 0, 0, 0);
+            pSUB->atari.on();
             SubCharCtrl(SCC_CHASE, 0);
         }
         break;
@@ -461,13 +461,13 @@ static void funcAshley(cEm* p)
 static void funcAshley2(cEm* p)
 {
     if (p->r_no_2 == 0) {
-        AtariOff(&pSUB->atari, 0xFCFF);
+        pSUB->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x27), 0x19, 0, 1, 0);
         p->r_no_2 = 1;
     }
     if (p->motionMove() != 0) {
-        EmRoutineSet(p, 0, 0, 0, 0);
-        AtariOn(&pSUB->atari, 0x300);
+        p->setRno(0, 0, 0, 0);
+        pSUB->atari.on();
         SubCharCtrl(SCC_CHASE, 0);
     }
 }
@@ -479,7 +479,7 @@ static void funcAshley3(cEm* p)
 
     switch (step) {
     case 0:
-        AtariOff(&pSUB->atari, 0xFCFF);
+        pSUB->atari.off();
         p->motionSet(ROOM_ARC_PTR(pG->pRoom, 0x31), 0x19, 0, 1, 0);
         r206_work->cnt3 = step;
         p->r_no_2 = 1;
@@ -495,8 +495,8 @@ static void funcAshley3(cEm* p)
         }
         break;
     default:
-        EmRoutineSet(p, 0, 0, 0, 0);
-        AtariOn(&pSUB->atari, 0x300);
+        p->setRno(0, 0, 0, 0);
+        pSUB->atari.on();
         SubCharCtrl(SCC_CHASE, 0);
         break;
     }
@@ -511,7 +511,7 @@ int chkAliveGanadeNum()
     for (i = 0; i < EmMgr.getArrayNum(); i++) {
         cEm* em = EmMgr.fastAt(i);
 
-        if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && (em->be_flag & 0x201) == 1) {
+        if (em->id >= 0x10 && em->id <= 0x20 && em->checkStatus(EM_STATUS_ACTIVE) != 0 && em->isAlive()) {
             cnt++;
         }
     }
@@ -702,7 +702,7 @@ static void r206_snipe()
             }
         }
         if ((s16) pG->ashley_life != -1 && (u32) done > 2) {
-            EmRoutineSet(pSUB, 0, 0, 0, 0);
+            pSUB->setRno(0, 0, 0, 0);
             goto snipe_done;
         }
         SceSleep(1);
@@ -759,7 +759,7 @@ snipe_done:
     }
     SceSleep(0x32);
     SndCall(6, 0xB, 0, 0, 0, 0);
-    SceMesSet(2, 0xA2, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0xA2, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceSleep(0xA);
     SceSleep(0x37);
     CamCtrl.Comeback(0);
@@ -877,7 +877,7 @@ wave_done:
     }
     SceSleep(0xF);
     SndCall(6, 0xC, 0, 0, 0, 0);
-    SceMesSet(4, 0xA2, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(4, 0xA2, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     while (SubCharGetStatus() & 0x01000000) {
         SceSleep(1);
     }
@@ -902,7 +902,7 @@ wave_done:
     }
     SceSleep(1);
     SndCall(6, 3, 0, 0, 0, 0);
-    SceMesSet(5, 2, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(5, 2, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     if (pSUB != NULL) {
         EmMgr.destroy(pSUB);
         StaFlagOff(pG, STA_SUB_ASHLEY);
@@ -938,8 +938,8 @@ static void chkReaderMove()
                     r206_work->em[7].setGoto(&pSUB->pos, 8);
                 }
                 if ((r206_work->gotoNo == 0 && cnt == 0x1A4)
-                    || (cnt > 0x257 && (em->be_flag & 0x201) == 1 && em->checkStatus(EM_STATUS_ACTIVE) == 1
-                        && EmDeadCk(em))) {
+                    || (cnt > 0x257 && em->isAlive() && em->checkStatus(EM_STATUS_ACTIVE) == 1
+                        && em->dmg.isDamage())) {
                     timer = 0x5A;
                 }
                 if (timer != 0) {
@@ -1008,7 +1008,7 @@ static void r206_checkDoor()
 // Area 7 before the reunion: message 0x67 (Ashley is not with Leon; cannot leave).
 static void r206_checkDoorToR20c()
 {
-    cMes.MesSet(0x67, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+    cMes.MesSet(0x67, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
 }
 
 // Area 8 once: Ashley calls out (SE 6/5) under camera cut 9.
@@ -1036,7 +1036,7 @@ static void r206_asl_call()
 // Area 6 after the reunion: message 6.
 static void r206_checkDoor2()
 {
-    SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(6, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Debug task: on debug trigger 0 switch control to Ashley (PlSelect(1)) and run area 0.
@@ -1102,9 +1102,9 @@ void r206_openShelf_main(int no, int opened)
         obj->ang.x = 1.5592f;
         obj->ang.y = 1.42932f;
         obj->ang.z = 0.0f;
-        obj->pParts->ang.x = 0.0f;
-        obj->pParts->ang.y = 0.0f;
-        obj->pParts->ang.z = 0.0f;
+        obj->pList->ang.x = 0.0f;
+        obj->pList->ang.y = 0.0f;
+        obj->pList->ang.z = 0.0f;
         obj->setPos(&obj->pos);
         obj->setAng(rot);
     }

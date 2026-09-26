@@ -115,7 +115,7 @@ void SetEsp(EspgenWork* pGen)
         p->pos = p->offset;
         dir = p->dir_vec;
     } else {
-        cModel* part;
+        cParts* part;
 
         if (p->parts_no >= p->pMod->nParts) {
             pLog->err(0, 0, "ESP_FLARE :PARTS_NO[%d] is invalid(MAX:%d).", p->parts_no, p->pMod->nParts);
@@ -226,7 +226,7 @@ cEsp* SetEstTbl(EspgenWork* w, EspSeqData* head, int no)
 static f32 GetDistAlpha(EspgenWork* w)
 {
     Espgen01Work* p = (Espgen01Work*) w->work;
-    Camera* cam;
+    CAMERA* cam;
     Vec d;
     f32 a;
 
@@ -252,7 +252,7 @@ static f32 GetDistAlpha(EspgenWork* w)
 static f32 GetDirAlpha(EspgenWork* w, Vec* dir)
 {
     Espgen01Work* p = (Espgen01Work*) w->work;
-    Camera* cam;
+    CAMERA* cam;
     Vec d;
     f32 ang;
     f32 a;

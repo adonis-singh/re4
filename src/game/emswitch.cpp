@@ -208,7 +208,7 @@ void emSwitch_R1_Set(cEmSwitch* pEm)
 void emSwitch_R1_Open(cEmSwitch* pEm)
 {
     EmSwitchWork* w = EMSWITCH_WK(pEm);
-    cModel* p;
+    cParts* p;
 
     switch (pEm->r_no_2) {
     case 0:
@@ -251,7 +251,7 @@ void emSwitch_R1_Open(cEmSwitch* pEm)
 void emSwitch_R1_Close(cEmSwitch* pEm)
 {
     EmSwitchWork* w = EMSWITCH_WK(pEm);
-    cModel* p;
+    cParts* p;
 
     switch (pEm->r_no_2) {
     case 0:

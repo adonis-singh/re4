@@ -5,20 +5,11 @@
 #include "atari.h"
 #include "atari_init.h"
 #include "obj.h"
+#include "obj00.h"
 #include "global.h"
 #include "math_sub.h"
 #include "snd.h"
 #include "motion.h"
-
-// Hanging object (lamp, sign, ...): follows a parts of its parent with a slerp blend, falls as a
-// three-point rope when cut, fades out when flagged.
-class cObj00 : public cObj {
-public:
-    virtual void move();
-    virtual ~cObj00() {}
-
-    void setScrAtari(f32 r);
-};
 
 // One point of the falling rope (obj00FallMove).
 struct Obj00Node {
@@ -38,18 +29,15 @@ void obj00SetOya(cObj00* obj);
 // simulation, updates the parts and collision unless flagged, fades out on be_flag 0x20.
 void cObj00::move()
 {
-    Obj00Work* w = &o0;
+    Obj00Work* w = OBJ00_WK(this);
 
     if (Motion.pMot) {
         MotionMove(this, 0);
     } else if (!(w->be_flag & 0x16)) {
-        RotMatrix(l_mat, &ang);
-        TransMatrix(l_mat, &pos);
-        ScaleMatrix(l_mat, &scale);
-        PSMTXCopy(l_mat, mat);
+        matCalc();
     }
     if (w->pEm_oya) {
-        if ((w->pEm_oya->be_flag & 0x201) != 1) {
+        if (!w->pEm_oya->isAlive()) {
             ObjMgr.destroy(this);
             return;
         }
@@ -62,7 +50,7 @@ void cObj00::move()
         }
     }
     partsWorldCalc();
-    sub2B4.atari.move();
+    atari.move();
     SatMgr.check(this, 0);
     if (w->be_flag & 0x20) {
         invisible_factor -= 0.1f;
@@ -84,7 +72,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
     if (obj == 0) {
         return 0;
     }
-    w = &obj->o0;
+    w = OBJ00_WK((cObj00*) obj);
     if (obj->modelInit(bin, tpl) == 0) {
         ObjMgr.destroy(obj);
         return 0;
@@ -92,7 +80,7 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
     static const Vec p0 = { 0.0f, 0.0f, 0.0f };
     static const Vec p1 = { 3000.0f, 3000.0f, 0.0f };
 
-    obj->sub2B4.atari.throughOn();
+    obj->atari.off();
     obj->LightInfo.init2(0, 1, &p0, &p1, 0x10);
     if (pos) {
         obj->pos = *pos;
@@ -119,21 +107,21 @@ cObj* SetObj00(void* bin, void* tpl, Vec* pos, Vec* rot)
 // Starts motion `mot` on the object with Mot_attr prm.
 void MotSetObj00(cObj* obj, void* mot, int prm, int a)
 {
-    Obj00Work* w = &obj->o0;
+    Obj00Work* w = OBJ00_WK((cObj00*) obj);
 
     if (obj == 0) {
         return;
     }
     w->pMot = mot;
     w->mot_attr = prm;
-    w->motA = a;
+    w->pSeq = a;
     MotionSetCore(obj, &obj->Motion, mot, (void*) a, 0, (u16) w->mot_attr, 0);
 }
 
 // Attaches the object to parts partsNo of `oya` (motion cleared, no catch-up blend).
 void OyaSetObj00(cObj* obj, cModel* oya, int partsNo)
 {
-    Obj00Work* w = &obj->o0;
+    Obj00Work* w = OBJ00_WK((cObj00*) obj);
 
     if (obj == 0) {
         return;
@@ -153,16 +141,16 @@ static void obj00SetRate(cObj* obj, u32 rate)
     if (r < 1.0f) {
         r = 1.0f;
     }
-    obj->o0.oya_hokan_add = r / 100.0f;
+    OBJ00_WK((cObj00*) obj)->oya_hokan_add = r / 100.0f;
 }
 
 // Fall simulation (be_flag bit 2): three rope nodes 300 units around the object fall under gravity
 // (20/frame), keep their mutual distances (30 relaxation passes), bounce on y = 30 (playing the
 // fall sound once) and give the object its new orientation and centre. Node speeds persist in
-// Obj00Work::fallSpd (1/10 units).
+// Obj00Work::spd (1/10 units).
 void obj00FallMove(cObj00* obj)
 {
-    Obj00Work* w = &obj->o0;
+    Obj00Work* w = OBJ00_WK(obj);
     Vec ofs[3] = { { 0.0f, 0.0f, 300.0f }, { 0.0f, 0.0f, -300.0f }, { 300.0f, 0.0f, 0.0f } };
     Obj00Node node[3];
     Vec vx;
@@ -181,9 +169,9 @@ void obj00FallMove(cObj00* obj)
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        p->spd.x = (f32) w->fallSpd[i][0] * 0.1f;
-        p->spd.y = (f32) w->fallSpd[i][1] * 0.1f;
-        p->spd.z = (f32) w->fallSpd[i][2] * 0.1f;
+        p->spd.x = (f32) w->spd[i][0] * 0.1f;
+        p->spd.y = (f32) w->spd[i][1] * 0.1f;
+        p->spd.z = (f32) w->spd[i][2] * 0.1f;
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
@@ -254,9 +242,9 @@ void obj00FallMove(cObj00* obj)
     }
     for (i = 0; i < 3; i++) {
         p = &node[i];
-        w->fallSpd[i][0] = (s16) (p->spd.x * 10.0f);
-        w->fallSpd[i][1] = (s16) (p->spd.y * 10.0f);
-        w->fallSpd[i][2] = (s16) (p->spd.z * 10.0f);
+        w->spd[i][0] = (s16) (p->spd.x * 10.0f);
+        w->spd[i][1] = (s16) (p->spd.y * 10.0f);
+        w->spd[i][2] = (s16) (p->spd.z * 10.0f);
         asm("" : "=m"(pG) : "r"(junk));
     }
     }
@@ -288,7 +276,7 @@ void obj00FallMove(cObj00* obj)
 // copies the parent's light class 2.
 void obj00SetOya(cObj00* pObj)
 {
-    Obj00Work* w = &pObj->o0;
+    Obj00Work* w = OBJ00_WK(pObj);
     Mtx m;
     Vec v0;
     Vec v1;
@@ -301,7 +289,7 @@ void obj00SetOya(cObj00* pObj)
     if (w->pEm_oya == 0) {
         return;
     }
-    if (w->pEm_oya->pParts == 0) {
+    if (w->pEm_oya->pList == 0) {
         return;
     }
     PSMTXCopy(w->pEm_oya->getPartsPtr(w->oya_parts)->mat, m);
@@ -373,6 +361,7 @@ void obj00SetOya(cObj00* pObj)
 // Gives the object a scenario collision sphere of radius r.
 void cObj00::setScrAtari(f32 radius)
 {
-    sub2B4.atari.init(0.0f, 0.0f, 0.0f, radius, radius, radius * 0.8f, radius, 1, 0x2000, 10);
-    sub2B4.atari.scrOn();
+    atari.init(0.0f, 0.0f, 0.0f, radius, radius, radius * 0.8f, radius, 1, 0x2000, 10);
+    atari.offOba();
+    atari.onSca();
 }

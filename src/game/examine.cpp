@@ -280,7 +280,7 @@ ExamInfo exam_info_ext[2] = {
 };
 
 ItemExamine itemExam;
-Camera itemCamera;
+CAMERA itemCamera;
 static void* local_buff;
 
 // Copies the frame buffer (half size, RGBA8) into local_buff for the examine background.
@@ -575,7 +575,7 @@ void ItemExamine::init(u16 id, cModel* p_model, u8 scrn_flag)
 {
     static f32 c0 = -0.5f;
     ModelDataHead* h;
-    cModel* parts;
+    cParts* parts;
     cLit* lit;
     ArcFile* arc;
     int i;
@@ -588,15 +588,15 @@ void ItemExamine::init(u16 id, cModel* p_model, u8 scrn_flag)
     m_ang_bak = m_pModel->ang;
     m_ot_type_bak = m_pModel->ot_type;
     m_pModel->be_flag |= 0x4000;
-    m_pList_pParent_bak = m_pModel->pParts->pParent;
-    m_pModel->pParts->pParent = m_pModel;
+    m_pList_pParent_bak = m_pModel->pList->pParent;
+    m_pModel->pList->pParent = m_pModel;
     h = m_pModel->pModelInfo->model_addr->pHead;
-    m_pList_pos_bak = m_pModel->pParts->pos;
-    m_pModel->pParts->pos.x = h->center.x;
-    m_pModel->pParts->pos.y = h->center.y;
-    m_pModel->pParts->pos.z = h->center.z;
-    m_pList_ang_bak = m_pModel->pParts->ang;
-    m_pModel->pParts->ang.x = m_pModel->pParts->ang.y = m_pModel->pParts->ang.z = 0.0f;
+    m_pList_pos_bak = m_pModel->pList->pos;
+    m_pModel->pList->pos.x = h->center.x;
+    m_pModel->pList->pos.y = h->center.y;
+    m_pModel->pList->pos.z = h->center.z;
+    m_pList_ang_bak = m_pModel->pList->ang;
+    m_pModel->pList->ang.x = m_pModel->pList->ang.y = m_pModel->pList->ang.z = 0.0f;
     m_scrn_flag = scrn_flag;
     idSet();
     switch (m_scrn_flag) {
@@ -898,9 +898,9 @@ void ItemExamine::reset()
     m_pModel->pos = m_pos_bak;
     m_pModel->ang = m_ang_bak;
     m_pModel->ot_type = m_ot_type_bak;
-    m_pModel->pParts->pParent = m_pList_pParent_bak;
-    m_pModel->pParts->pos = m_pList_pos_bak;
-    m_pModel->pParts->ang = m_pList_ang_bak;
+    m_pModel->pList->pParent = m_pList_pParent_bak;
+    m_pModel->pList->pos = m_pList_pos_bak;
+    m_pModel->pList->ang = m_pList_ang_bak;
     m_pModel->matUpdate();
 }
 

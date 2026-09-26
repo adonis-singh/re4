@@ -107,10 +107,7 @@ cEmRack* SetRack(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcNo)
         em->LightInfo.init2(0, 1, &ofs, &size, 0x10);
     }
     zero = 0;
-    em->lockParts = zero;
-    em->lockOfs.x = 0.0f;
-    em->lockOfs.y = 0.0f;
-    em->lockOfs.z = 0.0f;
+    em->setTarget(zero, 0.0f, 0.0f, 0.0f);
     em->setStatus(EM_STATUS_LOCKOFF);
     em->setStatus(EM_STATUS_ASHLEY_NO_HELP);
     em->be_flag &= ~0x01000000;
@@ -263,7 +260,7 @@ void emRackDmCk(cEmRack* pEm)
                 return;
             }
             if (part->parts_no != 0) {
-                cModel* p;
+                cParts* p;
 
                 if (w->Eff_id != 0xFF) {
                     EstSet(pEm, -1, 0, 0, w->Eff_id, 6, 0, ESP_CORE_KIND_NONE, pEm, 0);
@@ -358,7 +355,7 @@ void emRack_R1_Set(cEmRack* pEm)
 void emRack_R1_Down(cEmRack* pEm)
 {
     FREE_EMRACK* w = EMRACK_WK(pEm);
-    cModel* p;
+    cParts* p;
     int done;
 
     switch (pEm->r_no_2) {
@@ -499,7 +496,7 @@ void emRack_R1_Break(cEmRack* pEm)
 void emRack_R1_Shock(cEmRack* pEm)
 {
     FREE_EMRACK* w = EMRACK_WK(pEm);
-    cModel* p;
+    cParts* p;
 
     switch (pEm->r_no_2) {
     case 0:
@@ -579,7 +576,7 @@ void emRackSatSet(cEmRack* pEm)
     if (w->pEatUnder == 0) {
         w->pEatUnder = EatMgr.create(&pEm->pos, &pEm->ang, v, h, 0x400000, 0);
     } else {
-        w->pEatUnder->m_Flag |= 4;
+        w->pEatUnder->setEnable();
         w->pEatUnder->setCoord(&pEm->pos, &pEm->ang);
     }
     if (pEm->type != 1) {
@@ -593,7 +590,7 @@ void emRackSatSet(cEmRack* pEm)
     if (w->pEatCenter == 0) {
         w->pEatCenter = EatMgr.create(&pEm->pos, &pEm->ang, v, h, 0x400000, 0);
     } else {
-        w->pEatCenter->m_Flag |= 4;
+        w->pEatCenter->setEnable();
         w->pEatCenter->setCoord(&pEm->pos, &pEm->ang);
     }
     v[0].y = 1500.0f;
@@ -604,7 +601,7 @@ void emRackSatSet(cEmRack* pEm)
     if (w->pEatTop == 0) {
         w->pEatTop = EatMgr.create(&pEm->pos, &pEm->ang, v, h, 0x400000, 0);
     } else {
-        w->pEatTop->m_Flag |= 4;
+        w->pEatTop->setEnable();
         w->pEatTop->setCoord(&pEm->pos, &pEm->ang);
     }
 }
@@ -614,15 +611,15 @@ void emRackSatClear(cEmRack* pEm)
 {
     FREE_EMRACK* w = EMRACK_WK(pEm);
 
-    pEm->atari.clrFlag200();
+    pEm->atari.offOba();
     if (w->pEatUnder) {
-        w->pEatUnder->m_Flag &= ~4;
+        w->pEatUnder->setDisable();
     }
     if (w->pEatCenter) {
-        w->pEatCenter->m_Flag &= ~4;
+        w->pEatCenter->setDisable();
     }
     if (w->pEatTop) {
-        w->pEatTop->m_Flag &= ~4;
+        w->pEatTop->setDisable();
     }
 }
 

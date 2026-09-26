@@ -7,6 +7,9 @@
 #include "light.h"
 #include "atari.h"
 #include "obj.h"
+#include "obj04.h"
+#include "obj05.h"
+#include "obj09.h"
 #include "esp.h"
 #include "global.h"
 #include "math_sub.h"
@@ -73,39 +76,33 @@ u8 GetEfmMoveId(u32 id)
 // when the value is 0). Used to remove the effect models an enemy/effect owner spawned.
 void EfmDelete(int a, int b, void* c)
 {
-    cObjMgr* m = &ObjMgr;
-    void (*func)(cObj*) = EfmDeleteSub;
-    u32 i;
-
     g_Core_flg = a;
     g_Core_kind = b;
     g_Core_pEm = (cModel*) c;
-    for (i = 0; i < m->nArray; i++) {
-        func(m->fastAt(i));
-    }
+    ObjMgr.applyFunc(EfmDeleteSub);
 }
 
 // Per-object test for EfmDelete: destroys obj04/05/09 works whose core matches the g_Core_* filter.
 void EfmDeleteSub(cObj* pObj)
 {
     if (pObj->id == 4) {
-        Efm04Work* w = &pObj->efm04;
-        if ((g_Core_flg == 0 || w->core.flg == g_Core_flg) && (g_Core_kind == 0 || w->core.kind == g_Core_kind) &&
-            (g_Core_pEm == 0 || w->core.pEm == g_Core_pEm)) {
+        Efm04Work* w = EFM04_WK((cObj04*) pObj);
+        if ((g_Core_flg == 0 || w->Eff_core.flg == g_Core_flg) && (g_Core_kind == 0 || w->Eff_core.kind == g_Core_kind) &&
+            (g_Core_pEm == 0 || w->Eff_core.pEm == g_Core_pEm)) {
             ObjMgr.destroy(pObj);
         }
     }
     if (pObj->id == 5) {
-        Efm05Work* w = &pObj->efm05;
-        if ((g_Core_flg == 0 || w->core.flg == g_Core_flg) && (g_Core_kind == 0 || w->core.kind == g_Core_kind) &&
-            (g_Core_pEm == 0 || w->core.pEm == g_Core_pEm)) {
+        Efm05Work* w = EFM05_WK((cObj05*) pObj);
+        if ((g_Core_flg == 0 || w->Eff_core.flg == g_Core_flg) && (g_Core_kind == 0 || w->Eff_core.kind == g_Core_kind) &&
+            (g_Core_pEm == 0 || w->Eff_core.pEm == g_Core_pEm)) {
             ObjMgr.destroy(pObj);
         }
     }
     if (pObj->id == 9) {
-        Efm09Work* w = &pObj->efm09;
-        if ((g_Core_flg == 0 || w->core.flg == g_Core_flg) && (g_Core_kind == 0 || w->core.kind == g_Core_kind) &&
-            (g_Core_pEm == 0 || w->core.pEm == g_Core_pEm)) {
+        Efm09Work* w = EFM09_WK((cObj09*) pObj);
+        if ((g_Core_flg == 0 || w->Eff_core.flg == g_Core_flg) && (g_Core_kind == 0 || w->Eff_core.kind == g_Core_kind) &&
+            (g_Core_pEm == 0 || w->Eff_core.pEm == g_Core_pEm)) {
             ObjMgr.destroy(pObj);
         }
     }
@@ -115,33 +112,27 @@ void EfmDeleteSub(cObj* pObj)
 // called when an event ends to drop the effect models it left behind.
 void EfmDeleteEvent()
 {
-    cObjMgr* m = &ObjMgr;
-    void (*func)(cObj*) = EfmDeleteEventSub;
-    u32 i;
-
-    for (i = 0; i < m->nArray; i++) {
-        func(m->fastAt(i));
-    }
+    ObjMgr.applyFunc(EfmDeleteEventSub);
 }
 
 // Per-object test for EfmDeleteEvent.
 void EfmDeleteEventSub(cObj* pObj)
 {
     if (pObj->id == 4) {
-        Efm04Work* w = &pObj->efm04;
-        if (!(w->core.flg & 1) && !(w->core.flg & 0x800)) {
+        Efm04Work* w = EFM04_WK((cObj04*) pObj);
+        if (!(w->Eff_core.flg & 1) && !(w->Eff_core.flg & 0x800)) {
             ObjMgr.destroy(pObj);
         }
     }
     if (pObj->id == 5) {
-        Efm05Work* w = &pObj->efm05;
-        if (!(w->core.flg & 1) && !(w->core.flg & 0x800)) {
+        Efm05Work* w = EFM05_WK((cObj05*) pObj);
+        if (!(w->Eff_core.flg & 1) && !(w->Eff_core.flg & 0x800)) {
             ObjMgr.destroy(pObj);
         }
     }
     if (pObj->id == 9) {
-        Efm09Work* w = &pObj->efm09;
-        if (!(w->core.flg & 1) && !(w->core.flg & 0x800)) {
+        Efm09Work* w = EFM09_WK((cObj09*) pObj);
+        if (!(w->Eff_core.flg & 1) && !(w->Eff_core.flg & 0x800)) {
             ObjMgr.destroy(pObj);
         }
     }
@@ -150,20 +141,10 @@ void EfmDeleteEventSub(cObj* pObj)
 // Destroys every Efm object in ObjMgr's alive list (filter cleared): room change / effect reset.
 void EfmArrayClear()
 {
-    void (*func)(cObj*);
-    cObj* p;
-    cObj* n;
-
     g_Core_flg = 0;
     g_Core_kind = 0;
     g_Core_pEm = 0;
-    func = EfmDeleteSub;
-    p = ObjMgr.getActiveWork();
-    while (p) {
-        n = p;
-        p = (cObj*) p->pNext;
-        func(n);
-    }
+    ObjMgr.applyFuncAll(EfmDeleteSub);
 }
 
 // Generator entry for an effect model record: resolves the parent (gen->Parent_no is a scroll object
@@ -236,7 +217,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.off();
         light = 0x10;
         if (gen->Tool_flg & 0x80) {
             light = 4;
@@ -249,7 +230,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             size.x = bound->size.x;
             size.y = bound->size.y;
             size.z = bound->size.z;
-            PSVECSubtract(&bound->center, &obj->pParts->pos, &center);
+            PSVECSubtract(&bound->center, &obj->pList->pos, &center);
             obj->LightInfo.init2(2, 1, &center, &size, light);
             obj->alpha_omit = 0x80;
         } else {
@@ -273,7 +254,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.off();
         light = 0x10;
         if (gen->Tool_flg & 0x80) {
             light = 4;
@@ -299,7 +280,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.off();
         obj->LightInfo.init2(0, 1, &efm_light_pos, &efm_light_size, 0x10);
         obj->id = GetEfmMoveId(2);
         obj = EfmSetObj09(obj, gen, info, seed, parent, m, x, rate);
@@ -312,14 +293,7 @@ cObj* EfmSeqSet(EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m
         u8 r = info->pEm->AddAmb_r;
         u8 g = info->pEm->AddAmb_g;
         u8 b = info->pEm->AddAmb_b;
-        if (r == 0 && ((g == 0) & (b == 0))) {
-            obj->be_flag &= ~8;
-        } else {
-            obj->be_flag |= 8;
-        }
-        obj->AddAmb_r = r;
-        obj->AddAmb_g = g;
-        obj->AddAmb_b = b;
+        obj->SetAddAmb(r, g, b);
     }
     return obj;
 }
@@ -335,17 +309,17 @@ const Vec efm_light_size = {1000.0f, 1000.0f, 0.0f};
 // child effect, bit 3 starts motion WorkSp8[2]. Returns 0 (object destroyed) on a bad parts number.
 cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m, int x, f32 rate, Vec* ofs)
 {
-    Efm04Work* w = &obj->efm04;
+    Efm04Work* w = EFM04_WK((cObj04*) obj);
     Vec v;
     Mtx mtx;
     void* mot;
     f32 rnd;
-    cModel* parts;
+    cParts* parts;
 
     obj->be_flag |= 0x4000;
-    w->core = *info;
+    w->Eff_core = *info;
     w->Parts_no = gen->Parts_no;
-    w->flags = gen->Tool_flg;
+    w->Tool_flg = gen->Tool_flg;
     obj->pos = gen->Pos;
     obj->pos.x += gen->R_pos.x * fRandSeed1_1(seed);
     obj->pos.y += gen->R_pos.y * fRandSeed1_1(seed);
@@ -354,94 +328,87 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     obj->speed.x += gen->R_speed.x * fRandSeed1_1(seed);
     obj->speed.y += gen->R_speed.y * fRandSeed1_1(seed);
     obj->speed.z += gen->R_speed.z * fRandSeed1_1(seed);
-    w->spdDamp = gen->D_speed;
-    w->acc = gen->Speed_plus;
-    w->acc.x += gen->R_speed_plus.x * fRandSeed1_1(seed);
-    w->acc.y += gen->R_speed_plus.y * fRandSeed1_1(seed);
-    w->acc.z += gen->R_speed_plus.z * fRandSeed1_1(seed);
+    w->D_speed = gen->D_speed;
+    w->Speed_plus = gen->Speed_plus;
+    w->Speed_plus.x += gen->R_speed_plus.x * fRandSeed1_1(seed);
+    w->Speed_plus.y += gen->R_speed_plus.y * fRandSeed1_1(seed);
+    w->Speed_plus.z += gen->R_speed_plus.z * fRandSeed1_1(seed);
     obj->ang = gen->Ang;
     obj->ang.x += gen->R_ang.x * fRandSeed1_1(seed);
     obj->ang.y += gen->R_ang.y * fRandSeed1_1(seed);
     obj->ang.z += gen->R_ang.z * fRandSeed1_1(seed);
     PSVECScale(&obj->ang, &obj->ang, DEG2RAD);
-    w->rotSpd = gen->Ang_plus;
-    w->rotSpd.x += gen->R_ang_plus.x * fRandSeed1_1(seed);
-    w->rotSpd.y += gen->R_ang_plus.y * fRandSeed1_1(seed);
-    w->rotSpd.z += gen->R_ang_plus.z * fRandSeed1_1(seed);
-    PSVECScale(&w->rotSpd, &w->rotSpd, DEG2RAD);
-    w->scaleXZ = gen->Size_base_x * 0.005f;
-    w->scaleY = gen->Size_base_y * 0.005f;
-    w->scale = 1.0f;
+    w->Ang_plus = gen->Ang_plus;
+    w->Ang_plus.x += gen->R_ang_plus.x * fRandSeed1_1(seed);
+    w->Ang_plus.y += gen->R_ang_plus.y * fRandSeed1_1(seed);
+    w->Ang_plus.z += gen->R_ang_plus.z * fRandSeed1_1(seed);
+    PSVECScale(&w->Ang_plus, &w->Ang_plus, DEG2RAD);
+    w->Size_base_x = gen->Size_base_x * 0.005f;
+    w->Size_base_y = gen->Size_base_y * 0.005f;
+    w->Size_mul = 1.0f;
     rnd = gen->R_size_base * fRandSeed1_1(seed) * 0.005f;
-    w->scaleXZ += rnd;
-    w->scaleY += rnd;
-    w->scaleSpd = gen->Size_plus;
-    w->scaleDamp = gen->D_size_plus;
-    w->r0 = gen->Col_start_r;
-    w->g0 = gen->Col_start_g;
-    w->b0 = gen->Col_start_b;
-    w->a0 = gen->Col_start_a;
-    w->r = (f32) gen->Col_start_r;
-    w->g = (f32) gen->Col_start_g;
-    w->b = (f32) gen->Col_start_b;
-    w->a = (f32) gen->Col_start_a;
-    w->rMul = gen->Col_d_r;
-    w->gMul = gen->Col_d_g;
-    w->bMul = gen->Col_d_b;
-    w->aMul = gen->Col_d_a;
+    w->Size_base_x += rnd;
+    w->Size_base_y += rnd;
+    w->Size_plus = gen->Size_plus;
+    w->D_size_plus = gen->D_size_plus;
+    w->Col_start_r = gen->Col_start_r;
+    w->Col_start_g = gen->Col_start_g;
+    w->Col_start_b = gen->Col_start_b;
+    w->Col_start_a = gen->Col_start_a;
+    w->Col_r = (f32) gen->Col_start_r;
+    w->Col_g = (f32) gen->Col_start_g;
+    w->Col_b = (f32) gen->Col_start_b;
+    w->Col_a = (f32) gen->Col_start_a;
+    w->Col_d_r = gen->Col_d_r;
+    w->Col_d_g = gen->Col_d_g;
+    w->Col_d_b = gen->Col_d_b;
+    w->Col_d_a = gen->Col_d_a;
     if (gen->Tool_flg & 0x400000) {
         obj->ot_type = 2;
-    } else if (w->a < 250.0f) {
+    } else if (w->Col_a < 250.0f) {
         obj->ot_type = 1;
     } else {
         obj->ot_type = 0;
     }
-    w->fadeStart = gen->Col_max_cnt;
-    w->fadeLen = gen->Col_start_cnt;
-    w->moveStart = gen->Pos_start_cnt;
-    w->scaleStart = gen->Size_start_cnt;
-    w->life = gen->Life_max;
-    w->frame = gen->Life_time;
-    w->rotFrame = gen->Release_time;
-    obj->pModelInfo->color[0] = (u8) w->r;
-    obj->pModelInfo->color[1] = (u8) w->g;
-    obj->pModelInfo->color[2] = (u8) w->b;
+    w->Col_max_cnt = gen->Col_max_cnt;
+    w->Col_start_cnt = gen->Col_start_cnt;
+    w->Pos_start_cnt = gen->Pos_start_cnt;
+    w->Size_start_cnt = gen->Size_start_cnt;
+    w->Life_max = gen->Life_max;
+    w->Life_time = gen->Life_time;
+    w->Release_time = gen->Release_time;
+    obj->pModelInfo->color[0] = (u8) w->Col_r;
+    obj->pModelInfo->color[1] = (u8) w->Col_g;
+    obj->pModelInfo->color[2] = (u8) w->Col_b;
     obj->pModelInfo->color[3] = 0xFF;
-    if (w->fadeStart == 0) {
-        obj->invisible_factor = w->a * (1.0f / 255.0f);
+    if (w->Col_max_cnt == 0) {
+        obj->invisible_factor = w->Col_a * (1.0f / 255.0f);
     } else {
         obj->invisible_factor = 0.0f;
     }
     obj->pModelInfo->blend_mode = gen->Blend_type;
-    obj->scale.y = w->scaleY * w->scale;
-    obj->scale.z = obj->scale.x = w->scaleXZ * w->scale;
-    w->groundOfs = (f32) (int) gen->xD4;
+    obj->scale.y = w->Size_base_y * w->Size_mul;
+    obj->scale.z = obj->scale.x = w->Size_base_x * w->Size_mul;
+    w->Pt_hit_size = (f32) (int) gen->xD4;
     if (gen->prm.w.xCC != 0) {
         u8 c = gen->prm.b.xCF;
-        if (c == 0) {
-            obj->be_flag &= ~8;
-        } else {
-            obj->be_flag |= 8;
-        }
-        obj->AddAmb_r = c;
-        obj->AddAmb_g = c;
-        obj->AddAmb_b = c;
+        obj->SetAddAmb(c, c, c);
     }
     if (gen->prm.w.xD0 != 0) {
         setModTexRender(obj, gen->prm.w.xD0 - 1);
     }
-    w->bounce = gen->Vec1;
-    PSVECScale(&w->bounce, &w->bounce, 0.1f);
-    if (!(w->flags & 0x40)) {
+    w->RefRate = gen->Vec1;
+    PSVECScale(&w->RefRate, &w->RefRate, 0.1f);
+    if (!(w->Tool_flg & 0x40)) {
         obj->LightInfo.SelectMask = 0;
         obj->be_flag |= 0x20000;
     }
-    if (w->flags & 0x200000) {
-        obj->z_mode = 1;
+    if (w->Tool_flg & 0x200000) {
+        obj->setZMode(1);
     }
     switch (w->Parts_no) {
     case 0xFF:
-        w->parentWorld = pEffParentWorld;
+        w->pParts = pEffParentWorld;
         Efm04RotMatrix(obj, m);
         break;
     case 0xF8:
@@ -450,10 +417,10 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     case 0xFB:
     case 0xFC:
     case 0xFD:
-        w->parentWorld = pEffParentWorld;
+        w->pParts = pEffParentWorld;
         break;
     case 0xFE:
-        w->parentWorld = pEffParentWorld;
+        w->pParts = pEffParentWorld;
         if (gen->Release_time != 0) {
             pLog->warn(0, 0, "ESP_EFM : ReleaseTime not 0 but no parent.");
         }
@@ -465,7 +432,7 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
             return 0;
         }
         if (w->Parts_no < parent->nParts) {
-            if (w->flags & 0x20) {
+            if (w->Tool_flg & 0x20) {
                 parts = parent->getPartsPtr(w->Parts_no);
                 PSMTXIdentity(mtx);
                 RotMatrix(mtx, &parent->ang);
@@ -473,18 +440,18 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
                 mtx[0][3] = parts->mat[0][3] + v.x;
                 mtx[1][3] = parts->mat[1][3] + v.y;
                 mtx[2][3] = parts->mat[2][3] + v.z;
-                w->parentWorld = pEffParentWorld;
+                w->pParts = pEffParentWorld;
                 Efm04RotMatrix(obj, mtx);
             } else {
-                // parent/parentSerial stored through a word pointer: the store `(mem link)` has a
+                // pMod/Guid_pMod stored through a word pointer: the store `(mem link)` has a
                 // register address, so cse1 (following the `beq` into this arm) treats it as
                 // aliasing `w->Parts_no` and the getPartsPtr argument is reloaded (`lbz r4,0x79(w)`);
                 // combine folds the address back into `stw 0x6C(w)`. A plain member store never
                 // conflicts (same base, disjoint offsets) and the arm reuses the switch register.
-                u32* link = (u32*) &w->parent;
+                u32* link = (u32*) &w->pMod;
                 link[0] = (u32) parent;
                 link[1] = parent->guid;
-                w->parentWorld = parent->getPartsPtr(w->Parts_no);
+                w->pParts = parent->getPartsPtr(w->Parts_no);
                 if (ofs) {
                     PSVECAdd(&obj->pos, ofs, &obj->pos);
                 }
@@ -496,10 +463,10 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
         }
         break;
     }
-    if (w->flags & 4) {
+    if (w->Tool_flg & 4) {
         EstSet(obj, -1, 0, 0, gen->WorkSp8[0], gen->WorkSp8[1], 0, ESP_CORE_KIND_NONE, obj, 0);
     }
-    if (w->flags & 8) {
+    if (w->Tool_flg & 8) {
         w->Motion_no = gen->WorkSp8[2];
         if (EspGetEfmMotAddr(gen->Tex_id, w->Motion_no, &mot)) {
             switch (gen->WorkSp8[3]) {
@@ -515,7 +482,7 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
             }
         } else {
             pLog->err(0, 0, "ESP_EFM04 : MotionNo[%d] is invalid.", w->Motion_no);
-            w->flags |= 8;
+            w->Tool_flg |= 8;
         }
     }
     obj->move();
@@ -525,20 +492,20 @@ cObj* EfmSetObj04(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
 // Fills an obj05 (scattering multi-parts model) work from the record: position/angle/rotation speed
 // with random spreads, scale, colours and fade timers, the scatter centre (Vec0 +- Vec2), bounce
 // (Vec1/10), pow/rangeStep/rnd/rotAmp from Work8, gravity (-xCC/10) and speed damping (1 - xD0/1000);
-// orientation from matrix m or the parent parts' matrix; each parts starts with efmStat 0.
+// orientation from matrix m or the parent parts' matrix; each parts starts with Kaboom_flg 0.
 cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* parent, Mtx m, int x, f32 rate)
 {
-    Efm05Work* w = &obj->efm05;
+    Efm05Work* w = EFM05_WK((cObj05*) obj);
     Vec v;
     Mtx mtx;
     f32 rnd;
-    cModel* parts;
-    cModel* p;
+    cParts* parts;
+    cParts* p;
     u32 i;
 
-    w->core = *info;
-    w->flags = gen->Tool_flg;
-    w->seed = *seed;
+    w->Eff_core = *info;
+    w->Tool_flg = gen->Tool_flg;
+    w->Rand_seed = *seed;
     obj->pos = gen->Pos;
     obj->pos.x += gen->R_pos.x * fRandSeed1_1(seed);
     obj->pos.y += gen->R_pos.y * fRandSeed1_1(seed);
@@ -548,78 +515,78 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
     obj->ang.y += gen->R_ang.y * fRandSeed1_1(seed);
     obj->ang.z += gen->R_ang.z * fRandSeed1_1(seed);
     PSVECScale(&obj->ang, &obj->ang, DEG2RAD);
-    if ((w->flags & 0x10) && parent) {
-        Matrix2AxisAngle(parent->pParts->mat, &v);
+    if ((w->Tool_flg & 0x10) && parent) {
+        Matrix2AxisAngle(parent->pList->mat, &v);
         PSVECAdd(&obj->ang, &v, &obj->ang);
     }
-    if (w->flags & 0x200000) {
-        obj->z_mode = 1;
+    if (w->Tool_flg & 0x200000) {
+        obj->setZMode(1);
     }
-    w->rotSpd = gen->Ang_plus;
-    w->rotSpd.x += gen->R_ang_plus.x * fRandSeed1_1(seed);
-    w->rotSpd.y += gen->R_ang_plus.y * fRandSeed1_1(seed);
-    w->rotSpd.z += gen->R_ang_plus.z * fRandSeed1_1(seed);
-    PSVECScale(&w->rotSpd, &w->rotSpd, DEG2RAD);
-    w->scaleXZ = gen->Size_base_x * 0.005f;
-    w->scaleY = gen->Size_base_y * 0.005f;
-    w->scale = 1.0f;
+    w->Ang_plus = gen->Ang_plus;
+    w->Ang_plus.x += gen->R_ang_plus.x * fRandSeed1_1(seed);
+    w->Ang_plus.y += gen->R_ang_plus.y * fRandSeed1_1(seed);
+    w->Ang_plus.z += gen->R_ang_plus.z * fRandSeed1_1(seed);
+    PSVECScale(&w->Ang_plus, &w->Ang_plus, DEG2RAD);
+    w->Size_base_x = gen->Size_base_x * 0.005f;
+    w->Size_base_y = gen->Size_base_y * 0.005f;
+    w->Size_mul = 1.0f;
     rnd = gen->R_size_base * fRandSeed1_1(seed);
-    w->scaleXZ += rnd;
-    w->scaleY += rnd;
-    w->scaleSpd = gen->Size_plus;
-    w->scaleDamp = gen->D_size_plus;
-    w->r0 = gen->Col_start_r;
-    w->g0 = gen->Col_start_g;
-    w->b0 = gen->Col_start_b;
-    w->a0 = gen->Col_start_a;
-    w->r = (f32) gen->Col_start_r;
-    w->g = (f32) gen->Col_start_g;
-    w->b = (f32) gen->Col_start_b;
-    w->a = (f32) gen->Col_start_a;
-    w->rMul = gen->Col_d_r;
-    w->gMul = gen->Col_d_g;
-    w->bMul = gen->Col_d_b;
-    w->aMul = gen->Col_d_a;
+    w->Size_base_x += rnd;
+    w->Size_base_y += rnd;
+    w->Size_plus = gen->Size_plus;
+    w->D_size_plus = gen->D_size_plus;
+    w->Col_start_r = gen->Col_start_r;
+    w->Col_start_g = gen->Col_start_g;
+    w->Col_start_b = gen->Col_start_b;
+    w->Col_start_a = gen->Col_start_a;
+    w->Col_r = (f32) gen->Col_start_r;
+    w->Col_g = (f32) gen->Col_start_g;
+    w->Col_b = (f32) gen->Col_start_b;
+    w->Col_a = (f32) gen->Col_start_a;
+    w->Col_d_r = gen->Col_d_r;
+    w->Col_d_g = gen->Col_d_g;
+    w->Col_d_b = gen->Col_d_b;
+    w->Col_d_a = gen->Col_d_a;
     if (gen->Tool_flg & 0x400000) {
         obj->ot_type = 2;
-    } else if (w->a < 250.0f) {
+    } else if (w->Col_a < 250.0f) {
         obj->ot_type = 1;
     } else {
         obj->ot_type = 0;
     }
-    w->fadeStart = gen->Col_max_cnt;
-    w->fadeLen = gen->Col_start_cnt;
+    w->Col_max_cnt = gen->Col_max_cnt;
+    w->Col_start_cnt = gen->Col_start_cnt;
     w->Pos_start_cnt = gen->Pos_start_cnt;
-    w->scaleStart = gen->Size_start_cnt;
-    w->life = gen->Life_max;
-    w->frame = gen->Life_time;
-    obj->pModelInfo->color[0] = (u8) w->r;
-    obj->pModelInfo->color[1] = (u8) w->g;
-    obj->pModelInfo->color[2] = (u8) w->b;
+    w->Size_start_cnt = gen->Size_start_cnt;
+    w->Life_max = gen->Life_max;
+    w->Life_time = gen->Life_time;
+    obj->pModelInfo->color[0] = (u8) w->Col_r;
+    obj->pModelInfo->color[1] = (u8) w->Col_g;
+    obj->pModelInfo->color[2] = (u8) w->Col_b;
     obj->pModelInfo->color[3] = 0xFF;
-    if (w->fadeStart == 0) {
-        obj->invisible_factor = w->a * (1.0f / 255.0f);
+    if (w->Col_max_cnt == 0) {
+        obj->invisible_factor = w->Col_a * (1.0f / 255.0f);
     } else {
         obj->invisible_factor = 0.0f;
     }
     obj->pModelInfo->blend_mode = gen->Blend_type;
-    if (!(w->flags & 0x40)) {
+    if (!(w->Tool_flg & 0x40)) {
         obj->LightInfo.SelectMask = 0;
         obj->be_flag |= 0x20000;
     }
-    w->center = gen->Vec0;
-    w->center.x += gen->Vec2.x * fRandSeed1_1(seed);
-    w->center.y += gen->Vec2.y * fRandSeed1_1(seed);
-    w->center.z += gen->Vec2.z * fRandSeed1_1(seed);
-    w->bounce = gen->Vec1;
-    PSVECScale(&w->bounce, &w->bounce, 0.1f);
-    w->pow = gen->Work8[0];
-    w->rangeStep = gen->Work8[1];
-    w->rnd = gen->Work8[2];
-    w->rotAmp = gen->Work8[3];
-    w->grav = (f32) (int) gen->prm.w.xCC * -0.1f;
-    w->spdDamp = 1.0f - (f32) (int) gen->prm.w.xD0 * 0.001f;
-    w->groundOfs = gen->xD4;
+    w->Kaboom_pos = gen->Vec0;
+    w->Kaboom_pos.x += gen->Vec2.x * fRandSeed1_1(seed);
+    w->Kaboom_pos.y += gen->Vec2.y * fRandSeed1_1(seed);
+    w->Kaboom_pos.z += gen->Vec2.z * fRandSeed1_1(seed);
+    w->RefRate = gen->Vec1;
+    PSVECScale(&w->RefRate, &w->RefRate, 0.1f);
+    w->Kaboom_pow = gen->Work8[0];
+    w->Kaboom_spd = gen->Work8[1];
+    w->Kaboom_rnd = gen->Work8[2];
+    w->Kaboom_rot = gen->Work8[3];
+    w->Kaboom_gravity = (f32) (int) gen->prm.w.xCC * -0.1f;
+    w->Kaboom_d_spd = 1.0f - (f32) (int) gen->prm.w.xD0 * 0.001f;
+    w->Pt_hit_size = gen->xD4;
     switch (gen->Parts_no) {
     case 0xFF:
         Efm05RotMatrix(obj, m);
@@ -644,7 +611,7 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
             return 0;
         }
         if (gen->Parts_no < parent->nParts) {
-            if (w->flags & 0x20) {
+            if (w->Tool_flg & 0x20) {
                 parts = parent->getPartsPtr(gen->Parts_no);
                 PSMTXIdentity(mtx);
                 RotMatrix(mtx, &parent->ang);
@@ -664,11 +631,11 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
         }
         break;
     }
-    for (p = obj->pParts, i = 0; i < obj->nParts; i++, p = p->pParts) {
-        p->efmStat = 0;
+    for (p = obj->pList, i = 0; i < obj->nParts; i++, p = p->pList) {
+        p->Kaboom_flg = 0;
     }
     obj->matUpdate();
-    if (w->flags & 4) {
+    if (w->Tool_flg & 4) {
         EstSet(obj, -1, 0, 0, gen->WorkSp8[0], gen->WorkSp8[1], 0, ESP_CORE_KIND_NONE, obj, 0);
     }
     if (gen->WorkSp8[2] != 0) {
@@ -684,7 +651,7 @@ cObj* EfmSetObj05(cObj* obj, EspGenWork* gen, EfmCore* info, u32* seed, cModel* 
 // from the size (Efm 0x7C and 0x21 use a smaller visual scale).
 cObj* EfmSetObj09(cObj* pObj, EspGenWork* pSeq, EfmCore* pCore, u32* pRand_seed, cModel* pMod, Mtx pMat, int flg, f32 ang)
 {
-    Efm09Work* w = &pObj->efm09;
+    Efm09Work* w = EFM09_WK((cObj09*) pObj);
     static f32 mass_mul = 1.0f;
     static f32 moment_mul = 2.0f;
 
@@ -692,34 +659,34 @@ cObj* EfmSetObj09(cObj* pObj, EspGenWork* pSeq, EfmCore* pCore, u32* pRand_seed,
     if (DbgFlagChk(pG, DBG_IN_ESP_TOOL)) {
         DpfFlagOff(pG, DPF_SHADOW);
     }
-    w->core = *pCore;
-    w->basePos = pSeq->Pos;
-    w->basePos.x += pSeq->R_pos.x * fRandSeed1_1(pRand_seed);
-    w->basePos.y += pSeq->R_pos.y * fRandSeed1_1(pRand_seed);
-    w->basePos.z += pSeq->R_pos.z * fRandSeed1_1(pRand_seed);
-    w->basePos.y += 0.0001f;
-    w->pos = w->basePos;
-    w->spd = pSeq->Speed;
-    w->spd.x += pSeq->R_speed.x * fRandSeed1_1(pRand_seed);
-    w->spd.y += pSeq->R_speed.y * fRandSeed1_1(pRand_seed);
-    w->spd.z += pSeq->R_speed.z * fRandSeed1_1(pRand_seed);
-    PSMTXIdentity(w->mat);
+    w->Eff_core = *pCore;
+    w->X = pSeq->Pos;
+    w->X.x += pSeq->R_pos.x * fRandSeed1_1(pRand_seed);
+    w->X.y += pSeq->R_pos.y * fRandSeed1_1(pRand_seed);
+    w->X.z += pSeq->R_pos.z * fRandSeed1_1(pRand_seed);
+    w->X.y += 0.0001f;
+    w->prev_X = w->X;
+    w->V = pSeq->Speed;
+    w->V.x += pSeq->R_speed.x * fRandSeed1_1(pRand_seed);
+    w->V.y += pSeq->R_speed.y * fRandSeed1_1(pRand_seed);
+    w->V.z += pSeq->R_speed.z * fRandSeed1_1(pRand_seed);
+    PSMTXIdentity(w->R);
     w->w.x = 0.0f;
     w->w.y = 0.0f;
     w->w.z = 0.0f;
-    w->rotSpd = pSeq->Ang_plus;
-    w->rotSpd.x += pSeq->R_ang_plus.x * fRandSeed1_1(pRand_seed);
-    w->rotSpd.y += pSeq->R_ang_plus.y * fRandSeed1_1(pRand_seed);
-    w->rotSpd.z += pSeq->R_ang_plus.z * fRandSeed1_1(pRand_seed);
+    w->wg = pSeq->Ang_plus;
+    w->wg.x += pSeq->R_ang_plus.x * fRandSeed1_1(pRand_seed);
+    w->wg.y += pSeq->R_ang_plus.y * fRandSeed1_1(pRand_seed);
+    w->wg.z += pSeq->R_ang_plus.z * fRandSeed1_1(pRand_seed);
     w->size.x = pSeq->Vec0.x * 100.0f + 250.0f;
     w->size.y = pSeq->Vec0.y * 100.0f + 250.0f;
     w->size.z = pSeq->Vec0.z * 100.0f + 250.0f;
-    w->mass = w->size.x * w->size.y * w->size.z / 1000000000.0f;
-    w->mass *= mass_mul;
-    PSVECScale(&w->spd, &w->spd, w->mass * 100.0f);
-    w->moment.x = moment_mul * w->mass * (w->size.y * w->size.y + w->size.z * w->size.z) / 12.0f;
-    w->moment.y = moment_mul * w->mass * (w->size.x * w->size.x + w->size.z * w->size.z) / 12.0f;
-    w->moment.z = moment_mul * w->mass * (w->size.x * w->size.x + w->size.y * w->size.y) / 12.0f;
+    w->m = w->size.x * w->size.y * w->size.z / 1000000000.0f;
+    w->m *= mass_mul;
+    PSVECScale(&w->V, &w->V, w->m * 100.0f);
+    w->Ig.x = moment_mul * w->m * (w->size.y * w->size.y + w->size.z * w->size.z) / 12.0f;
+    w->Ig.y = moment_mul * w->m * (w->size.x * w->size.x + w->size.z * w->size.z) / 12.0f;
+    w->Ig.z = moment_mul * w->m * (w->size.x * w->size.x + w->size.y * w->size.y) / 12.0f;
     pObj->scale = w->size;
     PSVECScale(&pObj->scale, &pObj->scale, 0.01f);
     if (pSeq->Tex_id == 0x7C) {
@@ -750,46 +717,46 @@ cObj* SetEffModel(void* bin, void* tpl, Vec* pos, Vec* rot)
             pLog->err(0, 0, "ESP_EFM : ModelInit() failed.");
             return 0;
         }
-        obj->sub2B4.clrFlags(0xFCFF);
+        obj->atari.off();
         obj->LightInfo.init2(0, 1, &efm_light_pos, &efm_light_size, 0x10);
         obj->id = 4;
         obj->setNoSuspend(1);
-        w = &obj->efm04;
-        w->core.flg = 1;
+        w = EFM04_WK((cObj04*) obj);
+        w->Eff_core.flg = 1;
         obj->be_flag |= 0x4000;
         w->Parts_no = 0;
-        w->flags = 0;
+        w->Tool_flg = 0;
         obj->pos = *pos;
-        w->spdDamp = 0.0f;
+        w->D_speed = 0.0f;
         obj->ang = *rot;
-        w->scaleXZ = 1.0f;
-        w->scaleY = 1.0f;
-        w->scale = 1.0f;
-        w->rMul = 1.0f;
-        w->gMul = 1.0f;
-        w->r0 = 0xFF;
-        w->g0 = 0xFF;
-        w->b0 = 0xFF;
-        w->a0 = 0xFF;
-        w->r = (f32) w->r0;
-        w->g = (f32) w->g0;
-        w->b = (f32) w->b0;
-        w->a = (f32) w->a0;
-        w->bMul = 1.0f;
-        w->aMul = 1.0f;
+        w->Size_base_x = 1.0f;
+        w->Size_base_y = 1.0f;
+        w->Size_mul = 1.0f;
+        w->Col_d_r = 1.0f;
+        w->Col_d_g = 1.0f;
+        w->Col_start_r = 0xFF;
+        w->Col_start_g = 0xFF;
+        w->Col_start_b = 0xFF;
+        w->Col_start_a = 0xFF;
+        w->Col_r = (f32) w->Col_start_r;
+        w->Col_g = (f32) w->Col_start_g;
+        w->Col_b = (f32) w->Col_start_b;
+        w->Col_a = (f32) w->Col_start_a;
+        w->Col_d_b = 1.0f;
+        w->Col_d_a = 1.0f;
         obj->ot_type = 1;
-        obj->pModelInfo->color[0] = (u8) w->r;
-        obj->pModelInfo->color[1] = (u8) w->g;
-        obj->pModelInfo->color[2] = (u8) w->b;
+        obj->pModelInfo->color[0] = (u8) w->Col_r;
+        obj->pModelInfo->color[1] = (u8) w->Col_g;
+        obj->pModelInfo->color[2] = (u8) w->Col_b;
         obj->pModelInfo->color[3] = 0xFF;
-        if (w->fadeStart == 0) {
-            obj->invisible_factor = w->a * (1.0f / 255.0f);
+        if (w->Col_max_cnt == 0) {
+            obj->invisible_factor = w->Col_a * (1.0f / 255.0f);
         } else {
             obj->invisible_factor = 0.0f;
         }
-        obj->scale.y = w->scaleY * w->scale;
-        obj->scale.z = obj->scale.x = w->scaleXZ * w->scale;
-        w->parentWorld = pEffParentWorld;
+        obj->scale.y = w->Size_base_y * w->Size_mul;
+        obj->scale.z = obj->scale.x = w->Size_base_x * w->Size_mul;
+        w->pParts = pEffParentWorld;
         obj->move();
     }
     return obj;
@@ -803,13 +770,13 @@ void setModTexRender(cObj* pMod, int no)
     u8* tbl = buf;
     TexRenderMng* mgr = GetTexRenderMgrAddr(no);
 
-    if (mgr->used == 0) {
+    if (mgr->IsAlive() == 0) {
         return;
     }
     tbl[0] = 1;
     tbl[1] = 0;
     tbl[4] = 0xF7;
-    tbl[5] = mgr->m_Tex_no;
+    tbl[5] = mgr->GetTexNo();
     pMod->pModelInfo->setTexBlendTbl(tbl);
     pMod->pModelInfo->setBlendRatio(0xFF);
     pMod->Shader_type = 1;

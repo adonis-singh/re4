@@ -12,6 +12,8 @@
 #include "math_sub.h"
 #include "em.h"
 #include "obj.h"
+#include "obj02.h"
+#include "obj18.h"
 #include "scroll.h"
 #include "db_work.h"
 
@@ -98,7 +100,7 @@ void cDbWork::dispEm()
         wkNo--;
     }
     wkNo = (wkNo + EmMgr.getArrayNum()) % EmMgr.getArrayNum();
-    if ((em->be_flag & 0x201) == 1) {
+    if (em->isAlive()) {
         dispModel(em, 4, 3);
         eprintf(32, 280, 0, 0, "HP       %d", em->hp);
         eprintf(32, 294, 0, 0, "HP MAX   %d", em->hp_max);
@@ -115,7 +117,7 @@ void cDbWork::dispObj()
     int x;
     int y;
 
-    obj = ObjMgrWork(wkNo);
+    obj = ObjMgr.at(wkNo);
     eprintf(32, 28, 4, 0, "OBJ %d  [0x%08X]", wkNo, obj);
     if (Joy[0].rep & JOY_RIGHT) {
         wkNo++;
@@ -124,13 +126,13 @@ void cDbWork::dispObj()
         wkNo--;
     }
     wkNo = (wkNo + ObjMgr.getArrayNum()) % ObjMgr.getArrayNum();
-    if ((obj->be_flag & 0x201) == 1) {
+    if (obj->isAlive()) {
         dispModel(obj, 4, 3);
         x = 4;
         y = 20;
         if (obj->id == 2) {
             int id;
-            eprintf(32, 280, 0, 0, "ATTR     %02X", obj->attr);
+            eprintf(32, 280, 0, 0, "ATTR     %02X", ((cObjScr*) obj)->Attribute);
             y++;
             id = SmdGetWorkId(obj);
             if (id >= 0) {
@@ -140,7 +142,7 @@ void cDbWork::dispObj()
             }
         }
         if (obj->id == 0x18) {
-            DbObj18Work* w = (DbObj18Work*) obj->work;
+            DbObj18Work* w = (DbObj18Work*) ((cObj18*) obj)->free;
             eprintf(x * 8, y * 14, 0, 0, "NAME     %s", w->name);
             y++;
             eprintf(x * 8, y * 14, 0, 0, "TYPE     %2d", w->type);
@@ -234,7 +236,7 @@ void cDbWork::dispLit()
         wkNo--;
     }
     wkNo = (wkNo + LightMgr.getArrayNum()) % LightMgr.getArrayNum();
-    if ((l->be_flag & 0x201) == 1) {
+    if (l->isAlive()) {
         eprintf(32, 280, 0, 0, "BE FLAG  %08X", l->be_flag);
         eprintf(32, 294, 0, 0, "POSITION %7.0f %7.0f %7.0f", l->Pos.x, l->Pos.y, l->Pos.z);
         eprintf(32, 308, 0, 0, "ATTR     %02x", l->Attribute);

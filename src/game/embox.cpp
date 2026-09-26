@@ -85,73 +85,49 @@ cEmBox* SetBox(void* bin, void* tpl, Vec* pos, Vec* rot, u8 type, int etcNo)
     switch (em->type) {
     case 0:
     default:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 150.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 150.0f, 0.0f);
         w->size.x = 200.0f;
         w->size.y = 350.0f;
         w->size.z = 550.0f;
         break;
     case 1:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         w->size.x = 450.0f;
         w->size.y = 600.0f;
         w->size.z = 1000.0f;
         break;
     case 2:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         w->size.x = 200.0f;
         w->size.y = 350.0f;
         w->size.z = 550.0f;
         break;
     case 3:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 800.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 800.0f, 0.0f);
         w->size.x = 660.0f;
         w->size.y = 1250.0f;
         w->size.z = 660.0f;
         break;
     case 4:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 0.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 0.0f, 0.0f);
         w->size.x = 200.0f;
         w->size.y = 350.0f;
         w->size.z = 550.0f;
         break;
     case 5:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 300.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 300.0f, 0.0f);
         w->size.x = 630.0f;
         w->size.y = 1250.0f;
         w->size.z = 630.0f;
         break;
     case 6:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 250.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 250.0f, 0.0f);
         w->size.x = 250.0f;
         w->size.y = 500.0f;
         w->size.z = 250.0f;
         break;
     case 7:
-        em->lockParts = 0;
-        em->lockOfs.x = 0.0f;
-        em->lockOfs.y = 1000.0f;
-        em->lockOfs.z = 0.0f;
+        em->setTarget(0, 0.0f, 1000.0f, 0.0f);
         w->size.x = 550.0f;
         w->size.y = 1450.0f;
         w->size.z = 550.0f;
@@ -535,7 +511,7 @@ void emBox_R1_Break(cEmBox* em)
         em->be_flag &= ~2;
         em->clearStatus(EM_STATUS_ACTIVE);
         w->Lost_wait = 150;
-        em->atari.throughOn();
+        em->atari.off();
         em->r_no_2++;
     }
     em->be_flag |= 0x4000;
@@ -547,10 +523,10 @@ void emBoxSatClear(cEmBox* em)
     EmBoxWork* w = EMBOX_WK(em);
 
     if (w->pSat) {
-        w->pSat->m_Flag &= ~4;
+        w->pSat->setDisable();
     }
     if (w->pEat) {
-        w->pEat->m_Flag &= ~4;
+        w->pEat->setDisable();
     }
 }
 
@@ -692,14 +668,14 @@ void emBoxAction(cEmBox* em)
     case 6:
     case 7:
     default:
-        cMes.MesSet(3, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+        cMes.MesSet(3, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         break;
     case 3:
     case 5:
         if (checkNearOtherBarrel(em) == 1) {
-            cMes.MesSet(5, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+            cMes.MesSet(5, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         } else {
-            cMes.MesSet(4, 100, 336 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1, 1, 0, 0, 4);
+            cMes.MesSet(4, 100, 336 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1, 1, 0, 0, 4);
         }
         break;
     }

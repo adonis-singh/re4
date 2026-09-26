@@ -18,6 +18,7 @@ asm(".section .rodata\n\t.balign 8\n\t.text");
 #include "sce_at.h"
 #include "scroll.h"
 #include "obj.h"
+#include "obj18.h"
 #include "em.h"
 #include "emdoor.h"
 #include "em_set.h"
@@ -609,7 +610,7 @@ static void R20bDoorEventMain()
     SceAtSetEnable(0x8C, 1);
     SndCall(6, 0, 0, 0, 0, 0);
     CamCtrl.CutCall(4);
-    SceMesSet(2, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     SceSetEventCancel(1, (TaskFunc) R20bDoorEventEnd, 0, -1, 1);
     CamCtrl.CutCall(5);
     obj = SmdGetObjPtr(0x8F);
@@ -667,15 +668,14 @@ static void setTexRender()
         tbl[0] = 1;
         tbl[1] = 0;
         tbl[4] = 0xF7;
-        tbl[5] = r20b_work->tex0->m_Tex_no;
-        r20b_work->tex0->m_Rep_type = 1;
+        tbl[5] = r20b_work->tex0->GetTexNo();
+        r20b_work->tex0->SetRepeatType(1);
         {
             TexRenderMng* t = r20b_work->tex0;
 
-            t->m_W_size = 0x40;
-            t->m_H_size = 0x40;
+            t->SetWHSize(0x40, 0x40);
         }
-        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r20b_work->tex0->m_Core_flg | 1, ESP_CORE_KIND_NONE, 0, 0);
+        EstSet(0, -1, 0, 0, EFF_ROOM, 0, r20b_work->tex0->GetCoreFlg() | 1, ESP_CORE_KIND_NONE, 0, 0);
         R20B_TEX_OBJ(0x28);
         R20B_TEX_OBJ(0x29);
     }
@@ -792,10 +792,10 @@ extern "C" void Evt_R20BS00_Func(Event* e)
                 if (e->GetMod(&mod2, "evma100a", 0, 0) == 1) {
                     TexRenderModSet((cModel*) mod2, 0, r20b_work->tbl1, r20b_work->tex2, 1, 0, 0, 1, 0.35f);
                 }
-                EffectEspDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-                EffectEspgenDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-                EffectEfmDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-                EstSet(0, -1, 0, 0, EFF_ROOM, 2, r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EffectEspDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EffectEspgenDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+                EffectEfmDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+                EstSet(0, -1, 0, 0, EFF_ROOM, 2, r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
             }
             break;
         case 0x24:
@@ -803,10 +803,10 @@ extern "C" void Evt_R20BS00_Func(Event* e)
                 if (e->GetMod(&mod2, "evma100a", 0, 0) == 1) {
                     TexRenderModSet((cModel*) mod2, 0, r20b_work->tbl1, r20b_work->tex2, 1, 0, 0, 1, 0.35f);
                 }
-                EffectEspDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-                EffectEspgenDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-                EffectEfmDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-                EstSet(0, -1, 0, 0, EFF_ROOM, 1, r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EffectEspDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EffectEspgenDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+                EffectEfmDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+                EstSet(0, -1, 0, 0, EFF_ROOM, 1, r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
             }
             break;
         default:
@@ -814,9 +814,9 @@ extern "C" void Evt_R20BS00_Func(Event* e)
                 if (e->GetMod(&mod2, "evma100a", 0, 0) == 1) {
                     TexRenderModRes((cModel*) mod2, 0);
                 }
-                EffectEspDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
-                EffectEspgenDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
-                EffectEfmDelete(r20b_work->tex2->m_Core_flg | 0x3001, ESP_CORE_KIND_NONE, 0);
+                EffectEspDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0, 0);
+                EffectEspgenDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
+                EffectEfmDelete(r20b_work->tex2->GetCoreFlg() | 0x3001, ESP_CORE_KIND_NONE, 0);
             }
             break;
         }
@@ -863,17 +863,17 @@ extern "C" void Evt_R20BS00_Func(Event* e)
         if (e->NowCut == 0x2A) {
             if (e->NowFrame <= 0x10) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    ((cObj*) mod2)->o18.be_flag |= 0x40;
+                    OBJ18_WK((cObj18*) mod2)->be_flag |= 0x40;
                 }
             } else {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    ((cObj*) mod2)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod2)->be_flag &= ~0x40;
                 }
             }
         } else {
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    ((cObj*) mod2)->o18.be_flag &= ~0x40;
+                    OBJ18_WK((cObj18*) mod2)->be_flag &= ~0x40;
                 }
             }
         }
@@ -883,11 +883,11 @@ extern "C" void Evt_R20BS00_Func(Event* e)
         case 0x13:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObj*) mod2)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod2);
 
-                    if (w && w->child) {
-                        ((cObj*) mod2)->o18.ObjChainFlagCommon |= 0x04000000;
-                        w->child->be_flag &= ~2;
+                    if (w && w->pObjChain) {
+                        OBJ18_WK((cObj18*) mod2)->ObjChainFlagCommon |= 0x04000000;
+                        w->pObjChain->be_flag &= ~2;
                     }
                 }
             }
@@ -895,11 +895,11 @@ extern "C" void Evt_R20BS00_Func(Event* e)
         default:
             if (e->NowFrame == 0) {
                 if (e->GetMod(&mod2, "pl0200", 0, 0) == 1) {
-                    Obj18Work* w = &((cObj*) mod2)->o18;
+                    Obj18Work* w = OBJ18_WK((cObj18*) mod2);
 
-                    if (w && w->child) {
-                        ((cObj*) mod2)->o18.ObjChainFlagCommon &= ~0x04000000;
-                        w->child->be_flag |= 2;
+                    if (w && w->pObjChain) {
+                        OBJ18_WK((cObj18*) mod2)->ObjChainFlagCommon &= ~0x04000000;
+                        w->pObjChain->be_flag |= 2;
                     }
                 }
             }

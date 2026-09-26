@@ -78,7 +78,7 @@ void CameraRoomInit()
 // the controller.
 void CameraMove()
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
 
     CamCtrl.Check();
     if (!SpfFlagChk(pG, SPF_CAMERA)) {
@@ -86,7 +86,7 @@ void CameraMove()
         if (StaFlagChk(pG, STA_CAMERA) && !DbgFlagChk(pG, DBG_DBG_CAM)) {
             pG->Camera = CamCtrl.camera;
             if (CamCtrl.m_pExtraCamera != 0) {
-                pG->Camera = *(Camera*) CamCtrl.m_pExtraCamera;
+                pG->Camera = *CamCtrl.m_pExtraCamera;
             }
         }
         CamCtrl.m_pExtraCamera = 0;
@@ -116,7 +116,7 @@ void CameraMove()
 // Analog stick as a world-space move direction: rotated by the camera matrix, or by the previous
 // camera's matrix while the stick is held through a camera cut (so the run direction does not
 // flip on a cut).
-void CamStick2World(Camera* pCam, JOY* pJoy, Vec* pVec)
+void CamStick2World(CAMERA* pCam, JOY* pJoy, Vec* pVec)
 {
     static Mtx mat_prev;
     static int carry_on_flag = 0;
@@ -142,25 +142,25 @@ void CamStick2World(Camera* pCam, JOY* pJoy, Vec* pVec)
 }
 
 // The world-space view frustum of the current camera (View.worldFull).
-ViewFrustum* CameraViewFrustumPtr(Camera* pCam)
+ViewFrustum* CameraViewFrustumPtr(CAMERA* pCam)
 {
     return &View.worldFull;
 }
 
 // The camera's up vector.
-void CameraGetUpVec(Camera* pCam, Vec* up)
+void CameraGetUpVec(CAMERA* pCam, Vec* up)
 {
     *up = pCam->Up;
 }
 
 // The camera's look vector (pos - at, normalised: points backwards).
-void CameraGetLookVec(Camera* pCam, Vec* look)
+void CameraGetLookVec(CAMERA* pCam, Vec* look)
 {
     *look = pCam->Look;
 }
 
 // The forward view direction (-Look).
-void CameraGetLookVecInverse(Camera* pCam, Vec* look_inv)
+void CameraGetLookVecInverse(CAMERA* pCam, Vec* look_inv)
 {
     look_inv->x = -pCam->Look.x;
     look_inv->y = -pCam->Look.y;

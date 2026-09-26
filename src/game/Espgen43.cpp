@@ -133,12 +133,8 @@ void AddSandPowerSub(EspgenWork* pGen)
 // surface exists this frame (Status_flg[0] bit1).
 void AddSandPower(Vec& pos, f32 power)
 {
-    // A local for the zero, declared before the flag check: without it Chk_pos's high word loses
-    // its register tie and the .z word ends up sharing a register with it.
-    int n = 0;
-
     if (StaFlagChk(pG, STA_SAND_ALIVE)) {
-        Height_find = n;
+        Height_find = 0;
         Add_power = power;
         Chk_pos = pos;
         EspgenApplyFunc(AddSandPowerSub);

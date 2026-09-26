@@ -14,7 +14,9 @@ inline void* operator new(unsigned int, void* p) { return p; }
 class cUnit {
 public:
     u32 be_flag;  // 0x0  bit0: alive, bit9/10: reserved-alive bits (0x601 = in use)
-    cUnit* pNext;  // 0x4  active list link
+private:
+    cUnit* pNext;  // 0x4  active list link, read and written through getNext / setNext
+public:
     // 0x8 vptr
 
     cUnit() {}
@@ -28,6 +30,16 @@ public:
     // size_t is `unsigned int` for this compiler; with u32 (unsigned long) GCC 2.95 would not
     // treat this as the usual deallocation function.
     void operator delete(void*, unsigned int) {}
+    // PS2 declares setAlive, isDieRequest and isDieRequest2 but no PS2 code calls them, so these
+    // three masks are unconfirmed
+    int setAlive() { return be_flag |= 1; }
+    int isEmpty() { return !(be_flag & 0x601); }
+    // cManager::dieCheck deletes a work with 0x400 set and turns 0x200 into 0x400 for the next pass
+    int setDieRequest() { return be_flag |= 0x600; }
+    int setDieRequest2() { return be_flag |= 0x200; }
+    int isDieRequest() { return be_flag & 0x200; }
+    int isDieRequest2() { return be_flag & 0x400; }
+    cUnit* getNext() { return pNext; }
     // addListBack's `p->next = 0` goes through this: the argument copy gives the zero register a
     // lifetime of 2 luids, which is what makes loop.c hoist `li rN, 0` out of createBack's loop
     void setNext(cUnit* n) { pNext = n; }
@@ -104,7 +116,7 @@ public:
     u32 getArrayNum() { return nArray; }
     // Alive list: the first active work and the one after `p`.
     T* getActiveWork() { return pAlive; }
-    T* getNext(T* p) { return (T*)p->pNext; }
+    T* getNext(T* p) { return (T*)p->getNext(); }
     int deleteList(T* p) {
         T* q;
         if (!p->isAlive()) {
@@ -113,14 +125,14 @@ public:
         }
         q = pAlive;
         if (q == p) {
-            pAlive = (T*)p->pNext;
-            p->pNext = 0;
+            pAlive = (T*)p->getNext();
+            p->setNext(0);
             return 1;
         }
-        for (; q->pNext; q = (T*)q->pNext) {
-            if (q->pNext == p) {
-                q->pNext = p->pNext;
-                p->pNext = 0;
+        for (; q->getNext(); q = (T*)q->getNext()) {
+            if (q->getNext() == p) {
+                q->setNext(p->getNext());
+                p->setNext(0);
                 return 1;
             }
         }
@@ -129,18 +141,18 @@ public:
     }
     void addListFront(T* p) {
         T* q;
-        for (q = pAlive; q; q = (T*)q->pNext) {
+        for (q = pAlive; q; q = (T*)q->getNext()) {
             if (q == p) {
                 log("%s::addListFront() ERROR SET x2 0x%08X", name, p);
                 return;
             }
         }
-        p->pNext = pAlive;
+        p->setNext(pAlive);
         pAlive = p;
     }
     void addListBack(T* p) {
         T* q;
-        for (q = pAlive; q; q = (T*)q->pNext) {
+        for (q = pAlive; q; q = (T*)q->getNext()) {
             if (q == p) {
                 log("%s::addListBack() ERROR 0x%08X", name, p);
                 return;
@@ -151,11 +163,37 @@ public:
             pAlive = p;
             return;
         }
-        while (q->pNext) {
-            q = (T*)q->pNext;
+        while (q->getNext()) {
+            q = (T*)q->getNext();
         }
-        q->pNext = p;
+        q->setNext(p);
         p->setNext(0);
+    }
+    // Index of `p` in the work array, -1 when it is not one of them.
+    int getWorkNo(T* p) {
+        u32 i;
+        for (i = 0; i < nArray; i++) {
+            if (fastAt(i) == p) {
+                return i;
+            }
+        }
+        return -1;
+    }
+    // func on every work of the array, active or not
+    void applyFunc(void (*func)(T*)) {
+        u32 i;
+        for (i = 0; i < nArray; i++) {
+            func(fastAt(i));
+        }
+    }
+    // func on every active work; the next link is read before the call, so func may destroy the work
+    void applyFuncAll(void (*func)(T*)) {
+        cUnit* pT = getActiveWork();
+        while (pT) {
+            cUnit* pTnow = pT;
+            pT = pT->getNext();
+            func((T*) pTnow);
+        }
     }
 };
 
@@ -232,7 +270,7 @@ int cManager<T>::dieCheck()
     u32 i;
     for (i = 0; i < nArray; i++) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (p->be_flag & 0x601) {
+        if (!p->isEmpty()) {
             if (p->be_flag & 0x400) {
                 delete p;
                 p->be_flag = 0;
@@ -251,7 +289,7 @@ u32 cManager<T>::countActiveWork()
     u32 i;
     for (i = 0; i < nArray; i++) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (p->be_flag & 0x601) {
+        if (!p->isEmpty()) {
             n++;
         }
     }
@@ -270,7 +308,7 @@ T* cManager<T>::create(int id)
     u32 i;
     for (i = 0; i < nArray; i++) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (!(p->be_flag & 0x601)) {
+        if (p->isEmpty()) {
             memClear(p, size);
             if (construct(p, id) == 0) {
                 log("create()->construct() failed. %s id:%d", name, id);
@@ -298,7 +336,7 @@ T* cManager<T>::create(int id, u32 no)
         return 0;
     }
     T* p = (T*)((u8*)pArray + size * no);
-    if (p->be_flag & 0x601) {
+    if (!p->isEmpty()) {
         log("create() failed %s id:%d", name, id);
         return 0;
     }
@@ -376,10 +414,10 @@ inline void cManager<T>::destroy(T* p)
         p->be_flag = 0;
         break;
     case 1:
-        p->be_flag |= 0x600;
+        p->setDieRequest();
         break;
     case 2:
-        p->be_flag |= 0x200;
+        p->setDieRequest2();
         break;
     default:
         log("%s::destroy() INVALID ID %d", name, flag);
@@ -404,7 +442,7 @@ T* cManager<T>::createBack(int id)
     int i;
     for (i = nArray - 1; i >= 0; i--) {
         T* p = (T*)((u8*)pArray + size * i);
-        if (!(p->be_flag & 0x601)) {
+        if (p->isEmpty()) {
             memClear(p, size);
             if (construct(p, id) == 0) {
                 log("create()->construct() failed. %s id:%d", name, id);

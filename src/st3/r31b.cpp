@@ -63,7 +63,7 @@ struct R31bWork {
 // The work pointer is a struct member: every store through the work reloads it (r203).
 static R31bWork* r31b_work;
 // Global in the original (.sym scope:global): the REL relocation carries the symbol, the ADDR16 field is 0.
-cModel* r31b_plParts;   // .bss 0x18  player parts 10 (R31bMain)
+cParts* r31b_plParts;   // .bss 0x18  player parts 10 (R31bMain)
 
 // The player after the fall; the room's scroll objects ([no] = the cage room, the count in
 // r31b_objNum); the lattice (kanaami) objects, 25 per room; the room-3 lattice pair lists; the
@@ -319,20 +319,20 @@ void R31bInit()
             SceAtSetEnable(0xF, 0);
             SceAtSetEnable(0x10, 1);
             if (r31b_work->sat[3]) {
-                r31b_work->sat[3]->m_Flag |= 4;
+                r31b_work->sat[3]->setEnable();
             }
             if (r31b_work->sat[4]) {
-                r31b_work->sat[4]->m_Flag &= ~4;
+                r31b_work->sat[4]->setDisable();
             }
             side = 1;
         } else {
             SceAtSetEnable(0xF, 1);
             SceAtSetEnable(0x10, 0);
             if (r31b_work->sat[3]) {
-                r31b_work->sat[3]->m_Flag &= ~4;
+                r31b_work->sat[3]->setDisable();
             }
             if (r31b_work->sat[4]) {
-                r31b_work->sat[4]->m_Flag |= 4;
+                r31b_work->sat[4]->setEnable();
             }
             side = 0;
         }
@@ -536,11 +536,11 @@ void R31bExecSwitchMainSub(int no, int flagNo, int count, int atNo, int cut)
         }
         SndCall(6, 3, &pPL->pos, 0, 0, 0);
         if (r31b_work->switchCount >= count) {
-            SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
             SndCall(6, 2, &pPL->pos, 0, 0, 0);
-            SceMesSet(6, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(6, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         } else {
-            SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+            SceMesSet(0, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         }
         if (no == 4) {
             cObj* obj;
@@ -792,30 +792,23 @@ static void R31bExecDeathTimerMain(int no)
 // The count down while the cage room is open: runs out into the fall.
 void R31bExecDeathTimerMainSub(int no, int light, int frames)
 {
-    CountDown* cd = Cckpt.getCountDown();
     int frame;
 
     pG->Room_flg[0] |= 0x40000000;
-    cd->frameIn();
-    Cckpt.m_CountDown.m_state |= TIMER_STA_ALIVE;
-    cd->initTime(0, 30, 0);
-    cd->warnTime(0, 10, 0);
+    Cckpt.transCountDownTimer(1);
+    Cckpt.startCountDownTimer(0, 30, 0);
+    Cckpt.setWarningTime(0, 10, 0);
     frame = 0;
     // Both exits are returns: a `break` would let expand_end_loop roll the flag test to the loop end.
     for (;;) {
         int over;
 
         if ((pG->Room_flg[0] & 0x40000000) == 0) {
-            Cckpt.m_CountDown.m_state &= ~1;
-            Cckpt.getCountDown()->frameOut();
-            Cckpt.getCountDown()->frameOut();
+            Cckpt.endCountDownTimer();
+            Cckpt.transCountDownTimer(0);
             return;
         }
-        cd = Cckpt.getCountDown();
-        over = 0;
-        if (cd->checkState(TIMER_STA_ALIVE)) {
-            over = cd->m_frame == 0;
-        }
+        over = Cckpt.isZeroCountDownTimer();
         if (over == 1) {
             pG->Room_flg[0] |= 0x80000000;
             SceExec(0x12, (TaskFunc) R31bExecFallMain, no, 0, 2, 0);
@@ -945,7 +938,7 @@ void R31bExecDoorMainSub(int no, int flagOpen, int flagDoor, int doorFlag, int a
         if (obj0) {
             SndCall(6, 1, &obj0->pos, 0, 0, 0);
         }
-        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(3, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         SceSleep(1);
     }
 }
@@ -1025,7 +1018,7 @@ void R31bExecFallMainSub(int no, int flagNo, int cut)
             SndCall(6, 0x10, 0, 0, 0, 0);
             pPL->beginEvent(0);
             pPL->setNoSuspend(1);
-            AtariOffRaw(&pPL->atari, 0xFCFF);
+            pPL->atari.off();
             Vec tbl[3] = {{-14000.0f, 0.0f, 0.0f}, {5000.0f, 0.0f, 0.0f}, {23500.0f, 0.0f, 0.0f}};
             Vec ang = {0, 0, 0};
             pPL->setPos(&tbl[no]);
@@ -1114,7 +1107,7 @@ void R31bExecFallEndSub(int no, u32 objId, int satNo, int flagNo)
         }
     }
     if (pG->Room_flg[0] & 0x80000000) {
-        AtariOnRaw(&pPL->atari, 0x300);
+        pPL->atari.on();
         DiedemoExec(0, 0);
     } else {
         pPL->setPos(&r31b_fallPlPos[no]);
@@ -1138,54 +1131,54 @@ void R31bSmdTransOff(int no)
     }
     if (no == 0) {
         if (r31b_work->eat[13]) {
-            r31b_work->eat[13]->m_Flag &= ~4;
+            r31b_work->eat[13]->setDisable();
         }
         if (r31b_work->eat[0]) {
-            r31b_work->eat[0]->m_Flag &= ~4;
+            r31b_work->eat[0]->setDisable();
         }
         if (r31b_work->eat[5]) {
-            r31b_work->eat[5]->m_Flag &= ~4;
+            r31b_work->eat[5]->setDisable();
         }
         if (r31b_work->eat[6]) {
-            r31b_work->eat[6]->m_Flag &= ~4;
+            r31b_work->eat[6]->setDisable();
         }
         SceAtSetEnable(0x8A, 0);
         SceAtSetEnable(0x8D, 0);
     }
     if (no == 1) {
         if (r31b_work->eat[14]) {
-            r31b_work->eat[14]->m_Flag &= ~4;
+            r31b_work->eat[14]->setDisable();
         }
         if (r31b_work->eat[1]) {
-            r31b_work->eat[1]->m_Flag &= ~4;
+            r31b_work->eat[1]->setDisable();
         }
         if (r31b_work->eat[7]) {
-            r31b_work->eat[7]->m_Flag &= ~4;
+            r31b_work->eat[7]->setDisable();
         }
         if (r31b_work->eat[8]) {
-            r31b_work->eat[8]->m_Flag &= ~4;
+            r31b_work->eat[8]->setDisable();
         }
         if (r31b_work->eat[9]) {
-            r31b_work->eat[9]->m_Flag &= ~4;
+            r31b_work->eat[9]->setDisable();
         }
         SceAtSetEnable(0x8C, 0);
         SceAtSetEnable(0x8E, 0);
     }
     if (no == 2) {
         if (r31b_work->eat[15]) {
-            r31b_work->eat[15]->m_Flag &= ~4;
+            r31b_work->eat[15]->setDisable();
         }
         if (r31b_work->eat[2]) {
-            r31b_work->eat[2]->m_Flag &= ~4;
+            r31b_work->eat[2]->setDisable();
         }
         if (r31b_work->eat[10]) {
-            r31b_work->eat[10]->m_Flag &= ~4;
+            r31b_work->eat[10]->setDisable();
         }
         if (r31b_work->eat[11]) {
-            r31b_work->eat[11]->m_Flag &= ~4;
+            r31b_work->eat[11]->setDisable();
         }
         if (r31b_work->eat[12]) {
-            r31b_work->eat[12]->m_Flag &= ~4;
+            r31b_work->eat[12]->setDisable();
         }
     }
 }

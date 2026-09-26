@@ -96,7 +96,7 @@ OtData* MakeOtData(void* data)
 // 0xFFFF when not added.
 int AddOtWorldPos(void* data, void (*func)(void*), Vec* pos, u16 kind, f32 zlimit)
 {
-    Camera* cam = &pG->Camera;
+    CAMERA* cam = &pG->Camera;
     OtWork* w = otWork(17);
     OtData* p;
     OtData* q;
@@ -142,7 +142,7 @@ int AddOtWorldPos(void* data, void (*func)(void*), Vec* pos, u16 kind, f32 zlimi
 int AddOtWorldPosRadius(void* data, void (*func)(void*), Vec* pos, f32 radius, u16 kind, f32 zlimit)
 {
     OtWork* w = otWork(17);
-    Camera* cam;
+    CAMERA* cam;
     OtData* p;
     OtData* q;
     Vec look;
@@ -192,7 +192,7 @@ int AddOtWorldPosRadius(void* data, void (*func)(void*), Vec* pos, f32 radius, u
 int AddOtModelPosRadius(void* data, void (*func)(void*), Vec* pos, f32 radius, u16 kind, f32 zlimit)
 {
     OtWork* w = otWork(13);
-    Camera* cam;
+    CAMERA* cam;
     OtData* p;
     OtData* q;
     Vec look;

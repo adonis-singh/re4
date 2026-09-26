@@ -6,6 +6,8 @@
 #include "db_log.h"
 #include "cManager.h"
 #include "main_mem.h"
+#include "flag.h"
+#include <string.h>
 
 #line 8 "D:/Bio4/Prog/event.h"
 
@@ -23,9 +25,6 @@ public:
         }
         return pData + no;
     }
-    // some inline in the original event.h carries an empty string literal: 4 zero bytes follow
-    // the file-name string in every including unit's .rodata
-    const char* emptyName() { return ""; }
 };
 
 class cModel;
@@ -199,29 +198,41 @@ struct EvtPacket {
 };
 
 // One event model registered by the debug tool (EventDebug::pModel, 0x644 bytes).
-struct EvtDebugModel {
-    char name[0x30];       // 0x00
-    char bin[16][0x30];    // 0x30
-    char tpl[16][0x30];    // 0x330
-    s32 nBin;              // 0x630
-    cModel* pModel;        // 0x634
-    u8 otType;             // 0x638  cModel::ot_type
-    u8 lightMask;          // 0x639  cModel::LightInfo.EnableMask
-    u8 pad_63A[2];
-    u32 flags;             // 0x63C  bit31: scroll object, bit30: be_flag bit12
-    cModel* pScr;          // 0x640  the model when its name starts with "scr"
+struct ModelFiles {
+    char NameMot[0x30];    // 0x00
+    char NameBin[16][0x30];  // 0x30
+    char NameTpl[16][0x30];  // 0x330
+    s32 NumObj;            // 0x630  files in NameBin / NameTpl
+    s32 NoWork;            // 0x634  model work number
+    u8 OtType;             // 0x638  cModel::ot_type
+    u8 LightMask;          // 0x639  cModel::LightInfo.EnableMask
+    s8 OyaNo;              // 0x63A  parent model record
+    s8 PartsNo;            // 0x63B  parent parts
+    u32 EtcFlag;           // 0x63C  ModEtcFlag bits from the top: bit31 z mode no write, bit30 no clip
+    cModel* PMod;          // 0x640  the model when its name starts with "scr"
+};
+
+// Event data info of the tool (0x40 bytes).
+struct EvdInfo {
+    char NameFile[0x20];   // 0x00
+    char RoomNo[8];        // 0x20
+    char EventNo[8];       // 0x28  event number as ascii, [1] and [2] hold the two cut digits
+    s32 SerialNo;          // 0x30
+    u32 EtcFlag;           // 0x34
+    u8 _pad32[8];          // 0x38
 };
 
 // Event work (game/event.cpp): a cUnit managed by EventMgr, 0x13C bytes.
 class Event : public cUnit {
 public:
-    u8 EndRNo1;                 // 0x0C
-    s8 EndRNo2;            // 0x0D  DelEvt: 0 run ExeEndEvt, 1 wait `endWait` frames
-    s8 EndRNo3;            // 0x0E
-    u8 Id;                 // 0x0F
-    u8 Type;               // 0x10  constructor argument (EventMgr::construct id)
-    u8 pad_11[3];
-    int effNo;             // 0x14  effect owner slot: -1 none, 0/1 -> EspDataLoad owner 0xC4 + effNo
+    s8 EndRNo0;                 // 0x0C
+    s8 EndRNo1;            // 0x0D  DelEvt: 0 run ExeEndEvt, 1 wait `endWait` frames
+    s8 EndRNo2;            // 0x0E
+    s8 EndRNo3;            // 0x0F
+    u8 Id;                 // 0x10  constructor argument (EventMgr::construct id)
+    u8 Type;               // 0x11
+    u8 pad_12[2];
+    int NoWork;            // 0x14  effect owner slot: -1 none, 0/1 -> EspDataLoad owner 0xC4 + NoWork
     char Name[0x20];       // 0x18  event name ("r105s10")
     EvtHeader* pData;      // 0x38
     EvtPacket* pPacket;    // 0x3C  current packet
@@ -231,7 +242,7 @@ public:
     Mtx MatCamOya;            // 0x50  camera base matrix (ExePacket_Pos "cam0000")
     cModel* PPl;          // 0x80  the "pl0000" object model (player stand-in)
     cModel* PModOya;       // 0x84  "oya0000" position base
-    void* x88;             // 0x88
+    cModel** PModList;     // 0x88
     u32 PFuncTbl;           // 0x8C  ExePacket_Func table (void (*[])(Event*, int)), kept as an address
     int NowTotalFrame;        // 0x90
     int MaxTotalFrame;     // 0x94
@@ -274,6 +285,7 @@ public:
     int Run();
     void EspSetModelPtr(cModel* pMod);
     int EspToolSetDat();
+    int DelMod(char* pName);
     void EspToolSetMod(int npMod, char* name);
     int GetModelPtrNo(int* pNoWork, cModel** pPtr, char* name);
     int RunTool(int mode, int subFrame);
@@ -345,6 +357,61 @@ public:
         u32* f = &StatusFlag;
         f[no >> 5] |= 0x80000000 >> (no & 0x1F);
     }
+    void FlgOffStatus(u32 no)
+    {
+        u32* f = &StatusFlag;
+        f[no >> 5] &= ~(0x80000000 >> (no & 0x1F));
+    }
+    void FlgXorStatus(u32 no)
+    {
+        u32* f = &StatusFlag;
+        f[no >> 5] ^= 0x80000000 >> (no & 0x1F);
+    }
+    bool FlgCkStatus(u32 no)
+    {
+        u32* f = &StatusFlag;
+        return (f[no >> 5] & (0x80000000 >> (no & 0x1F))) != 0;
+    }
+    s8 GetEndRNo0() { return EndRNo0; }
+    s8 GetEndRNo1() { return EndRNo1; }
+    s8 GetEndRNo2() { return EndRNo2; }
+    s8 GetEndRNo3() { return EndRNo3; }
+    void SetEndRNo0(s8 rno) { EndRNo0 = rno; }
+    void SetEndRNo1(s8 rno) { EndRNo1 = rno; }
+    void SetEndRNo2(s8 rno) { EndRNo2 = rno; }
+    void SetEndRNo3(s8 rno) { EndRNo3 = rno; }
+    void AddEndRNo0(s8 num) { EndRNo0 += num; }
+    void AddEndRNo1(s8 num) { EndRNo1 += num; }
+    void AddEndRNo2(s8 num) { EndRNo2 += num; }
+    void AddEndRNo3(s8 num) { EndRNo3 += num; }
+    void GetName(char* pName) { strcpy(pName, Name); }
+    void SetName(char* pName) { strcpy(Name, pName); }
+    int GetNoWork() { return NoWork; }
+    void SetNoWork(int noWork) { NoWork = noWork; }
+    int GetNowTotalFrame() { return NowTotalFrame; }
+    int GetMaxTotalFrame() { return MaxTotalFrame; }
+    int GetNowFrame() { return NowFrame; }
+    int GetMaxFrame() { return MaxFrame; }
+    int GetNowCut() { return NowCut; }
+    int GetMaxCut() { return MaxCut; }
+    int GetNowStr(int noTar) { return NowStr[noTar]; }
+    void SetNowStr(int noTar, int noStr) { NowStr[noTar] = noStr; }
+    int GetSndId(int noTar) { return SndId[noTar]; }
+    void SetSndId(int noTar, int sndId) { SndId[noTar] = sndId; }
+    void SetEvtCancelCut(int cut) { EvtCancelCut = cut; }
+    int GetEvtCancelCut() { return EvtCancelCut; }
+    int GetFFNowFrame() { return FFNowFrame; }
+    int GetFuncType() { return FuncType; }
+    void SetFuncType(int funcType) { FuncType = funcType; }
+    void SetModList(cModel** pModList) { PModList = pModList; }
+    void SetModOya(cModel* pModOya) { PModOya = pModOya; }
+    int GetDelTimer() { return DelTimer; }
+    void SetDelTimer(int delTimer) { DelTimer = delTimer; }
+    void SubDelTimer() { DelTimer--; }
+    int GetChangeNoStr() { return ChangeNoStr; }
+    void SetChangeNoStr(int changeNoStr) { ChangeNoStr = changeNoStr; }
+    int GetChangeNowCut() { return ChangeNowCut; }
+    void SetChangeNowCut(int changeNowCut) { ChangeNowCut = changeNowCut; }
 };
 
 // Enemy module the manager loaded for an event (EventMgr::readEm[8], 4 bytes).
@@ -374,10 +441,9 @@ enum EvtReadFlag {
 // roomInit / arrayAlloc / arrayFree / dispWorkNum on it).
 class EventMgr : public cManager<Event> {
 public:
-    union {
-        u32 NowExeEvtKey;  // 0x34  first word of the running event name as a key (sce_com SceChapterEnd: IsAliveEvt / GetEvt)
-        char NowExeEvtName[0x30];  // 0x34  name of the running event ("" = none)
-    };
+private:
+    char NowExeEvtName[0x30];  // 0x34  name of the running event ("" = none)
+public:
     EvtReadEm ReadWkTbl[8];   // 0x64  enemy modules loaded per read slot
     char NameTmp[0x20];    // 0x84  NameChange result
     u32 pUnit[0x20];         // 0xA4  cleared by myRoomInit
@@ -400,9 +466,14 @@ public:
     int init();
     int myRoomInit();           // room start (game gameRoomInit, after arrayAlloc(2))
     int DelAll();
+    int end();
+    int DelFunc(char* pName);
     int SetEvs(void* evs);      // room "EVS" data (game gameRoomInit)
     int Run();
-    int IsAliveEvt(u32* pName, Event** ppEvt, int aliveEvtType);
+    void SetNowExeEvtName(const char* name) { strcpy(NowExeEvtName, name); }
+    char* GetNowExeEvtNamePtr() { return NowExeEvtName; }
+    void DelNowExeEvtName() { strcpy(NowExeEvtName, ""); }
+    int IsAliveEvt(const char* pName, Event** ppEvt, int aliveEvtType);
     int EvtReadAram(char* name, int emId, int* pPtr, int blockType, u32 size);
     int EvtReadMram(char* name, int emId, int* pPtr, int blockType, u32 size);
     int NameCheck(char* name);
@@ -416,7 +487,7 @@ public:
     // Starts the loaded event data ("even" "t" header); `key` (optional) receives its key.
     int SetEvt(void* data, u32* key);
     int SetEvt(char* name, Event** out);
-    int GetEvt(u32* pName, void** ppEvt);
+    int GetEvt(const char* pName, void** ppEvt);
     int DelEvt(void* evt, int a);
     int SetBin(char* name, void* data, void* dat2, int flag);
     // Looks a file of the running event up by name; 0 when it is not loaded.
@@ -430,8 +501,8 @@ public:
     int SetRead(char* name, int* wkNo, void* unit);
     int GetRead(void** pDat, int* pWkNo, char* name);
     int DelRead(char* name);
-    int EvtSndStrStop(u32* pName, int noTar, int wait);
-    void EvtSndStrPlay(u32* pName, int noTar, int noStr, int wait, f32 s_time);
+    int EvtSndStrStop(const char* pName, int noTar, int wait);
+    void EvtSndStrPlay(const char* pName, int noTar, int noStr, int wait, f32 s_time);
     int GetZeroPartsWorldPos(cModel* pMod, Vec* pPos, Vec* pAng);
     void ClearEmWindowFcv();
     void SetEmWindowFcv(void* a, void* b, void* c);
@@ -441,33 +512,143 @@ public:
 
 extern EventMgr EvtMgr;
 
-// The running event's name key of the event manager, read through a helper: a plain scalar access, not a member chain.
-static inline u32* evtKey(EventMgr* m) { return &m->NowExeEvtKey; }
 
-// Event::StatusFlag bit test as a 0/1 value: an inline gives the `li 1; and.; bne; li 0` chain.
-static inline int EvtStatusCk(Event* e, u32 bit) { int on = 1; if ((e->StatusFlag & bit) == 0) { on = 0; } return on; }
-// The skip bit of StatusFlag (0x40000000) the same way.
-static inline int EvtSkipCk(Event* e) { int skip = 1; if ((e->StatusFlag & EvtStfBit(EvtStfToolFrontExec)) == 0) { skip = 0; } return skip; }
+// EventDebug::FlagEtc tool switches, bit numbers from the top like the Event status flags.
+enum FlagEtcFlag {
+    FlagEvent2Esp = 0,
+    FlagEsp2Event = 1,
+    FlagLightTool = 2,
+    FlagFogTool = 3,
+    FlagFocusTool = 4,
+    FlagMessTool = 5
+};
+
+enum DebugTimerNo {
+    DebugTimerNoMes = 0,
+    DebugTimerNoMax = 1
+};
+
+enum DebugNumNo {
+    DebugNumNoMes = 0,
+    DebugNumNumber = 1,
+    DebugNumNoMax = 2
+};
+
+// ModelFiles::EtcFlag bit numbers from the top (EventDebug::EtcFlgOnMod).
+enum ModEtcFlag {
+    ZmodeNoWrite = 0,
+    NoClip = 1,
+    OyaRide = 2
+};
+
+extern "C" int atoi(const char* s);
 
 // Event debug tool work (game/event.cpp `EvtDebug`, 0xE8 bytes).
 class EventDebug {
+private:
+    char ToolFileName[0x20];   // 0x00
 public:
-    u8 pad_0[0x60];
-    char evName[0x30];     // 0x60  packet 6 name (EspToolSetDat)
-    char camName[0x30];    // 0x90  packet 0xE name
-    s32 mesCnt[3];         // 0xC0
+    EvdInfo Info;              // 0x20  t_esp reads the event number digits directly
+private:
+    char NameCam[0x30];    // 0x60  packet 6 name (EspToolSetDat)
+    char NameLit[0x30];    // 0x90  packet 0xE name
+    s32 DebugTimer[DebugTimerNoMax];  // 0xC0
+    s32 DebugNum[DebugNumNoMax];      // 0xC4
     int NowStr[2];          // 0xCC  last stream number per block
     s32 StfStrTimer;           // 0xD4
     int NowCut;           // 0xD8
     s32 NumMod;            // 0xDC
-    EvtDebugModel* PMod; // 0xE0  0x60 entries
-    u32 FlagEtc;             // 0xE4  tool switches (bit19 fog off, bit20 focus off, bit18 lit off, bit21 mes off)
+public:
+    ModelFiles* PMod; // 0xE0  0x60 entries
+private:
+    u32 FlagEtc;             // 0xE4  FlagEtcFlag bits (tool switches)
 
+public:
     EventDebug();
     ~EventDebug();
     int myRoomInit();          // room start (game gameRoomInit)
-    char* getEvName() { return evName; }
-    char* getCamName() { return camName; }
+    bool FlagCkEtc(u32 no)
+    {
+        u32* f = &FlagEtc;
+        return (f[no >> 5] & (0x80000000 >> (no & 0x1F))) != 0;
+    }
+    void FlagOnEtc(u32 no)
+    {
+        u32* f = &FlagEtc;
+        f[no >> 5] |= 0x80000000 >> (no & 0x1F);
+    }
+    void FlagOffEtc(u32 no)
+    {
+        u32* f = &FlagEtc;
+        f[no >> 5] &= ~(0x80000000 >> (no & 0x1F));
+    }
+    int GetStfStrTimer() { return StfStrTimer; }
+    void SetStfStrTimer(int timer) { StfStrTimer = timer; }
+    void CalStfStrTimer()
+    {
+        if (StfStrTimer > 0) {
+            StfStrTimer--;
+        }
+    }
+    int GetNumMod() { return NumMod; }
+    void ClrNumMod() { NumMod = 0; }
+    void AddNumMod() { NumMod++; }
+    void SetNameCam(const char* name) { strcpy(NameCam, name); }
+    void SetNameLit(const char* name) { strcpy(NameLit, name); }
+    void SetNowCut(int cut) { NowCut = cut; }
+    void TimerCalc(int no) { DebugTimer[no]++; }
+    void SetToolFileName(const char* name) { strcpy(ToolFileName, name); }
+    void GetToolFileName(char* out) { strcpy(out, ToolFileName); }
+    void SetEvdInfo(const EvdInfo* info) { memcpy(&Info, info, sizeof(EvdInfo)); }
+    void GetNameFile(char* out) { strcpy(out, Info.NameFile); }
+    void GetEventNo(char* out) { strcpy(out, Info.EventNo); }
+    int GetEventNoNum()
+    {
+        char buf[3];
+
+        buf[0] = Info.EventNo[1];
+        buf[1] = Info.EventNo[2];
+        buf[2] = 0;
+        return atoi(buf);
+    }
+    void SetNowStr(int no, int str) { NowStr[no] = str; }
+    int GetNowStr(int no) { return NowStr[no]; }
+    void GetNameCam(char* out) { strcpy(out, NameCam); }
+    void GetNameLit(char* out) { strcpy(out, NameLit); }
+    int GetNowCut() { return NowCut; }
+    void TimerSet(int no, int val) { DebugTimer[no] = val; }
+    int TimerGet(int no) { return DebugTimer[no]; }
+    void NumSet(int no, int val) { DebugNum[no] = val; }
+    int NumGet(int no) { return DebugNum[no]; }
+    void SetNameMot(int no, const char* name) { strcpy(PMod[no].NameMot, name); }
+    void GetNameMot(int no, char* out) { strcpy(out, PMod[no].NameMot); }
+    void GetNameBin(int no, int file, char* out) { strcpy(out, PMod[no].NameBin[file]); }
+    void GetNameTpl(int no, int file, char* out) { strcpy(out, PMod[no].NameTpl[file]); }
+    int GetNumBin(int no) { return PMod[no].NumObj; }
+    void SetModWorkNo(int no, int work) { PMod[no].NoWork = work; }
+    int GetModWorkNo(int no) { return PMod[no].NoWork; }
+    void SetModOtType(int no, u8 type) { PMod[no].OtType = type; }
+    int GetModOtType(int no) { return PMod[no].OtType; }
+    void SetModLightMask(int no, u8 mask) { PMod[no].LightMask = mask; }
+    u8 GetModLightMask(int no) { return PMod[no].LightMask; }
+    void SetModOya(int no, int oya, int parts)
+    {
+        PMod[no].OyaNo = oya;
+        PMod[no].PartsNo = parts;
+    }
+    void GetModOya(int no, int* oya, int* parts)
+    {
+        *oya = PMod[no].OyaNo;
+        *parts = PMod[no].PartsNo;
+    }
+    void EtcFlgOnMod(int no, u32 flag)
+    {
+        u32* f = &PMod[no].EtcFlag;
+        f[flag >> 5] |= 0x80000000 >> (flag & 0x1F);
+    }
+    bool EtcFlgCkMod(int no, u32 flag) { return FlagBitChk(&PMod[no].EtcFlag, flag); }
+    void SetModPtr(int no, cModel* mod) { PMod[no].PMod = mod; }
+    cModel* GetModPtr(int no) { return PMod[no].PMod; }
     void ClrModelFiles();
     int AddNameBinTpl(int npMod, char* pNameBin, char* pNameTpl);
 };

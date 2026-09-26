@@ -406,7 +406,7 @@ static void r101_Event30_TitleCall()
         void* evt;
 
         m = &EvtMgr;
-        if (m->GetEvt(&m->NowExeEvtKey, &evt)) {
+        if (m->GetEvt(m->GetNowExeEvtNamePtr(), &evt)) {
             frame = ((Event*) evt)->NowTotalFrame;
         }
         if (frame > 1099) {
@@ -481,7 +481,7 @@ static void r101_Event30()
             r101_work->evt30->setCommand(CMND_MRAM_LOAD, 0, 1);
             SceExec(0x12, (TaskFunc) r101_Event30_TitleCall, 0, 2, SCE_PRIO_DEF_2, 0);
             EvtMgr.SetEvt(r101_work->evt30->m_addr, 0);
-            while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+            while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
                 SceSleep(1);
             }
             SysFlagOff(pG, SYS_SCREEN_STOP);
@@ -645,7 +645,7 @@ static void r101_Event20()
             SceSleep(3);
             for (;;) {
                 EventMgr* em = &EvtMgr;
-                u32* key = &em->NowExeEvtKey;
+                char* key = em->GetNowExeEvtNamePtr();
                 void* evt;
 
                 if (em->IsAliveEvt(key, 0, 0) == 0) {
@@ -833,14 +833,14 @@ static void r101_checkEmReset()
 static void r101_DoorDontOpen100()
 {
     SndCall(6, 0x26, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Area 2: the door to r103 is barred — knock SE and message 0.
 static void r101_DoorDontOpen103()
 {
     SndCall(6, 0x29, 0, 0, 0, 0);
-    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // The player holds the key: the door area unlocks.
@@ -850,7 +850,7 @@ static void r101_checkDoor102KeyUse()
         SceSleep(1);
     }
     SndCall(6, 0x25, 0, 0, 0, 0);
-    SceMesSet(0xB, 1, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(0xB, 1, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
     KyfFlagOn(pG, KYF_R101_IRON_DOOR);
     SceAtDataReset(0x19);
 }
@@ -870,7 +870,7 @@ static void r101_checkDoor102()
 static void r101_DoorDontOpen3()
 {
     SndCall(6, 0x27, 0, 0, 0, 0);
-    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+    SceMesSet(2, 0, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
 }
 
 // Once a Ganado has found the player: the fight (mode 0) or the battle stream (mode 1).
@@ -968,7 +968,7 @@ static void r101_Event00()
             m = SearchEmModule(0x26);
             MemorySwap(m->pArc, (u32) r101_work->evt00->m_addr, r101_work->evt00->m_size);
             EvtMgr.SetEvt(m->pArc, 0);
-            while (EvtMgr.IsAliveEvt(&EvtMgr.NowExeEvtKey, 0, 0)) {
+            while (EvtMgr.IsAliveEvt(EvtMgr.GetNowExeEvtNamePtr(), 0, 0)) {
                 SceSleep(1);
             }
             MemorySwap(m->pArc, (u32) r101_work->evt00->m_addr, r101_work->evt00->m_size);

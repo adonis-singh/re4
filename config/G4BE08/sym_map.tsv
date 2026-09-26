@@ -13,7 +13,7 @@ address	size	section	unit	scope	name	demangled
 0x80003C58	0x40	.text	game/cam_ctrl.cpp	global	RoomDataRead__13CameraControlP16CameraDataHeader	CameraControl::RoomDataRead
 0x80003C98	0x28	.text	game/cam_ctrl.cpp	global	CoreDataRead__13CameraControlP16CameraDataHeader	CameraControl::CoreDataRead
 0x80003CC0	0x3F4	.text	game/cam_ctrl.cpp	global	cameraHitCheck__FP3VecN30	cameraHitCheck
-0x800040B4	0x7C	.text	game/cam_ctrl.cpp	global	CameraSetCutData__FP6CameraP9CameraCut	CameraSetCutData
+0x800040B4	0x7C	.text	game/cam_ctrl.cpp	global	CameraSetCutData__FP6CAMERAP9CameraCut	CameraSetCutData
 0x80004130	0x5C	.text	game/cam_ctrl.cpp	global	AreaOnOff__13CameraControliii	CameraControl::AreaOnOff
 0x8000418C	0x64	.text	game/cam_ctrl.cpp	global	SetAreaAttr__13CameraControliiUc	CameraControl::SetAreaAttr
 0x800041F0	0x68	.text	game/cam_ctrl.cpp	global	UnsetAreaAttr__13CameraControliiUc	CameraControl::UnsetAreaAttr
@@ -47,7 +47,7 @@ address	size	section	unit	scope	name	demangled
 0x80007F44	0x1C	.text	game/cam_ctrl.cpp	global	resetCameraAngle__13CameraControl	CameraControl::resetCameraAngle
 0x80007F60	0x1C	.text	game/cam_ctrl.cpp	global	getCameraDirection__13CameraControl	CameraControl::getCameraDirection
 0x80007F7C	0x3F0	.text	game/cam_ctrl.cpp	global	Parametrize__FP9CameraCutP13CameraBSpline	Parametrize
-0x8000836C	0x118	.text	game/cam_ctrl.cpp	global	BSpline__FP13CameraBSplineP6Camerai	BSpline
+0x8000836C	0x118	.text	game/cam_ctrl.cpp	global	BSpline__FP13CameraBSplineP6CAMERAi	BSpline
 0x80008484	0x2F0	.text	game/cam_ctrl.cpp	global	searchRail__FP13CameraBSplineP9CameraCutP3Veci	searchRail
 0x80008774	0x1D8	.text	game/cam_ctrl.cpp	global	debugDrawRail__13CameraControlP9CameraCut	CameraControl::debugDrawRail
 0x8000894C	0xB8	.text	game/cam_ctrl.cpp	global	UpCutCall__13CameraControliP3VecN22i	CameraControl::UpCutCall
@@ -3164,14 +3164,14 @@ address	size	section	unit	scope	name	demangled
 0x800D184C	0x70	.text	game/cam_extra.cpp	global	_._15CameraBinocular	CameraBinocular::~CameraBinocular
 0x800D18BC	0x14	.text	game/cam_extra.cpp	global	setRange__15CameraBinocularffff	CameraBinocular::setRange
 0x800D18D0	0x3D0	.text	game/cam_extra.cpp	global	move__15CameraBinocular	CameraBinocular::move
-0x800D1CA0	0x1E4	.text	game/cam_extra.cpp	global	init__11IdBinocularP6CameraPvT2	IdBinocular::init
+0x800D1CA0	0x1E4	.text	game/cam_extra.cpp	global	init__11IdBinocularP6CAMERAPvT2	IdBinocular::init
 0x800D1E84	0x74	.text	game/cam_extra.cpp	global	cutin__11IdBinocularPv	IdBinocular::cutin
 0x800D1EF8	0x78C	.text	game/cam_extra.cpp	global	move__11IdBinocularPv	IdBinocular::move
 0x800D2684	0xDC	.text	game/cam_extra.cpp	global	quit__11IdBinocularPv	IdBinocular::quit
 0x800D2760	0x14	.text	game/cam_extra.cpp	global	__16CameraPushObject	CameraPushObject::CameraPushObject
 0x800D2774	0x4C	.text	game/cam_extra.cpp	global	_._16CameraPushObject	CameraPushObject::~CameraPushObject
 0x800D27C0	0x44C	.text	game/cam_extra.cpp	global	move__16CameraPushObject	CameraPushObject::move
-0x800D2C0C	0x124	.text	game/cam_extra.cpp	global	__12CameraLookAtP6Camera	CameraLookAt::CameraLookAt
+0x800D2C0C	0x124	.text	game/cam_extra.cpp	global	__12CameraLookAtP6CAMERA	CameraLookAt::CameraLookAt
 0x800D2D30	0x4C	.text	game/cam_extra.cpp	global	_._12CameraLookAt	CameraLookAt::~CameraLookAt
 0x800D2D7C	0xB8	.text	game/cam_extra.cpp	global	move__12CameraLookAt	CameraLookAt::move
 0x800D2E34	0xA4	.text	game/cam_extra.cpp	global	__16CameraLookDownEmPvP3Vec	CameraLookDownEm::CameraLookDownEm
@@ -3222,7 +3222,7 @@ address	size	section	unit	scope	name	demangled
 0x800D68D8	0xB0	.text	game/cam_sys.cpp	global	CameraTargetRot	CameraTargetRot
 0x800D6988	0xB0	.text	game/cam_sys.cpp	global	CameraCamposRot	CameraCamposRot
 0x800D6A38	0x50	.text	game/cam_sys.cpp	global	CameraDolly	CameraDolly
-0x800D6A88	0x78	.text	game/cam_sys.cpp	global	CameraTargetDistance__FP6Cameraf	CameraTargetDistance
+0x800D6A88	0x78	.text	game/cam_sys.cpp	global	CameraTargetDistance__FP6CAMERAf	CameraTargetDistance
 0x800D6B00	0x78	.text	game/cam_sys.cpp	global	CameraCamposDistance	CameraCamposDistance
 0x800D6B78	0x64	.text	game/cam_sys.cpp	global	CameraSetWithRoll	CameraSetWithRoll
 0x800D6BDC	0x58	.text	game/camera.cpp	global	CameraSetProjection	CameraSetProjection
@@ -3231,7 +3231,7 @@ address	size	section	unit	scope	name	demangled
 0x800D6C60	0x9C	.text	game/camera.cpp	global	CameraGameInit	CameraGameInit
 0x800D6CFC	0x14	.text	game/camera.cpp	global	CameraRoomInit	CameraRoomInit
 0x800D6D10	0x254	.text	game/camera.cpp	global	CameraMove	CameraMove
-0x800D6F64	0x17C	.text	game/camera.cpp	global	CamStick2World__FP6CameraP3JOYP3Vec	CamStick2World
+0x800D6F64	0x17C	.text	game/camera.cpp	global	CamStick2World__FP6CAMERAP3JOYP3Vec	CamStick2World
 0x800D70E0	0xC	.text	game/camera.cpp	global	CameraViewFrustumPtr	CameraViewFrustumPtr
 0x800D70EC	0x20	.text	game/camera.cpp	global	CameraGetUpVec	CameraGetUpVec
 0x800D710C	0x20	.text	game/camera.cpp	global	CameraGetLookVec	CameraGetLookVec
@@ -3348,15 +3348,15 @@ address	size	section	unit	scope	name	demangled
 0x800DC584	0x54	.text	game/datactrl.cpp	local	__static_initialization_and_destruction_0_800DC584	__static_initialization_and_destruction_0
 0x800DC5D8	0x2C	.text	game/datactrl.cpp	global	global_constructors_keyed_to_cDataUnit_setCommand	global constructors keyed to cDataUnit::setCommand
 0x800DC604	0x2C	.text	game/datactrl.cpp	global	global_destructors_keyed_to_cDataUnit_setCommand	global destructors keyed to cDataUnit::setCommand
-0x800DC630	0x968	.text	game/db_cam.cpp	global	move__11debugCameraP6CameraP3JOYi	debugCamera::move
-0x800DCF98	0x5C4	.text	game/db_cam.cpp	global	camera_type_00__11debugCameraP6CameraP3JOY	debugCamera::camera_type_00
-0x800DD55C	0x30C	.text	game/db_cam.cpp	global	camera_type_01__11debugCameraP6CameraP3JOY	debugCamera::camera_type_01
-0x800DD868	0x334	.text	game/db_cam.cpp	global	menu__11debugCameraP6CameraP3JOY	debugCamera::menu
+0x800DC630	0x968	.text	game/db_cam.cpp	global	move__11debugCameraP6CAMERAP3JOYi	debugCamera::move
+0x800DCF98	0x5C4	.text	game/db_cam.cpp	global	camera_type_00__11debugCameraP6CAMERAP3JOY	debugCamera::camera_type_00
+0x800DD55C	0x30C	.text	game/db_cam.cpp	global	camera_type_01__11debugCameraP6CAMERAP3JOY	debugCamera::camera_type_01
+0x800DD868	0x334	.text	game/db_cam.cpp	global	menu__11debugCameraP6CAMERAP3JOY	debugCamera::menu
 0x800DDB9C	0x538	.text	game/db_cam.cpp	global	menuCamera__11debugCameraP3JOY	debugCamera::menuCamera
 0x800DE0D4	0x534	.text	game/db_cam.cpp	global	menuFlag__11debugCameraP3JOY	debugCamera::menuFlag
 0x800DE608	0x348	.text	game/db_cam.cpp	global	menuHitDisp__11debugCameraP3JOY	debugCamera::menuHitDisp
 0x800DE950	0x1F8	.text	game/db_cam.cpp	global	menuAdjust__11debugCameraP3JOY	debugCamera::menuAdjust
-0x800DEB48	0x438	.text	game/db_cam.cpp	global	CameraDrawTarget__FP6Camerai	CameraDrawTarget
+0x800DEB48	0x438	.text	game/db_cam.cpp	global	CameraDrawTarget__FP6CAMERAi	CameraDrawTarget
 0x800DEF80	0x1A8	.text	game/db_cam.cpp	global	CameraDebugInformation__Fv	CameraDebugInformation
 0x800DF128	0x3B0	.text	game/db_cam.cpp	global	moveOnPlaneXZ__FP3VecT0	moveOnPlaneXZ
 0x800DF4D8	0x348	.text	game/db_cam.cpp	global	drawGround__Fi	drawGround
@@ -3482,7 +3482,7 @@ address	size	section	unit	scope	name	demangled
 0x800E8F68	0xD0	.text	game/dvd.cpp	global	DmaTransReq__5cAramiUlUlUli	cAram::DmaTransReq
 0x800E9038	0x8C	.text	game/dvd.cpp	global	pullAramQueue__5cAramPi	cAram::pullAramQueue
 0x800E90C4	0x20	.text	game/dvd.cpp	global	aram_cb	aram_cb
-0x800E90E4	0xB4	.text	game/dvd.cpp	global	DmaTrans__5cAramP7AramReqi	cAram::DmaTrans
+0x800E90E4	0xB4	.text	game/dvd.cpp	global	DmaTrans__5cAramP11cAramQueuei	cAram::DmaTrans
 0x800E9198	0x50	.text	game/dvd.cpp	global	TransCheck__5cArami	cAram::TransCheck
 0x800E91E8	0xE4	.text	game/dvd.cpp	global	DmaCancel__5cArami	cAram::DmaCancel
 0x800E92CC	0x9C	.text	game/dvd.cpp	global	DmaCancelAll__5cAram	cAram::DmaCancelAll
@@ -4448,7 +4448,7 @@ address	size	section	unit	scope	name	demangled
 0x80138914	0xD0	.text	game/event.cpp	global	myRoomInit__8EventMgr	EventMgr::myRoomInit
 0x801389E4	0x78	.text	game/event.cpp	global	DelAll__8EventMgr	EventMgr::DelAll
 0x80138A5C	0x29C	.text	game/event.cpp	global	Run__8EventMgr	EventMgr::Run
-0x80138CF8	0xE0	.text	game/event.cpp	global	IsAliveEvt__8EventMgrPUlPP5Eventi	EventMgr::IsAliveEvt
+0x80138CF8	0xE0	.text	game/event.cpp	global	IsAliveEvt__8EventMgrPCcPP5Eventi	EventMgr::IsAliveEvt
 0x80138DD8	0x58	.text	game/event.cpp	global	EvtReadAram__8EventMgrPciPiiUl	EventMgr::EvtReadAram
 0x80138E30	0x3C	.text	game/event.cpp	global	EvtReadMram__8EventMgrPciPiiUl	EventMgr::EvtReadMram
 0x80138E6C	0xD4	.text	game/event.cpp	global	NameCheck__8EventMgrPc	EventMgr::NameCheck
@@ -4459,7 +4459,7 @@ address	size	section	unit	scope	name	demangled
 0x8013979C	0x40	.text	game/event.cpp	global	ToolCoreEvdDel__8EventMgr	EventMgr::ToolCoreEvdDel
 0x801397DC	0x140	.text	game/event.cpp	global	SetEvt__8EventMgrPvPUl	EventMgr::SetEvt
 0x8013991C	0x148	.text	game/event.cpp	global	SetEvt__8EventMgrPcPP5Event	EventMgr::SetEvt
-0x80139A64	0x24	.text	game/event.cpp	global	GetEvt__8EventMgrPUlPPv	EventMgr::GetEvt
+0x80139A64	0x24	.text	game/event.cpp	global	GetEvt__8EventMgrPCcPPv	EventMgr::GetEvt
 0x80139A88	0x150	.text	game/event.cpp	global	DelEvt__8EventMgrPvi	EventMgr::DelEvt
 0x80139BD8	0x90	.text	game/event.cpp	global	SetBin__8EventMgrPcPvT2i	EventMgr::SetBin
 0x80139C68	0x160	.text	game/event.cpp	global	GetBin__8EventMgrPPvPCci	EventMgr::GetBin
@@ -4473,8 +4473,8 @@ address	size	section	unit	scope	name	demangled
 0x8013A308	0xA4	.text	game/event.cpp	global	GetRead__8EventMgrPPvPiPc	EventMgr::GetRead
 0x8013A3AC	0x50	.text	game/event.cpp	global	DelRead__8EventMgrPc	EventMgr::DelRead
 0x8013A3FC	0xD8	.text	game/event.cpp	global	SetEvs__8EventMgrPv	EventMgr::SetEvs
-0x8013A4D4	0x198	.text	game/event.cpp	global	EvtSndStrStop__8EventMgrPUlii	EventMgr::EvtSndStrStop
-0x8013A66C	0x1C4	.text	game/event.cpp	global	EvtSndStrPlay__8EventMgrPUliiif	EventMgr::EvtSndStrPlay
+0x8013A4D4	0x198	.text	game/event.cpp	global	EvtSndStrStop__8EventMgrPCcii	EventMgr::EvtSndStrStop
+0x8013A66C	0x1C4	.text	game/event.cpp	global	EvtSndStrPlay__8EventMgrPCciiif	EventMgr::EvtSndStrPlay
 0x8013A830	0x148	.text	game/event.cpp	global	GetZeroPartsWorldPos__8EventMgrP6cModelP3VecT2	EventMgr::GetZeroPartsWorldPos
 0x8013A978	0x14	.text	game/event.cpp	global	ClearEmWindowFcv__8EventMgr	EventMgr::ClearEmWindowFcv
 0x8013A98C	0x10	.text	game/event.cpp	global	SetEmWindowFcv__8EventMgrPvN21	EventMgr::SetEmWindowFcv
@@ -4986,7 +4986,7 @@ address	size	section	unit	scope	name	demangled
 0x80159530	0x2DC	.text	game/model.cpp	global	matBlend__6cModelf	cModel::matBlend
 0x8015980C	0x60	.text	game/model.cpp	global	zeroPartsPosInit__6cModelP3VecT1	cModel::zeroPartsPosInit
 0x8015986C	0x2E0	.text	game/model.cpp	global	partsWorldCalc__6cModel	cModel::partsWorldCalc
-0x80159B4C	0x44	.text	game/model.cpp	global	setParent__6cModelP6cModelP3VecT2	cModel::setParent
+0x80159B4C	0x44	.text	game/model.cpp	global	setParent__6cModelP6cCoordP3VecT2	cModel::setParent
 0x80159B90	0xE8	.text	game/model.cpp	global	setParent__6cModelP6cModeliP3VecT3	cModel::setParent
 0x80159C78	0x78	.text	game/model.cpp	global	updateOldPos__6cModel	cModel::updateOldPos
 0x80159CF0	0x11C	.text	game/model.cpp	global	setPos__6cModelP3Vec	cModel::setPos
@@ -5730,7 +5730,7 @@ address	size	section	unit	scope	name	demangled
 0x8018F618	0x44	.text	game/sce_sys.cpp	global	SceSleep	SceSleep
 0x8018F65C	0x3C	.text	game/sce_sys.cpp	global	SceExit	SceExit
 0x8018F698	0x44	.text	game/sce_sys.cpp	global	SceKill__FUl	SceKill
-0x8018F6DC	0x38	.text	game/sce_sys.cpp	global	SceKill__FP7ScePrim	SceKill
+0x8018F6DC	0x38	.text	game/sce_sys.cpp	global	SceKill__FP8SCE_TASK	SceKill
 0x8018F714	0x34	.text	game/sce_sys.cpp	global	SceKill__FP4TASK	SceKill
 0x8018F748	0x5C	.text	game/sce_sys.cpp	global	SceKill__FPFi_v	SceKill
 0x8018F7A4	0x40	.text	game/sce_sys.cpp	global	checkCTaskRange__7cSceSys	cSceSys::checkCTaskRange
@@ -6105,7 +6105,7 @@ address	size	section	unit	scope	name	demangled
 0x801B0F6C	0xB4	.text	game/tv_mode.cpp	global	tvModeTrigger	tvModeTrigger
 0x801B1020	0x274	.text	game/tv_mode.cpp	global	tvModeMenu_progressive	tvModeMenu_progressive
 0x801B1294	0x28	.text	game/tv_mode.cpp	global	tvModeExit	tvModeExit
-0x801B12BC	0x24	.text	game/view.cpp	global	gameInit__4VIEWP6Camera	VIEW::gameInit
+0x801B12BC	0x24	.text	game/view.cpp	global	gameInit__4VIEWP6CAMERA	VIEW::gameInit
 0x801B12E0	0x20	.text	game/view.cpp	global	roomInit__4VIEW	VIEW::roomInit
 0x801B1300	0x60	.text	game/view.cpp	global	init__4VIEW	VIEW::init
 0x801B1360	0x80	.text	game/view.cpp	global	move__4VIEW	VIEW::move

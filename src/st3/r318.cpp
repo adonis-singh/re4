@@ -187,7 +187,7 @@ static void R318ExecSitMain()
     pPL->ang.x = 0.0f;
     pPL->ang.y = 0.0f;
     pPL->ang.z = 0.0f;
-    AtariOffRaw(&pPL->atari, 0xFCFF);
+    pPL->atari.off();
     pPL->beginEvent(0);
     pPL->setNoSuspend(1);
     pl->Wep->setTrans(0, 1);
@@ -225,7 +225,7 @@ static void R318ExecSitEnd()
     pPL->ang.z = 0.0f;
     pPL->setNoSuspend(0);
     pPL->endEvent(0);
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
     pl->Wep->setTrans(1, 0);
     SndStrReq(r318_work->str, 8, 0, 0);
     SceEventEnd(0);
@@ -250,10 +250,10 @@ static void R318ExecSitEnd()
 void R318LaserCallBackFunc(cObj* obj)
 {
     if ((pG->Room_flg[0] & 0x00020000) && obj->isTrans() == 1) {
-        register cModel* q asm("r28");
+        register cParts* q asm("r28");
         register Vec* pa asm("r10");
-        cModel* p2 = GetPartsAddr(obj->pParts, 2);
-        cModel* p4 = GetPartsAddr(obj->pParts, 4);
+        cParts* p2 = GetPartsAddr(obj->pList, 2);
+        cParts* p4 = GetPartsAddr(obj->pList, 4);
         int k = 2;
         do {
         } while (0);
@@ -468,7 +468,7 @@ static void R318ExecSwitchClear()
         EstSet(0, -1, 0, 0, EFF_ROOM, 8, 0x2001, ESP_CORE_KIND_ROOM03, 0, 0);
         SndCall(6, 7, &pPL->pos, 0, 0, 0);
         SndCall(6, 8, 0, 0, 0, 0);
-        SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
+        SceMesSet(1, 0x20, 1, 0x64, 0x150 - cMes.getLineGap(0) - cMes.getFontHeight(0) - 1);
         while (CamCtrl.IsMotionEnd() == 0) {
             SceSleep(1);
         }
@@ -528,7 +528,7 @@ static void R318ExecSwitchCheck()
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         pPL->beginEvent(0);
         pPL->setNoSuspend(1);
         MotionSetCore(pPL, &pPL->Motion, mot, 0, 0, 0x201, 0);
@@ -557,7 +557,7 @@ static void R318ExecSwitchCheck()
 // position / rotation, the switch effect dropped, facing -PI/2.
 void R318ExecSwitchCheckEnd()
 {
-    AtariOnRaw(&pPL->atari, 0x300);
+    pPL->atari.on();
     pPL->setNoSuspend(0);
     pPL->endEvent(0);
     pPL->pos.x = r318_work->plPos.x;
@@ -857,8 +857,8 @@ static void R318EventLaserMove(int no)
                 for (i = 0; i < num; i++) {
                     laser = r318_work->laser[i];
                     if (laser) {
-                        cModel* p2 = laser->getPartsPtr(2);
-                        cModel* p4 = laser->getPartsPtr(4);
+                        cParts* p2 = laser->getPartsPtr(2);
+                        cParts* p4 = laser->getPartsPtr(4);
 
                         if (p2 && p4 && EmAtkLineHitCk(&p2->world, &p4->world, &hit, &nrm, 0)) {
                             LaserHit();
@@ -869,7 +869,7 @@ static void R318EventLaserMove(int no)
             if (mode == 1) {
                 laser = r318_work->laser[0];
                 if (laser) {
-                    cModel* p2 = laser->getPartsPtr(2);
+                    cParts* p2 = laser->getPartsPtr(2);
 
                     if (p2) {
                         if (__builtin_fabsf(p2->world.x - pPL->pos.x) <= dist[no]) {
@@ -908,7 +908,7 @@ static void R318EventLaserMove(int no)
             if (mode == 0) {
                 laser = r318_work->laser[0];
                 if (laser) {
-                    cModel* p2 = laser->getPartsPtr(2);
+                    cParts* p2 = laser->getPartsPtr(2);
 
                     if (p2) {
                         if (__builtin_fabsf(p2->world.x - pPL->pos.x) <= dist[no]) {
@@ -960,10 +960,10 @@ void R318EventLaserEnd(int no)
 
             laser->be_flag &= ~2;
             if (no != 4) {
-                register cModel* t asm("r28");
-                cModel* p2 = GetPartsAddr(laser->pParts, 2);
+                register cParts* t asm("r28");
+                cParts* p2 = GetPartsAddr(laser->pList, 2);
                 t = p2;
-                cModel* p4 = GetPartsAddr(laser->pParts, 4);
+                cParts* p4 = GetPartsAddr(laser->pList, 4);
                 Vec rot[2];  // one array: rot[1] at fp+0x1c (two Vec locals would be 8-aligned)
 
                 Matrix2AxisAngle(t->mat, &rot[0]);
@@ -1019,7 +1019,7 @@ static void playerEscape02(cPlayer* pl)
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         MotionSetCore(pl, &pl->Motion, mot, 0, 0, 0x201, 0);
         EstSet(pPL, -1, 0, 0, EFF_ROOM, 0xB, 0x2001, ESP_CORE_KIND_ROOM04, 0, 0);
         r318_work->str = SndStrPlayBlock(1, 0xC3, 0.0f);
@@ -1036,7 +1036,7 @@ static void playerEscape02(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pG->Room_flg[0] |= 0x00080000;
             R318EventLaserEnd(2);
-            AtariOnRaw(&pPL->atari, 0x300);
+            pPL->atari.on();
             EffectDelete(0x2001, ESP_CORE_KIND_ROOM04);
             EndPlDamage();
         }
@@ -1068,7 +1068,7 @@ static void playerEscape03(cPlayer* pl)
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         MotionSetCore(pl, &pl->Motion, mot0, 0, 0, 0x201, 0);
         EstSet(pPL, -1, 0, 0, EFF_ROOM, 0xD, 0x2001, ESP_CORE_KIND_ROOM04, 0, 0);
         r318_work->str = SndStrPlayBlock(1, 0xC4, 0.0f);
@@ -1140,7 +1140,7 @@ static void playerEscape03(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pG->Room_flg[0] |= 0x00080000;
             R318EventLaserEnd(3);
-            AtariOnRaw(&pPL->atari, 0x300);
+            pPL->atari.on();
             EffectDelete(0x2001, ESP_CORE_KIND_ROOM04);
             EndPlDamage();
         }
@@ -1169,7 +1169,7 @@ static void playerEscape04(cPlayer* pl)
         pPL->ang.x = 0.0f;
         pPL->ang.y = 0.0f;
         pPL->ang.z = 0.0f;
-        AtariOffRaw(&pPL->atari, 0xFCFF);
+        pPL->atari.off();
         MotionSetCore(pl, &pl->Motion, mot, 0, 0, 0x201, 0);
         EstSet(pPL, -1, 0, 0, EFF_ROOM, 0xD, 0x2001, ESP_CORE_KIND_ROOM04, 0, 0);
         r318_work->str = SndStrPlayBlock(1, 0xC6, 0.0f);
@@ -1186,7 +1186,7 @@ static void playerEscape04(cPlayer* pl)
         if (MotionMove(pl, 0)) {
             pG->Room_flg[0] |= 0x00080000;
             R318EventLaserEnd(4);
-            AtariOnRaw(&pPL->atari, 0x300);
+            pPL->atari.on();
             EffectDelete(0x2001, ESP_CORE_KIND_ROOM04);
             EndPlDamage();
         }
