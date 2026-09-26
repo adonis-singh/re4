@@ -40,12 +40,13 @@ int DB_IsEmLoad();
 int DB_IsWorkPush();
 void DB_GetKeybordData(DB_KEYBORD* k);
 int LoadModel();
-void EspToolInit(int* out, u8* pStage, u8* pCut);
 void EspToolExitEstSet(EspSeqData* head, int on, int mode);
 void EspToolCameraMode();
 void CoreEstSet(u8 id);
 void SeqSet(EspSeqData* head, int mode);
 void sp_tex_trans(int no);
 }
+
+void EspToolInit(bool& out, u8& stage, u8& cut);
 
 #endif

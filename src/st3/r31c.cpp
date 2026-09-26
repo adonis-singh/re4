@@ -1660,7 +1660,7 @@ static void Evt_R31CS01_Func(Event* e)
         r31c_mesNo = (Rnd() & 1) ? 3 : 4;
         cut = 0xB;
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = cut;
+        e->SetEvtCancelCut(cut);
         break;
     case 1:
         switch (e->NowCut) {

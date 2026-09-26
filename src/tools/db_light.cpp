@@ -43,14 +43,6 @@ asm(".comm common_" DB_LIGHT_STR(REL_MODULE) ",52,4");
 // DB_LIGHT_SET_TOOL_LIGHT), t_esp also cLightTool::setLogMode (tools/db_light_esp.cpp,
 // DB_LIGHT_SET_LOG_MODE); t_sce / t_movie carry an older build (tools/db_light_v2.cpp, unwritten).
 
-// A colour as one word (DrawTile swatches). The user copy constructor makes it BLKmode: every inlined
-// drawColorTile shares one frame slot (see the FadeSet colour pair note in docs/matching.md).
-struct GXColorW {
-    u32 w;
-    GXColorW() {}
-    GXColorW(const GXColorW& c) { w = c.w; }
-};
-
 // Focus block of cLightEnv (0x28..0x30), copied as a whole by lightPasteFocus.
 struct LightFocus {
     s32 depth;
@@ -323,15 +315,6 @@ int pathSelect(int x, int y, u8 no, u8 flag, int mode);
 int pathEdit(int x, int y, u8 no, u8 flag, int mode);
 void drawPath(int x, int y, cLightPathData* p, u8 flag, u32 cur);
 
-
-// Colour swatch: the colour word goes through a local of this inline, so its address is a fresh
-// `addi r7, r1, ofs` before every DrawTile call (gcse never sees the hard-register argument set).
-static inline void drawColorTile(int x, int y, int w, int h, u32 c)
-{
-    GXColorW col;
-    col.w = c;
-    DrawTile(x, y, w, h, (GXColor*) &col);
-}
 
 // The current light of the light table.
 #define curLight() (LightMgr.at(pTool->table_y + pTool->cy))
@@ -695,11 +678,11 @@ static void edit_cutsel()
         if (VALID_PTR(env)) {
             eprintf(0x40, 0x54 + i * 14, 0, pTool->PageNo, "%2d               %d%d%d  %5d %3d", env->nLight, 0, 0, 0,
                     env->FocusZ / 10, env->blur_rate);
-            drawColorTile(0x58, 0x57 + i * 14, 0x18, 8, *(u32*) &env->AmbientScr);
-            drawColorTile(0x78, 0x57 + i * 14, 0x20, 8, *(u32*) &env->Fog.Color);
-            drawColorTile(0xA0, 0x57 + i * 14, 0x20, 8, *(u32*) &env->MirrorFog.Color);
+            DrawTileV(0x58, 0x57 + i * 14, 0x18, 8, env->AmbientScr);
+            DrawTileV(0x78, 0x57 + i * 14, 0x20, 8, env->Fog.Color);
+            DrawTileV(0xA0, 0x57 + i * 14, 0x20, 8, env->MirrorFog.Color);
             if (env->tuneOn & 1) {
-                drawColorTile(0x140, 0x57 + i * 14, 0x20, 8, *(u32*) &env->Tune[0]);
+                DrawTileV(0x140, 0x57 + i * 14, 0x20, 8, env->Tune[0]);
             } else {
                 eprintf(0x140, 0x54 + i * 14, 0, pTool->PageNo, "OFF");
             }
@@ -1434,7 +1417,7 @@ static void edit_light_id_flick()
         edit_light_id_normal();
         break;
     case 1:
-        drawColorTile(0x60, 0xD2, 0x30, 0x30, *(u32*) &cur->Col);
+        DrawTileV(0x60, 0xD2, 0x30, 0x30, cur->Col);
         if (pTool->Pad1.rep & 0x20002) {
             v = w->range;
             if (pTool->Pad1.on & JOY_A) {
@@ -3261,11 +3244,11 @@ static void edit_ambient()
         break;
     }
     eprintf(0x20, 0x38, 0, pTool->PageNo, "SCROLL");
-    drawColorTile(0x60, 0x38, 0x30, 0xD, *(u32*) &env->AmbientScr);
+    DrawTileV(0x60, 0x38, 0x30, 0xD, env->AmbientScr);
     eprintf(0x20, 0x46, 0, pTool->PageNo, "EM+OBJ");
-    drawColorTile(0x60, 0x46, 0x30, 0xD, *(u32*) &env->AmbientEm);
+    DrawTileV(0x60, 0x46, 0x30, 0xD, env->AmbientEm);
     eprintf(0x20, 0x54, 0, pTool->PageNo, "EFFECT");
-    drawColorTile(0x60, 0x54, 0x30, 0xD, *(u32*) &env->AmbientEsp);
+    DrawTileV(0x60, 0x54, 0x30, 0xD, env->AmbientEsp);
     pTool->printCursor(3, pTool->rno5 + 4);
 }
 // FOG page of the cut (edit_fog_common on cLightEnv::Fog).
@@ -3361,7 +3344,7 @@ void edit_fog_common(LightFog* fog)
     eprintf(0x20, 0x54, 0, pTool->PageNo, "END      %6.0f", fog->End);
     eprintf(0x20, 0x62, 0, pTool->PageNo, "COLOR");
     eprintf(0x20, 0x70, 0, pTool->PageNo, "FAR PLAY %1.2f", env->far_play_ratio);
-    drawColorTile(0x50, 0x62, 0x30, 0xE, *(u32*) &fog->Color);
+    DrawTileV(0x50, 0x62, 0x30, 0xE, fog->Color);
     LightMgr.setFog();
 }
 // FOCUS (depth of field) rows: DIST, LEVEL, MODE (NEAR / FAR / FollowPL NEAR / FollowPL FAR); B back.
@@ -3770,13 +3753,17 @@ static void edit_tune()
         eprintf(0x20, 0x38 + i * 0xE, 0, pTool->PageNo, *name++);
     }
     if (env->tuneOn & 1) {
-        drawColorTile(0x60, 0x49, 0x38, 8, *(u32*) &env->Tune[0]);
-        drawColorTile(0x60, 0x57, 0x38, 8, *(u32*) &env->Tune[1]);
-        drawColorTile(0x60, 0x65, 0x38, 8, *(u32*) &env->Tune[2]);
+        DrawTileV(0x60, 0x49, 0x38, 8, env->Tune[0]);
+        DrawTileV(0x60, 0x57, 0x38, 8, env->Tune[1]);
+        DrawTileV(0x60, 0x65, 0x38, 8, env->Tune[2]);
     } else {
-        drawColorTile(0x60, 0x49, 0x38, 8, 0xC8C0F080);
-        drawColorTile(0x60, 0x57, 0x38, 8, 0);
-        drawColorTile(0x60, 0x65, 0x38, 8, 0);
+        GXColor off0;
+        GXColor off1 = {0, 0, 0, 0};
+
+        *(u32*) &off0 = 0xC8C0F080;
+        DrawTileV(0x60, 0x49, 0x38, 8, off0);
+        DrawTileV(0x60, 0x57, 0x38, 8, off1);
+        DrawTileV(0x60, 0x65, 0x38, 8, off1);
     }
     LightMgr.setTune(env);
 }
@@ -4006,13 +3993,6 @@ static void path()
     }                                        \
     pTool->cursor %= 0x100
 
-// The event tool's names the load / save pages use (EventDebug+0x20 / +0x48, inside its pad_0).
-struct EvtDebugNames {
-    u8 pad_0[0x20];
-    char name[0x28];  // 0x20
-    char str[0x18];   // 0x48
-};
-
 // Load page: source select (room local / server, event, tool, core, item), then the file number.
 // Odd editNo values load the file the even one selected.
 static void load()
@@ -4023,7 +4003,7 @@ static void load()
     static char evStr[8];
     char path[0x100];
     void* evt;
-    EvtDebugNames* ev;
+    EventDebug* ev;
     char* key;
 
     eprintf(0x20, 0x2A, 4, pTool->PageNo, "LOAD");
@@ -4057,10 +4037,10 @@ static void load()
                 break;
             case 2:
                 pTool->rno1 = 12;
-                ev = (EvtDebugNames*) &EvtDebug;
+                ev = &EvtDebug;
                 key = evName;
-                strcpy(key, ev->name);
-                strcpy(evStr, ev->str);
+                ev->GetNameFile(key);
+                ev->GetEventNo(evStr);
                 if (EvtMgr.GetEvt(key, &evt) == 1) {
                     evtKey = ((Event*) evt)->NowCut;
                     if (evStr[0] == 's' || evStr[0] == 'S') {
@@ -4288,7 +4268,7 @@ static void save()
     static char evStr[8];
     char path[0x100];
     void* evt;
-    EvtDebugNames* ev;
+    EventDebug* ev;
     char* key;
 
     eprintf(0x20, 0x2A, 4, pTool->PageNo, "SAVE");
@@ -4333,10 +4313,10 @@ static void save()
                 break;
             case 2:
                 pTool->rno1 = 14;
-                ev = (EvtDebugNames*) &EvtDebug;
+                ev = &EvtDebug;
                 key = evName;
-                strcpy(key, ev->name);
-                strcpy(evStr, ev->str);
+                ev->GetNameFile(key);
+                ev->GetEventNo(evStr);
                 if (EvtMgr.GetEvt(key, &evt) == 1) {
                     evtKey = ((Event*) evt)->NowCut;
                     if (evStr[0] == 's' || evStr[0] == 'S') {
@@ -4902,14 +4882,6 @@ void cLightTool::printCursor(int x, int y)
     }
 }
 
-// White ambient for DrawTile: a struct returned by value (its temporary is the last frame slot).
-static inline GXColor whiteCol()
-{
-    GXColor c;
-    c.r = c.g = c.b = c.a = 0xFF;
-    return c;
-}
-
 // Filled 2D rectangle in screen pixels (colour swatches of the editors).
 void DrawTile(int x, int y, int w, int h, GXColor* color)
 {
@@ -4921,7 +4893,9 @@ void DrawTile(int x, int y, int w, int h, GXColor* color)
     GXSetTevOp(0, 4);
     GXSetNumChans(1);
     GXSetChanCtrl(0, 0, 0, 0, 0, 0, 2);
-    GXSetChanAmbColor(0, whiteCol());
+    GXColor white;
+    white.r = white.g = white.b = white.a = 0xFF;
+    GXSetChanAmbColor(0, white);
     GXSetChanMatColor(0, col);
     Mtx44 proj;
     Mtx mtx;

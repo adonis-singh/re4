@@ -4,6 +4,7 @@
 #include "types.h"
 #include "vec.h"
 #include "camera.h"
+#include "flag.h"
 
 // Archive header at pG->pCore: a table of file offsets to the sub-files. Only the entries that
 // matched units use are named.
@@ -1317,11 +1318,6 @@ enum EXT_FLAG {
     EXT_1f = 31,
 };
 
-// The per-field tests go through a real inline rather than the FlagChk macro: the flag number
-// arrives as a parameter, which changes how sched1 orders the constants that follow the test
-// (objWep drawPoint and esp_app EspDrawLaserLine only match this way).
-static inline u32 FlagBitChk(u32* flg, u32 no) { return flg[no >> 5] & (0x80000000 >> (no & 31)); }
-
 #define DbgFlagChk(g, n) FlagBitChk((g)->Debug_flg, n)
 #define StaFlagChk(g, n) FlagBitChk((g)->Status_flg, n)
 #define SysFlagChk(g, n) FlagBitChk(&(g)->System_flg, n)
@@ -1332,22 +1328,6 @@ static inline u32 FlagBitChk(u32* flg, u32 no) { return flg[no >> 5] & (0x800000
 #define KyfFlagChk(g, n) FlagBitChk((g)->Key_flg, n)
 // Room_flg: the bit numbers are per room, see the R<xxx>_FLAG enum at the top of the room source.
 #define RmfFlagChk(g, n) FlagBitChk((g)->Room_flg, n)
-
-// Set and clear, against the same base and index as FlagChk.
-#define FlagOn(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) |= (0x80000000 >> ((no) & 31)))
-#define FlagOff(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) &= ~(0x80000000 >> ((no) & 31)))
-#define FlagXor(base, no) (*(u32*) ((((no) >> 5) << 2) + (u32) (base)) ^= (0x80000000 >> ((no) & 31)))
-
-// The same four, for a call site whose flag number is a variable or a struct field rather than an
-// enumerator.  Both arguments are copied into locals: substituted twice the field would be loaded
-// twice, where the original loads it once.  The number keeps the type the call site gives it, so an
-// index cast to u32 folds its shift into a single rlwinm where a signed one takes two instructions.
-#define FLAG_WORD_VAR(base, no, op) ({ u32 flagBase_ = (u32) (base); __typeof__(no) flagNo_ = (no); \
-                                       *(u32*) (((flagNo_ >> 5) << 2) + flagBase_) op; })
-#define FlagChkVar(base, no) FLAG_WORD_VAR(base, no, & (0x80000000 >> (flagNo_ & 31)))
-#define FlagOnVar(base, no) FLAG_WORD_VAR(base, no, |= (0x80000000 >> (flagNo_ & 31)))
-#define FlagOffVar(base, no) FLAG_WORD_VAR(base, no, &= ~(0x80000000 >> (flagNo_ & 31)))
-#define FlagXorVar(base, no) FLAG_WORD_VAR(base, no, ^= (0x80000000 >> (flagNo_ & 31)))
 
 #define DbgFlagOn(g, n) FlagOn(&(g)->Debug_flg, n)
 #define DbgFlagOff(g, n) FlagOff(&(g)->Debug_flg, n)

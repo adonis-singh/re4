@@ -234,7 +234,7 @@ extern "C" void Evt_R11FS00_Func(Event* e)
             int cut = 0x10;
 
             EvtFlgOnStatus(e, 3);
-            e->EvtCancelCut = cut;
+            e->SetEvtCancelCut(cut);
         }
         SmdSetTrans(1, 0);
         SmdSetTrans(2, 0);

@@ -277,7 +277,7 @@ int Event::Run()
         if (frm - (f32) n * EVT_STR_FRAME < 1.0f) {
             EventMgr* m = &EvtMgr;
             FlgOffStatus(EvtStfStrTime);
-            m->EvtSndStrPlay(m->GetNowExeEvtNamePtr(), 1, EvtDebug.NowStr[1], 1, frm / EVT_FRAME_RATE);
+            m->EvtSndStrPlay(m->GetNowExeEvtNamePtr(), 1, EvtDebug.GetNowStr(1), 1, frm / EVT_FRAME_RATE);
         }
     }
 func:
@@ -304,7 +304,7 @@ int Event::EspToolSetDat()
     int no;
     char* p;
 
-    EvtDebug.NowCut = GetNowCut();
+    EvtDebug.SetNowCut(GetNowCut());
     RunTool(3, 0);
     EvtDebug.ClrNumMod();
     EvtDebug.ClrModelFiles();
@@ -316,14 +316,14 @@ int Event::EspToolSetDat()
         }
         switch (pac->id) {
         case EvpTpCam:
-            strcpy(EvtDebug.getEvName(), pac->mod.name);
+            EvtDebug.SetNameCam(pac->mod.name);
             break;
         case EvpTpLit:
-            strcpy(EvtDebug.getCamName(), pac->mod.name);
+            EvtDebug.SetNameLit(pac->mod.name);
             break;
         case EvpTpMot:
             no = EvtDebug.GetNumMod();
-            strcpy(EvtDebug.PMod[no].name, pac->mod.bin);
+            EvtDebug.SetNameMot(no, pac->mod.bin);
             EspToolSetMod(no, pac->mod.name);
             EvtDebug.AddNumMod();
             break;
@@ -356,7 +356,7 @@ void Event::EspToolSetMod(int npMod, char* pNameMod)
     char* p;
 
     buf = (char*) Debug_alloc(1000000, 1);
-    EvtDebug.PMod[npMod].pScr = 0;
+    EvtDebug.SetModPtr(npMod, 0);
     strcpy(mname, pNameMod);
     for (i = 2; i < strlen(mname); i++) {
         c = mname[i];
@@ -395,17 +395,17 @@ void Event::EspToolSetMod(int npMod, char* pNameMod)
         }
     }
     if (GetModelPtrNo(&modNo, &mod, mname)) {
-        EvtDebug.PMod[npMod].pModel = (cModel*) modNo;
-        EvtDebug.PMod[npMod].otType = mod->ot_type;
-        EvtDebug.PMod[npMod].lightMask = mod->LightInfo.EnableMask;
+        EvtDebug.SetModWorkNo(npMod, modNo);
+        EvtDebug.SetModOtType(npMod, mod->ot_type);
+        EvtDebug.SetModLightMask(npMod, mod->LightInfo.EnableMask);
         if (mod->getZMode() == 1) {
-            BitOn(EvtDebug.PMod[npMod].flags, 0x80000000);
+            BitOn(EvtDebug.PMod[npMod].EtcFlag, 0x80000000);  // EtcFlgOnMod does not reproduce the target's lwzu
         }
         if (mod->isNoClip() == 1) {
-            BitOn(EvtDebug.PMod[npMod].flags, 0x40000000);
+            BitOn(EvtDebug.PMod[npMod].EtcFlag, 0x40000000);
         }
         if (strncmp(mname, "scr", 3) == 0) {
-            EvtDebug.PMod[npMod].pScr = mod;
+            EvtDebug.SetModPtr(npMod, mod);
         }
     }
     pLog->mes(0, 0, "t_event->t_esp:%s", pNameMod);
@@ -1892,8 +1892,6 @@ void Event::MesSet(int noMes, int timer, int px, int py)
 // Counts the subtitle timer down and restores Disp_flg 0x800 (HUD) when it expires.
 void Event::MesClear()
 {
-    int no;
-
     if (TimerMes > 0) {
         TimerMes--;
         if (TimerMes <= 0) {
@@ -1901,8 +1899,7 @@ void Event::MesClear()
             DpfFlagOn(pG, DPF_MESSAGE);
         }
     }
-    no = 0;
-    EvtDebug.mesCnt[no]++;
+    EvtDebug.TimerCalc(DebugTimerNoMes);
 }
 
 // Applies the cut's fog start/end Hermite curves at the current frame.
@@ -3008,7 +3005,7 @@ void EventMgr::EvtSndStrPlay(const char* pName, int noTar, int noStr, int flag, 
         }
         evt->SetSndId(noTar, id);
         evt->SetNowStr(noTar, noStr);
-        EvtDebug.NowStr[noTar] = noStr;
+        EvtDebug.SetNowStr(noTar, noStr);
         OSReport("EventMgr::EvtSndStrPlay : start (%d)-(%d)\n", noTar, noStr);
     }
 }
@@ -3098,23 +3095,23 @@ void EventDebug::ClrModelFiles()
     int i;
 
     for (i = 0; i < 0x60; i++) {
-        memset_asm(&PMod[i], 0, sizeof(EvtDebugModel));
+        memset_asm(&PMod[i], 0, sizeof(ModelFiles));
     }
 }
 
 // Adds a bin/tpl file pair to model record `no`.
 int EventDebug::AddNameBinTpl(int npMod, char* pNameBin, char* pNameTpl)
 {
-    EvtDebugModel* m = &PMod[npMod];
-    int n = m->nBin;
+    ModelFiles* m = &PMod[npMod];
+    int n = m->NumObj;
 
     if (n > 0xF) {
         pLog->err(0, 0, "EventDebug::AddNameBinTpl : num failed");
         return 0;
     }
-    strcpy(m->bin[n], pNameBin);
-    strcpy(m->tpl[n], pNameTpl);
-    m->nBin++;
+    strcpy(m->NameBin[n], pNameBin);
+    strcpy(m->NameTpl[n], pNameTpl);
+    m->NumObj++;
     return 1;
 }
 

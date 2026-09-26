@@ -685,7 +685,7 @@ extern "C" void Evt_R10BS20_Func(Event* e)
             EstSet(0, -1, 0, 0, EFF_ROOM, 2, 1, ESP_CORE_KIND_ROOM00, 0, 0);
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 9;
+        e->SetEvtCancelCut(9);
         break;
     case 1:
         SetSstAddAreaFlag(0);

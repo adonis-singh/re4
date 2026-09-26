@@ -899,7 +899,7 @@ static void Evt_R227S00_Func(Event* e)
     switch (e->FuncType) {
     case 0:
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 10;
+        e->SetEvtCancelCut(10);
         break;
     case 1:
         switch (e->NowCut) {

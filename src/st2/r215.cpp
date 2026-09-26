@@ -124,7 +124,7 @@ extern "C" void Evt_R215S00_Func(Event* e)
     switch (e->FuncType) {
     case 0:
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 9;
+        e->SetEvtCancelCut(9);
         break;
     case 1:
         switch (e->NowCut) {

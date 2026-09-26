@@ -639,7 +639,7 @@ void Evt_R317S00_Func(Event* e)
             pG->Room_flg[0] &= ~0x00200000;
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 3;
+        e->SetEvtCancelCut(3);
         break;
     case 1:
         if (e->NowCut == 0 && e->NowFrame == 0) {
@@ -729,7 +729,7 @@ void Evt_R317S01_Func(Event* e)
             pG->Room_flg[0] &= ~0x00020000;
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 6;
+        e->SetEvtCancelCut(6);
         break;
     case 1:
         if (e->NowCut == 0 && e->NowFrame == 0) {
@@ -848,7 +848,7 @@ void Evt_R317S03_Func(Event* e)
             pG->Room_flg[0] &= ~0x00010000;
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 0x14;
+        e->SetEvtCancelCut(0x14);
         break;
     case 1:
         if (e->NowCut == 0 && e->NowFrame == 0) {
@@ -1126,7 +1126,7 @@ void Evt_R317S07_Func(Event* e)
             pG->Room_flg[0] &= ~0x00100000;
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 7;
+        e->SetEvtCancelCut(7);
         break;
     case 1:
         if (e->NowCut == 0 && e->NowFrame == 0) {
@@ -1248,7 +1248,7 @@ void Evt_R317S09_Func(Event* e)
             pG->Room_flg[0] &= ~0x00080000;
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 8;
+        e->SetEvtCancelCut(8);
         break;
     case 1:
         if (e->NowCut == 0 && e->NowFrame == 0) {
@@ -1355,7 +1355,7 @@ void Evt_R317S11_Func(Event* e)
             pG->Room_flg[0] &= ~0x00040000;
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 2;
+        e->SetEvtCancelCut(2);
         break;
     case 1:
         if (e->NowCut == 0 && e->NowFrame == 0) {
@@ -1449,7 +1449,7 @@ void Evt_R317S13_Func(Event* e)
             pG->Room_flg[0] &= ~0x8000;
         }
         EvtFlgOnStatus(e, 3);
-        e->EvtCancelCut = 9;
+        e->SetEvtCancelCut(9);
         break;
     case 1: {
         int btn;

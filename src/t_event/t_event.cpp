@@ -1313,42 +1313,22 @@ void ToolEvt::SubToolMessMove(ToolEvt* t, Event* ev)
     }
     {
         EventMessageData::MessElem* e;
-        // The mesCnt block of the original: a pointer to the struct address (`addi rB,rD,0xc4`) for
-        // mesCnt[2]/[1] (`4(rB)`, `0(rB)`) and a second one formed after the fourth eprintf for
-        // mesCnt[0] (`lwzu`, the same register carries it into the loop's `stwx no,rA,no`); the
-        // loop's mesCnt[1]/[2] stores go through a third, loop-fresh pointer (hoisted, `mr r26,r28`).
-        // Only a struct pointer with a leading array reproduces this: `p->v[k]` is an ARRAY_REF
-        // whose address stays inside the MEM (`(plus rB idx)`: cse leaves it, combine folds the
-        // zero index), a plain `s32*` computes the address as a value that cse rewrites to
-        // `0xc4(rD)`, and a reference/pointer to array is pointer arithmetic in this frontend.
-        // A struct pointer also keeps `&EvtDebug` the cse class head (a bare `&EvtDebug.mesCnt[1]`
-        // makes the `EvtDebug+0xc4` constant the head and derives `&EvtDebug` from it with a `subi`).
-        struct MesCntView { s32 v[3]; };
-        EventDebug* d = &EvtDebug;
-        MesCntView* m = (MesCntView*) &d->mesCnt[1];
-        MesCntView* x;
-
         i = 0;
-        eprintf(0x50, 0x90, 0, 0, "%3d", m->v[1]);
+        eprintf(0x50, 0x90, 0, 0, "%3d", EvtDebug.NumGet(DebugNumNumber));
         eprintf(0xA0, 0x90, 0, 0, "%3d", ev->NowCut);
         eprintf(0xF0, 0x90, 0, 0, "%3d", ev->NowFrame);
-        eprintf(0x140, 0x90, 0, 0, "%3d", m->v[i]);
-        x = (MesCntView*) &d->mesCnt[0];
-        eprintf(0x190, 0x90, 0, 0, "%3d", x->v[i]);
+        eprintf(0x140, 0x90, 0, 0, "%3d", EvtDebug.NumGet(DebugNumNoMes));
+        eprintf(0x190, 0x90, 0, 0, "%3d", EvtDebug.TimerGet(DebugTimerNoMes));
         e = t->PMesDat->elem;
         for (i = 0; i < XML_NODE_MAX; i++, e++) {
             if (IsWorkAlive(e) && ev->NowCut == e->CutNo && ev->NowFrame == e->Frame) {
-                int no = 0;
                 int mes;
-                MesCntView* y = (MesCntView*) &d->mesCnt[1];
 
                 ev->MesSet(e->MessNo, e->Timer, 100, EVT_MES_Y);
-                // the record's message number is re-read into a local before the three stores
-                // (sched1: the load ahead of `stwx no`, then the stores in statement order)
                 mes = e->MessNo;
-                x->v[no] = no;
-                y->v[no] = mes;
-                y->v[1] = i;
+                EvtDebug.TimerSet(DebugTimerNoMes, 0);
+                EvtDebug.NumSet(DebugNumNoMes, mes);
+                EvtDebug.NumSet(DebugNumNumber, i);
             }
         }
     }
