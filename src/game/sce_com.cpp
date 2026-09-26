@@ -330,7 +330,7 @@ void SceMesSet(int no, u32 flags, int sel, int x, int y)
         attr |= 0x2000000;
     }
     cMes.MesSet(no, x, y, attr, 0, 0, 4);
-    cMes.m_Msg[0].m_cur = sel - 1;
+    cMes.SetCursor(0, sel - 1);
     Cckpt.lifeMeterDisp(0);
     if (!(flags & 0x10)) {
         SceMesWait();

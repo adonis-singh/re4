@@ -330,13 +330,7 @@ static void r307_checkPuzzleTerminal()
         cur = 1;
         do {
             SceMesSet(1, 0x230, 1, 0x64, 0x150 - cMes.getWork()->lineSpace - cMes.getWork()->m_font_h - 1);
-            {
-                // The s8 copy keeps the `extsb` before the `-1` (an `(s8) cur - 1` expression loses it
-                // in the byte store).
-                s8 c = cur;
-
-                cMes.getWork()->m_cur = c - 1;
-            }
+            cMes.getWork()->setCursor((s8) cur - 1);
             SceMesWait();
             sel = SceMesGetSelection();
             switch (sel) {

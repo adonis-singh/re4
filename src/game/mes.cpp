@@ -399,7 +399,7 @@ void MessageControl::init()
     loadCommonFont();
     loadSystemFont();
     setLanguage(pSys->language);
-    x11F8 = 0;
+    m_stop = 0;
     m_state = 0;
     for (i = 0; i < 16; i++) {
         if (i <= 2) {
@@ -421,7 +421,7 @@ void MessageControl::gameInit()
     pG->IsMessageInit = 1;
     loadCommonFont();
     setLanguage(pSys->language);
-    x11F8 = 0;
+    m_stop = 0;
     m_state = 0;
 }
 
@@ -691,7 +691,7 @@ void Message::init(int no, int px, int py, u32 attr, int col, MessageFont* pFont
     this->m_pos_y = py;
     m_pos0_y = py;
     m_col = mes_col_tbl[col];
-    qp = qbase;
+    m_pMque = m_queue;
     this->m_attr = attr;
     m_wait_cnt = 0;
     m_bttn_wait = 0;
@@ -751,7 +751,7 @@ void Message::move()
                 break;
             }
         } else {
-            if (qp != NULL && qp >= qbase + 0x100) {
+            if (m_pMque != NULL && m_pMque >= m_queue + 0x100) {
                 pLog->err(0, 0, "Message [%d]: Overflow!", 0);
                 return;
             }
@@ -785,7 +785,7 @@ void Message::WidthCk()
     u16* save;
     u16 code;
 
-    qp = qbase;
+    m_pMque = m_queue;
     m_pos_y = m_pos0_y;
     m_state |= 8;
     save = m_pMes;
@@ -842,7 +842,7 @@ void Message::WidthCk()
                 pLog->err(0, 0, "Message [%d]: line overflow!!", 0);
             }
         } else {
-            if (qp != NULL && qp >= qbase + 0x100) {
+            if (m_pMque != NULL && m_pMque >= m_queue + 0x100) {
                 pLog->err(0, 0, "Message [%d]: queue overflow!!", 0);
                 break;
             }
@@ -887,7 +887,7 @@ void Message::WidthCk()
         m_pos_y = (0x180 - n * (s16) m_line_gap) >> 1;
     }
     m_pMes = save;
-    qp = qbase;
+    m_pMque = m_queue;
     m_jump_idx = 0;
 }
 
@@ -904,15 +904,15 @@ void Message::QueSet(int code, MessageFont* p_font)
     w = (s16) ((f32) p_font->getSize(code, &l, &r) * m_scale_w);
     h = (s16) ((f32) (int) p_font->m_char_h * m_scale_h);
     if (!(m_state & 8)) {
-        if (qp != NULL) {
-            qp->x = m_pos_x;
-            qp->y = m_pos_y;
-            qp->color = m_col;
-            qp->code = code;
-            qp->w = w;
-            qp->h = h;
-            qp->font = p_font;
-            qp++;
+        if (m_pMque != NULL) {
+            m_pMque->x = m_pos_x;
+            m_pMque->y = m_pos_y;
+            m_pMque->color = m_col;
+            m_pMque->code = code;
+            m_pMque->w = w;
+            m_pMque->h = h;
+            m_pMque->font = p_font;
+            m_pMque++;
         } else {
             MesQue q;
             q.x = m_pos_x;
@@ -957,13 +957,13 @@ void Message::setNumber(u32 num, u16 digits)
     digitSave = digit;
 }
 
-// Shows the cursor glyph at the selected choice (selCur queue entries, code 1 = on).
+// Shows the cursor glyph at the selected choice (m_selTbl queue entries, code 1 = on).
 void Message::putSelCursol()
 {
     int i;
 
     for (i = 0; i < m_selTbl_size; i++) {
-        selCur[i]->code = (m_cur == i);
+        m_selTbl[i]->code = (m_cur == i);
     }
 }
 
@@ -1104,7 +1104,7 @@ void Message::trans()
 {
     MesQue* q;
 
-    for (q = qbase; q < qp; q++) {
+    for (q = m_queue; q < m_pMque; q++) {
         if (attrCk(0x20)) {
             AddOtDirect(m_ot_type, q, (void (*)()) messageTrans, m_ot_no, 0x1000, NULL, 0.0f);
         } else {
@@ -1178,11 +1178,11 @@ void Message::WaitEnd()
 // line, speed, choice and cursor state.
 int Message::code00()
 {
-    if (qbase != NULL) {
-        qp = qbase;
-        memclr_asm(qbase, 0x1000);
+    if (m_queue != NULL) {
+        m_pMque = m_queue;
+        memclr_asm(m_queue, 0x1000);
     } else {
-        qp = NULL;
+        m_pMque = NULL;
     }
     WidthCk();
     m_pos_x = m_pos0_x[0];
@@ -1297,7 +1297,7 @@ int Message::code07()
         m_spd_old = m_spd;
     }
     m_spd = 0;
-    selCur[m_selTbl_size++] = qp;
+    m_selTbl[m_selTbl_size++] = m_pMque;
     QueSet(0, NULL);
     return 0;
 }
@@ -1448,7 +1448,7 @@ int Message::code0a()
     s16 w;
     int a;
 
-    if (qp >= qbase + 0x100) {
+    if (m_pMque >= m_queue + 0x100) {
         return 2;
     }
     d = m_number / digit;

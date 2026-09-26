@@ -1208,7 +1208,7 @@ void SellItemNum::move(SUB_SCREEN* wk)
                 int px = (int) ((u->pos0.x + 320.0f) * 0.8f) + sell_msg_x;
                 cMes.MesSet(shop_msg[msg].msg, px, (int) ((240.0f - u->pos0.y) * 0.8f) + sell_msg_y, 0x20801, 1, 0, 3);
             }
-            cMes.m_Msg[1].m_cur = 1;
+            cMes.SetCursor(1, 1);
             self->transit(0, wk);
             SndCall(0, 9, 0, 0, 0, 0);
             shopStrPlay(wk, shop_msg[msg].str);

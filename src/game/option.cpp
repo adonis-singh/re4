@@ -355,7 +355,7 @@ int retry_load_menu(OptionScreen* pOpt)
                     no = 0x8A;
                 }
                 cMes.MesSet(no, x0, y0, (pOpt->_msg_attr | 0x40) & ~0x80, 0, 0, 4);
-                cMes.m_Msg[0].m_cur = 1;
+                cMes.SetCursor(0, 1);
                 pOpt->_rno3 = 1;
                 confirm = 1;
                 yes = 1;

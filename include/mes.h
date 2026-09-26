@@ -72,11 +72,11 @@ public:
     u32 stop_bak;       // 0x00  pG->flags_170 saved while the message stops the game
 private:
     u32 be_flag;          // 0x04  bit 0 = active, bit 1 = first frame
-public:
     u8 r_no_0;              // 0x08  code01 step
     u8 r_no_1;
     u8 r_no_2;
     u8 r_no_3;
+public:
     u32 m_state;         // 0x0C  bit 0 = active, bit 1 = finished, bit 3 = width check pass
     f32 m_scale_w;         // 0x10
     f32 m_scale_h;         // 0x14
@@ -85,6 +85,7 @@ public:
     u16 m_item_no;            // 0x1A  message number for code10 (type 3 table)
     u16 m_ot_type;             // 0x1C  ordering table
     u16 m_ot_no;           // 0x1E
+private:
     MessageFont* m_pFont;  // 0x20
     u16 m_pos_x;              // 0x24  cursor
     u16 m_pos_y;              // 0x26
@@ -99,6 +100,8 @@ public:
     s8 m_lines;            // 0x72
     u8 x73;
     u16 m_number_width;           // 0x74  width added by numbers/tables (code0a)
+public:
+    // PS2 has m_line_gap private; public here because r20e, r224 and r307 read the low byte (lineSpace) through getWork().
     union {
         u16 m_line_gap;      // 0x76
         struct {
@@ -106,12 +109,11 @@ public:
             s8 lineSpace;   // 0x77  (embox emBoxAction: prompt y = 336 - fontH - lineSpace - 1)
         };
     };
+private:
     u16 m_char_gap;      // 0x78
     u16 x7A;
     u32 m_col;          // 0x7C
-private:
     u32 m_attr;           // 0x80
-public:
     s16 m_spd;          // 0x84
     s16 m_spd_cnt;       // 0x86
     s16 m_spd_old;      // 0x88
@@ -130,9 +132,9 @@ public:
     u32 numberSave;     // 0xAC
     u16 digitSave;      // 0xB0
     u8 pad_B2[6];
-    MesQue* qbase;      // 0xB8
-    MesQue* qp;         // 0xBC
-    MesQue* selCur[8];  // 0xC0  glyphs of the selection cursors
+    MesQue* m_queue;    // 0xB8
+    MesQue* m_pMque;    // 0xBC
+    MesQue* m_selTbl[8];  // 0xC0  glyphs of the selection cursors
     s8 m_selTbl_size;          // 0xE0
     s8 m_sel;          // 0xE1  menu selection (0 = none yet)
     s8 m_cur;          // 0xE2
@@ -140,6 +142,7 @@ public:
     u8 m_who;             // 0xE4  code12
     u8 pad_E5[3];
 
+public:
     virtual ~Message() {}
 
     int isAlive() { return be_flag & 1; }
@@ -158,8 +161,9 @@ public:
     s16 getFontHeight() { return m_font_h; }
     u32 getColor() { return m_col; }
     void setColor(u32 col) { m_col = col; }
+    void setCursor(int cur) { m_cur = cur; }
     void setBttnWait(s16 wait) { m_bttn_wait = wait; }
-    void registQueue(MesQue* q) { qbase = q; }
+    void registQueue(MesQue* q) { m_queue = q; }
     void init(int no, int px, int py, u32 attr, int col, MessageFont* font);
     void move();
     void WidthCk();
@@ -210,13 +214,16 @@ enum LAYOUT_TYPE {
 
 // game/mes.cpp
 class MessageControl {
-public:
-    u32 x0;
+private:
+    u32 m_sel_sav;            // 0x00
     Message m_Msg[16];        // 0x04
-    void* m_font_addr[4];       // 0xEC4
+    void* m_font_addr[4];     // 0xEC4
     u32 m_state;              // 0xED4
-    u8 pad_ED8[0x11F8 - 0xED8];
-    u32 x11F8;              // 0x11F8
+public:
+    FONT_TEX m_mTex[4][2];    // 0xED8
+private:
+    u32 m_stop;               // 0x11F8
+public:
 
     virtual ~MessageControl() {}
 
@@ -264,6 +271,7 @@ public:
     s8 getFontHeight(int no) { return m_Msg[no].getFontHeight(); }
     void SetColor(int no, u32 col) { m_Msg[no].setColor(col); }
     u32 GetColor(int no) { return m_Msg[no].getColor(); }
+    void SetCursor(int no, s8 cur) { m_Msg[no].setCursor(cur); }
     void SetItemName(int no, u16 id) { m_Msg[no].m_item_no = id; }
     void SetBttnWait(int no, s16 wait) { m_Msg[no].setBttnWait(wait); }
     void MesRegistQueue(int no, MesQue* q) { m_Msg[no].registQueue(q); }

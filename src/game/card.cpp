@@ -581,19 +581,19 @@ void cCard::dataSelect()
     case 3:
         setMsgWindow(1, 1);
         cardMesSet(MES_OVERWRITE_CONFIRM, 0, 0);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1 = 6;
         break;
     case 4:
         setMsgWindow(1, 1);
         cardMesSet(MES_SAVEFILE_CONFIRM, 0, 0);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1 = 6;
         break;
     case 5:
         setMsgWindow(1, 1);
         cardMesSet(MES_LOADFILE_CONFIRM, 0, 0);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1 = 6;
         break;
     case 6:
@@ -1209,7 +1209,7 @@ void cCard::format()
     case 1:
         setMsgWindow(0, 1);
         cardMesSet(MES_NEED_FORMAT, 0, 0x800000);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 2:
@@ -1234,7 +1234,7 @@ void cCard::format()
         break;
     case 3:
         cardMesSet(MES_FORMAT_CONFIRM, 0, 0x800000);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 4:
@@ -1336,7 +1336,7 @@ void cCard::fileDelete()
             cardMesSet(MES_DATA_DELETE, 0, 0x800000);
             sprintf(m_Name, "bh4_data%02d", m_SaveNo);
         }
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 1:
@@ -1552,7 +1552,7 @@ void cCard::errorDisp()
             m_Rno1 = 1;
         } else {
             m_Rno1 = 3;
-            cMes.m_Msg[0].m_cur = 1;
+            cMes.SetCursor(0, 1);
         }
         m_Rno2 = 0;
         m_Rno3 = 0;
@@ -1586,9 +1586,10 @@ void cCard::errorDisp()
         }
         cardMesSet(mesNo, 0, 0x800000);
         if (pG->CardStatus & 0x80) {
-            cMes.m_Msg[0].m_cur = 0;
+            // SetCursor(0, 0) does not fold the address of cMes.m_Msg[0] into the store.
+            cMes.getWork()->setCursor(0);
         } else {
-            cMes.m_Msg[0].m_cur = 1;
+            cMes.SetCursor(0, 1);
         }
         m_Rno1++;
         break;
@@ -2894,7 +2895,7 @@ void cCard::createSysfile()
     switch (m_Rno1) {
     case 0:
         cardMesSet(MES_SYS_MAKE_CONFIRM, 0, 0x800000);
-        cMes.m_Msg[0].m_cur = 1;
+        cMes.SetCursor(0, 1);
         m_Rno1++;
         // fallthrough
     case 1:
