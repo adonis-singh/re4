@@ -9,6 +9,9 @@
 #include "math_sub.h"
 #include "rnd.h"
 #include "eprintf.h"
+#ifdef RE4_XBOX
+#include <string.h>
+#endif
 
 static inline void U64Set(u64& d, u64 v) { d = v; }
 
@@ -68,8 +71,12 @@ void PadRead()
     // `dead` would outrank the loop-2 `&Pad_data` hoist in global alloc and take r17 (target r16),
     // so it is pinned. The codeless barrier after it makes every later insn depend on it, so
     // `li r16,10` issues before `lis Pad_data@ha` like the target.
+#ifdef RE4_XBOX
+    int dead;  // register pinning is PowerPC-only (matching hack)
+#else
     register int dead asm("r16");                // COMPILER-DIFF: #17
 
+#endif
     dead = 10;
     asm volatile("");                            // COMPILER-DIFF: #13 (sched barrier, no code)
     PADRead(Pad_data);
@@ -99,7 +106,11 @@ void PadRead()
         pad = &Pad_data[i];
         joy->err = pad->err;
         if (joy->err != 0) {
+#ifdef RE4_XBOX
+            memset(joy, 0, sizeof(JOY));  // memclr_asm is PowerPC assembly
+#else
             memclr_asm(joy, sizeof(JOY));
+#endif
             joy->err = pad->err;
             continue;
         }
@@ -466,4 +477,6 @@ void Pad_test()
 }
 
 // The split object's .rodata is 8-aligned and 4 bytes longer (padding after the last string).
+#ifndef RE4_XBOX
 asm(".section .rodata; .balign 8");
+#endif
